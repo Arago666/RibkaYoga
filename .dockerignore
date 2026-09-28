@@ -1,0 +1,8 @@
+.git
+.scaffold
+node_modules
+vendor
+.env
+storage/logs
+storage/app/private
+.runtime

@@ -1,0 +1,925 @@
+[
+  {
+    "row": "1.1",
+    "position": 1,
+    "bounds": [
+      61,
+      505,
+      91,
+      533
+    ],
+    "file": "1-1-01.png",
+    "name": "Сукхасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.1",
+    "position": 2,
+    "bounds": [
+      101,
+      505,
+      131,
+      533
+    ],
+    "file": "1-1-02.png",
+    "name": "Боковой наклон сидя (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.1",
+    "position": 3,
+    "bounds": [
+      141,
+      505,
+      172,
+      533
+    ],
+    "file": "1-1-03.png",
+    "name": "Дандасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.1",
+    "position": 4,
+    "bounds": [
+      188,
+      505,
+      207,
+      533
+    ],
+    "file": "1-1-04.png",
+    "name": "Руки вверх сидя (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.2",
+    "position": 1,
+    "bounds": [
+      61,
+      534,
+      91,
+      558
+    ],
+    "file": "1-2-01.png",
+    "name": "Навасана с согнутыми ногами (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.2",
+    "position": 2,
+    "bounds": [
+      101,
+      534,
+      131,
+      558
+    ],
+    "file": "1-2-02.png",
+    "name": "Навасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.2",
+    "position": 3,
+    "bounds": [
+      141,
+      534,
+      172,
+      558
+    ],
+    "file": "1-2-03.png",
+    "name": "Ардха Навасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.2",
+    "position": 4,
+    "bounds": [
+      181,
+      534,
+      213,
+      558
+    ],
+    "file": "1-2-04.png",
+    "name": "Лёжа с согнутыми коленями (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.2",
+    "position": 5,
+    "bounds": [
+      227,
+      534,
+      253,
+      558
+    ],
+    "file": "1-2-05.png",
+    "name": "Ноги вверх лёжа (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.2",
+    "position": 6,
+    "bounds": [
+      266,
+      534,
+      289,
+      558
+    ],
+    "file": "1-2-06.png",
+    "name": "Навасана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "1.2",
+    "position": 7,
+    "bounds": [
+      302,
+      534,
+      333,
+      558
+    ],
+    "file": "1-2-07.png",
+    "name": "Дандасана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "1.2",
+    "position": 8,
+    "bounds": [
+      347,
+      534,
+      375,
+      558
+    ],
+    "file": "1-2-08.png",
+    "name": "Скручивание сидя (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.2",
+    "position": 9,
+    "bounds": [
+      389,
+      534,
+      414,
+      558
+    ],
+    "file": "1-2-09.png",
+    "name": "Баласана",
+    "needs_review": false
+  },
+  {
+    "row": "1.2",
+    "position": 10,
+    "bounds": [
+      420,
+      534,
+      455,
+      558
+    ],
+    "file": "1-2-10.png",
+    "name": "Положение на четвереньках",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 1,
+    "bounds": [
+      61,
+      559,
+      91,
+      589
+    ],
+    "file": "1-3-01.png",
+    "name": "Наклон в приседе (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.3",
+    "position": 2,
+    "bounds": [
+      108,
+      559,
+      128,
+      589
+    ],
+    "file": "1-3-02.png",
+    "name": "Положение на четвереньках · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 3,
+    "bounds": [
+      143,
+      559,
+      169,
+      589
+    ],
+    "file": "1-3-03.png",
+    "name": "Битиласана",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 4,
+    "bounds": [
+      187,
+      559,
+      211,
+      589
+    ],
+    "file": "1-3-04.png",
+    "name": "Марджариасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 5,
+    "bounds": [
+      226,
+      559,
+      250,
+      589
+    ],
+    "file": "1-3-05.png",
+    "name": "Уттана Шишосана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.3",
+    "position": 6,
+    "bounds": [
+      261,
+      559,
+      292,
+      589
+    ],
+    "file": "1-3-06.png",
+    "name": "Аштанга Намаскара",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 7,
+    "bounds": [
+      302,
+      559,
+      333,
+      589
+    ],
+    "file": "1-3-07.png",
+    "name": "Подъём груди из восьми опор (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "1.3",
+    "position": 8,
+    "bounds": [
+      341,
+      559,
+      375,
+      589
+    ],
+    "file": "1-3-08.png",
+    "name": "Урдхва Мукха Шванасана",
+    "needs_review": false
+  },
+  {
+    "row": "1.3",
+    "position": 9,
+    "bounds": [
+      381,
+      559,
+      414,
+      589
+    ],
+    "file": "1-3-09.png",
+    "name": "Адхо Мукха Шванасана",
+    "needs_review": false
+  },
+  {
+    "row": "2.1",
+    "position": 1,
+    "bounds": [
+      61,
+      602,
+      91,
+      627
+    ],
+    "file": "2-1-01.png",
+    "name": "Шалабхасана",
+    "needs_review": false
+  },
+  {
+    "row": "2.1",
+    "position": 2,
+    "bounds": [
+      107,
+      602,
+      129,
+      627
+    ],
+    "file": "2-1-02.png",
+    "name": "Бхуджангасана — низкая кобра (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.1",
+    "position": 3,
+    "bounds": [
+      141,
+      602,
+      168,
+      627
+    ],
+    "file": "2-1-03.png",
+    "name": "Шалабхасана — подъём груди (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.1",
+    "position": 4,
+    "bounds": [
+      181,
+      602,
+      213,
+      627
+    ],
+    "file": "2-1-04.png",
+    "name": "Урдхва Мукха Шванасана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "2.1",
+    "position": 5,
+    "bounds": [
+      222,
+      602,
+      254,
+      627
+    ],
+    "file": "2-1-05.png",
+    "name": "Баласана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "2.1",
+    "position": 6,
+    "bounds": [
+      261,
+      602,
+      292,
+      627
+    ],
+    "file": "2-1-06.png",
+    "name": "Уттанасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.2",
+    "position": 1,
+    "bounds": [
+      61,
+      628,
+      91,
+      653
+    ],
+    "file": "2-2-01.png",
+    "name": "Пхалакасана",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 2,
+    "bounds": [
+      101,
+      628,
+      131,
+      653
+    ],
+    "file": "2-2-02.png",
+    "name": "Чатуранга Дандасана",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 3,
+    "bounds": [
+      141,
+      628,
+      172,
+      653
+    ],
+    "file": "2-2-03.png",
+    "name": "Аштанга Намаскара · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 4,
+    "bounds": [
+      181,
+      628,
+      213,
+      653
+    ],
+    "file": "2-2-04.png",
+    "name": "Планка с опорой на колени (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.2",
+    "position": 5,
+    "bounds": [
+      222,
+      628,
+      254,
+      653
+    ],
+    "file": "2-2-05.png",
+    "name": "Урдхва Мукха Шванасана · рисунок 3",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 6,
+    "bounds": [
+      261,
+      628,
+      292,
+      653
+    ],
+    "file": "2-2-06.png",
+    "name": "Пхалакасана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 7,
+    "bounds": [
+      302,
+      628,
+      333,
+      653
+    ],
+    "file": "2-2-07.png",
+    "name": "Адхо Мукха Шванасана · рисунок 2",
+    "needs_review": false
+  },
+  {
+    "row": "2.2",
+    "position": 8,
+    "bounds": [
+      349,
+      628,
+      373,
+      653
+    ],
+    "file": "2-2-08.png",
+    "name": "Уттанасана · рисунок 2 (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.3",
+    "position": 1,
+    "bounds": [
+      61,
+      651,
+      91,
+      682
+    ],
+    "file": "2-3-01.png",
+    "name": "Адхо Мукха Шванасана · рисунок 3",
+    "needs_review": false
+  },
+  {
+    "row": "2.3",
+    "position": 2,
+    "bounds": [
+      101,
+      651,
+      131,
+      682
+    ],
+    "file": "2-3-02.png",
+    "name": "Планка с округлённой спиной (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.3",
+    "position": 3,
+    "bounds": [
+      141,
+      651,
+      172,
+      682
+    ],
+    "file": "2-3-03.png",
+    "name": "Эка Пада Адхо Мукха Шванасана",
+    "needs_review": false
+  },
+  {
+    "row": "2.3",
+    "position": 4,
+    "bounds": [
+      181,
+      651,
+      213,
+      682
+    ],
+    "file": "2-3-04.png",
+    "name": "Колено к плечу в упоре (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.3",
+    "position": 5,
+    "bounds": [
+      222,
+      651,
+      254,
+      682
+    ],
+    "file": "2-3-05.png",
+    "name": "Боковой упор (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.3",
+    "position": 6,
+    "bounds": [
+      266,
+      651,
+      292,
+      682
+    ],
+    "file": "2-3-06.png",
+    "name": "Васиштхасана с поднятой ногой",
+    "needs_review": false
+  },
+  {
+    "row": "2.3",
+    "position": 7,
+    "bounds": [
+      307,
+      651,
+      333,
+      682
+    ],
+    "file": "2-3-07.png",
+    "name": "Выпад с раскрытием корпуса (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "2.3",
+    "position": 8,
+    "bounds": [
+      347,
+      651,
+      375,
+      682
+    ],
+    "file": "2-3-08.png",
+    "name": "Баласана · рисунок 3",
+    "needs_review": false
+  },
+  {
+    "row": "2.4",
+    "position": 1,
+    "bounds": [
+      61,
+      684,
+      91,
+      706
+    ],
+    "file": "2-4-01.png",
+    "name": "Уттанасана · рисунок 3 (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.1",
+    "position": 1,
+    "bounds": [
+      61,
+      719,
+      91,
+      747
+    ],
+    "file": "3-1-01.png",
+    "name": "Тадасана",
+    "needs_review": false
+  },
+  {
+    "row": "3.1",
+    "position": 2,
+    "bounds": [
+      101,
+      719,
+      131,
+      747
+    ],
+    "file": "3-1-02.png",
+    "name": "Врикшасана",
+    "needs_review": false
+  },
+  {
+    "row": "3.1",
+    "position": 3,
+    "bounds": [
+      141,
+      719,
+      172,
+      747
+    ],
+    "file": "3-1-03.png",
+    "name": "Наклон стоя с согнутыми коленями (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.1",
+    "position": 4,
+    "bounds": [
+      185,
+      719,
+      213,
+      747
+    ],
+    "file": "3-1-04.png",
+    "name": "Наклон с вытяжением рук (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.1",
+    "position": 5,
+    "bounds": [
+      224,
+      719,
+      249,
+      747
+    ],
+    "file": "3-1-05.png",
+    "name": "Гарудасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.2",
+    "position": 1,
+    "bounds": [
+      61,
+      748,
+      91,
+      776
+    ],
+    "file": "3-2-01.png",
+    "name": "Уттхита Хаста Падангуштхасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.2",
+    "position": 2,
+    "bounds": [
+      101,
+      748,
+      131,
+      776
+    ],
+    "file": "3-2-02.png",
+    "name": "Баланс стоя с отведённой ногой (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.2",
+    "position": 3,
+    "bounds": [
+      141,
+      748,
+      172,
+      776
+    ],
+    "file": "3-2-03.png",
+    "name": "Баланс стоя с отведённой ногой — разворот (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.3",
+    "position": 1,
+    "bounds": [
+      61,
+      777,
+      91,
+      807
+    ],
+    "file": "3-3-01.png",
+    "name": "Уттхита Хаста Падангуштхасана · рисунок 2 (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.3",
+    "position": 2,
+    "bounds": [
+      101,
+      777,
+      131,
+      807
+    ],
+    "file": "3-3-02.png",
+    "name": "Вирабхадрасана III",
+    "needs_review": false
+  },
+  {
+    "row": "3.3",
+    "position": 3,
+    "bounds": [
+      141,
+      777,
+      172,
+      807
+    ],
+    "file": "3-3-03.png",
+    "name": "Ардха Чандрасана",
+    "needs_review": false
+  },
+  {
+    "row": "3.3",
+    "position": 4,
+    "bounds": [
+      181,
+      777,
+      213,
+      807
+    ],
+    "file": "3-3-04.png",
+    "name": "Паривритта Ардха Чандрасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "3.3",
+    "position": 5,
+    "bounds": [
+      222,
+      777,
+      254,
+      807
+    ],
+    "file": "3-3-05.png",
+    "name": "Маласана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "4.1",
+    "position": 1,
+    "bounds": [
+      66,
+      815,
+      91,
+      852
+    ],
+    "file": "4-1-01.png",
+    "name": "Гарудасана · рисунок 2 (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "4.1",
+    "position": 2,
+    "bounds": [
+      102,
+      815,
+      126,
+      852
+    ],
+    "file": "4-1-02.png",
+    "name": "Прогиб стоя (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "4.1",
+    "position": 3,
+    "bounds": [
+      141,
+      815,
+      172,
+      852
+    ],
+    "file": "4-1-03.png",
+    "name": "Бакасана",
+    "needs_review": false
+  },
+  {
+    "row": "4.1",
+    "position": 4,
+    "bounds": [
+      186,
+      815,
+      212,
+      852
+    ],
+    "file": "4-1-04.png",
+    "name": "Присед с раскрытием коленей (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "4.1",
+    "position": 5,
+    "bounds": [
+      222,
+      815,
+      250,
+      852
+    ],
+    "file": "4-1-05.png",
+    "name": "Урдхва Дханурасана",
+    "needs_review": false
+  },
+  {
+    "row": "4.1",
+    "position": 6,
+    "bounds": [
+      261,
+      815,
+      292,
+      852
+    ],
+    "file": "4-1-06.png",
+    "name": "Ширшасана",
+    "needs_review": false
+  },
+  {
+    "row": "5.1",
+    "position": 1,
+    "bounds": [
+      61,
+      856,
+      91,
+      889
+    ],
+    "file": "5-1-01.png",
+    "name": "Апанасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "5.1",
+    "position": 2,
+    "bounds": [
+      101,
+      856,
+      131,
+      889
+    ],
+    "file": "5-1-02.png",
+    "name": "Карнапидасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "5.1",
+    "position": 3,
+    "bounds": [
+      141,
+      856,
+      172,
+      889
+    ],
+    "file": "5-1-03.png",
+    "name": "Сарвангасана",
+    "needs_review": false
+  },
+  {
+    "row": "5.1",
+    "position": 4,
+    "bounds": [
+      181,
+      856,
+      213,
+      889
+    ],
+    "file": "5-1-04.png",
+    "name": "Халасана",
+    "needs_review": false
+  },
+  {
+    "row": "5.1",
+    "position": 5,
+    "bounds": [
+      222,
+      856,
+      254,
+      889
+    ],
+    "file": "5-1-05.png",
+    "name": "Падмасана (уточнить)",
+    "needs_review": true
+  },
+  {
+    "row": "5.1",
+    "position": 6,
+    "bounds": [
+      261,
+      856,
+      292,
+      889
+    ],
+    "file": "5-1-06.png",
+    "name": "Шавасана",
+    "needs_review": false
+  }
+]

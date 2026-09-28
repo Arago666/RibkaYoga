@@ -1,0 +1,18 @@
+<?php
+
+use App\Modules\Catalog\Http\AsanaController;
+use App\Modules\Catalog\Http\CategoryController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('api')->group(function () {
+    Route::get('asanas', [AsanaController::class, 'index']);
+    Route::post('asanas', [AsanaController::class, 'store'])->middleware('throttle:uploads');
+    Route::get('asanas/{id}', [AsanaController::class, 'show'])->whereUuid('id');
+    Route::patch('asanas/{id}', [AsanaController::class, 'update'])->whereUuid('id')->middleware('throttle:uploads');
+    Route::post('asanas/{id}/archive', [AsanaController::class, 'archive'])->whereUuid('id');
+    Route::post('asanas/{id}/restore', [AsanaController::class, 'restore'])->whereUuid('id');
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::post('categories', [CategoryController::class, 'store']);
+    Route::patch('categories/{id}', [CategoryController::class, 'update'])->whereUuid('id');
+    Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->whereUuid('id');
+});
