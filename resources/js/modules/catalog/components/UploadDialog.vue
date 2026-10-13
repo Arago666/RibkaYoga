@@ -3,10 +3,14 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { Upload, CheckCircle2, AlertCircle, X, LoaderCircle, ChevronDown, ChevronUp } from '@lucide/vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
+import { uid } from '@/shared/uuid';
 import { errorText, type Category } from '../types';
 import AsanaFields from './AsanaFields.vue';
+import CollectionChoices from './CollectionChoices.vue';
 const props = defineProps<{ open: boolean; categories: Category[] }>();
 const emit = defineEmits<{ close: []; uploaded: [] }>();
+// Массовая загрузка временно скрыта по запросу владельца.
+const batchUploadEnabled = false;
 interface UploadItem {
   id: string;
   file: File | null;
@@ -14,6 +18,7 @@ interface UploadItem {
   name: string;
   aliases: string;
   categoryIds: string[];
+  collectionIds: string[];
   expanded: boolean;
   state: 'ready' | 'uploading' | 'done' | 'error';
   error: string;
@@ -21,12 +26,13 @@ interface UploadItem {
 }
 function emptyItem(): UploadItem {
   return {
-    id: crypto.randomUUID(),
+    id: uid(),
     file: null,
     url: '',
     name: '',
     aliases: '',
     categoryIds: [],
+    collectionIds: [],
     expanded: true,
     state: 'ready',
     error: '',
@@ -113,6 +119,12 @@ async function upload() {
         item.expanded = true;
         continue;
       }
+      if (!item.categoryIds.length || !item.collectionIds.length) {
+        item.state = 'error';
+        item.error = 'Выберите хотя бы одну категорию и одну подборку.';
+        item.expanded = true;
+        continue;
+      }
       item.state = 'uploading';
       item.error = '';
       const data = new FormData();
@@ -128,6 +140,7 @@ async function upload() {
         ),
       );
       data.set('category_ids', JSON.stringify(item.categoryIds));
+      data.set('collection_ids', JSON.stringify(item.collectionIds));
       try {
         await api('/api/asanas', { method: 'POST', body: data });
         item.state = 'done';
@@ -152,7 +165,11 @@ function close() {
     items.value.some(
       (item) =>
         item.state !== 'done' &&
-        (item.file || item.name.trim() || item.aliases.trim() || item.categoryIds.length),
+        (item.file ||
+          item.name.trim() ||
+          item.aliases.trim() ||
+          item.categoryIds.length ||
+          item.collectionIds.length),
     ) &&
     !window.confirm('Закрыть создание? Незагруженные карточки и введённые данные будут сброшены.')
   )
@@ -249,6 +266,11 @@ onBeforeUnmount(() => {
           image-required
           @image="replaceImage(item, $event)"
         />
+        <CollectionChoices
+          v-model="item.collectionIds"
+          :open="open"
+          :disabled="busy || item.state === 'done'"
+        />
       </article>
     </div>
     <input
@@ -260,6 +282,7 @@ onBeforeUnmount(() => {
       @change="addFiles(($event.target as HTMLInputElement).files)"
     />
     <button
+      v-if="batchUploadEnabled"
       type="button"
       class="upload-drop"
       :class="{ dragging }"
@@ -292,6 +315,22 @@ onBeforeUnmount(() => {
   </Modal>
 </template>
 <style scoped>
+.upload-collections {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.collection-options {
+  display: grid;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+.collection-options label {
+  overflow-wrap: anywhere;
+}
 .intro {
   margin: 0 0 20px;
   line-height: 1.5;

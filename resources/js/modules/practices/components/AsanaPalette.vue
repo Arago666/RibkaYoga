@@ -13,6 +13,8 @@ import {
 } from '@lucide/vue';
 import { api } from '@/shared/api';
 import type { Asana, Category, Collection, Page } from '@/modules/catalog/types';
+import CategoryQuickFilters from '@/modules/catalog/components/CategoryQuickFilters.vue';
+import CategoryMarkers from '@/modules/catalog/components/CategoryMarkers.vue';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
 const props = defineProps<{
   documentId: string;
@@ -59,6 +61,7 @@ const key = `ribka:palette:${(pageProps.props.auth as { user?: { id: number } })
 const query = ref(''),
   category = ref(''),
   source = ref('all'),
+  sort = ref('name_asc'),
   page = ref(1);
 const cards = ref<Asana[]>([]),
   collections = ref<Collection[]>([]),
@@ -93,7 +96,7 @@ async function load() {
     if (source.value === 'all') {
       const search = new URLSearchParams({
         q: query.value,
-        sort: 'name_asc',
+        sort: sort.value,
         page: String(page.value),
         per_page: '24',
       });
@@ -119,7 +122,7 @@ async function load() {
     if (current === serial) loading.value = false;
   }
 }
-watch([query, category, source], () => {
+watch([query, category, source, sort], () => {
   serial++;
   loading.value = true;
   page.value = 1;
@@ -210,7 +213,18 @@ onBeforeUnmount(() => {
             {{ item.name }}
           </option>
         </select>
+        <select v-model="sort" class="select" aria-label="Сортировка асан" :disabled="disabled">
+          <option value="name_asc">По алфавиту</option>
+          <option value="used_recently">Недавно использованные</option>
+          <option value="recent">Недавно добавленные</option>
+        </select>
       </div>
+      <CategoryQuickFilters
+        v-if="source === 'all'"
+        v-model="category"
+        :categories="categories"
+        :disabled="disabled"
+      />
     </div>
     <p v-if="!embedded" class="palette-hint">
       {{ active ? 'Нажмите на асану, чтобы вставить её' : 'Выберите ячейку или перетащите асану' }}
@@ -259,6 +273,7 @@ onBeforeUnmount(() => {
           draggable="false"
         /><span>{{ card.name }}</span
         ><small v-if="card.archived_at">В архиве</small>
+        <CategoryMarkers :categories="card.categories" style="position: absolute; left: 8px; top: 8px" />
       </button>
     </div>
     <footer class="palette-footer">

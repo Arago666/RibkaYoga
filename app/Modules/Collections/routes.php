@@ -1,7 +1,15 @@
 <?php
 
 use App\Modules\Collections\Http\CollectionController;
+use App\Modules\Collections\Http\CollectionFolderController;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('api/collection-folders')->group(function () {
+    Route::get('/', [CollectionFolderController::class, 'index']);
+    Route::post('/', [CollectionFolderController::class, 'store']);
+    Route::patch('/{id}', [CollectionFolderController::class, 'update'])->whereUuid('id');
+    Route::delete('/{id}', [CollectionFolderController::class, 'destroy'])->whereUuid('id');
+});
 
 Route::prefix('api/collections')->group(function () {
     Route::get('/', [CollectionController::class, 'index']);

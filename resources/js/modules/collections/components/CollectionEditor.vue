@@ -5,7 +5,13 @@ import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import CatalogSelectDialog from '../../catalog/components/CatalogSelectDialog.vue';
 import { errorText, type Asana, type Collection } from '../../catalog/types';
-const props = defineProps<{ open: boolean; collection: Collection | null }>();
+import type { CollectionFolder } from '../types';
+import CollectionFolderSelect from './CollectionFolderSelect.vue';
+const props = defineProps<{
+  open: boolean;
+  collection: Collection | null;
+  defaultFolderId?: string | null;
+}>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const name = ref(''),
   description = ref(''),
@@ -13,6 +19,19 @@ const name = ref(''),
   busy = ref(false),
   picker = ref(false);
 const cards = ref<Asana[]>([]);
+const folderId = ref(''),
+  folders = ref<CollectionFolder[]>([]),
+  foldersLoading = ref(false);
+async function loadFolders() {
+  foldersLoading.value = true;
+  try {
+    folders.value = (await api<{ data: CollectionFolder[] }>('/api/collection-folders')).data;
+  } catch (failure) {
+    error.value = errorText(failure);
+  } finally {
+    foldersLoading.value = false;
+  }
+}
 const ids = computed(() => cards.value.map((card) => card.id));
 watch(
   () => props.open,
@@ -21,7 +40,9 @@ watch(
     name.value = props.collection?.name || '';
     description.value = props.collection?.description || '';
     cards.value = [...(props.collection?.items || [])];
+    folderId.value = props.collection ? props.collection.folder_id || '' : props.defaultFolderId || '';
     error.value = '';
+    void loadFolders();
   },
 );
 function move(index: number, offset: number) {
@@ -45,6 +66,7 @@ async function save() {
         name: name.value.trim(),
         description: description.value || null,
         asana_ids: ids.value,
+        folder_id: folderId.value || null,
         ...(props.collection ? { expected_revision: props.collection.revision } : {}),
       }),
     });
@@ -75,6 +97,15 @@ async function save() {
           maxlength="160"
           :disabled="busy"
           placeholder="Например, практика на баланс"
+        />
+      </div>
+      <div class="field">
+        <label class="label" for="collection-folder">Папка</label>
+        <CollectionFolderSelect
+          id="collection-folder"
+          v-model="folderId"
+          :folders="folders"
+          :disabled="busy || foldersLoading"
         />
       </div>
       <div class="field">
@@ -141,7 +172,7 @@ async function save() {
         class="btn btn-primary"
         form="collection-editor"
         type="submit"
-        :disabled="busy || !cards.length"
+        :disabled="busy || foldersLoading || !cards.length"
       >
         {{ busy ? 'Сохраняем…' : 'Сохранить подборку' }}
       </button></template

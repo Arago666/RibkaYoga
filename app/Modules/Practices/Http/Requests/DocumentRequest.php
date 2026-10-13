@@ -33,6 +33,7 @@ class DocumentRequest extends FormRequest
             'blocks.*.rows.*.cells.*.card_snapshot_id' => ['present', 'nullable', 'uuid'],
             'blocks.*.rows.*.cells.*.custom_name' => ['nullable', 'string', 'max:160'],
             'blocks.*.rows.*.cells.*.group_key' => ['nullable', 'uuid'],
+            'blocks.*.rows.*.cells.*.arrow_direction' => ['nullable', 'in:cross,both,up,down,left,right'],
             'blocks.*.rows.*.cells.*.note' => ['nullable', 'string', 'max:160'],
         ];
     }

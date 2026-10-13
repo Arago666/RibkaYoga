@@ -3,9 +3,13 @@ import { onBeforeUnmount, ref, watch } from 'vue';
 import { Search, Check, ChevronLeft, ChevronRight } from '@lucide/vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
-import { errorText, type Asana, type Page } from '../types';
-const props = withDefaults(defineProps<{ open: boolean; existingIds?: string[] }>(), {
+import { errorText, type Asana, type Page, type Category } from '../types';
+import CategoryQuickFilters from './CategoryQuickFilters.vue';
+const categories = ref<Category[]>([]),
+  category = ref('');
+const props = withDefaults(defineProps<{ open: boolean; existingIds?: string[]; existingLabel?: string }>(), {
   existingIds: () => [],
+  existingLabel: 'Уже в подборке',
 });
 const emit = defineEmits<{ close: []; selected: [cards: Asana[]] }>();
 const query = ref(''),
@@ -22,7 +26,7 @@ async function load() {
   error.value = '';
   try {
     const response = await api<Page<Asana>>(
-      `/api/asanas?${new URLSearchParams({ q: query.value, page: String(page.value), archive: 'active', sort: 'name_asc' })}`,
+      `/api/asanas?${new URLSearchParams({ q: query.value, category: category.value, page: String(page.value), archive: 'active', sort: 'name_asc' })}`,
     );
     if (request === sequence) result.value = response;
   } catch (failure) {
@@ -39,6 +43,9 @@ watch(
       query.value = '';
       page.value = 1;
       void load();
+      void api<{ data: Category[] }>('/api/categories')
+        .then((result) => (categories.value = result.data))
+        .catch(() => {});
     } else sequence++;
   },
 );
@@ -48,6 +55,10 @@ watch(query, () => {
     page.value = 1;
     void load();
   }, 250);
+});
+watch(category, () => {
+  page.value = 1;
+  void load();
 });
 function toggle(card: Asana) {
   const next = new Map(selection.value);
@@ -69,6 +80,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <Modal :open="open" title="Выбрать асаны" @close="$emit('close')">
+    <CategoryQuickFilters v-model="category" :categories="categories" />
     <div class="picker-search">
       <Search :size="18" /><input
         v-model="query"
@@ -97,7 +109,7 @@ onBeforeUnmount(() => {
         ><img :src="card.thumbnail_url || card.image_url" :alt="card.name" loading="lazy" /><span>{{
           card.name
         }}</span
-        ><small v-if="existingIds.includes(card.id)">Уже в подборке</small>
+        ><small v-if="existingIds.includes(card.id)">{{ existingLabel }}</small>
       </button>
     </div>
     <p v-if="!busy && result && !result.total" class="empty-state">

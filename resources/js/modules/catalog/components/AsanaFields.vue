@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+import { Crop, Pencil } from '@lucide/vue';
 import type { Category } from '../types';
-defineProps<{
+import ImageEditor from './ImageEditor.vue';
+import AsanaDrawing from './AsanaDrawing.vue';
+const props = defineProps<{
   categories: Category[];
   prefix: string;
   disabled?: boolean;
@@ -12,6 +16,25 @@ const name = defineModel<string>('name', { required: true });
 const aliases = defineModel<string>('aliases', { required: true });
 const categoryIds = defineModel<string[]>('categoryIds', { required: true });
 const emit = defineEmits<{ image: [file: File] }>();
+const tool = ref<'edit' | 'draw' | null>(null);
+const drawingOpened = ref(false);
+const taskContext = computed(() => ({
+  name: name.value,
+  aliases: aliases.value
+    .split('\n')
+    .map((value) => value.trim())
+    .filter(Boolean),
+  category_ids: categoryIds.value,
+}));
+function useImage(file: File) {
+  if (props.disabled) return;
+  emit('image', file);
+  tool.value = null;
+}
+function openDrawing() {
+  drawingOpened.value = true;
+  tool.value = tool.value === 'draw' ? null : 'draw';
+}
 function chooseImage(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -73,6 +96,42 @@ function chooseImage(event: Event) {
         <slot name="image-help" />
       </div>
     </div>
+    <div class="image-tools">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        :disabled="disabled || !imageUrl"
+        :aria-expanded="tool === 'edit'"
+        @click="tool = tool === 'edit' ? null : 'edit'"
+      >
+        <Crop :size="16" />Редактировать изображение
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary"
+        :disabled="disabled"
+        :aria-expanded="tool === 'draw'"
+        @click="openDrawing"
+      >
+        <Pencil :size="16" />Нарисовать асану
+      </button>
+    </div>
+    <ImageEditor
+      v-if="tool === 'edit' && imageUrl"
+      :source="imageUrl"
+      :context="taskContext"
+      :disabled="disabled"
+      @image="useImage"
+      @close="tool = null"
+    />
+    <AsanaDrawing
+      v-if="drawingOpened"
+      v-show="tool === 'draw'"
+      :context="taskContext"
+      :disabled="disabled"
+      @image="useImage"
+      @close="tool = null"
+    />
   </div>
 </template>
 
@@ -137,6 +196,11 @@ function chooseImage(event: Event) {
 }
 .image-name {
   overflow-wrap: anywhere;
+}
+.image-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 @media (max-width: 480px) {
   .image-field {

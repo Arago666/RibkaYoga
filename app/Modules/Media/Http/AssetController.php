@@ -17,10 +17,10 @@ class AssetController
         abort_unless(is_file($path), 404);
 
         return response()->file($path, [
-            'Content-Type' => $thumbnail ? 'image/webp' : $asset->mime,
+            'Content-Type' => $thumbnail && $asset->thumbnail_path !== $asset->original_path ? 'image/webp' : $asset->mime,
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',
             'Content-Security-Policy' => "default-src 'none'",
-        ]);
+        ])->setPrivate();
     }
 }

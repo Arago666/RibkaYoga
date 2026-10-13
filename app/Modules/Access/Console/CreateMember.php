@@ -14,7 +14,7 @@ class CreateMember extends Command
 {
     use AccountInput;
 
-    protected $signature = 'ribka:member {workspace : UUID пространства} {--email=} {--user= : Имя участника} {--role=editor}';
+    protected $signature = 'ribka:member {workspace : UUID пространства} {--email=} {--user= : Имя участника} {--login= : Логин участника} {--role=editor}';
 
     protected $description = 'Добавить отдельный аккаунт преподавателя или владельца в пространство';
 
@@ -29,6 +29,7 @@ class CreateMember extends Command
             WorkspaceMember::create(['workspace_id' => $workspace->id, 'user_id' => $user->id, 'role' => $role]);
         });
         $this->info('Участник добавлен: '.$account['email']);
+        $this->info('Логин: '.$account['login']);
 
         return self::SUCCESS;
     }

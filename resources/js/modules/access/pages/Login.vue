@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowRight, Eye, EyeOff } from '@lucide/vue';
 import { ref } from 'vue';
-const form = useForm({ email: '', password: '', remember: true });
+defineProps<{ status?: string }>();
+const form = useForm({ login: '', password: '', remember: true });
 const visible = ref(false);
 function submit() {
   form.post('/login', { onFinish: () => form.reset('password') });
@@ -15,21 +16,23 @@ function submit() {
       <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
     </div>
     <section class="login-card">
-      <div class="eyebrow">ВАШЕ ПРОСТРАНСТВО ПРАКТИКИ</div>
-      <h1>С возвращением</h1>
-      <p class="muted">Войдите, чтобы продолжить свои последовательности.</p>
+      <h1>Добро пожаловать</h1>
+      <p v-if="status" class="success-banner" role="status">{{ status }}</p>
       <form @submit.prevent="submit" class="login-form">
         <label class="field"
-          ><span class="label">Электронная почта</span
+          ><span class="label">Логин</span
           ><input
-            v-model="form.email"
+            v-model="form.login"
             class="input"
-            type="email"
+            type="text"
             autocomplete="username"
+            autocapitalize="none"
+            :spellcheck="false"
+            maxlength="64"
             required
             autofocus
-            placeholder="name@example.com"
-          /><span v-if="form.errors.email" class="field-error">{{ form.errors.email }}</span></label
+            placeholder="Введите логин"
+          /><span v-if="form.errors.login" class="field-error">{{ form.errors.login }}</span></label
         >
         <label class="field"
           ><span class="label">Пароль</span
@@ -53,7 +56,22 @@ function submit() {
           {{ form.processing ? 'Входим…' : 'Войти' }}<ArrowRight :size="18" />
         </button>
       </form>
+      <div class="auth-links">
+        <Link href="/register">Создать кабинет</Link><Link href="/forgot-password">Забыли пароль?</Link>
+      </div>
     </section>
-    <p class="login-help">Доступ к пространству предоставляет его владелец.</p>
   </main>
 </template>
+<style scoped>
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  font-size: 0.84rem;
+  flex-wrap: wrap;
+}
+.auth-links a {
+  color: #397a28;
+}
+</style>

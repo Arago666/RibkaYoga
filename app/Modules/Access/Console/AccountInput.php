@@ -11,10 +11,12 @@ trait AccountInput
     {
         $email = mb_strtolower(trim((string) ($this->option('email') ?: $this->ask('Email'))));
         $name = trim((string) ($this->option('user') ?: $this->ask('Имя')));
+        $login = mb_strtolower(trim((string) ($this->option('login') ?: $this->ask('Логин'))));
 
-        return Validator::make(['email' => $email, 'name' => $name, 'password' => $this->readPassword()], [
+        return Validator::make(['email' => $email, 'name' => $name, 'login' => $login, 'password' => $this->readPassword()], [
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'name' => ['required', 'string', 'max:120'],
+            'login' => ['required', 'string', 'max:64', 'regex:/\A[a-z0-9][a-z0-9._-]*\z/', 'unique:users,login'],
             'password' => ['required', Password::min(12)],
         ])->validate();
     }

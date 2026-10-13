@@ -3,6 +3,8 @@ import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { errorText, type Collection, type Page } from '../../catalog/types';
+import type { CollectionFolder } from '../types';
+import CollectionFolderSelect from './CollectionFolderSelect.vue';
 const props = defineProps<{ open: boolean; asanaIds: string[] }>();
 const emit = defineEmits<{ close: []; saved: [name: string] }>();
 const mode = ref<'new' | 'existing'>('new'),
@@ -15,6 +17,19 @@ const collections = ref<Collection[]>([]),
   lastPage = ref(1),
   loading = ref(false),
   busy = ref(false);
+const folders = ref<CollectionFolder[]>([]),
+  folderId = ref(''),
+  foldersLoading = ref(false);
+async function loadFolders() {
+  foldersLoading.value = true;
+  try {
+    folders.value = (await api<{ data: CollectionFolder[] }>('/api/collection-folders')).data;
+  } catch (failure) {
+    error.value = errorText(failure);
+  } finally {
+    foldersLoading.value = false;
+  }
+}
 async function loadMore() {
   if (loading.value || page.value >= lastPage.value) return;
   loading.value = true;
@@ -37,11 +52,13 @@ watch(
     name.value = '';
     description.value = '';
     collectionId.value = '';
+    folderId.value = '';
     error.value = '';
     collections.value = [];
     page.value = 0;
     lastPage.value = 1;
     void loadMore();
+    void loadFolders();
   },
 );
 async function save() {
@@ -57,6 +74,7 @@ async function save() {
           name: savedName,
           description: description.value || null,
           asana_ids: props.asanaIds,
+          folder_id: folderId.value || null,
         }),
       });
     else {
@@ -114,6 +132,15 @@ async function save() {
           />
         </div>
         <div class="field">
+          <label class="label" for="new-collection-folder">Папка</label>
+          <CollectionFolderSelect
+            id="new-collection-folder"
+            v-model="folderId"
+            :folders="folders"
+            :disabled="busy || foldersLoading"
+          />
+        </div>
+        <div class="field">
           <label class="label" for="new-collection-description">Описание · необязательно</label
           ><textarea
             id="new-collection-description"
@@ -129,7 +156,7 @@ async function save() {
         ><select id="existing-collection" v-model="collectionId" class="select" required :disabled="busy">
           <option value="" disabled>Выберите подборку</option>
           <option v-for="collection in collections" :key="collection.id" :value="collection.id">
-            {{ collection.name }}
+            {{ collection.folder_path ? `${collection.folder_path} / ` : '' }}{{ collection.name }}
           </option>
         </select>
         <p v-if="!loading && !collections.length" class="muted">Подборок пока нет. Создайте новую.</p>
@@ -150,7 +177,7 @@ async function save() {
         class="btn btn-primary"
         form="add-to-collection"
         type="submit"
-        :disabled="busy || !asanaIds.length || (mode === 'existing' && !collectionId)"
+        :disabled="busy || foldersLoading || !asanaIds.length || (mode === 'existing' && !collectionId)"
       >
         {{ busy ? 'Сохраняем…' : 'Добавить в подборку' }}
       </button></template

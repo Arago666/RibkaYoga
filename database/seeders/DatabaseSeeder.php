@@ -11,6 +11,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Accounts are provisioned explicitly with the ribka:workspace/member commands.
+        $this->call(ServerSnapshotSeeder::class);
     }
 }

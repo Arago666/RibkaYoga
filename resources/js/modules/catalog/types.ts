@@ -14,6 +14,31 @@ export interface Asana {
   image_asset_id: string;
   revision: number;
   archived_at: string | null;
+  collection_ids?: string[];
+  relations?: AsanaRelation[];
+}
+export type RelationKind = 'simpler' | 'harder' | 'preparation';
+export interface AsanaRelation {
+  asana_id: string;
+  kind: RelationKind;
+  name: string;
+  image_url?: string;
+  archived_at?: string | null;
+}
+export const relationLabels: Record<RelationKind, string> = {
+  simpler: 'Упрощение',
+  harder: 'Усложнение',
+  preparation: 'Подводящее упражнение',
+};
+export function categoryColor(name: string): string {
+  const value = name.toLocaleLowerCase('ru').replaceAll('ё', 'е');
+  return value === 'лежа'
+    ? '#d95d5d'
+    : value === 'сидя'
+      ? '#52a85c'
+      : value === 'стоя'
+        ? '#e5b83d'
+        : '#81947a';
 }
 export interface Page<T> {
   data: T[];
@@ -30,6 +55,8 @@ export interface Collection {
   items: Asana[];
   archived_at: string | null;
   items_count?: number;
+  folder_id?: string | null;
+  folder_path?: string | null;
 }
 export function errorText(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -37,4 +64,17 @@ export function errorText(error: unknown): string {
 }
 export function categoryLabel(category: Category): string {
   return category.name;
+}
+export function cardCount(count: number): string {
+  const tail = Math.abs(count) % 100;
+  const last = tail % 10;
+  const word =
+    tail >= 11 && tail <= 14
+      ? 'карточек'
+      : last === 1
+        ? 'карточка'
+        : last >= 2 && last <= 4
+          ? 'карточки'
+          : 'карточек';
+  return `${count} ${word}`;
 }

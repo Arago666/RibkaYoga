@@ -12,7 +12,8 @@ import {
   Trash2,
   ArrowRight,
 } from '@lucide/vue';
-import { cellFilled, cellGroupEdges, cellLabel, type Row, type Cell } from '../types';
+import { arrowLabels, cellFilled, cellGroupEdges, cellLabel, type Row, type Cell } from '../types';
+import CellArrow from './CellArrow.vue';
 const props = defineProps<{
   row: Row;
   number: string;
@@ -121,7 +122,7 @@ function closeMenu(event: MouseEvent) {
                     'group-range-invalid': groupMode && groupInvalid && groupRange?.has(cell.id),
                   },
                 ]"
-                :aria-label="`${number}, ячейка ${index + 1}: ${cellLabel(cell) || 'пустая'}${cell.group_key ? ', в группе со скобками' : ''}${groupMode && groupRange?.has(cell.id) ? ', выбрана для объединения' : ''}`"
+                :aria-label="`${number}, ячейка ${index + 1}: ${cellLabel(cell) || 'пустая'}${cell.arrow_direction ? ', стрелка ' + arrowLabels[cell.arrow_direction].toLowerCase() : ''}${cell.group_key ? ', в группе со скобками' : ''}${groupMode && groupRange?.has(cell.id) ? ', выбрана для объединения' : ''}`"
                 :aria-pressed="groupMode ? !!groupRange?.has(cell.id) : active === cell.id"
                 :aria-disabled="disabled"
                 :data-editor-cell="cell.id"
@@ -142,6 +143,7 @@ function closeMenu(event: MouseEvent) {
                   aria-hidden="true"
                 />
                 <span class="cell-index">{{ index + 1 }}</span>
+                <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
                 <span v-if="pending.has(cell.id)" class="cell-pending">Добавляем…</span>
                 <img
                   v-else-if="cell.card"

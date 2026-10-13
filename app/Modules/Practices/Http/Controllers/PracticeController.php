@@ -74,6 +74,18 @@ class PracticeController
         return response()->json(['data' => $this->editor->resolveCards(array_map('strtolower', $data['asana_ids']))], 201);
     }
 
+    public function refreshPreview(string $id): JsonResponse
+    {
+        return response()->json(['data' => $this->editor->refreshPreview($id)]);
+    }
+
+    public function refreshSnapshots(Request $request, string $id): JsonResponse
+    {
+        $data = $request->validate(['expected_revision' => 'required|integer|min:1', 'source_asana_ids' => 'required|array|list|min:1|max:1000', 'source_asana_ids.*' => 'required|uuid|distinct:ignore_case', 'expected_asana_revisions' => 'required|array|list|min:1|max:1000', 'expected_asana_revisions.*.asana_id' => 'required|uuid|distinct:ignore_case', 'expected_asana_revisions.*.revision' => 'required|integer|min:1']);
+        $expected = array_map(fn ($entry) => ['asana_id' => strtolower($entry['asana_id']), 'revision' => (int) $entry['revision']], $data['expected_asana_revisions']);
+        return response()->json(['data' => $this->editor->refreshSnapshots($id, (int) $data['expected_revision'], array_map('strtolower', $data['source_asana_ids']), $expected)]);
+    }
+
     public function rowIndex(Request $request): JsonResponse
     {
         return response()->json($this->editor->listing($this->filters($request), true));
@@ -107,7 +119,7 @@ class PracticeController
     private function filters(Request $request): array
     {
         return $request->validate([
-            'kind' => ['sometimes', Rule::in(['practice', 'template'])],
+            'kind' => ['sometimes', Rule::in(['practice', 'template', 'row', 'transition'])],
             'q' => ['nullable', 'string', 'max:255'],
             'archive' => ['sometimes', Rule::in(['active', 'archived'])],
             'archived' => ['sometimes', 'boolean'],

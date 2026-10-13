@@ -1,14 +1,28 @@
+import { uid } from '@/shared/uuid';
+export { uid } from '@/shared/uuid';
+
+export type ArrowDirection = 'cross' | 'both' | 'up' | 'down' | 'left' | 'right';
+export const arrowLabels: Record<ArrowDirection, string> = {
+  cross: 'Четырёхсторонняя стрелка',
+  both: 'Горизонтальная двусторонняя стрелка',
+  up: 'Вверх',
+  down: 'Вниз',
+  left: 'Влево',
+  right: 'Вправо',
+};
+
 export interface Snapshot {
   id: string;
   name: string;
   image_url: string;
-  source_asana_id: string;
+  source_asana_id?: string | null;
 }
 export interface Cell {
   id: string;
   card_snapshot_id: string | null;
   custom_name: string | null;
   group_key: string | null;
+  arrow_direction: ArrowDirection | null;
   note: string | null;
   card: Snapshot | null;
 }
@@ -33,9 +47,19 @@ export interface Practice {
   revision: number;
   blocks: Block[];
   archived_at?: string | null;
+  row_template_kind?: 'row' | 'transition';
+  transition_relations?: TransitionRelation[];
+}
+export interface TransitionRelation {
+  transition_id: string;
+  title?: string;
+  kind: 'simpler' | 'harder' | 'preparation';
+  archived_at?: string | null;
 }
 export interface RowTemplate {
   id: string;
+  kind?: 'row' | 'transition';
+  relations?: TransitionRelation[];
   title: string;
   theme: string | null;
   note: string | null;
@@ -43,13 +67,13 @@ export interface RowTemplate {
   cells: Cell[];
   archived_at?: string | null;
 }
-export const uid = () => crypto.randomUUID();
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 export const emptyCell = (): Cell => ({
   id: uid(),
   card_snapshot_id: null,
   custom_name: null,
   group_key: null,
+  arrow_direction: null,
   note: null,
   card: null,
 });
@@ -86,10 +110,11 @@ export const copyBlock = (block: Block): Block => ({
 });
 export function payload(document: Practice, rowMode = false) {
   const cells = (row: Row) =>
-    row.cells.map(({ id, card_snapshot_id, custom_name, group_key, note }) => ({
+    row.cells.map(({ id, card_snapshot_id, custom_name, group_key, arrow_direction, note }) => ({
       id,
       card_snapshot_id,
       group_key: group_key || null,
+      arrow_direction: arrow_direction || null,
       custom_name: card_snapshot_id ? null : custom_name?.trim() || null,
       note: card_snapshot_id || custom_name?.trim() ? note || null : null,
     }));
@@ -101,6 +126,11 @@ export function payload(document: Practice, rowMode = false) {
   if (rowMode)
     return {
       ...common,
+      kind: document.row_template_kind || 'row',
+      relations: (document.transition_relations || []).map(({ transition_id, kind }) => ({
+        transition_id,
+        kind,
+      })),
       note: document.blocks[0].rows[0].note || null,
       cells: cells(document.blocks[0].rows[0]),
     };
@@ -130,6 +160,8 @@ export function rowAsDocument(row: RowTemplate): Practice {
     practice_date: null,
     revision: row.revision,
     archived_at: row.archived_at,
+    row_template_kind: row.kind || 'row',
+    transition_relations: row.relations || [],
     blocks: [
       {
         id: 'row-wrapper',

@@ -1,16 +1,18 @@
 <?php
 
+use Laravel\Fortify\Features;
+
 return [
     'guard' => 'web',
     'passwords' => 'users',
-    'username' => 'email',
+    'username' => 'login',
     'email' => 'email',
     'lowercase_usernames' => true,
     'home' => '/practices',
     'prefix' => '',
     'domain' => null,
-    'middleware' => ['web'],
+    'middleware' => ['web', 'throttle:access'],
     'limiters' => ['login' => 'login'],
     'views' => true,
-    'features' => [],
+    'features' => [Features::registration(), Features::resetPasswords()],
 ];

@@ -2,9 +2,12 @@
 
 use App\Modules\Catalog\Http\AsanaController;
 use App\Modules\Catalog\Http\CategoryController;
+use App\Modules\Catalog\Http\ExchangeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api')->group(function () {
+    Route::post('catalog-json/export', [ExchangeController::class, 'export']);
+    Route::post('catalog-json/import', [ExchangeController::class, 'import'])->middleware('throttle:uploads');
     Route::get('asanas', [AsanaController::class, 'index']);
     Route::post('asanas', [AsanaController::class, 'store'])->middleware('throttle:uploads');
     Route::get('asanas/{id}', [AsanaController::class, 'show'])->whereUuid('id');

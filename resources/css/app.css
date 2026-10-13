@@ -476,13 +476,10 @@ input[type='checkbox'] {
   box-shadow: 0 8px 36px #28382505;
 }
 .login-card h1 {
+  color: var(--accent);
   font-size: 30px;
   letter-spacing: -0.7px;
-  margin: 10px 0;
-}
-.login-card p {
-  font-size: 15px;
-  line-height: 1.6;
+  margin: 0;
 }
 .login-form {
   display: grid;
@@ -504,12 +501,6 @@ input[type='checkbox'] {
 .login-submit {
   width: 100%;
   justify-content: space-between;
-}
-.login-help {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 24px;
-  text-align: center;
 }
 .skeleton {
   background: linear-gradient(90deg, #eef2eb, #f9fbf7, #eef2eb);

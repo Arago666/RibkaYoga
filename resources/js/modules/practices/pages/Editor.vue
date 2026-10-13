@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Bookmark,
   Brackets,
+  UserPlus,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
@@ -31,10 +32,15 @@ import { api } from '@/shared/api';
 import AsanaPalette from '../components/AsanaPalette.vue';
 import CellPicker from '../components/CellPicker.vue';
 import SequenceRow from '../components/SequenceRow.vue';
+import ArrowSymbol from '../components/ArrowSymbol.vue';
+import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+const sharingOpen = ref(false);
 import { useEditor } from '../composables/useEditor';
 import type { PaletteDragPoint } from '../composables/usePaletteDrag';
 import {
   clone,
+  arrowLabels,
+  type ArrowDirection,
   cellFilled,
   cellLabel,
   copyBlock,
@@ -50,10 +56,12 @@ import {
   type Row,
   type RowTemplate,
   type Snapshot,
+  type TransitionRelation,
 } from '../types';
-import type { Asana, Page } from '@/modules/catalog/types';
+import { relationLabels, type Asana, type AsanaRelation, type Page } from '@/modules/catalog/types';
 
 const props = withDefaults(defineProps<{ documentId: string; rowMode?: boolean }>(), { rowMode: false });
+const embedded = new URL(window.location.href).searchParams.get('embedded') === '1';
 const editor = useEditor(props.documentId, props.rowMode);
 const {
   document: doc,
@@ -72,6 +80,20 @@ const activeCell = ref<string | null>(null),
   notice = ref('');
 // Keep the action target while its temporary focus highlight has already ended.
 const highlightedCell = ref<string | null>(null);
+const toolbarElement = ref<HTMLElement | null>(null);
+const toolbarHeight = ref(0);
+watch(
+  toolbarElement,
+  (element, _, onCleanup) => {
+    if (!element) return;
+    const measure = () => (toolbarHeight.value = element.getBoundingClientRect().height);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    measure();
+    onCleanup(() => observer.disconnect());
+  },
+  { flush: 'post' },
+);
 const activeBlock = ref<string | null>(null),
   activeRow = ref<string | null>(null);
 const pendingCells = ref(new Set<string>()),
@@ -86,6 +108,18 @@ let pickerSession = 0;
 const pickerCell = computed(() => (pickerCellId.value ? findCell(pickerCellId.value)?.cell || null : null));
 const transfer = ref<{ mode: 'move' | 'copy'; source: string } | null>(null);
 const grouping = ref(false);
+const arrowMode = ref(false);
+const arrowChoice = ref<ArrowDirection | null>('cross');
+const annotationMode = computed(() => grouping.value || arrowMode.value);
+const arrowDirections: ArrowDirection[] = ['cross', 'both'];
+function beginArrows() {
+  if (locked.value) return;
+  cancelGrouping();
+  closePicker();
+  transfer.value = null;
+  mobilePalette.value = false;
+  arrowMode.value = true;
+}
 const groupStart = ref<{ rowId: string; cellId: string } | null>(null);
 const groupEnd = ref<string | null>(null);
 const groupIssue = ref('');
@@ -121,6 +155,74 @@ const savedRows = ref<RowTemplate[]>([]),
   savedQuery = ref(''),
   savedPage = ref(1),
   savedLastPage = ref(1);
+const savedKind = ref<'row' | 'transition'>('row');
+const transitionTarget = ref<string | null>(null);
+const rowModal = computed(() => modalKind.value === 'rows' || modalKind.value === 'transitions');
+interface SnapshotChange {
+  snapshot_id: string;
+  source_asana_id: string;
+  source_revision: number;
+  before_name: string;
+  before_image_url: string;
+  after_name: string;
+  after_image_url: string;
+}
+const snapshotChanges = ref<SnapshotChange[]>([]);
+const snapshotRevision = ref(0);
+const variants = ref<AsanaRelation[]>([]);
+const variantTarget = ref<string | null>(null);
+const transitionOptions = ref<RowTemplate[]>([]);
+const transitionRelationId = ref('');
+const transitionRelationKind = ref<TransitionRelation['kind']>('simpler');
+const transitionRelations = ref<TransitionRelation[]>([]);
+async function editTransitionRelations() {
+  if (!doc.value || modalBusy.value) return;
+  modalKind.value = 'transition-relations';
+  modalTitle.value = 'Варианты связки';
+  modalBusy.value = true;
+  modalError.value = '';
+  transitionRelationId.value = '';
+  transitionRelations.value = clone(doc.value.transition_relations || []);
+  try {
+    transitionOptions.value = [];
+    let page = 1,
+      last = 1;
+    do {
+      const response = await api<Page<RowTemplate>>(
+        `/api/row-templates?kind=transition&per_page=100&page=${page}`,
+      );
+      transitionOptions.value.push(...response.data.filter((item) => item.id !== props.documentId));
+      last = response.last_page;
+      page++;
+    } while (page <= last);
+  } catch (e) {
+    modalError.value = e instanceof Error ? e.message : 'Не удалось загрузить связки.';
+  } finally {
+    modalBusy.value = false;
+  }
+}
+function addTransitionRelation() {
+  const option = transitionOptions.value.find((item) => item.id === transitionRelationId.value);
+  if (
+    !option ||
+    transitionRelations.value.some(
+      (item) => item.transition_id === option.id && item.kind === transitionRelationKind.value,
+    )
+  )
+    return;
+  transitionRelations.value.push({
+    transition_id: option.id,
+    title: option.title,
+    kind: transitionRelationKind.value,
+  });
+  transitionRelationId.value = '';
+}
+function applyTransitionRelations() {
+  edit((document) => {
+    document.transition_relations = clone(transitionRelations.value);
+  });
+  modalKind.value = '';
+}
 const insertion = ref<{ block: string; after: string | null } | null>(null);
 const relocation = ref<{ block: string; row: string } | null>(null),
   destinationBlock = ref('');
@@ -129,6 +231,23 @@ let removeNavigateGuard: (() => void) | undefined;
 let leaving = false,
   alive = true;
 const selected = computed(() => (activeCell.value ? findCell(activeCell.value) : null));
+const transitionDocument = computed(() => props.rowMode && doc.value?.row_template_kind === 'transition');
+watch(
+  () => (selected.value ? cellLabel(selected.value.cell) : null),
+  (label) => {
+    if (!embedded) return;
+    if (label && activeCell.value)
+      window.parent.postMessage(
+        { type: 'ribka:meso-cell', documentId: props.documentId, cellId: activeCell.value, label },
+        window.location.origin,
+      );
+    else
+      window.parent.postMessage(
+        { type: 'ribka:meso-clear-target', documentId: props.documentId },
+        window.location.origin,
+      );
+  },
+);
 watch(activeCell, (id) => {
   if (!id) highlightedCell.value = null;
 });
@@ -172,6 +291,7 @@ function cancelGrouping() {
 }
 function beginGrouping() {
   if (locked.value) return;
+  arrowMode.value = false;
   closePicker();
   transfer.value = null;
   mobilePalette.value = false;
@@ -218,6 +338,7 @@ function removeSelectedGroup() {
 }
 // Undo, reload and rollback replace the document; an uncommitted range belongs to its old positions.
 watch(doc, () => {
+  arrowMode.value = false;
   cancelGrouping();
   notice.value = '';
 });
@@ -250,6 +371,19 @@ function selectCell(id: string, showPicker = true) {
   const found = findCell(id);
   if (!found) return;
   highlightedCell.value = id;
+  if (arrowMode.value) {
+    activeCell.value = id;
+    activeBlock.value = found.block.id;
+    activeRow.value = found.row.id;
+    if (showPicker) {
+      edit(() => {
+        found.cell.arrow_direction = arrowChoice.value;
+      });
+      // Keep the tool active for marking several cells in succession.
+      arrowMode.value = true;
+    }
+    return;
+  }
   if (grouping.value) {
     activeCell.value = id;
     activeBlock.value = found.block.id;
@@ -265,10 +399,15 @@ function selectCell(id: string, showPicker = true) {
   activeCell.value = id;
   activeBlock.value = found.block.id;
   activeRow.value = found.row.id;
-  if (!transferring && showPicker) openPicker(id);
+  if (embedded)
+    window.parent.postMessage(
+      { type: 'ribka:meso-cell', documentId: props.documentId, cellId: id, label: cellLabel(found.cell) },
+      window.location.origin,
+    );
+  if (!embedded && !transferring && showPicker) openPicker(id);
 }
 function openPicker(id: string) {
-  if (locked.value || grouping.value || !findCell(id)) return;
+  if (locked.value || annotationMode.value || !findCell(id)) return;
   pickerSession++;
   pickerCellId.value = id;
   pickerError.value = '';
@@ -392,11 +531,11 @@ async function insertAsana(asanaId: string, targetId = activeCell.value): Promis
   }
 }
 function paletteSelect(card: Asana) {
-  if (grouping.value) return;
+  if (annotationMode.value) return;
   void insertAsana(card.id);
 }
 function paletteTarget(point: PaletteDragPoint): { kind: 'cell' | 'row' | 'block'; id: string } | null {
-  if (grouping.value) return null;
+  if (annotationMode.value) return null;
   if (locked.value) return null;
   const element = window.document.elementFromPoint(point.x, point.y);
   if (!element?.closest('.practice-canvas')) return null;
@@ -643,14 +782,14 @@ function dropData(event: DragEvent): { kind: string; id: string } | null {
   }
 }
 function dropCell(event: DragEvent, id: string) {
-  if (grouping.value) return;
+  if (annotationMode.value) return;
   const data = dropData(event);
   if (!data) return;
   if (data.kind === 'asana') void insertAsana(data.id, id);
   if (data.kind === 'cell') moveContent(data.id, id);
 }
 function dropRow(event: DragEvent, row: Row, block: Block) {
-  if (grouping.value) return;
+  if (annotationMode.value) return;
   const data = dropData(event);
   if (data?.kind === 'row') transferRow(data.id, block.id, row.id);
   if (data?.kind === 'asana') insertIntoRow(data.id, row.id);
@@ -676,7 +815,7 @@ function insertIntoRow(asanaId: string, rowId: string) {
   if (findCell(added.id)) void insertAsana(asanaId, added.id);
 }
 function dragBlock(event: DragEvent, id: string) {
-  if (grouping.value) {
+  if (annotationMode.value) {
     event.preventDefault();
     return;
   }
@@ -695,7 +834,7 @@ function insertIntoBlock(asanaId: string, blockId: string) {
   }
 }
 function dropBlock(event: DragEvent, id: string) {
-  if (grouping.value) return;
+  if (annotationMode.value) return;
   const data = dropData(event);
   if (data?.kind === 'asana') {
     insertIntoBlock(data.id, id);
@@ -745,17 +884,173 @@ function saveRow(row: Row) {
         title: value.trim(),
         theme: doc.value?.theme,
         note: current.note,
-        cells: copyRow(current).cells.map(({ id, card_snapshot_id, custom_name, group_key, note }) => ({
-          id,
-          card_snapshot_id,
-          custom_name: custom_name || null,
-          group_key: group_key || null,
-          note,
-        })),
+        cells: copyRow(current).cells.map(
+          ({ id, card_snapshot_id, custom_name, group_key, arrow_direction, note }) => ({
+            id,
+            card_snapshot_id,
+            custom_name: custom_name || null,
+            group_key: group_key || null,
+            arrow_direction: arrow_direction || null,
+            note,
+          }),
+        ),
       }),
     });
     message('Строка сохранена. Она доступна в разделе «Практики → Сохранённые строки».');
   });
+}
+function saveSelectedTransition() {
+  const current = selected.value;
+  if (!current?.cell.group_key) return;
+  const rowId = current.row.id,
+    key = current.cell.group_key;
+  prompt('Сохранить связку', 'Мой переход', async (value) => {
+    if (!value.trim()) throw new Error('Введите название связки.');
+    if (!(await editor.save())) throw new Error('Сначала сохраните изменения практики.');
+    const cells = findRow(rowId)?.row.cells.filter((cell) => cell.group_key === key) || [];
+    if (cells.length < 2) throw new Error('Выбранная группа больше не существует.');
+    await api('/api/row-templates', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: value.trim(),
+        kind: 'transition',
+        theme: doc.value?.theme,
+        note: null,
+        cells: cells.map(({ card_snapshot_id, custom_name, arrow_direction, note }) => ({
+          id: uid(),
+          card_snapshot_id,
+          custom_name,
+          group_key: key,
+          arrow_direction,
+          note,
+        })),
+      }),
+    });
+    message('Связка сохранена. Найти её можно во вкладке «Связки и переходы».');
+  });
+}
+function chooseTransition() {
+  if (!selected.value) {
+    message('Сначала выберите ячейку, вместо которой вставить связку.');
+    return;
+  }
+  transitionTarget.value = selected.value.cell.id;
+  savedKind.value = 'transition';
+  modalKind.value = 'transitions';
+  modalTitle.value = 'Вставить связку вместо ячейки';
+  savedQuery.value = '';
+  savedPage.value = 1;
+  void loadSavedRows();
+}
+async function chooseVariants() {
+  const current = selected.value;
+  if (!current?.cell.card?.source_asana_id) return;
+  variantTarget.value = current.cell.id;
+  modalBusy.value = true;
+  modalKind.value = 'variants';
+  modalTitle.value = 'Варианты асаны';
+  modalError.value = '';
+  variants.value = [];
+  try {
+    const result = await api<{ data: Asana }>(`/api/asanas/${current.cell.card.source_asana_id}`);
+    variants.value = result.data.relations || [];
+  } catch (e) {
+    modalError.value = e instanceof Error ? e.message : 'Не удалось открыть варианты.';
+  } finally {
+    modalBusy.value = false;
+  }
+}
+async function insertVariant(id: string) {
+  if (!variantTarget.value || modalBusy.value) return;
+  modalBusy.value = true;
+  modalError.value = '';
+  try {
+    if (await insertAsana(id, variantTarget.value)) modalKind.value = '';
+    else modalError.value = notice.value || 'Не удалось заменить асану.';
+  } finally {
+    modalBusy.value = false;
+  }
+}
+async function openLibraryUpdates() {
+  if (locked.value || modalBusy.value) return;
+  if (!(await editor.save())) {
+    message('Сначала сохраните изменения практики.');
+    return;
+  }
+  modalBusy.value = true;
+  try {
+    const result = await api<{ data: { revision: number; changes: SnapshotChange[] } }>(
+      `/api/practices/${props.documentId}/library-updates`,
+    );
+    snapshotChanges.value = result.data.changes;
+    snapshotRevision.value = result.data.revision;
+    if (!snapshotChanges.value.length) {
+      message('Названия и изображения уже совпадают с библиотекой. Архивные асаны остаются как были.');
+      return;
+    }
+    modalKind.value = 'library-updates';
+    modalTitle.value = 'Обновить из библиотеки';
+    modalError.value = '';
+  } catch (e) {
+    message(e instanceof Error ? e.message : 'Не удалось проверить библиотеку.');
+  } finally {
+    modalBusy.value = false;
+  }
+}
+async function applyLibraryUpdates() {
+  if (modalBusy.value) return;
+  modalBusy.value = true;
+  modalError.value = '';
+  try {
+    const result = await api<{ data: Practice }>(`/api/practices/${props.documentId}/refresh-snapshots`, {
+      method: 'POST',
+      body: JSON.stringify({
+        expected_revision: snapshotRevision.value,
+        source_asana_ids: [...new Set(snapshotChanges.value.map((change) => change.source_asana_id))],
+        expected_asana_revisions: [
+          ...new Map(
+            snapshotChanges.value.map((change) => [
+              change.source_asana_id,
+              { asana_id: change.source_asana_id, revision: change.source_revision },
+            ]),
+          ).values(),
+        ],
+      }),
+    });
+    editor.acceptSaved(result.data);
+    modalKind.value = '';
+    message(
+      `Обновлено ${snapshotChanges.value.length} карточек. Старые изображения сохранены в прежних документах.`,
+    );
+  } catch (e) {
+    modalError.value = e instanceof Error ? e.message : 'Не удалось обновить карточки.';
+  } finally {
+    modalBusy.value = false;
+  }
+}
+function receiveMesocycle(event: MessageEvent) {
+  if (
+    !embedded ||
+    event.origin !== window.location.origin ||
+    event.source !== window.parent ||
+    event.data?.documentId !== props.documentId
+  )
+    return;
+  if (
+    event.data.type === 'ribka:meso-asana' &&
+    !annotationMode.value &&
+    typeof event.data.asanaId === 'string'
+  )
+    void insertAsana(event.data.asanaId, event.data.cellId || activeCell.value);
+  if (event.data.type === 'ribka:meso-save')
+    void editor
+      .save()
+      .then((saved) =>
+        window.parent.postMessage(
+          { type: 'ribka:meso-saved', documentId: props.documentId, saved },
+          window.location.origin,
+        ),
+      );
 }
 function saveTemplate() {
   prompt('Сохранить как шаблон', doc.value?.title || '', async (value) => {
@@ -773,7 +1068,7 @@ async function loadSavedRows() {
   modalError.value = '';
   try {
     const result = await api<Page<RowTemplate>>(
-      `/api/row-templates?${new URLSearchParams({ q: savedQuery.value, page: String(savedPage.value), per_page: '12' })}`,
+      `/api/row-templates?${new URLSearchParams({ kind: savedKind.value, q: savedQuery.value, page: String(savedPage.value), per_page: '12' })}`,
     );
     savedRows.value = result.data;
     savedLastPage.value = result.last_page;
@@ -784,6 +1079,7 @@ async function loadSavedRows() {
   }
 }
 function chooseSavedRow(blockId: string) {
+  savedKind.value = 'row';
   insertion.value = { block: blockId, after: activeBlock.value === blockId ? activeRow.value : null };
   modalKind.value = 'rows';
   modalTitle.value = 'Вставить сохранённую строку';
@@ -796,6 +1092,35 @@ async function insertSaved(id: string) {
   modalError.value = '';
   try {
     const { data } = await api<{ data: RowTemplate }>(`/api/row-templates/${id}`);
+    if (data.archived_at) throw new Error('Последовательность уже находится в архиве. Обновите список.');
+    if (savedKind.value === 'transition') {
+      if (data.kind !== 'transition') throw new Error('Выберите готовую связку.');
+      const target = transitionTarget.value ? findCell(transitionTarget.value) : null;
+      if (!target) throw new Error('Выберите ячейку заново.');
+      if (target.cell.group_key)
+        throw new Error('Сначала снимите скобки у группы, в которую входит выбранная ячейка.');
+      if (target.row.cells.length + data.cells.length - 1 > 12)
+        throw new Error('Связка не помещается: в строке может быть до 12 ячеек.');
+      if (
+        cellFilled(target.cell) &&
+        !window.confirm(
+          `Заменить «${cellLabel(target.cell)}» связкой «${data.title}»? Действие можно отменить.`,
+        )
+      )
+        return;
+      const position = target.row.cells.indexOf(target.cell),
+        key = uid();
+      edit(() =>
+        target.row.cells.splice(
+          position,
+          1,
+          ...data.cells.map((cell) => ({ ...clone(cell), id: uid(), group_key: key })),
+        ),
+      );
+      activeCell.value = null;
+      modalKind.value = '';
+      return;
+    }
     if (insertion.value)
       addRow(insertion.value.block, insertion.value.after, {
         id: data.id,
@@ -827,8 +1152,13 @@ async function go(path: string) {
     return;
   }
   navigating.value = true;
+  const separate = embedded ? window.open('about:blank', '_blank') : null;
+  if (separate) separate.opener = null;
   try {
-    if (await editor.save()) visit(path);
+    if (await editor.save()) {
+      if (separate) separate.location.href = path;
+      else visit(path);
+    } else separate?.close();
   } finally {
     if (!leaving) navigating.value = false;
   }
@@ -895,11 +1225,12 @@ function keydown(event: KeyboardEvent) {
     editor.redo();
   }
   if (event.key === 'Escape') {
+    arrowMode.value = false;
     transfer.value = null;
     mobilePalette.value = false;
     cancelGrouping();
   }
-  if (event.key === 'Delete' && activeCell.value && !grouping.value) clearCell(activeCell.value);
+  if (event.key === 'Delete' && activeCell.value && !annotationMode.value) clearCell(activeCell.value);
   if (['ArrowLeft', 'ArrowRight'].includes(event.key) && selected.value) {
     const { row, cell } = selected.value,
       index = row.cells.indexOf(cell) + (event.key === 'ArrowLeft' ? -1 : 1);
@@ -921,6 +1252,7 @@ function beforeUnload(event: BeforeUnloadEvent) {
 onMounted(() => {
   void editor.load();
   window.addEventListener('keydown', keydown);
+  if (embedded) window.addEventListener('message', receiveMesocycle);
   window.addEventListener('beforeunload', beforeUnload);
   window.addEventListener('pointerdown', releaseCellHighlight, true);
   window.addEventListener('focusout', releaseCellHighlight);
@@ -930,12 +1262,20 @@ onMounted(() => {
       return false;
   });
 });
+watch([dirty, pending], () => {
+  if (embedded)
+    window.parent.postMessage(
+      { type: 'ribka:meso-status', documentId: props.documentId, dirty: dirty.value, pending: pending.value },
+      window.location.origin,
+    );
+});
 onBeforeUnmount(() => {
   alive = false;
   tokens.clear();
   pendingCells.value.clear();
   pending.value = 0;
   window.removeEventListener('keydown', keydown);
+  window.removeEventListener('message', receiveMesocycle);
   window.removeEventListener('beforeunload', beforeUnload);
   window.removeEventListener('pointerdown', releaseCellHighlight, true);
   window.removeEventListener('focusout', releaseCellHighlight);
@@ -946,7 +1286,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Head :title="doc?.title || 'Конструктор'" />
-  <AppShell section="practices" wide>
+  <AppShell section="practices" wide :class="{ 'embedded-editor': embedded }">
     <div v-if="loading" class="editor-loading">
       <div class="skeleton" style="height: 64px; margin-bottom: 25px" />
       <div class="skeleton" style="height: 500px" />
@@ -957,12 +1297,24 @@ onBeforeUnmount(() => {
       <button class="btn btn-primary" @click="editor.load"><RefreshCw :size="17" />Повторить</button>
     </div>
     <template v-else>
-      <div class="editor-breadcrumb">
-        <button @click="go(rowMode ? '/practices?tab=rows' : '/practices')">
-          <ArrowLeft :size="15" />{{ rowMode ? 'Сохранённые строки' : 'Все практики' }}</button
+      <div v-if="!embedded" class="editor-breadcrumb">
+        <button
+          @click="
+            go(rowMode ? `/practices?tab=${transitionDocument ? 'transitions' : 'rows'}` : '/practices')
+          "
+        >
+          <ArrowLeft :size="15" />{{
+            transitionDocument ? 'Связки и переходы' : rowMode ? 'Сохранённые строки' : 'Все практики'
+          }}</button
         ><span>/</span
         ><span>{{
-          rowMode ? 'Сохранённая строка' : doc.kind === 'template' ? 'Шаблон практики' : 'Конструктор'
+          transitionDocument
+            ? 'Связка'
+            : rowMode
+              ? 'Сохранённая строка'
+              : doc.kind === 'template'
+                ? 'Шаблон практики'
+                : 'Конструктор'
         }}</span>
       </div>
       <header class="editor-header">
@@ -977,13 +1329,23 @@ onBeforeUnmount(() => {
             @blur="editor.endGroup"
           />
           <div class="editor-subtitle">
-            <span v-if="doc.kind === 'template'" class="badge">{{ rowMode ? 'Строка' : 'Шаблон' }}</span
+            <span v-if="doc.kind === 'template'" class="badge">{{
+              transitionDocument ? 'Связка' : rowMode ? 'Строка' : 'Шаблон'
+            }}</span
             ><span>{{ doc.blocks.length }} блоков</span><span class="divider-dot">·</span
             ><span>{{ counts.rows }} строк</span><span class="divider-dot">·</span
             ><span>{{ counts.cards }} элементов</span>
           </div>
         </div>
         <div class="editor-actions">
+          <button
+            v-if="!rowMode && !embedded"
+            class="btn btn-secondary"
+            :disabled="saving || pending > 0 || dirty"
+            @click="sharingOpen = true"
+          >
+            <UserPlus :size="16" />Дать доступ
+          </button>
           <button class="btn btn-secondary" :disabled="saving || pending > 0 || locked" @click="editor.save">
             <Save :size="16" />Сохранить</button
           ><button
@@ -1027,143 +1389,229 @@ onBeforeUnmount(() => {
           <Bookmark :size="16" />Как шаблон
         </button>
       </div>
-      <div class="save-toolbar">
-        <div class="history-buttons">
+      <div
+        ref="toolbarElement"
+        class="editor-toolbar"
+        role="region"
+        aria-label="Действия с практикой и ячейками"
+      >
+        <div class="save-toolbar">
           <button
-            class="icon-btn"
-            :disabled="!undoStack.length || pending > 0 || locked"
-            title="Отменить (Ctrl+Z)"
-            aria-label="Отменить действие"
-            @click="editor.undo"
+            v-if="rowMode && doc.row_template_kind === 'transition' && !readOnly"
+            class="btn btn-secondary"
+            :disabled="locked || annotationMode"
+            @click="editTransitionRelations"
           >
-            <Undo2 :size="18" /></button
-          ><button
-            class="icon-btn"
-            :disabled="!redoStack.length || pending > 0 || locked"
-            title="Повторить (Ctrl+Shift+Z)"
-            aria-label="Повторить действие"
-            @click="editor.redo"
-          >
-            <Redo2 :size="18" />
+            <RefreshCw :size="16" />Варианты связки
           </button>
-        </div>
-        <button
-          v-if="!readOnly"
-          class="btn btn-secondary group-mode-button"
-          :disabled="locked || grouping"
-          :aria-pressed="grouping"
-          @click="beginGrouping"
-        >
-          <Brackets :size="17" />Объединить
-        </button>
-        <button
-          v-if="!readOnly && selected?.cell.group_key"
-          class="btn btn-ghost"
-          :disabled="locked"
-          @click="removeSelectedGroup"
-        >
-          <X :size="16" />Снять скобки
-        </button>
-        <span :class="['save-status', { warning: error || conflict }]" role="status"
-          ><component :is="dirty || saving || pending ? Cloud : Check" :size="14" />{{ status }}</span
-        ><button
-          v-if="!readOnly"
-          class="btn btn-secondary mobile-picker"
-          :disabled="locked || grouping"
-          @click="mobilePalette = true"
-        >
-          <Library :size="16" />Асаны
-        </button>
-      </div>
-      <div v-if="error" class="error-banner">
-        {{ error }}<button class="btn btn-ghost" @click="editor.save">Повторить сохранение</button>
-      </div>
-      <div v-if="conflict" class="conflict-banner">
-        <div>
-          <strong>Сохранена другая версия</strong>
-          <p>
-            Ваши изменения остаются в этом окне. Сохраните их отдельной копией или откройте актуальный лист.
-          </p>
-        </div>
-        <button class="btn btn-primary" :disabled="modalBusy" @click="copyLocal">Сохранить мою копию</button
-        ><button class="btn btn-secondary" @click="refreshConflict">Загрузить актуальную</button>
-      </div>
-      <div v-if="readOnly" class="error-banner">
-        Документ находится в архиве. Восстановите его в списке практик, чтобы редактировать.
-      </div>
-      <div v-if="notice" class="notice" role="status">
-        <span>{{ notice }}</span
-        ><button class="icon-btn" aria-label="Закрыть сообщение" @click="notice = ''">
-          <X :size="16" />
-        </button>
-      </div>
-      <div v-if="grouping" class="group-banner" role="region" aria-label="Объединение ячеек">
-        <div class="group-instruction" aria-live="polite">
-          <strong>Объединение ячеек</strong>
-          <p v-if="!groupStart">Выберите первую, затем последнюю ячейку группы в одной строке.</p>
-          <p v-else-if="!groupEnd">
-            Теперь выберите последнюю ячейку в этой же строке. В группу войдут все ячейки между ними.
-          </p>
-          <p v-else-if="groupRange">
-            Выбраны ячейки {{ groupRange.start + 1 }}–{{ groupRange.end + 1 }} ({{
-              groupRange.cells.length
-            }}). Нажмите «Объединить» или выберите другую последнюю ячейку.
-          </p>
-          <p v-if="groupIssue || groupRangeError" class="group-error" role="alert">
-            {{ groupIssue || groupRangeError }}
-          </p>
-        </div>
-        <div class="group-actions">
-          <button class="btn btn-primary" :disabled="locked || !canGroup" @click="confirmGrouping">
+          <div class="history-buttons">
+            <button
+              class="btn btn-ghost"
+              :disabled="!undoStack.length || pending > 0 || locked"
+              title="Отменить (Ctrl+Z)"
+              aria-label="Отменить действие"
+              @click="editor.undo"
+            >
+              <Undo2 :size="18" />Отменить</button
+            ><button
+              class="btn btn-ghost"
+              :disabled="!redoStack.length || pending > 0 || locked"
+              title="Повторить (Ctrl+Y или Ctrl+Shift+Z)"
+              aria-label="Повторить действие"
+              @click="editor.redo"
+            >
+              <Redo2 :size="18" />Повторить
+            </button>
+          </div>
+          <button
+            v-if="!readOnly"
+            class="btn btn-secondary"
+            :disabled="locked || annotationMode"
+            @click="chooseTransition"
+          >
+            <Brackets :size="17" />Связки
+          </button>
+          <button
+            v-if="!readOnly && selected?.cell.group_key"
+            class="btn btn-secondary"
+            :disabled="locked || annotationMode"
+            @click="saveSelectedTransition"
+          >
+            <Bookmark :size="16" />Сохранить связку
+          </button>
+          <button
+            v-if="!rowMode && !readOnly && !embedded"
+            class="btn btn-ghost"
+            :disabled="locked || annotationMode || modalBusy"
+            @click="openLibraryUpdates"
+          >
+            <RefreshCw :size="16" />Обновить из библиотеки
+          </button>
+          <button
+            v-if="!readOnly"
+            class="btn btn-secondary group-mode-button"
+            :disabled="locked || annotationMode"
+            :aria-pressed="grouping"
+            @click="beginGrouping"
+          >
             <Brackets :size="17" />Объединить
           </button>
-          <button v-if="groupStart" class="btn btn-ghost" @click="resetGroupRange">Выбрать заново</button>
-          <button class="btn btn-secondary" @click="cancelGrouping">Отмена</button>
+          <button
+            v-if="!readOnly && selected?.cell.group_key"
+            class="btn btn-ghost"
+            :disabled="locked"
+            @click="removeSelectedGroup"
+          >
+            <X :size="16" />Снять скобки
+          </button>
+          <button
+            v-if="!readOnly"
+            class="btn btn-secondary"
+            :disabled="locked"
+            :aria-pressed="arrowMode"
+            @click="beginArrows"
+          >
+            <ArrowSymbol direction="cross" :size="20" />Стрелочка
+          </button>
+          <span :class="['save-status', { warning: error || conflict }]" role="status"
+            ><component :is="dirty || saving || pending ? Cloud : Check" :size="14" />{{ status }}</span
+          ><button
+            v-if="!readOnly"
+            class="btn btn-secondary mobile-picker"
+            :disabled="locked || annotationMode"
+            @click="mobilePalette = true"
+          >
+            <Library :size="16" />Асаны
+          </button>
         </div>
-      </div>
-      <div v-if="transfer" class="transfer-banner">
-        <ArrowRight :size="18" /><span>{{
-          transfer.mode === 'copy' ? 'Выберите ячейку для копии' : 'Выберите ячейку для переноса или обмена'
-        }}</span
-        ><button class="btn btn-ghost" @click="transfer = null">Отмена</button>
-      </div>
-      <div v-if="selected && !readOnly && !grouping" class="cell-toolbar">
-        <span class="selected-label">{{ cellLabel(selected.cell) }}</span
-        ><button class="btn btn-ghost" @click="openPicker(selected.cell.id)">
-          <Library :size="15" />{{ cellFilled(selected.cell) ? 'Изменить' : 'Заполнить ячейку' }}</button
-        ><button
-          v-if="pendingCells.has(selected.cell.id)"
-          class="btn btn-ghost"
-          :disabled="locked"
-          @click="cancelInsertion(selected.cell.id)"
+        <div v-if="error" class="error-banner">
+          {{ error }}<button class="btn btn-ghost" @click="editor.save">Повторить сохранение</button>
+        </div>
+        <div v-if="conflict" class="conflict-banner">
+          <div>
+            <strong>Сохранена другая версия</strong>
+            <p>
+              Ваши изменения остаются в этом окне. Сохраните их отдельной копией или откройте актуальный лист.
+            </p>
+          </div>
+          <button class="btn btn-primary" :disabled="modalBusy" @click="copyLocal">Сохранить мою копию</button
+          ><button class="btn btn-secondary" @click="refreshConflict">Загрузить актуальную</button>
+        </div>
+        <div v-if="readOnly" class="error-banner">
+          Документ находится в архиве. Восстановите его в списке практик, чтобы редактировать.
+        </div>
+        <div v-if="notice" class="notice" role="status">
+          <span>{{ notice }}</span
+          ><button class="icon-btn" aria-label="Закрыть сообщение" @click="notice = ''">
+            <X :size="16" />
+          </button>
+        </div>
+        <div
+          v-if="arrowMode"
+          class="group-banner arrow-banner"
+          role="region"
+          aria-label="Стрелочки на ячейках"
         >
-          Отменить вставку</button
-        ><template v-if="cellFilled(selected.cell)"
-          ><button class="btn btn-ghost" @click="cellNote"><StickyNote :size="15" />Подпись</button
-          ><button class="btn btn-ghost" @click="transfer = { mode: 'move', source: activeCell! }">
-            <ArrowRight :size="15" />Переместить</button
+          <div class="group-instruction">
+            <strong>Стрелочка</strong>
+            <p>Выберите направление или «Убрать стрелку», затем нажмите на нужную ячейку.</p>
+          </div>
+          <div class="group-actions">
+            <button
+              v-for="direction in arrowDirections"
+              :key="direction"
+              class="btn btn-secondary"
+              :aria-pressed="arrowChoice === direction"
+              @click="arrowChoice = direction"
+            >
+              <ArrowSymbol :direction="direction" :size="24" />{{ arrowLabels[direction] }}
+            </button>
+            <button
+              class="btn btn-secondary"
+              :aria-pressed="arrowChoice === null"
+              @click="arrowChoice = null"
+            >
+              <X :size="17" />Убрать стрелку
+            </button>
+            <button class="btn btn-ghost" @click="arrowMode = false">Готово</button>
+          </div>
+        </div>
+        <div v-if="grouping" class="group-banner" role="region" aria-label="Объединение ячеек">
+          <div class="group-instruction" aria-live="polite">
+            <strong>Объединение ячеек</strong>
+            <p v-if="!groupStart">Выберите первую, затем последнюю ячейку группы в одной строке.</p>
+            <p v-else-if="!groupEnd">
+              Теперь выберите последнюю ячейку в этой же строке. В группу войдут все ячейки между ними.
+            </p>
+            <p v-else-if="groupRange">
+              Выбраны ячейки {{ groupRange.start + 1 }}–{{ groupRange.end + 1 }} ({{
+                groupRange.cells.length
+              }}). Нажмите «Объединить» или выберите другую последнюю ячейку.
+            </p>
+            <p v-if="groupIssue || groupRangeError" class="group-error" role="alert">
+              {{ groupIssue || groupRangeError }}
+            </p>
+          </div>
+          <div class="group-actions">
+            <button class="btn btn-primary" :disabled="locked || !canGroup" @click="confirmGrouping">
+              <Brackets :size="17" />Объединить
+            </button>
+            <button v-if="groupStart" class="btn btn-ghost" @click="resetGroupRange">Выбрать заново</button>
+            <button class="btn btn-secondary" @click="cancelGrouping">Отмена</button>
+          </div>
+        </div>
+        <div v-if="transfer" class="transfer-banner">
+          <ArrowRight :size="18" /><span>{{
+            transfer.mode === 'copy' ? 'Выберите ячейку для копии' : 'Выберите ячейку для переноса или обмена'
+          }}</span
+          ><button class="btn btn-ghost" @click="transfer = null">Отмена</button>
+        </div>
+        <div v-if="selected && !readOnly && !annotationMode" class="cell-toolbar">
+          <button
+            v-if="selected.cell.card?.source_asana_id"
+            class="btn btn-ghost"
+            :disabled="locked || pending > 0"
+            @click="chooseVariants"
+          >
+            <RefreshCw :size="15" />Варианты
+          </button>
+          <span class="selected-label">{{ cellLabel(selected.cell) }}</span
+          ><button class="btn btn-ghost" @click="openPicker(selected.cell.id)">
+            <Library :size="15" />{{ cellFilled(selected.cell) ? 'Изменить' : 'Заполнить ячейку' }}</button
+          ><button
+            v-if="pendingCells.has(selected.cell.id)"
+            class="btn btn-ghost"
+            :disabled="locked"
+            @click="cancelInsertion(selected.cell.id)"
+          >
+            Отменить вставку</button
+          ><template v-if="cellFilled(selected.cell)"
+            ><button class="btn btn-ghost" @click="cellNote"><StickyNote :size="15" />Подпись</button
+            ><button class="btn btn-ghost" @click="transfer = { mode: 'move', source: activeCell! }">
+              <ArrowRight :size="15" />Переместить</button
+            ><button
+              class="icon-btn"
+              aria-label="Скопировать содержимое в другую ячейку"
+              title="Скопировать в…"
+              @click="transfer = { mode: 'copy', source: activeCell! }"
+            >
+              <Copy :size="16" /></button
+            ><button class="btn btn-ghost" @click="clearCell(activeCell!)">Очистить</button></template
+          ><button class="icon-btn" aria-label="Удалить ячейку" title="Удалить ячейку" @click="removeCell">
+            <Trash2 :size="16" /></button
           ><button
             class="icon-btn"
-            aria-label="Скопировать содержимое в другую ячейку"
-            title="Скопировать в…"
-            @click="transfer = { mode: 'copy', source: activeCell! }"
+            aria-label="Снять выбор ячейки"
+            @click="
+              activeCell = null;
+              highlightedCell = null;
+            "
           >
-            <Copy :size="16" /></button
-          ><button class="btn btn-ghost" @click="clearCell(activeCell!)">Очистить</button></template
-        ><button class="icon-btn" aria-label="Удалить ячейку" title="Удалить ячейку" @click="removeCell">
-          <Trash2 :size="16" /></button
-        ><button
-          class="icon-btn"
-          aria-label="Снять выбор ячейки"
-          @click="
-            activeCell = null;
-            highlightedCell = null;
-          "
-        >
-          <X :size="16" />
-        </button>
+            <X :size="16" />
+          </button>
+        </div>
       </div>
-      <div class="editor-layout">
+      <div class="editor-layout" :style="{ '--editor-toolbar-height': `${toolbarHeight}px` }">
         <div class="practice-canvas">
           <section
             v-for="(block, bi) in doc.blocks"
@@ -1180,7 +1628,7 @@ onBeforeUnmount(() => {
               <span
                 v-if="!rowMode"
                 class="block-handle"
-                :draggable="!locked && !grouping"
+                :draggable="!locked && !annotationMode"
                 @dragstart="dragBlock($event, block.id)"
                 title="Переместить блок"
                 ><GripVertical :size="18" /></span
@@ -1194,7 +1642,7 @@ onBeforeUnmount(() => {
                 @input="edit(() => (block.title = ($event.target as HTMLInputElement).value), block.id)"
                 @blur="editor.endGroup"
               />
-              <details v-if="!rowMode && !readOnly && !grouping" class="block-menu">
+              <details v-if="!rowMode && !readOnly && !annotationMode" class="block-menu">
                 <summary class="icon-btn" aria-label="Действия с блоком">
                   <MoreHorizontal :size="21" />
                 </summary>
@@ -1230,7 +1678,7 @@ onBeforeUnmount(() => {
                 :pending="pendingCells"
                 :disabled="locked"
                 :only-row="rowMode"
-                :group-mode="grouping"
+                :group-mode="annotationMode"
                 :group-range="groupPreviewCells"
                 :group-invalid="!!groupRangeError"
                 :pointer-cell="pointerTarget?.kind === 'cell' ? pointerTarget.id : null"
@@ -1247,7 +1695,7 @@ onBeforeUnmount(() => {
                 @note="rowNote(row)"
               />
             </div>
-            <footer v-if="!rowMode && !readOnly && !grouping" class="block-footer">
+            <footer v-if="!rowMode && !readOnly && !annotationMode" class="block-footer">
               <button class="btn btn-ghost" @click="addRow(block.id)">
                 <Plus :size="16" />Добавить строку</button
               ><button class="btn btn-ghost" @click="chooseSavedRow(block.id)">
@@ -1256,7 +1704,7 @@ onBeforeUnmount(() => {
             </footer>
           </section>
           <button
-            v-if="!rowMode && !readOnly && !grouping"
+            v-if="!rowMode && !readOnly && !annotationMode"
             class="add-block"
             :disabled="doc.blocks.length >= 20"
             @click="
@@ -1271,8 +1719,8 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <AsanaPalette
-          v-if="!readOnly"
-          :disabled="locked || grouping"
+          v-if="!readOnly && !embedded"
+          :disabled="locked || annotationMode"
           :document-id="documentId"
           :active="!!activeCell"
           :mobile-open="mobilePalette"
@@ -1311,7 +1759,7 @@ onBeforeUnmount(() => {
           maxlength="160"
           @keyup.enter="applyModal"
       /></label>
-      <template v-if="modalKind === 'rows'"
+      <template v-if="rowModal"
         ><form
           class="saved-row-search"
           @submit.prevent="
@@ -1322,25 +1770,28 @@ onBeforeUnmount(() => {
           <input
             v-model="savedQuery"
             class="input"
-            placeholder="Поиск сохранённой строки"
-            aria-label="Поиск сохранённой строки"
+            :placeholder="savedKind === 'transition' ? 'Поиск связки' : 'Поиск сохранённой строки'"
+            :aria-label="savedKind === 'transition' ? 'Поиск связки' : 'Поиск сохранённой строки'"
           /><button class="btn btn-secondary" :disabled="modalBusy">Найти</button>
         </form>
         <p v-if="!savedRows.length && !modalBusy" class="muted">
-          Сохранённых строк пока нет. Создайте одну через меню строки в редакторе.
+          {{ savedKind === 'transition' ? 'Связок пока нет. Выберите группу со скобками и сохраните её кнопкой «Сохранить связку».' : 'Сохранённых строк пока нет. Создайте одну через меню строки в редакторе.' }}
         </p>
-        <button
-          v-for="row in savedRows"
-          :key="row.id"
-          class="saved-row-option"
-          :disabled="modalBusy"
-          @click="insertSaved(row.id)"
-        >
-          <Bookmark :size="18" /><span
-            ><strong>{{ row.title }}</strong
-            ><small>{{ row.theme || 'Сохранённая последовательность' }}</small></span
-          ><Plus :size="18" />
-        </button>
+        <div v-for="row in savedRows" :key="row.id" class="saved-row-entry">
+          <button class="saved-row-option" :disabled="modalBusy" @click="insertSaved(row.id)">
+            <Bookmark :size="18" /><span
+              ><strong>{{ row.title }}</strong
+              ><small>{{ row.theme || 'Сохранённая последовательность' }}</small></span
+            ><Plus :size="18" />
+          </button>
+          <div v-if="savedKind === 'transition' && row.relations?.length" class="saved-transition-variants">
+            <button v-for="relation in row.relations" :key="relation.transition_id + relation.kind"
+              class="btn btn-ghost" :disabled="modalBusy || !!relation.archived_at"
+              @click="insertSaved(relation.transition_id)">
+              {{ relationLabels[relation.kind] }}: {{ relation.title }}{{ relation.archived_at ? ' · В архиве' : '' }}
+            </button>
+          </div>
+        </div>
         <div v-if="savedLastPage > 1" class="form-actions">
           <button
             class="btn btn-secondary"
@@ -1376,9 +1827,95 @@ onBeforeUnmount(() => {
           </option>
         </select></label
       >
+      <template v-if="modalKind === 'library-updates'">
+        <p class="confirm-copy">
+          Будут заменены только названия и изображения в этой практике. Подписи, стрелки, скобки и порядок
+          ячеек сохранятся. Другие практики останутся прежними.
+        </p>
+        <div v-for="change in snapshotChanges" :key="change.snapshot_id" class="snapshot-change">
+          <div>
+            <img :src="change.before_image_url" :alt="change.before_name" /><span>{{
+              change.before_name
+            }}</span>
+          </div>
+          <ArrowRight :size="20" />
+          <div>
+            <img :src="change.after_image_url" :alt="change.after_name" /><span>{{ change.after_name }}</span>
+          </div>
+        </div>
+      </template>
+      <template v-if="modalKind === 'variants'">
+        <p v-if="!variants.length && !modalBusy" class="muted">
+          Варианты пока не заданы. Свяжите асаны в карточке библиотеки.
+        </p>
+        <button
+          v-for="variant in variants"
+          :key="variant.asana_id + variant.kind"
+          class="saved-row-option"
+          :disabled="modalBusy || !!variant.archived_at"
+          @click="insertVariant(variant.asana_id)"
+        >
+          <img
+            v-if="variant.image_url"
+            :src="variant.image_url"
+            :alt="variant.name"
+            style="width: 55px; height: 55px; object-fit: contain"
+          /><span
+            ><strong>{{ variant.name }}</strong
+            ><small
+              >{{ relationLabels[variant.kind] }}{{ variant.archived_at ? ' · В архиве' : '' }}</small
+            ></span
+          >
+        </button>
+      </template>
+      <template v-if="modalKind === 'transition-relations'">
+        <p class="muted">Свяжите готовые переходы как упрощение, усложнение или подводящее упражнение.</p>
+        <div
+          v-for="(relation, index) in transitionRelations"
+          :key="relation.transition_id + relation.kind"
+          class="saved-row-option"
+        >
+          <span
+            ><strong>{{ relation.title || 'Связка' }}</strong
+            ><small
+              >{{ relationLabels[relation.kind] }}{{ relation.archived_at ? ' · В архиве' : '' }}</small
+            ></span
+          ><button
+            class="icon-btn"
+            :aria-label="`Убрать вариант ${relation.title}`"
+            @click="transitionRelations.splice(index, 1)"
+          >
+            <X :size="16" />
+          </button>
+        </div>
+        <label class="field"
+          ><span class="label">Вид варианта</span
+          ><select v-model="transitionRelationKind" class="select">
+            <option value="simpler">Упрощение</option>
+            <option value="harder">Усложнение</option>
+            <option value="preparation">Подводящее упражнение</option>
+          </select></label
+        >
+        <label class="field"
+          ><span class="label">Связка</span
+          ><select v-model="transitionRelationId" class="select">
+            <option value="">Выберите готовую связку</option>
+            <option v-for="option in transitionOptions" :key="option.id" :value="option.id">
+              {{ option.title }}
+            </option>
+          </select></label
+        >
+        <button
+          class="btn btn-secondary"
+          :disabled="!transitionRelationId || transitionRelations.length >= 30"
+          @click="addTransitionRelation"
+        >
+          <Plus :size="16" />Добавить вариант
+        </button>
+      </template>
       <template #footer
         ><button class="btn btn-secondary" :disabled="modalBusy" @click="modalKind = ''">
-          {{ modalKind === 'rows' ? 'Закрыть' : 'Отмена' }}</button
+          {{ rowModal ? 'Закрыть' : 'Отмена' }}</button
         ><button
           v-if="modalKind === 'relocate'"
           class="btn btn-primary"
@@ -1389,7 +1926,21 @@ onBeforeUnmount(() => {
         >
           Переместить</button
         ><button
-          v-else-if="modalKind !== 'rows'"
+          v-else-if="modalKind === 'library-updates'"
+          class="btn btn-primary"
+          :disabled="modalBusy"
+          @click="applyLibraryUpdates"
+        >
+          Подтвердить обновление</button
+        ><button
+          v-else-if="modalKind === 'transition-relations'"
+          class="btn btn-primary"
+          :disabled="modalBusy"
+          @click="applyTransitionRelations"
+        >
+          Применить варианты</button
+        ><button
+          v-else-if="!rowModal && modalKind !== 'variants'"
           class="btn btn-primary"
           :disabled="modalBusy"
           @click="applyModal"
@@ -1398,14 +1949,187 @@ onBeforeUnmount(() => {
         </button></template
       >
     </Modal>
+    <DocumentSharingDialog
+      v-if="doc && !rowMode && !embedded"
+      :open="sharingOpen"
+      :document-id="doc.id"
+      :title="doc.title"
+      @close="sharingOpen = false"
+    />
   </AppShell>
 </template>
 
 <style scoped>
-.group-banner {
+.saved-transition-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: -4px 0 12px 24px;
+}
+.saved-transition-variants .btn {
+  font-size: 12px;
+  white-space: normal;
+  text-align: left;
+}
+.snapshot-change {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 16px 0;
+}
+.snapshot-change > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  font-size: 13px;
+}
+.snapshot-change img {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+}
+.embedded-editor :deep(.app-header),
+.embedded-editor :deep(.app-footer) {
+  display: none;
+}
+.embedded-editor :deep(.app-main) {
+  width: 100%;
+  padding: 12px;
+}
+.embedded-editor .editor-layout {
+  display: block;
+}
+.embedded-editor .editor-title-area {
+  display: none;
+}
+.embedded-editor .editor-header {
+  margin-bottom: 8px;
+}
+.embedded-editor .document-meta {
+  display: none;
+}
+.embedded-editor .editor-toolbar {
+  max-height: 45vh;
+}
+.embedded-editor .block-header {
+  padding: 10px;
+}
+.embedded-editor .block-rows {
+  padding: 0 8px;
+}
+.embedded-editor .history-buttons .btn {
+  padding: 6px;
+  font-size: 11px;
+}
+.embedded-editor .editor-actions {
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.embedded-editor .editor-actions .btn {
+  padding: 6px;
+  min-height: 32px;
+  font-size: 10px;
+}
+.embedded-editor .save-toolbar {
+  gap: 6px;
+  padding-bottom: 8px;
+}
+.embedded-editor .save-toolbar .btn {
+  font-size: 10px;
+  min-height: 30px;
+  padding: 5px;
+}
+.embedded-editor .save-status {
+  font-size: 9px;
+}
+.embedded-editor :deep(.sequence-cell) {
+  width: 30px;
+  flex: 0 0 30px;
+  height: 30px;
+  padding: 2px;
+  border-radius: 6px;
+}
+.embedded-editor .mobile-picker {
+  display: none;
+}
+.embedded-editor :deep(.cells-grid) {
+  gap: 3px;
+}
+.embedded-editor :deep(.cell-index) {
+  left: 2px;
+  top: 1px;
+  font-size: 7px;
+}
+.embedded-editor :deep(.cell-empty-text) {
+  display: none;
+}
+.embedded-editor :deep(.cell-plus) {
+  width: 15px;
+  height: 15px;
+  margin-bottom: 0;
+}
+.embedded-editor :deep(.append-cell) {
+  width: 20px;
+  flex-basis: 20px;
+  height: 28px;
+}
+.embedded-editor :deep(.row-header) {
+  font-size: 9px;
+  gap: 4px;
+}
+.embedded-editor .block-title {
+  font-size: 12px;
+}
+.embedded-editor .block-number {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+.embedded-editor .block-footer {
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 3px;
+}
+.embedded-editor .block-footer .btn {
+  font-size: 10px;
+  padding: 3px;
+}
+.editor-toolbar {
   position: sticky;
-  top: 12px;
-  z-index: 30;
+  top: 0;
+  z-index: 40;
+  display: flow-root;
+  max-height: 50vh;
+  max-height: 50dvh;
+  overflow-y: auto;
+  margin-bottom: 18px;
+  padding: 0 0 10px;
+  background: #f7f9f6;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 6px 14px #283f2008;
+}
+.editor-toolbar > :last-child {
+  margin-bottom: 0;
+}
+@media (min-width: 1001px) {
+  .editor-layout :deep(.asana-palette) {
+    top: calc(var(--editor-toolbar-height, 0px) + 12px);
+    max-height: calc(100vh - var(--editor-toolbar-height, 0px) - 24px);
+    max-height: calc(100dvh - var(--editor-toolbar-height, 0px) - 24px);
+  }
+}
+.arrow-banner {
+  border-color: #b4d5f5;
+  background: #f2f8ff;
+}
+.arrow-banner button[aria-pressed='true'] {
+  color: #125eae;
+  border-color: #1670cf;
+  background: #dfedff;
+}
+
+.group-banner {
   display: flex;
   align-items: center;
   gap: 18px;
@@ -1907,12 +2631,6 @@ onBeforeUnmount(() => {
     flex-basis: 100%;
     max-width: 100%;
     margin-bottom: 5px;
-  }
-  .cell-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    box-shadow: 0 6px 14px #283f2006;
   }
   .canvas-help {
     margin-bottom: 40px;

@@ -17,7 +17,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'csrf_token' => csrf_token(),
             'auth' => [
-                'user' => $request->user()?->only('id', 'name', 'email'),
+                'user' => $request->user()?->only('id', 'name', 'email', 'login', 'is_admin'),
                 'workspace' => $request->user() ? app(WorkspaceContext::class)->details() : null,
             ],
             'flash' => ['success' => fn () => $request->session()->get('success')],

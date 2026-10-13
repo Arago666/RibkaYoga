@@ -4,6 +4,7 @@
 /public/hot
 /.scaffold
 /.runtime
+/database/seeders/snapshot/
 /.env
 /.env.*
 !/.env.example

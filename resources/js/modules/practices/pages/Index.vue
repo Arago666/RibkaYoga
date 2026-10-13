@@ -16,12 +16,15 @@ import {
   ChevronRight,
   CalendarDays,
   X,
+  UserPlus,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
-import { emptyRow, type Cell } from '../types';
-type Tab = 'practices' | 'templates' | 'rows';
+import { emptyRow, uid, type Cell } from '../types';
+import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+const sharingItem = ref<PracticeListItem | null>(null);
+type Tab = 'practices' | 'templates' | 'rows' | 'transitions';
 interface PreviewCard {
   id: string;
   name: string;
@@ -57,7 +60,11 @@ interface DocumentData extends PracticeListItem {
 }
 const initial = new URL(window.location.href);
 const initialTab = initial.searchParams.get('tab');
-const tab = ref<Tab>(initialTab === 'templates' || initialTab === 'rows' ? initialTab : 'practices');
+const tab = ref<Tab>(
+  initialTab === 'templates' || initialTab === 'rows' || initialTab === 'transitions'
+    ? initialTab
+    : 'practices',
+);
 const query = ref(initial.searchParams.get('q') || ''),
   archive = ref(initial.searchParams.get('archive') || 'active');
 const page = ref(Math.max(1, Number(initial.searchParams.get('page')) || 1)),
@@ -70,7 +77,7 @@ const createOpen = ref(false),
   createTitle = ref(''),
   createTheme = ref(''),
   createMode = ref<'blank' | 'template'>('blank'),
-  createKind = ref<'practice' | 'template' | 'row'>('practice'),
+  createKind = ref<'practice' | 'template' | 'row' | 'transition'>('practice'),
   templateId = ref(''),
   createError = ref('');
 const templates = ref<PracticeListItem[]>([]),
@@ -84,24 +91,45 @@ const nameAction = ref<'rename' | 'template' | null>(null),
   renameDocument = ref<DocumentData | null>(null);
 let sequence = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
-const kind = computed(() => (tab.value === 'templates' ? 'template' : 'practice'));
+const rowTab = computed(() => tab.value === 'rows' || tab.value === 'transitions');
+const kind = computed(() =>
+  tab.value === 'transitions'
+    ? 'transition'
+    : tab.value === 'rows'
+      ? 'row'
+      : tab.value === 'templates'
+        ? 'template'
+        : 'practice',
+);
+const createIsRow = computed(() => createKind.value === 'row' || createKind.value === 'transition');
 const createLabel = computed(() =>
-  tab.value === 'rows' ? 'Создать строку' : tab.value === 'templates' ? 'Новый шаблон' : 'Создать практику',
+  rowTab.value
+    ? tab.value === 'transitions'
+      ? 'Создать связку'
+      : 'Создать строку'
+    : tab.value === 'templates'
+      ? 'Новый шаблон'
+      : 'Создать практику',
 );
 const heading = computed(() =>
   tab.value === 'templates'
     ? 'Шаблоны практик'
-    : tab.value === 'rows'
-      ? 'Сохранённые строки'
+    : rowTab.value
+      ? tab.value === 'transitions'
+        ? 'Связки и переходы'
+        : 'Сохранённые строки'
       : 'Мои практики',
 );
-const description = computed(() =>
-  tab.value === 'templates'
-    ? 'Ваши проверенные основы. Начните с них и добавьте новое.'
-    : tab.value === 'rows'
-      ? 'Удачные сочетания асан, которые легко повторить в другой практике.'
-      : 'Собирайте последовательности, в которых каждое движение на своём месте.',
-);
+const resultCount = computed(() => {
+  const total = result.value?.total ?? 0;
+  return tab.value === 'templates'
+    ? noun(total, 'шаблон', 'шаблона', 'шаблонов')
+    : rowTab.value
+      ? tab.value === 'transitions'
+        ? noun(total, 'связка', 'связки', 'связок')
+        : noun(total, 'строка', 'строки', 'строк')
+      : noun(total, 'практика', 'практики', 'практик');
+});
 function failureText(failure: unknown) {
   return failure instanceof Error ? failure.message : 'Не удалось выполнить действие. Попробуйте ещё раз.';
 }
@@ -122,7 +150,7 @@ async function load() {
   loading.value = true;
   error.value = '';
   updateUrl();
-  const endpoint = tab.value === 'rows' ? '/api/row-templates' : '/api/practices';
+  const endpoint = rowTab.value ? '/api/row-templates' : '/api/practices';
   try {
     const response = await api<Page<PracticeListItem>>(
       `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, page: String(page.value) })}`,
@@ -162,7 +190,7 @@ function go(value: number) {
   void load();
 }
 function editUrl(item: PracticeListItem) {
-  return tab.value === 'rows' ? `/row-templates/${item.id}/edit` : `/practices/${item.id}/edit`;
+  return rowTab.value ? `/row-templates/${item.id}/edit` : `/practices/${item.id}/edit`;
 }
 function formatDate(value: string) {
   if (!value) return '';
@@ -177,7 +205,7 @@ function noun(count: number, one: string, few: string, many: string) {
   return `${count} ${lastTwo >= 11 && lastTwo <= 14 ? many : last === 1 ? one : last >= 2 && last <= 4 ? few : many}`;
 }
 function counts(item: PracticeListItem) {
-  return tab.value === 'rows'
+  return rowTab.value
     ? noun(item.cells_count ?? item.cell_count ?? 0, 'ячейка', 'ячейки', 'ячеек')
     : `${noun(item.blocks_count ?? item.block_count ?? 0, 'блок', 'блока', 'блоков')} · ${noun(item.row_count ?? 0, 'строка', 'строки', 'строк')}`;
 }
@@ -200,7 +228,13 @@ async function loadTemplates() {
 }
 function openCreate(template?: PracticeListItem, asTemplate = false) {
   createOpen.value = true;
-  createKind.value = asTemplate ? 'template' : !template && tab.value === 'rows' ? 'row' : 'practice';
+  createKind.value = asTemplate
+    ? 'template'
+    : !template && rowTab.value
+      ? tab.value === 'transitions'
+        ? 'transition'
+        : 'row'
+      : 'practice';
   createTitle.value = template ? `${template.title} — практика` : '';
   createTheme.value = template?.theme || '';
   createMode.value = template ? 'template' : 'blank';
@@ -215,7 +249,8 @@ async function create() {
   if (busy.value || !createTitle.value.trim()) return;
   busy.value = true;
   createError.value = '';
-  const isRow = createKind.value === 'row';
+  const transitionKey = uid();
+  const isRow = createKind.value === 'row' || createKind.value === 'transition';
   try {
     const response = await api<{ data: { id: string } }>(isRow ? '/api/row-templates' : '/api/practices', {
       method: 'POST',
@@ -223,7 +258,13 @@ async function create() {
         title: createTitle.value.trim(),
         theme: createTheme.value.trim() || null,
         ...(isRow
-          ? { cells: emptyRow().cells }
+          ? {
+              kind: createKind.value,
+              cells: emptyRow(createKind.value === 'transition' ? 2 : 6).cells.map((cell) => ({
+                ...cell,
+                group_key: createKind.value === 'transition' ? transitionKey : null,
+              })),
+            }
           : {
               kind: createKind.value,
               ...(createMode.value === 'template' && templateId.value
@@ -267,7 +308,7 @@ async function changeArchive(item: PracticeListItem) {
   error.value = '';
   try {
     await api(
-      `${tab.value === 'rows' ? '/api/row-templates' : '/api/practices'}/${item.id}/${item.archived_at ? 'restore' : 'archive'}`,
+      `${rowTab.value ? '/api/row-templates' : '/api/practices'}/${item.id}/${item.archived_at ? 'restore' : 'archive'}`,
       { method: 'POST', body: JSON.stringify({ expected_revision: item.revision }) },
     );
     success.value = item.archived_at ? 'Документ восстановлен.' : 'Документ перемещён в архив.';
@@ -288,7 +329,7 @@ async function openName(item: PracticeListItem, action: 'rename' | 'template') {
     busy.value = true;
     try {
       const response = await api<{ data: DocumentData }>(
-        `${tab.value === 'rows' ? '/api/row-templates' : '/api/practices'}/${item.id}`,
+        `${rowTab.value ? '/api/row-templates' : '/api/practices'}/${item.id}`,
       );
       renameDocument.value = response.data;
       newName.value = response.data.title;
@@ -314,14 +355,14 @@ async function saveName() {
       if (!renameDocument.value)
         throw new Error('Не удалось загрузить документ. Закройте окно и повторите действие.');
       const current = renameDocument.value;
-      await api(`${tab.value === 'rows' ? '/api/row-templates' : '/api/practices'}/${current.id}`, {
+      await api(`${rowTab.value ? '/api/row-templates' : '/api/practices'}/${current.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           title: newName.value.trim(),
           theme: current.theme,
           note: current.note,
           expected_revision: current.revision,
-          ...(tab.value === 'rows'
+          ...(rowTab.value
             ? { cells: current.cells }
             : { practice_date: current.practice_date || null, blocks: current.blocks }),
         }),
@@ -345,7 +386,6 @@ async function saveName() {
       <div>
         <p class="eyebrow">ПРОСТРАНСТВО ДЛЯ ВАШЕЙ ПРАКТИКИ</p>
         <h1 class="page-title">{{ heading }}</h1>
-        <p class="page-description">{{ description }}</p>
       </div>
       <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
         <Plus :size="19" /> {{ createLabel }}
@@ -359,39 +399,48 @@ async function saveName() {
       ><button class="tab" :class="{ active: tab === 'rows' }" @click="tab = 'rows'">
         <Rows3 :size="17" /> Сохранённые строки
       </button>
+      <button class="tab" :class="{ active: tab === 'transitions' }" @click="tab = 'transitions'">
+        <Rows3 :size="17" />Связки и переходы
+      </button>
+      <Link class="tab" href="/mesocycles"><CalendarDays :size="17" />Мезоциклы</Link>
+      <Link class="tab" href="/shared-practices"><UserPlus :size="17" />Мне дали доступ</Link>
     </div>
     <div class="practices-toolbar">
       <div class="practice-search">
         <Search :size="19" /><input
           v-model="query"
           class="input"
-          :placeholder="tab === 'rows' ? 'Найти строку по названию или теме' : 'Найти по названию или теме'"
+          :placeholder="rowTab ? 'Найти строку по названию или теме' : 'Найти по названию или теме'"
           aria-label="Поиск документов"
         /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
       </div>
       <select v-model="archive" class="select" aria-label="Состояние документов">
         <option value="active">Активные</option>
         <option value="archived">В архиве</option></select
-      ><span v-if="result && !loading" class="document-count"
-        >{{ result.total }} {{ tab === 'rows' ? 'строк' : 'документов' }}</span
-      >
+      ><span v-if="result && !loading" class="document-count">{{ resultCount }}</span>
     </div>
     <div v-if="success" class="success-banner" role="status">{{ success }}</div>
     <div v-if="error" class="error-banner" role="alert">
       {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
     </div>
     <div v-if="loading" class="practices-loading" role="status">
-      Загружаем ваши {{ tab === 'rows' ? 'строки' : 'практики' }}…
+      Загружаем ваши {{ rowTab ? 'строки' : 'практики' }}…
     </div>
     <div v-else-if="result?.data.length" class="practice-grid">
       <article v-for="item in result.data" :key="item.id" class="card practice-card">
         <Link class="practice-cover" :href="editUrl(item)" :aria-label="`Открыть: ${item.title}`"
           ><span class="cover-kind"
-            ><Rows3 v-if="tab === 'rows'" :size="14" /><LayoutTemplate
+            ><Rows3 v-if="rowTab" :size="14" /><LayoutTemplate
               v-else-if="tab === 'templates'"
               :size="14"
             /><BookOpen v-else :size="14" />{{
-              tab === 'rows' ? 'СТРОКА' : tab === 'templates' ? 'ШАБЛОН' : 'ПРАКТИКА'
+              rowTab
+                ? tab === 'transitions'
+                  ? 'СВЯЗКА'
+                  : 'СТРОКА'
+                : tab === 'templates'
+                  ? 'ШАБЛОН'
+                  : 'ПРАКТИКА'
             }}</span
           >
           <div v-if="item.preview_cells?.length || item.preview_cards?.length" class="cover-poses">
@@ -419,7 +468,7 @@ async function saveName() {
         <div class="practice-content">
           <span v-if="item.theme" class="practice-theme">{{ item.theme }}</span
           ><span v-else class="practice-theme neutral">{{
-            tab === 'rows' ? 'Для ваших последовательностей' : 'В своём ритме'
+            rowTab ? 'Для ваших последовательностей' : 'В своём ритме'
           }}</span
           ><Link class="practice-title" :href="editUrl(item)">{{ item.title }}</Link>
           <div class="practice-meta">
@@ -435,9 +484,21 @@ async function saveName() {
             >
               Создать практику <ArrowRight :size="17" /></button
             ><Link v-else class="btn btn-secondary open-practice" :href="editUrl(item)"
-              >{{ tab === 'rows' ? 'Изменить строку' : 'Открыть практику' }}<ArrowRight :size="17"
+              >{{
+                rowTab ? (tab === 'transitions' ? 'Изменить связку' : 'Изменить строку') : 'Открыть практику'
+              }}<ArrowRight :size="17"
             /></Link>
             <div class="practice-actions">
+              <button
+                v-if="!rowTab"
+                class="icon-btn"
+                :disabled="busy"
+                title="Дать доступ преподавателю"
+                :aria-label="`Дать доступ: ${item.title}`"
+                @click="sharingItem = item"
+              >
+                <UserPlus :size="16" />
+              </button>
               <button
                 class="icon-btn"
                 :disabled="busy"
@@ -447,7 +508,7 @@ async function saveName() {
               >
                 <Pencil :size="16" /></button
               ><button
-                v-if="tab !== 'rows'"
+                v-if="!rowTab"
                 class="icon-btn"
                 :disabled="busy"
                 :aria-label="`Создать копию: ${item.title}`"
@@ -486,7 +547,7 @@ async function saveName() {
     </div>
     <div v-else-if="!error" class="empty-state practices-empty">
       <div class="empty-symbol">
-        <Rows3 v-if="tab === 'rows'" :size="39" :stroke-width="1.4" /><LayoutTemplate
+        <Rows3 v-if="rowTab" :size="39" :stroke-width="1.4" /><LayoutTemplate
           v-else-if="tab === 'templates'"
           :size="39"
           :stroke-width="1.4"
@@ -498,7 +559,7 @@ async function saveName() {
             ? 'Ничего не нашлось'
             : archive === 'archived'
               ? 'В архиве пока пусто'
-              : tab === 'rows'
+              : rowTab
                 ? 'Сохраняйте удачные сочетания'
                 : tab === 'templates'
                   ? 'Ваша основа для новых практик'
@@ -510,8 +571,8 @@ async function saveName() {
           query
             ? 'Попробуйте другое название или тему.'
             : archive === 'archived'
-              ? 'Здесь будут документы, которые вы отложили.'
-              : tab === 'rows'
+              ? 'Нет удаленных элементов.'
+              : rowTab
                 ? 'Создайте строку с нуля или сохраните удачное сочетание из практики. Готовую строку можно вставлять в другие практики.'
                 : tab === 'templates'
                   ? 'Сохраните готовую практику как шаблон или создайте основу с нуля.'
@@ -525,7 +586,7 @@ async function saveName() {
         @click="openCreate(undefined, tab === 'templates')"
       >
         <Plus :size="18" />
-        {{ tab === 'rows' ? 'Создать строку' : tab === 'templates' ? 'Создать шаблон' : 'Создать практику' }}
+        {{ createLabel }}
       </button>
     </div>
     <div v-if="result && result.last_page > 1" class="practice-pagination">
@@ -543,7 +604,13 @@ async function saveName() {
     <Modal
       :open="createOpen"
       :title="
-        createKind === 'row' ? 'Новая строка' : createKind === 'template' ? 'Новый шаблон' : 'Новая практика'
+        createKind === 'transition'
+          ? 'Новая связка'
+          : createKind === 'row'
+            ? 'Новая строка'
+            : createKind === 'template'
+              ? 'Новый шаблон'
+              : 'Новая практика'
       "
       @close="!busy && (createOpen = false)"
     >
@@ -558,9 +625,7 @@ async function saveName() {
             required
             maxlength="160"
             :disabled="busy"
-            :placeholder="
-              createKind === 'row' ? 'Например, разминка для плеч' : 'Например, мягкая практика для спины'
-            "
+            :placeholder="createIsRow ? 'Например, разминка для плеч' : 'Например, мягкая практика для спины'"
           />
         </div>
         <div class="field">
@@ -615,11 +680,13 @@ async function saveName() {
         </div>
         <p class="muted create-hint">
           {{
-            createKind === 'row'
-              ? 'Откроется строка с 6 пустыми ячейками. Добавьте асаны и настройте количество ячеек — готовую строку можно вставлять в практики.'
-              : createKind === 'template'
-                ? 'Шаблон сохранится отдельно. Созданные из него практики можно редактировать независимо.'
-                : 'Названия блоков, количество строк и ячеек можно изменить в конструкторе.'
+            createKind === 'transition'
+              ? 'Откроется связка с двумя пустыми ячейками в скобках. Её можно заполнить и вставлять целиком вместо одной ячейки практики.'
+              : createKind === 'row'
+                ? 'Откроется строка с 6 пустыми ячейками. Добавьте асаны и настройте количество ячеек — готовую строку можно вставлять в практики.'
+                : createKind === 'template'
+                  ? 'Шаблон сохранится отдельно. Созданные из него практики можно редактировать независимо.'
+                  : 'Названия блоков, количество строк и ячеек можно изменить в конструкторе.'
           }}
         </p>
       </form>
@@ -635,7 +702,15 @@ async function saveName() {
             (createKind === 'practice' && createMode === 'template' && !templateId)
           "
         >
-          {{ busy ? 'Создаём…' : createKind === 'row' ? 'Создать строку' : 'Открыть конструктор' }}
+          {{
+            busy
+              ? 'Создаём…'
+              : createKind === 'transition'
+                ? 'Создать связку'
+                : createKind === 'row'
+                  ? 'Создать строку'
+                  : 'Открыть конструктор'
+          }}
           <ArrowRight :size="17" /></button
       ></template>
     </Modal>
@@ -673,6 +748,12 @@ async function saveName() {
       ></Modal
     >
   </AppShell>
+  <DocumentSharingDialog
+    :open="Boolean(sharingItem)"
+    :document-id="sharingItem?.id || ''"
+    :title="sharingItem?.title"
+    @close="sharingItem = null"
+  />
 </template>
 <style scoped>
 .practices-heading {

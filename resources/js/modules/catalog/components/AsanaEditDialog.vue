@@ -2,14 +2,18 @@
 import { onBeforeUnmount, ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
-import { errorText, type Asana, type Category } from '../types';
+import { errorText, type Asana, type Category, type AsanaRelation } from '../types';
 import AsanaFields from './AsanaFields.vue';
+import CollectionChoices from './CollectionChoices.vue';
+import RelationsEditor from './RelationsEditor.vue';
 const props = defineProps<{ card: Asana | null; categories: Category[] }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const name = ref(''),
   aliases = ref(''),
   error = ref('');
 const categoryIds = ref<string[]>([]);
+const collectionIds = ref<string[]>([]),
+  relations = ref<AsanaRelation[]>([]);
 const replacement = ref<File | null>(null);
 const replacementUrl = ref('');
 const imageError = ref('');
@@ -40,6 +44,8 @@ watch(
     name.value = card.name;
     aliases.value = card.aliases?.join('\n') || '';
     categoryIds.value = card.categories?.map((item) => item.id) || [];
+    collectionIds.value = [...(card.collection_ids || [])];
+    relations.value = JSON.parse(JSON.stringify(card.relations || []));
     error.value = '';
   },
   { immediate: true },
@@ -48,6 +54,10 @@ async function save() {
   if (!props.card || busy.value || imageError.value) return;
   if (!name.value.trim()) {
     error.value = 'Укажите название карточки.';
+    return;
+  }
+  if (!categoryIds.value.length || !collectionIds.value.length) {
+    error.value = 'Выберите хотя бы одну категорию и одну подборку.';
     return;
   }
   busy.value = true;
@@ -65,6 +75,8 @@ async function save() {
     ),
   );
   data.set('category_ids', JSON.stringify(categoryIds.value));
+  data.set('collection_ids', JSON.stringify(collectionIds.value));
+  data.set('relations', JSON.stringify(relations.value.map(({ asana_id, kind }) => ({ asana_id, kind }))));
   data.set('expected_revision', String(props.card.revision));
   if (replacement.value) data.set('image', replacement.value);
   try {
@@ -82,6 +94,8 @@ onBeforeUnmount(clearReplacement);
 <template>
   <Modal :open="Boolean(card)" title="Изменить карточку" @close="!busy && $emit('close')">
     <form id="asana-edit-form" class="edit-form" @submit.prevent="save">
+      <CollectionChoices v-model="collectionIds" :open="Boolean(card)" :disabled="busy" />
+      <RelationsEditor v-if="card" v-model="relations" :asana-id="card.id" :disabled="busy" />
       <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
       <div v-if="imageError" class="error-banner" role="alert">
         {{ imageError
@@ -96,7 +110,7 @@ onBeforeUnmount(clearReplacement);
         prefix="asana-edit"
         :categories="categories"
         :disabled="busy"
-        :image-url="replacementUrl || card?.thumbnail_url || card?.image_url || ''"
+        :image-url="replacementUrl || card?.image_url || card?.thumbnail_url || ''"
         :image-name="replacement?.name"
         @image="replaceImage"
       >

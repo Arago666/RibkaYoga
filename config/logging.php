@@ -52,6 +52,12 @@ return [
 
     'channels' => [
 
+        'local_mail' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/local-mail.log'),
+            'level' => 'debug',
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

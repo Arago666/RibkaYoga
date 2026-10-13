@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check, Expand, Pencil, Archive, RotateCcw } from '@lucide/vue';
 import type { Asana } from '../types';
+import CategoryMarkers from './CategoryMarkers.vue';
 withDefaults(defineProps<{ card: Asana; selected?: boolean; selectable?: boolean; actions?: boolean }>(), {
   selected: false,
   selectable: true,
@@ -17,6 +18,10 @@ defineEmits<{
 
 <template>
   <article class="asana-card" :class="{ selected, archived: card.archived_at }">
+    <CategoryMarkers
+      :categories="card.categories"
+      style="position: absolute; right: 12px; top: 15px; z-index: 1"
+    />
     <button
       v-if="selectable"
       class="selection-toggle"

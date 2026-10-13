@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { cellGroupEdges, type Practice } from '../types';
+import CellArrow from './CellArrow.vue';
 
 const props = withDefaults(
   defineProps<{ document: Practice; showNames?: boolean; imageVersion?: number }>(),
@@ -65,6 +66,7 @@ function imageSource(url: string) {
                 role="img"
                 aria-label="Конец группы асан"
               ></span>
+              <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
               <template v-if="cell.card">
                 <div class="card-image-box">
                   <img

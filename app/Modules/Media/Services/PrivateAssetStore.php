@@ -5,6 +5,7 @@ namespace App\Modules\Media\Services;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Media\Models\Asset;
 use App\Modules\Media\PublicApi\AssetStore;
+use App\Modules\Practices\PublicApi\DocumentMediaAccess;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -36,25 +37,28 @@ class PrivateAssetStore implements AssetStore
         if ((int) config('ribka.upload_max_pixels', 25000000) < $info[0] * $info[1]) {
             throw ValidationException::withMessages(['image' => 'Изображение превышает 25 мегапикселей.']);
         }
-        $source = @imagecreatefromstring($contents);
-        if (! $source) {
+        $source = function_exists('imagecreatefromstring') ? @imagecreatefromstring($contents) : null;
+        if (function_exists('imagecreatefromstring') && ! $source) {
             throw ValidationException::withMessages(['image' => 'Не удалось прочитать изображение.']);
         }
         $id = (string) Str::uuid();
         $extension = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][$mime];
         $originalPath = 'media/'.$this->workspace->id().'/'.$id.'.'.$extension;
-        $thumbnailPath = 'media/'.$this->workspace->id().'/'.$id.'-thumb.webp';
-        $ratio = min(1, 360 / max($info[0], $info[1]));
-        $thumb = imagecreatetruecolor(max(1, (int) round($info[0] * $ratio)), max(1, (int) round($info[1] * $ratio)));
-        imagealphablending($thumb, false);
-        imagesavealpha($thumb, true);
-        imagefill($thumb, 0, 0, imagecolorallocatealpha($thumb, 255, 255, 255, 127));
-        imagecopyresampled($thumb, $source, 0, 0, 0, 0, imagesx($thumb), imagesy($thumb), $info[0], $info[1]);
-        ob_start();
-        imagewebp($thumb, null, 85);
-        $thumbnail = ob_get_clean();
-        imagedestroy($thumb);
-        imagedestroy($source);
+        $thumbnailPath = $source ? 'media/'.$this->workspace->id().'/'.$id.'-thumb.webp' : $originalPath;
+        $thumbnail = $contents;
+        if ($source) {
+            $ratio = min(1, 360 / max($info[0], $info[1]));
+            $thumb = imagecreatetruecolor(max(1, (int) round($info[0] * $ratio)), max(1, (int) round($info[1] * $ratio)));
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            imagefill($thumb, 0, 0, imagecolorallocatealpha($thumb, 255, 255, 255, 127));
+            imagecopyresampled($thumb, $source, 0, 0, 0, 0, imagesx($thumb), imagesy($thumb), $info[0], $info[1]);
+            ob_start();
+            imagewebp($thumb, null, 85);
+            $thumbnail = ob_get_clean();
+            imagedestroy($thumb);
+            imagedestroy($source);
+        }
         if (! is_string($thumbnail) || $thumbnail === '') {
             throw ValidationException::withMessages(['image' => 'Не удалось создать миниатюру изображения.']);
         }
@@ -69,7 +73,7 @@ class PrivateAssetStore implements AssetStore
                 'mime' => $mime, 'bytes' => strlen($contents), 'width' => $info[0], 'height' => $info[1],
                 'original_filename' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
             ]);
-            $this->pending[$id] = true;
+            $this->pending[$id] = ['workspace_id' => $asset->workspace_id, 'disk' => $asset->disk, 'paths' => [$originalPath, $thumbnailPath]];
 
             return $this->data($asset);
         } catch (\Throwable $error) {
@@ -100,18 +104,40 @@ class PrivateAssetStore implements AssetStore
         if (! isset($this->pending[$id])) {
             return;
         }
-        $asset = $this->find($id);
+        $pending = $this->pending[$id];
+        abort_unless($pending['workspace_id'] === $this->workspace->id(), 404);
+        $asset = Asset::where('workspace_id', $pending['workspace_id'])->find($id);
         try {
             // Restrictive foreign keys protect attached catalog and practice images.
-            $asset->delete();
+            $asset?->delete();
         } catch (QueryException $error) {
             if (in_array((string) $error->getCode(), ['23503', '23000'], true)) {
                 return;
             }
             throw $error;
         }
-        Storage::disk($asset->disk)->delete([$asset->original_path, $asset->thumbnail_path]);
+        // A rollback may already have removed the row, while its files still exist.
+        Storage::disk($pending['disk'])->delete($pending['paths']);
         unset($this->pending[$id]);
+    }
+
+    public function originalData(string $id): array
+    {
+        $asset = $this->find($id);
+        $contents = Storage::disk($asset->disk)->get($asset->original_path);
+
+        return [...$this->data($asset), 'data_url' => 'data:'.$asset->mime.';base64,'.base64_encode($contents)];
+    }
+
+    public function forDocument(string $id, string $documentId): array
+    {
+        abort_unless(Str::isUuid($id) && Str::isUuid($documentId), 404);
+        app(DocumentMediaAccess::class)->authorize($documentId, $id);
+        $asset = Asset::findOrFail($id);
+        $disk = Storage::disk($asset->disk);
+        abort_unless($disk->exists($asset->original_path), 404);
+
+        return ['path' => $disk->path($asset->original_path), 'mime' => $asset->mime];
     }
 
     public function find(string $id): Asset

@@ -188,6 +188,17 @@ export function useEditor(id: string, rowMode: boolean) {
     loadVersion++;
     clearTimeout(timer);
   }
+  function acceptSaved(value: Practice) {
+    if (!document.value || disposed) return;
+    undoStack.value.push(clone(document.value));
+    if (undoStack.value.length > 50) undoStack.value.shift();
+    redoStack.value = [];
+    document.value = value;
+    acknowledged.value = fingerprint(value, rowMode);
+    historyGroup = null;
+    error.value = '';
+    conflict.value = false;
+  }
   onBeforeUnmount(stop);
   return {
     document,
@@ -205,6 +216,7 @@ export function useEditor(id: string, rowMode: boolean) {
     save,
     schedule,
     stop,
+    acceptSaved,
     endGroup: () => {
       historyGroup = null;
     },

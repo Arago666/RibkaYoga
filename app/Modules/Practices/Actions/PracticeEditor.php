@@ -5,6 +5,7 @@ namespace App\Modules\Practices\Actions;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Catalog\PublicApi\AsanaReader;
 use App\Modules\Media\PublicApi\AssetStore;
+use App\Modules\Billing\PublicApi\Entitlements;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class PracticeEditor
         private readonly WorkspaceContext $context,
         private readonly AsanaReader $asanas,
         private readonly AssetStore $assets,
+        private readonly Entitlements $entitlements,
     ) {}
 
     public function listing(array $filters, bool $rows = false): array
@@ -28,6 +30,8 @@ class PracticeEditor
         $query = $this->owned($rows ? 'practice_row_templates' : 'practice_documents');
         if (! $rows) {
             $query->where('kind', $filters['kind'] ?? 'practice');
+        } else {
+            $query->where('kind', $filters['kind'] ?? 'row');
         }
         $archived = ($filters['archive'] ?? '') === 'archived' || ($filters['archived'] ?? false);
         $archived ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at');
@@ -55,10 +59,15 @@ class PracticeEditor
                 ->join('practice_blocks', 'practice_blocks.id', '=', 'practice_rows.block_id')
                 ->whereIn('practice_blocks.document_id', $documentIds)
                 ->orderBy('practice_blocks.position')->orderBy('practice_rows.position')->orderBy('practice_cells.position')
-                ->select('practice_cells.id', 'practice_cells.card_snapshot_id', 'practice_cells.custom_name', 'practice_cells.group_key', 'practice_cells.note', 'practice_blocks.document_id')->get()->groupBy('document_id');
+                ->select('practice_cells.id', 'practice_cells.card_snapshot_id', 'practice_cells.custom_name', 'practice_cells.group_key', 'practice_cells.arrow_direction', 'practice_cells.note', 'practice_blocks.document_id')->get()->groupBy('document_id');
         }
         $previewIds = $cellGroups->flatMap(fn ($cells) => $cells->pluck('card_snapshot_id')->filter()->unique()->take(4))->unique()->values()->all();
         $snapshots = $this->snapshots($previewIds);
+        $relations = $rows ? DB::table('practice_transition_relations as relations')
+            ->join('practice_row_templates as related', 'related.id', '=', 'relations.related_transition_id')
+            ->whereIn('relations.transition_id', $documentIds)->where('related.workspace_id', $this->workspace())
+            ->orderBy('related.title')->get(['relations.transition_id', 'related.id', 'related.title', 'related.archived_at', 'relations.kind'])
+            ->groupBy('transition_id') : collect();
         $items = [];
         foreach ($page->items() as $record) {
             $item = (array) $record;
@@ -74,6 +83,8 @@ class PracticeEditor
                 ->map(fn ($id) => $snapshots[$id])->values()->all();
             $item['preview_cells'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id !== null || $cell->custom_name !== null)
                 ->take(4)->map(fn ($cell) => $this->hydrateCell($cell, $snapshots))->values()->all();
+            if ($rows) $item['relations'] = ($relations[$record->id] ?? collect())
+                ->map(fn ($related) => ['transition_id' => $related->id, 'title' => $related->title, 'kind' => $related->kind, 'archived_at' => $related->archived_at])->all();
             $items[] = $item;
         }
 
@@ -93,6 +104,7 @@ class PracticeEditor
     public function create(array $input): array
     {
         return DB::transaction(function () use ($input) {
+            $this->entitlements->lock($this->workspace());
             if (! empty($input['template_id'])) {
                 $source = $this->find('practice_documents', $input['template_id'], true);
                 abort_unless($source->kind === 'template' && ! $source->archived_at, 422, 'Выберите доступный шаблон практики.');
@@ -123,6 +135,7 @@ class PracticeEditor
             $this->assertRevision($record, $input['expected_revision']);
             $this->assertEditable($record);
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], $id);
+            $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], $id, 'arrow_direction');
             $this->validateTree($input['blocks'], $id);
             DB::table('practice_documents')->where('id', $id)->update($this->metadata($input) + [
                 'revision' => $record->revision + 1,
@@ -138,7 +151,9 @@ class PracticeEditor
     public function copyLocal(array $input): array
     {
         return DB::transaction(function () use ($input) {
+            $this->entitlements->lock($this->workspace());
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks']);
+            $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], null, 'arrow_direction');
 
             return $this->insertDocument($input, 'practice');
         });
@@ -147,6 +162,7 @@ class PracticeEditor
     public function duplicate(string $id, array $input, bool $asTemplate = false): array
     {
         return DB::transaction(function () use ($id, $input, $asTemplate) {
+            $this->entitlements->lock($this->workspace());
             $record = $this->find('practice_documents', $id, true);
             if (isset($input['expected_revision'])) {
                 $this->assertRevision($record, $input['expected_revision']);
@@ -161,9 +177,11 @@ class PracticeEditor
     public function archive(string $id, int $revision, bool $restore = false, bool $rowTemplate = false): array
     {
         return DB::transaction(function () use ($id, $revision, $restore, $rowTemplate) {
+            if (! $rowTemplate) $this->entitlements->lock($this->workspace());
             $table = $rowTemplate ? 'practice_row_templates' : 'practice_documents';
             $record = $this->find($table, $id, true);
             $this->assertRevision($record, $revision);
+            if ($restore && ! $rowTemplate && $record->archived_at) $this->entitlements->assertCanCreate($this->workspace(), 'practices', $this->owned('practice_documents')->whereNull('archived_at')->count());
             DB::table($table)->where('id', $id)->update([
                 'archived_at' => $restore ? null : now(),
                 'revision' => $record->revision + 1,
@@ -186,10 +204,12 @@ class PracticeEditor
                 $this->assertEditable($record);
                 $revision = $record->revision + 1;
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells'], $id);
+                $input['cells'] = $this->restoreMissingRowGroups($input['cells'], $id, 'arrow_direction');
             } else {
                 $id = (string) Str::uuid();
                 $revision = 1;
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells']);
+                $input['cells'] = $this->restoreMissingRowGroups($input['cells'], null, 'arrow_direction');
                 foreach ($input['cells'] as &$cell) {
                     $cell['id'] = (string) Str::uuid();
                 }
@@ -202,6 +222,10 @@ class PracticeEditor
                 'title' => $input['title'], 'theme' => $input['theme'] ?? null, 'note' => $input['note'] ?? null,
                 'revision' => $revision, 'updated_by' => $this->context->userId(), 'updated_at' => now(),
             ];
+            $values['kind'] = $input['kind'] ?? ($record->kind ?? 'row');
+            if ($values['kind'] === 'transition' && count($input['cells']) < 2) {
+                throw ValidationException::withMessages(['cells' => 'Связка содержит минимум две ячейки.']);
+            }
             if ($revision === 1) {
                 DB::table('practice_row_templates')->insert($values + [
                     'id' => $id, 'workspace_id' => $this->workspace(), 'created_by' => $this->context->userId(), 'created_at' => now(),
@@ -213,6 +237,19 @@ class PracticeEditor
             DB::table('practice_row_template_cells')->insert(array_map(fn ($cell, $position) => [
                 'id' => $cell['id'], 'row_template_id' => $id, 'position' => $position,
             ] + $this->cellContent($cell), $input['cells'], array_keys($input['cells'])));
+            if (array_key_exists('relations', $input)) {
+                if ($values['kind'] !== 'transition' && $input['relations']) throw ValidationException::withMessages(['relations' => 'Варианты можно задать только для связки.']);
+                $relations = [];
+                $previousRelations = DB::table('practice_transition_relations')->where('transition_id', $id)->get()
+                    ->mapWithKeys(fn ($relation) => [$relation->related_transition_id.':'.$relation->kind => true])->all();
+                foreach ($input['relations'] as $relation) {
+                    $target = $this->find('practice_row_templates', strtolower($relation['transition_id']));
+                    if ($target->id === $id || $target->kind !== 'transition' || ($target->archived_at && ! isset($previousRelations[$target->id.':'.$relation['kind']]))) throw ValidationException::withMessages(['relations' => 'Выберите другую активную связку своего пространства.']);
+                    $relations[$target->id.':'.$relation['kind']] = ['transition_id' => $id, 'related_transition_id' => $target->id, 'kind' => $relation['kind']];
+                }
+                DB::table('practice_transition_relations')->where('transition_id', $id)->delete();
+                if ($relations) DB::table('practice_transition_relations')->insert(array_values($relations));
+            }
 
             return $this->rowTemplate($id);
         });
@@ -240,6 +277,67 @@ class PracticeEditor
 
             return $result;
         });
+    }
+
+    public function refreshPreview(string $id): array
+    {
+        return DB::transaction(function () use ($id) {
+            $document = $this->find('practice_documents', $id, true);
+            $this->assertEditable($document);
+            return ['revision' => (int) $document->revision, 'changes' => $this->snapshotChanges($id)];
+        });
+    }
+
+    public function refreshSnapshots(string $id, int $revision, array $sourceIds, array $expectedAsanaRevisions): array
+    {
+        return DB::transaction(function () use ($id, $revision, $sourceIds, $expectedAsanaRevisions) {
+            $document = $this->find('practice_documents', $id, true);
+            $this->assertRevision($document, $revision);
+            $this->assertEditable($document);
+            $changes = array_filter($this->snapshotChanges($id), fn ($change) => in_array($change['source_asana_id'], $sourceIds, true));
+            $expected = array_column($expectedAsanaRevisions, 'revision', 'asana_id');
+            foreach ($this->asanas->findMany($sourceIds, true) as $card) {
+                if ($card['archived_at'] || ($expected[$card['id']] ?? null) !== (int) $card['revision']) {
+                    throw new HttpResponseException(response()->json(['message' => 'Карточка в библиотеке изменилась после предпросмотра. Закройте окно и проверьте изменения ещё раз.'], 409));
+                }
+            }
+            foreach ($changes as $change) {
+                if (($expected[$change['source_asana_id']] ?? null) !== $change['source_revision']) {
+                    throw new HttpResponseException(response()->json(['message' => 'Карточка в библиотеке изменилась после предпросмотра. Закройте окно и проверьте изменения ещё раз.'], 409));
+                }
+            }
+            $rowIds = DB::table('practice_rows')->join('practice_blocks', 'practice_blocks.id', '=', 'practice_rows.block_id')->where('practice_blocks.document_id', $id)->pluck('practice_rows.id')->all();
+            $replacement = [];
+            foreach ($changes as $change) {
+                $source = $change['source_asana_id'];
+                if (! isset($replacement[$source])) $replacement[$source] = $this->resolveCards([$source])[0]['id'];
+                DB::table('practice_cells')->whereIn('row_id', $rowIds)->where('card_snapshot_id', $change['snapshot_id'])->update(['card_snapshot_id' => $replacement[$source]]);
+            }
+            if ($changes) DB::table('practice_documents')->where('id', $id)->update(['revision' => $document->revision + 1, 'updated_by' => $this->context->userId(), 'updated_at' => now()]);
+            return $this->document($id);
+        });
+    }
+
+    private function snapshotChanges(string $id): array
+    {
+        $snapshotIds = DB::table('practice_cells')->join('practice_rows', 'practice_rows.id', '=', 'practice_cells.row_id')->join('practice_blocks', 'practice_blocks.id', '=', 'practice_rows.block_id')
+            ->where('practice_blocks.document_id', $id)->whereNotNull('practice_cells.card_snapshot_id')->pluck('practice_cells.card_snapshot_id')->unique()->all();
+        $snapshots = $this->owned('practice_card_snapshots')->whereIn('id', $snapshotIds)->whereNotNull('source_asana_id')->get();
+        $ids = $snapshots->pluck('source_asana_id')->unique()->all();
+        $cards = $this->asanas->findMany($ids, true);
+        $images = $this->assets->getMany($snapshots->pluck('image_asset_id')->unique()->all());
+        $changes = [];
+        foreach ($snapshots as $snapshot) {
+            $card = $cards[$snapshot->source_asana_id] ?? null;
+            if (! $card || $card['archived_at'] || ($snapshot->name === $card['name'] && $snapshot->image_asset_id === $card['image_asset_id'])) continue;
+            $changes[] = [
+                'snapshot_id' => $snapshot->id, 'source_asana_id' => $snapshot->source_asana_id,
+                'source_revision' => (int) $card['revision'],
+                'before_name' => $snapshot->name, 'before_image_url' => $images[$snapshot->image_asset_id]['image_url'],
+                'after_name' => $card['name'], 'after_image_url' => $card['image_url'],
+            ];
+        }
+        return $changes;
     }
 
     private function owned(string $table): Builder
@@ -311,6 +409,7 @@ class PracticeEditor
 
     private function insertDocument(array $tree, string $kind): array
     {
+        $this->entitlements->assertCanCreate($this->workspace(), 'practices', $this->owned('practice_documents')->whereNull('archived_at')->count());
         $id = (string) Str::uuid();
         // A template/local-conflict copy owns entirely new structural identities.
         foreach ($tree['blocks'] as &$block) {
@@ -400,8 +499,19 @@ class PracticeEditor
             'card_snapshot_id' => $cell['card_snapshot_id'],
             'custom_name' => $customName,
             'group_key' => $this->groupKey($cell),
+            'arrow_direction' => $this->arrowDirection($cell),
             'note' => $cell['card_snapshot_id'] !== null || $customName !== null ? ($cell['note'] ?? null) : null,
         ];
+    }
+
+    private function arrowDirection(array $cell): ?string
+    {
+        $direction = $cell['arrow_direction'] ?? null;
+        if ($direction !== null && ! in_array($direction, ['cross', 'both', 'up', 'down', 'left', 'right'], true)) {
+            throw ValidationException::withMessages(['cells.arrow_direction' => 'Выберите четырёхстороннюю или горизонтальную двустороннюю стрелку.']);
+        }
+
+        return $direction;
     }
 
     private function groupKey(array $cell): ?string
@@ -436,13 +546,13 @@ class PracticeEditor
         }
     }
 
-    private function restoreMissingTreeGroups(array $blocks, ?string $documentId = null): array
+    private function restoreMissingTreeGroups(array $blocks, ?string $documentId = null, string $field = 'group_key'): array
     {
         $missingIds = [];
         foreach ($blocks as $block) {
             foreach ($block['rows'] as $row) {
                 foreach ($row['cells'] as $cell) {
-                    if (! array_key_exists('group_key', $cell)) {
+                    if (! array_key_exists($field, $cell)) {
                         $missingIds[] = $cell['id'];
                     }
                 }
@@ -451,10 +561,10 @@ class PracticeEditor
         if (! $missingIds) {
             return $blocks;
         }
-        $groups = $this->knownCellGroups($missingIds, $documentId);
+        $groups = $this->knownCellGroups($missingIds, $documentId, null, $field);
         foreach ($blocks as &$block) {
             foreach ($block['rows'] as &$row) {
-                $row['cells'] = $this->restoreCellGroups($row['cells'], $groups);
+                $row['cells'] = $this->restoreCellGroups($row['cells'], $groups, $field);
             }
             unset($row);
         }
@@ -463,19 +573,19 @@ class PracticeEditor
         return $blocks;
     }
 
-    private function restoreMissingRowGroups(array $cells, ?string $rowTemplateId = null): array
+    private function restoreMissingRowGroups(array $cells, ?string $rowTemplateId = null, string $field = 'group_key'): array
     {
-        $missingIds = array_column(array_filter($cells, fn ($cell) => ! array_key_exists('group_key', $cell)), 'id');
+        $missingIds = array_column(array_filter($cells, fn ($cell) => ! array_key_exists($field, $cell)), 'id');
 
-        return $missingIds ? $this->restoreCellGroups($cells, $this->knownCellGroups($missingIds, null, $rowTemplateId)) : $cells;
+        return $missingIds ? $this->restoreCellGroups($cells, $this->knownCellGroups($missingIds, null, $rowTemplateId, $field), $field) : $cells;
     }
 
-    private function restoreCellGroups(array $cells, array $groups): array
+    private function restoreCellGroups(array $cells, array $groups, string $field): array
     {
         foreach ($cells as &$cell) {
-            // Missing means an older client; explicit null means ungroup.
-            if (! array_key_exists('group_key', $cell)) {
-                $cell['group_key'] = $groups[strtolower($cell['id'])] ?? null;
+            // Missing means an older client; explicit null removes the annotation.
+            if (! array_key_exists($field, $cell)) {
+                $cell[$field] = $groups[strtolower($cell['id'])] ?? null;
             }
         }
         unset($cell);
@@ -483,7 +593,7 @@ class PracticeEditor
         return $cells;
     }
 
-    private function knownCellGroups(array $ids, ?string $documentId = null, ?string $rowTemplateId = null): array
+    private function knownCellGroups(array $ids, ?string $documentId, ?string $rowTemplateId, string $field): array
     {
         $groups = [];
         if ($rowTemplateId === null) {
@@ -495,7 +605,7 @@ class PracticeEditor
             if ($documentId !== null) {
                 $query->where('practice_documents.id', $documentId);
             }
-            $groups = $query->pluck('practice_cells.group_key', 'practice_cells.id')->all();
+            $groups = $query->pluck('practice_cells.'.$field, 'practice_cells.id')->all();
         }
         if ($documentId === null) {
             $query = DB::table('practice_row_template_cells')
@@ -504,7 +614,7 @@ class PracticeEditor
             if ($rowTemplateId !== null) {
                 $query->where('practice_row_templates.id', $rowTemplateId);
             }
-            $groups += $query->pluck('practice_row_template_cells.group_key', 'practice_row_template_cells.id')->all();
+            $groups += $query->pluck('practice_row_template_cells.'.$field, 'practice_row_template_cells.id')->all();
         }
 
         return $groups;
@@ -600,13 +710,17 @@ class PracticeEditor
         $data = (array) $record;
         $data['revision'] = (int) $record->revision;
         $data['cells'] = $cells->map(fn ($cell) => $this->hydrateCell($cell, $snapshots))->values()->all();
+        $data['relations'] = DB::table('practice_transition_relations as relations')->join('practice_row_templates as related', 'related.id', '=', 'relations.related_transition_id')
+            ->where('relations.transition_id', $record->id)->where('related.workspace_id', $this->workspace())
+            ->orderBy('related.title')->get(['related.id', 'related.title', 'related.archived_at', 'relations.kind'])
+            ->map(fn ($related) => ['transition_id' => $related->id, 'title' => $related->title, 'kind' => $related->kind, 'archived_at' => $related->archived_at])->all();
 
         return $data;
     }
 
     private function hydrateCell(object $cell, array $snapshots): array
     {
-        return ['id' => $cell->id, 'card_snapshot_id' => $cell->card_snapshot_id, 'custom_name' => $cell->custom_name, 'group_key' => $cell->group_key, 'note' => $cell->note, 'card' => $snapshots[$cell->card_snapshot_id] ?? null];
+        return ['id' => $cell->id, 'card_snapshot_id' => $cell->card_snapshot_id, 'custom_name' => $cell->custom_name, 'group_key' => $cell->group_key, 'arrow_direction' => $cell->arrow_direction, 'note' => $cell->note, 'card' => $snapshots[$cell->card_snapshot_id] ?? null];
     }
 
     private function snapshots(array $ids): array

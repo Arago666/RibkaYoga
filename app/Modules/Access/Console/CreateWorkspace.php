@@ -13,7 +13,7 @@ class CreateWorkspace extends Command
 {
     use AccountInput;
 
-    protected $signature = 'ribka:workspace {name? : Название пространства} {--email=} {--user= : Имя владельца}';
+    protected $signature = 'ribka:workspace {name? : Название пространства} {--email=} {--user= : Имя владельца} {--login= : Логин владельца}';
 
     protected $description = 'Создать пространство и первого владельца со скрытым вводом пароля';
 
@@ -31,6 +31,7 @@ class CreateWorkspace extends Command
         });
         $this->info('Пространство создано: '.$workspace->id);
         $this->info('Владелец: '.$account['email']);
+        $this->info('Логин: '.$account['login']);
 
         return self::SUCCESS;
     }

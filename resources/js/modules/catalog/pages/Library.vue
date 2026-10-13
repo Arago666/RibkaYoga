@@ -21,7 +21,10 @@ import UploadDialog from '../components/UploadDialog.vue';
 import TaxonomyDialog from '../components/TaxonomyDialog.vue';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
 import CollectionsPanel from '../../collections/components/CollectionsPanel.vue';
-import { categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
+import { cardCount, categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
+import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
+import CatalogExchangeDialog from '../components/CatalogExchangeDialog.vue';
+const exchangeOpen = ref(false);
 const initial = new URL(window.location.href);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
 const query = ref(initial.searchParams.get('q') || ''),
@@ -42,10 +45,17 @@ const uploadOpen = ref(false),
   addToCollection = ref(false),
   preview = ref<Asana | null>(null),
   editing = ref<Asana | null>(null);
+const collectionsPanel = ref<InstanceType<typeof CollectionsPanel> | null>(null);
+function uploaded() {
+  void load();
+  void collectionsPanel.value?.refresh();
+}
 let sequence = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const selectedIds = computed(() => [...selection.value.keys()]);
-const hasFilters = computed(() => Boolean(query.value || category.value || archive.value !== 'active'));
+const hasFilters = computed(() =>
+  Boolean(query.value || category.value || archive.value !== 'active' || sort.value === 'used_recently'),
+);
 const visibleSelected = computed(
   () =>
     Boolean(result.value?.data.length) &&
@@ -133,6 +143,7 @@ function clearFilters() {
   query.value = '';
   category.value = '';
   archive.value = 'active';
+  sort.value = 'name_asc';
 }
 function go(value: number) {
   page.value = value;
@@ -177,11 +188,15 @@ async function taxonomyChanged() {
   <AppShell section="library">
     <header class="page-header library-heading">
       <div>
-        <p class="eyebrow">ВАША КОЛЛЕКЦИЯ ДВИЖЕНИЙ</p>
+        <p class="eyebrow">КОЛЛЕКЦИЯ АСАН</p>
         <h1 class="page-title">Библиотека асан</h1>
-        <p class="page-description">Все карточки под рукой. Выбирайте, объединяйте, практикуйте.</p>
       </div>
-      <button class="btn btn-primary" @click="uploadOpen = true"><Plus :size="19" /> Добавить асаны</button>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button class="btn btn-secondary" @click="exchangeOpen = true">JSON / Codex</button
+        ><button class="btn btn-primary" @click="uploadOpen = true">
+          <Plus :size="19" /> Добавить асаны
+        </button>
+      </div>
     </header>
     <div class="library-nav">
       <div class="tabs">
@@ -202,6 +217,7 @@ async function taxonomyChanged() {
       <button class="btn btn-ghost" @click="loadMetadata">Повторить загрузку категорий</button>
     </div>
     <template v-if="tab === 'asanas'">
+      <CategoryQuickFilters v-model="category" :categories="categories" />
       <div class="library-tools">
         <div class="library-search">
           <Search :size="19" /><input
@@ -222,7 +238,7 @@ async function taxonomyChanged() {
       </div>
       <div class="library-subtools">
         <div class="library-result-count">
-          <span v-if="result">{{ result.total }} карточек</span
+          <span v-if="result">{{ cardCount(result.total) }}</span
           ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
             Сбросить фильтры <X :size="14" />
           </button>
@@ -235,6 +251,7 @@ async function taxonomyChanged() {
             <option value="name_asc">По алфавиту: А–Я</option>
             <option value="name_desc">По алфавиту: Я–А</option>
             <option value="recent">Недавно добавленные</option>
+            <option value="used_recently">Недавно использованные</option>
           </select>
         </div>
       </div>
@@ -301,10 +318,21 @@ async function taxonomyChanged() {
         </button>
       </div>
     </template>
-    <CollectionsPanel v-else />
-    <UploadDialog :open="uploadOpen" :categories="categories" @close="uploadOpen = false" @uploaded="load" />
+    <CollectionsPanel v-else ref="collectionsPanel" />
+    <UploadDialog
+      :open="uploadOpen"
+      :categories="categories"
+      @close="uploadOpen = false"
+      @uploaded="uploaded"
+    />
+    <CatalogExchangeDialog
+      :open="exchangeOpen"
+      :selected-ids="selectedIds"
+      @close="exchangeOpen = false"
+      @imported="load"
+    />
     <AsanaEditDialog :card="editing" :categories="categories" @close="editing = null" @saved="load" />
-    <AsanaPreview :card="preview" @close="preview = null" />
+    <AsanaPreview :card="preview" @close="preview = null" @related="preview = $event" />
     <TaxonomyDialog
       :open="taxonomyOpen"
       :categories="categories"
