@@ -120,10 +120,15 @@ const inputs = [
   ['catalog', path.join(root, 'resources/imports/catalog-redraw/recipes.json')],
   ['sheet', path.join(root, 'resources/imports/spinal-arc-sheet/recipes-upper.json')],
   ['sheet', path.join(root, 'resources/imports/spinal-arc-sheet/recipes-lower.json')],
-  ...['manual-a', 'manual-b', 'shared-a', 'shared-b', 'historical'].map((part) => [
-    'server',
-    path.join(root, `resources/imports/server-catalog/recipes-${part}.json`),
-  ]),
+  ...[
+    'manual-a',
+    'manual-b',
+    'shared-a',
+    'shared-b',
+    'historical',
+    'shared-refined-a',
+    'shared-refined-b',
+  ].map((part) => ['server', path.join(root, `resources/imports/server-catalog/recipes-${part}.json`)]),
 ];
 const rendered = [];
 for (const [family, file] of inputs) {
