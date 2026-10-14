@@ -15,13 +15,17 @@ return new class extends Migration
         Schema::create('collection_folders', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('workspace_id')->constrained('workspaces')->restrictOnDelete();
-            $table->foreignUuid('parent_id')->nullable()->constrained('collection_folders')->restrictOnDelete();
+            $table->uuid('parent_id')->nullable();
             $table->string('name', 160);
             $table->unsignedInteger('revision')->default(1);
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('updated_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->index(['workspace_id', 'parent_id']);
+        });
+        // PostgreSQL requires the UUID primary key before adding a self-reference.
+        Schema::table('collection_folders', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('collection_folders')->restrictOnDelete();
         });
         Schema::table('asana_collections', function (Blueprint $table) {
             $table->foreignUuid('folder_id')->nullable()->constrained('collection_folders')->restrictOnDelete();
