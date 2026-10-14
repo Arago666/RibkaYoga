@@ -38,6 +38,12 @@ const sharingOpen = ref(false);
 import { useEditor } from '../composables/useEditor';
 import type { PaletteDragPoint } from '../composables/usePaletteDrag';
 import {
+  isMesocycleCommand,
+  isMesocycleId,
+  type MesocycleCommand,
+  type MesocycleEventPayload,
+} from '../mesocycleChannel';
+import {
   clone,
   arrowLabels,
   type ArrowDirection,
@@ -62,6 +68,17 @@ import { relationLabels, type Asana, type AsanaRelation, type Page } from '@/mod
 
 const props = withDefaults(defineProps<{ documentId: string; rowMode?: boolean }>(), { rowMode: false });
 const embedded = new URL(window.location.href).searchParams.get('embedded') === '1';
+const sessionQuery = new URL(window.location.href).searchParams.get('mesocycle_session');
+const mesocycleSession = embedded && isMesocycleId(sessionQuery) ? sessionQuery : null;
+function sendToMesocycle(data: MesocycleEventPayload) {
+  if (!mesocycleSession || window.parent === window) return;
+  window.parent.postMessage(
+    { ...data, documentId: props.documentId, sessionId: mesocycleSession },
+    window.location.origin,
+  );
+}
+const mesocycleHoverCell = ref<string | null>(null);
+let consumedMesocycleSequence = 0;
 const editor = useEditor(props.documentId, props.rowMode);
 const {
   document: doc,
@@ -236,16 +253,9 @@ watch(
   () => (selected.value ? cellLabel(selected.value.cell) : null),
   (label) => {
     if (!embedded) return;
-    if (label && activeCell.value)
-      window.parent.postMessage(
-        { type: 'ribka:meso-cell', documentId: props.documentId, cellId: activeCell.value, label },
-        window.location.origin,
-      );
-    else
-      window.parent.postMessage(
-        { type: 'ribka:meso-clear-target', documentId: props.documentId },
-        window.location.origin,
-      );
+    if (label !== null && activeCell.value)
+      sendToMesocycle({ type: 'ribka:meso-cell', cellId: activeCell.value, label });
+    else sendToMesocycle({ type: 'ribka:meso-clear-target' });
   },
 );
 watch(activeCell, (id) => {
@@ -399,11 +409,7 @@ function selectCell(id: string, showPicker = true) {
   activeCell.value = id;
   activeBlock.value = found.block.id;
   activeRow.value = found.row.id;
-  if (embedded)
-    window.parent.postMessage(
-      { type: 'ribka:meso-cell', documentId: props.documentId, cellId: id, label: cellLabel(found.cell) },
-      window.location.origin,
-    );
+  if (embedded) sendToMesocycle({ type: 'ribka:meso-cell', cellId: id, label: cellLabel(found.cell) });
   if (!embedded && !transferring && showPicker) openPicker(id);
 }
 function openPicker(id: string) {
@@ -572,7 +578,7 @@ function clearCell(id: string) {
     if (cell) Object.assign(cell, { card: null, card_snapshot_id: null, custom_name: null, note: null });
   });
 }
-function ask(title: string, text: string, action: () => void) {
+function ask(title: string, text: string, action: () => void | Promise<void>) {
   modalTitle.value = title;
   modalText.value = text;
   modalKind.value = 'confirm';
@@ -1030,27 +1036,63 @@ async function applyLibraryUpdates() {
 }
 function receiveMesocycle(event: MessageEvent) {
   if (
-    !embedded ||
+    !mesocycleSession ||
     event.origin !== window.location.origin ||
     event.source !== window.parent ||
-    event.data?.documentId !== props.documentId
+    !isMesocycleCommand(event.data) ||
+    event.data.documentId !== props.documentId ||
+    event.data.sessionId !== mesocycleSession
   )
     return;
-  if (
-    event.data.type === 'ribka:meso-asana' &&
-    !annotationMode.value &&
-    typeof event.data.asanaId === 'string'
-  )
-    void insertAsana(event.data.asanaId, event.data.cellId || activeCell.value);
-  if (event.data.type === 'ribka:meso-save')
+  const data = event.data;
+  if (data.type === 'ribka:meso-hover') {
+    mesocycleHoverCell.value =
+      data.cellId && canReceiveCloud.value && findCell(data.cellId) && !pendingCells.value.has(data.cellId)
+        ? data.cellId
+        : null;
+  }
+  if (data.type === 'ribka:meso-asana') void insertMesocycleAsana(data);
+  if (data.type === 'ribka:meso-save')
     void editor
       .save()
-      .then((saved) =>
-        window.parent.postMessage(
-          { type: 'ribka:meso-saved', documentId: props.documentId, saved },
-          window.location.origin,
-        ),
-      );
+      .then((saved) => sendToMesocycle({ type: 'ribka:meso-saved', requestId: data.requestId, saved }));
+}
+const cloudEditingAllowed = computed(
+  () =>
+    !!mesocycleSession &&
+    !!doc.value &&
+    !locked.value &&
+    !conflict.value &&
+    !annotationMode.value &&
+    !pickerOpen.value,
+);
+const canReceiveCloud = computed(() => cloudEditingAllowed.value && !modalKind.value && !modalBusy.value);
+watch(canReceiveCloud, (allowed) => {
+  if (!allowed) mesocycleHoverCell.value = null;
+});
+async function insertMesocycleAsana(data: Extract<MesocycleCommand, { type: 'ribka:meso-asana' }>) {
+  if (data.sequence <= consumedMesocycleSequence) return;
+  // Consume each insertion once for the whole frame session, including cancelled confirmations.
+  consumedMesocycleSequence = data.sequence;
+  mesocycleHoverCell.value = null;
+  const current = findCell(data.cellId);
+  if (!canReceiveCloud.value || !current || pendingCells.value.has(data.cellId)) return;
+  const insert = async () => {
+    // applyModal awaits the action before closing. Recheck editing permissions while our own confirmation is open.
+    if (!cloudEditingAllowed.value || !findCell(data.cellId) || pendingCells.value.has(data.cellId)) return;
+    activeCell.value = data.cellId;
+    highlightedCell.value = null;
+    const inserted = await insertAsana(data.asanaId, data.cellId);
+    if (!inserted && modalKind.value === 'confirm')
+      throw new Error(notice.value || 'Не удалось заменить асану. Закройте окно и повторите вставку.');
+  };
+  if (cellFilled(current.cell))
+    ask(
+      'Заменить асану?',
+      `Заменить «${cellLabel(current.cell)}» асаной «${data.name}»? Действие можно отменить.`,
+      insert,
+    );
+  else await insert();
 }
 function saveTemplate() {
   prompt('Сохранить как шаблон', doc.value?.title || '', async (value) => {
@@ -1263,11 +1305,7 @@ onMounted(() => {
   });
 });
 watch([dirty, pending], () => {
-  if (embedded)
-    window.parent.postMessage(
-      { type: 'ribka:meso-status', documentId: props.documentId, dirty: dirty.value, pending: pending.value },
-      window.location.origin,
-    );
+  if (embedded) sendToMesocycle({ type: 'ribka:meso-status', dirty: dirty.value, pending: pending.value });
 });
 onBeforeUnmount(() => {
   alive = false;
@@ -1612,7 +1650,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div class="editor-layout" :style="{ '--editor-toolbar-height': `${toolbarHeight}px` }">
-        <div class="practice-canvas">
+        <div class="practice-canvas" :data-mesocycle-drop-enabled="canReceiveCloud">
           <section
             v-for="(block, bi) in doc.blocks"
             :key="block.id"
@@ -1681,7 +1719,9 @@ onBeforeUnmount(() => {
                 :group-mode="annotationMode"
                 :group-range="groupPreviewCells"
                 :group-invalid="!!groupRangeError"
-                :pointer-cell="pointerTarget?.kind === 'cell' ? pointerTarget.id : null"
+                :pointer-cell="
+                  mesocycleHoverCell || (pointerTarget?.kind === 'cell' ? pointerTarget.id : null)
+                "
                 :pointer-row="pointerTarget?.kind === 'row' ? pointerTarget.id : null"
                 @select="selectCell"
                 @drop-cell="dropCell"
@@ -1775,7 +1815,11 @@ onBeforeUnmount(() => {
           /><button class="btn btn-secondary" :disabled="modalBusy">Найти</button>
         </form>
         <p v-if="!savedRows.length && !modalBusy" class="muted">
-          {{ savedKind === 'transition' ? 'Связок пока нет. Выберите группу со скобками и сохраните её кнопкой «Сохранить связку».' : 'Сохранённых строк пока нет. Создайте одну через меню строки в редакторе.' }}
+          {{
+            savedKind === 'transition'
+              ? 'Связок пока нет. Выберите группу со скобками и сохраните её кнопкой «Сохранить связку».'
+              : 'Сохранённых строк пока нет. Создайте одну через меню строки в редакторе.'
+          }}
         </p>
         <div v-for="row in savedRows" :key="row.id" class="saved-row-entry">
           <button class="saved-row-option" :disabled="modalBusy" @click="insertSaved(row.id)">
@@ -1785,10 +1829,15 @@ onBeforeUnmount(() => {
             ><Plus :size="18" />
           </button>
           <div v-if="savedKind === 'transition' && row.relations?.length" class="saved-transition-variants">
-            <button v-for="relation in row.relations" :key="relation.transition_id + relation.kind"
-              class="btn btn-ghost" :disabled="modalBusy || !!relation.archived_at"
-              @click="insertSaved(relation.transition_id)">
-              {{ relationLabels[relation.kind] }}: {{ relation.title }}{{ relation.archived_at ? ' · В архиве' : '' }}
+            <button
+              v-for="relation in row.relations"
+              :key="relation.transition_id + relation.kind"
+              class="btn btn-ghost"
+              :disabled="modalBusy || !!relation.archived_at"
+              @click="insertSaved(relation.transition_id)"
+            >
+              {{ relationLabels[relation.kind] }}: {{ relation.title
+              }}{{ relation.archived_at ? ' · В архиве' : '' }}
             </button>
           </div>
         </div>

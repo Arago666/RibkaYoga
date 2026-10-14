@@ -17,7 +17,7 @@ class Asana extends Model
 
     protected function casts(): array
     {
-        return ['archived_at' => 'datetime', 'revision' => 'integer'];
+        return ['archived_at' => 'datetime', 'revision' => 'integer', 'drawing_source' => 'array'];
     }
 
     public function aliases(): HasMany

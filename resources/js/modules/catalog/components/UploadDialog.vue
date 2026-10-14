@@ -5,6 +5,7 @@ import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import { errorText, type Category } from '../types';
+import type { DrawingDocument } from '../drawing';
 import AsanaFields from './AsanaFields.vue';
 import CollectionChoices from './CollectionChoices.vue';
 const props = defineProps<{ open: boolean; categories: Category[] }>();
@@ -23,6 +24,8 @@ interface UploadItem {
   state: 'ready' | 'uploading' | 'done' | 'error';
   error: string;
   invalid: boolean;
+  drawing: DrawingDocument | null;
+  drawingDirty: boolean;
 }
 function emptyItem(): UploadItem {
   return {
@@ -37,19 +40,29 @@ function emptyItem(): UploadItem {
     state: 'ready',
     error: '',
     invalid: false,
+    drawing: null,
+    drawingDirty: false,
   };
 }
 const items = ref<UploadItem[]>([emptyItem()]);
 const input = ref<HTMLInputElement | null>(null);
 const busy = ref(false);
+const preparing = ref(false);
+const fieldRefs = new Map<string, InstanceType<typeof AsanaFields>>();
+function setFields(id: string, component: unknown) {
+  if (component) fieldRefs.set(id, component as InstanceType<typeof AsanaFields>);
+  else fieldRefs.delete(id);
+}
 const error = ref('');
 const commonCategory = ref('');
 const dragging = ref(false);
 const succeeded = computed(() => items.value.filter((item) => item.state === 'done').length);
 const pending = computed(() =>
-  items.value.filter((item) => ['ready', 'error'].includes(item.state) && item.file && !item.invalid),
+  items.value.filter(
+    (item) => ['ready', 'error'].includes(item.state) && ((item.file && !item.invalid) || item.drawingDirty),
+  ),
 );
-function replaceImage(item: UploadItem, file: File) {
+function replaceImage(item: UploadItem, file: File, drawing: DrawingDocument | null = null) {
   if (busy.value || item.state === 'done') return;
   let issue = '';
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type))
@@ -57,6 +70,7 @@ function replaceImage(item: UploadItem, file: File) {
   else if (file.size > 10 * 1024 * 1024) issue = 'Размер файла превышает 10 МБ.';
   if (item.url) URL.revokeObjectURL(item.url);
   item.file = file;
+  item.drawing = issue ? null : drawing;
   item.url = issue ? '' : URL.createObjectURL(file);
   if (!item.name.trim())
     item.name =
@@ -104,7 +118,21 @@ function onDrop(event: DragEvent) {
   addFiles(event.dataTransfer?.files || null);
 }
 async function upload() {
-  if (busy.value || !pending.value.length) return;
+  if (busy.value || preparing.value || !pending.value.length) return;
+  preparing.value = true;
+  try {
+    for (const item of items.value) {
+      if (item.state === 'done') continue;
+      const fields = fieldRefs.get(item.id);
+      if (fields && !(await fields.guardBeforeSave())) {
+        item.expanded = true;
+        return;
+      }
+    }
+  } finally {
+    preparing.value = false;
+  }
+  if (!pending.value.length) return;
   busy.value = true;
   error.value = '';
   const queue = [...pending.value];
@@ -129,6 +157,7 @@ async function upload() {
       item.error = '';
       const data = new FormData();
       data.set('image', item.file);
+      data.set('drawing_source', JSON.stringify(item.drawing));
       data.set('name', item.name.trim());
       data.set(
         'aliases',
@@ -143,6 +172,8 @@ async function upload() {
       data.set('collection_ids', JSON.stringify(item.collectionIds));
       try {
         await api('/api/asanas', { method: 'POST', body: data });
+        if (item.drawing) fieldRefs.get(item.id)?.saved();
+        item.drawingDirty = false;
         item.state = 'done';
         if (items.value.length > 1) item.expanded = false;
       } catch (failure) {
@@ -160,18 +191,22 @@ async function upload() {
   }
 }
 function close() {
-  if (busy.value) return;
+  if (busy.value || preparing.value) return;
   if (
     items.value.some(
       (item) =>
         item.state !== 'done' &&
-        (item.file ||
+        (item.drawingDirty ||
+          fieldRefs.get(item.id)?.hasUnsavedDrawing() ||
+          item.file ||
           item.name.trim() ||
           item.aliases.trim() ||
           item.categoryIds.length ||
           item.collectionIds.length),
     ) &&
-    !window.confirm('Закрыть создание? Незагруженные карточки и введённые данные будут сброшены.')
+    !window.confirm(
+      'Закрыть создание? Незагруженные карточки и поля будут сброшены, черновик рисунка сохранится в этом браузере.',
+    )
   )
     return;
   for (const item of items.value) if (item.url) URL.revokeObjectURL(item.url);
@@ -253,6 +288,7 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="item.error" class="error-banner" role="alert">{{ item.error }}</div>
         <AsanaFields
+          :ref="(component) => setFields(item.id, component)"
           v-show="items.length === 1 || item.expanded"
           :id="`upload-fields-${item.id}`"
           v-model:name="item.name"
@@ -263,8 +299,11 @@ onBeforeUnmount(() => {
           :disabled="busy || item.state === 'done'"
           :image-url="item.url"
           :image-name="item.file?.name"
+          :drawing-source="item.drawing"
+          :draft-key="index === 0 ? 'create:primary' : `create:${item.id}`"
           image-required
-          @image="replaceImage(item, $event)"
+          @image="(file, drawing) => replaceImage(item, file, drawing)"
+          @dirty="item.drawingDirty = $event"
         />
         <CollectionChoices
           v-model="item.collectionIds"
@@ -303,10 +342,15 @@ onBeforeUnmount(() => {
       карточки повторно не отправляются.
     </p>
     <template #footer>
-      <button class="btn btn-secondary" type="button" :disabled="busy" @click="close">
+      <button class="btn btn-secondary" type="button" :disabled="busy || preparing" @click="close">
         {{ succeeded && !pending.length ? 'Готово' : 'Отмена' }}
       </button>
-      <button class="btn btn-primary" type="button" :disabled="busy || !pending.length" @click="upload">
+      <button
+        class="btn btn-primary"
+        type="button"
+        :disabled="busy || preparing || !pending.length"
+        @click="upload"
+      >
         <Upload :size="17" />{{
           busy ? 'Загружаем…' : items.length === 1 ? 'Создать карточку' : `Загрузить (${pending.length})`
         }}

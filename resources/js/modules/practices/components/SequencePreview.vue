@@ -15,6 +15,50 @@ function imageSource(url: string) {
     ? `${url}${url.includes('?') ? '&' : '?'}preview_retry=${props.imageVersion}`
     : url;
 }
+
+function noteParts(note?: string | null) {
+  return (note ?? '')
+    .split(/[·;]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function transitionSign(note?: string | null) {
+  return noteParts(note).find((part) => /^(→|↔|=|\/)$/.test(part));
+}
+
+function poseSigns(note?: string | null) {
+  return [...new Set(noteParts(note).filter((part) => /^(S|★|СВ\*)$/.test(part)))];
+}
+
+function captionNote(note?: string | null) {
+  if (!props.showNames) return '';
+  const parts = noteParts(note);
+  if (!parts.some((part) => /^(S|★|→|↔|=|\/|СВ\*)$/.test(part))) return note;
+  return parts.filter((part) => !/^(S|★|→|↔|=|\/|СВ\*)$/.test(part)).join(' · ');
+}
+
+function rowNote(note?: string | null) {
+  return props.showNames ? note : poseSigns(note).join(' · ');
+}
+
+function rowLabel(title: string, blockIndex: number, rowIndex: number) {
+  return title === 'СВ' ? 'СВ' : `${blockIndex + 1}.${rowIndex + 1}`;
+}
+
+function underlined(note: string | null | undefined, position: number, cellCount: number, continues = false) {
+  const definition = note?.match(/^Подчёркнуто:\s*([\d\s–;]+)$/)?.[1];
+  return (definition ?? '').split(';').some((range) => {
+    const [start, end = start] = range.trim().split('–').map(Number);
+    return (
+      start >= 1 &&
+      end <= cellCount &&
+      end >= start &&
+      position >= start &&
+      (continues ? position < end : position <= end)
+    );
+  });
+}
 </script>
 
 <template>
@@ -23,7 +67,7 @@ function imageSource(url: string) {
       <div class="sheet-title-line">
         <h1>{{ document.title }}</h1>
       </div>
-      <p v-if="document.theme" class="sheet-theme">{{ document.theme }}</p>
+      <p v-if="showNames && document.theme" class="sheet-theme">{{ document.theme }}</p>
     </header>
 
     <section
@@ -33,7 +77,7 @@ function imageSource(url: string) {
       :aria-label="block.title"
     >
       <div v-for="(row, rowIndex) in block.rows" :key="row.id" class="sequence-row-group">
-        <header v-if="rowIndex === 0" class="block-heading">
+        <header v-if="rowIndex === 0 && showNames" class="block-heading">
           <h2>
             <span class="block-index">{{ blockIndex + 1 }}</span
             >{{ block.title }}
@@ -42,16 +86,23 @@ function imageSource(url: string) {
         </header>
 
         <div class="sequence-line">
-          <span class="row-number" :aria-label="`Строка ${blockIndex + 1}.${rowIndex + 1}`"
-            >{{ blockIndex + 1 }}.{{ rowIndex + 1 }}</span
+          <span class="row-number" :aria-label="`Строка ${rowLabel(block.title, blockIndex, rowIndex)}`">{{
+            rowLabel(block.title, blockIndex, rowIndex)
+          }}</span>
+          <div
+            class="sequence-cells"
+            :class="{ 'has-transitions': row.cells.some((cell) => transitionSign(cell.note)) }"
           >
-          <div class="sequence-cells">
             <figure
               v-for="(cell, cellIndex) in row.cells"
               :key="cell.id"
               :class="[
                 'sequence-cell',
                 { 'empty-cell': !cell.card && !cell.custom_name, 'grouped-cell': !!cell.group_key },
+                {
+                  underlined: underlined(row.note, cellIndex + 1, row.cells.length),
+                  'underline-continues': underlined(row.note, cellIndex + 1, row.cells.length, true),
+                },
               ]"
             >
               <span
@@ -67,6 +118,16 @@ function imageSource(url: string) {
                 aria-label="Конец группы асан"
               ></span>
               <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
+              <span v-if="transitionSign(cell.note)" class="transition-sign">{{
+                transitionSign(cell.note)
+              }}</span>
+              <span
+                v-for="sign in poseSigns(cell.note)"
+                :key="sign"
+                class="pose-sign"
+                :class="{ 'pose-sign-right': sign === '★' }"
+                >{{ sign }}</span
+              >
               <template v-if="cell.card">
                 <div class="card-image-box">
                   <img
@@ -77,22 +138,22 @@ function imageSource(url: string) {
                     decoding="async"
                   />
                 </div>
-                <figcaption v-if="showNames || cell.note">
+                <figcaption v-if="showNames">
                   <span v-if="showNames" class="asana-name">{{ cell.card.name }}</span>
-                  <span v-if="cell.note" class="cell-note">{{ cell.note }}</span>
+                  <span v-if="captionNote(cell.note)" class="cell-note">{{ captionNote(cell.note) }}</span>
                 </figcaption>
               </template>
               <template v-else-if="cell.custom_name">
                 <div class="custom-content">{{ cell.custom_name }}</div>
-                <figcaption v-if="cell.note">
-                  <span class="cell-note">{{ cell.note }}</span>
+                <figcaption v-if="captionNote(cell.note)">
+                  <span class="cell-note">{{ captionNote(cell.note) }}</span>
                 </figcaption>
               </template>
               <span v-else class="empty-space" aria-label="Пустая ячейка"></span>
             </figure>
           </div>
         </div>
-        <p v-if="row.note" class="row-note">{{ row.note }}</p>
+        <p v-if="rowNote(row.note)" class="row-note">{{ rowNote(row.note) }}</p>
       </div>
     </section>
   </article>
@@ -174,10 +235,48 @@ function imageSource(url: string) {
   padding-top: 24px;
 }
 .sequence-cells {
+  --sequence-gap: 6px;
+  --pose-height: 64px;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--sequence-gap);
   align-items: stretch;
+}
+.sequence-cells.has-transitions {
+  --sequence-gap: 16px;
+}
+.transition-sign {
+  position: absolute;
+  top: calc(var(--pose-height) / 2);
+  left: calc(100% + var(--sequence-gap) / 2);
+  transform: translate(-50%, -50%);
+  color: #151915;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.pose-sign {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  color: #151915;
+  font-size: 13px;
+  line-height: 1;
+}
+.pose-sign-right {
+  right: 5px;
+  left: auto;
+}
+.underlined::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--pose-height) + 2px);
+  right: 0;
+  left: 0;
+  border-top: 1px solid #151915;
+}
+.underline-continues::after {
+  right: calc(-1 * var(--sequence-gap));
 }
 .sequence-cell {
   position: relative;
@@ -211,7 +310,7 @@ function imageSource(url: string) {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 64px;
+  height: var(--pose-height);
 }
 .card-image {
   width: 100%;
@@ -269,7 +368,11 @@ function imageSource(url: string) {
     font-size: 13px;
   }
   .sequence-cells {
-    gap: 3px;
+    --sequence-gap: 3px;
+    --pose-height: 46px;
+  }
+  .sequence-cells.has-transitions {
+    --sequence-gap: 12px;
   }
   .sequence-line {
     grid-template-columns: 21px minmax(0, 1fr);
@@ -277,7 +380,7 @@ function imageSource(url: string) {
   }
   .card-image-box,
   .empty-space {
-    height: 46px;
+    height: var(--pose-height);
   }
   .row-number {
     font-size: 9px;
@@ -367,8 +470,19 @@ function imageSource(url: string) {
     page-break-inside: avoid;
   }
   .sequence-cells {
+    --sequence-gap: 1.5mm;
+    --pose-height: 13mm;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 1.5mm;
+    gap: var(--sequence-gap);
+  }
+  .sequence-cells.has-transitions {
+    --sequence-gap: 2.5mm;
+  }
+  .transition-sign {
+    font-size: 7pt;
+  }
+  .pose-sign {
+    font-size: 7pt;
   }
   .row-number {
     font-size: 7pt;
@@ -376,7 +490,7 @@ function imageSource(url: string) {
   }
   .card-image-box,
   .empty-space {
-    height: 13mm;
+    height: var(--pose-height);
   }
   .sequence-cell figcaption {
     padding-top: 0.5mm;

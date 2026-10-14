@@ -18,7 +18,7 @@ class CatalogExchange
     public function export(array $ids): array
     {
         Validator::make(['ids' => $ids], ['ids' => ['array', 'list', 'max:100'], 'ids.*' => ['uuid', 'distinct']])->validate();
-        $query = Asana::where('workspace_id', $this->workspace->id());
+        $query = Asana::query()->select(CatalogReader::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id());
         if ($ids) {
             $query->whereIn('id', $ids);
         } else {
@@ -94,7 +94,7 @@ class CatalogExchange
                 foreach ($items as $item) {
                     $asana = $this->find($item['id'], true);
                     abort_unless($asana->revision === (int) $item['expected_revision'], 409, 'Карточка изменена после экспорта. Экспортируйте новое задание.');
-                    $asana->forceFill(['current_image_asset_id' => $pending[$item['id']]['id'], 'revision' => $asana->revision + 1, 'updated_by' => $this->workspace->userId()])->save();
+                    $asana->forceFill(['current_image_asset_id' => $pending[$item['id']]['id'], 'drawing_source' => null, 'revision' => $asana->revision + 1, 'updated_by' => $this->workspace->userId()])->save();
                     $saved[] = $asana->id;
                 }
 

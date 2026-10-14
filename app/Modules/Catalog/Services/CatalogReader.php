@@ -14,6 +14,9 @@ use Illuminate\Validation\ValidationException;
 
 class CatalogReader implements AsanaReader
 {
+    /** Summary readers never fetch the potentially large editable drawing JSON. */
+    public const SUMMARY_COLUMNS = ['id', 'workspace_id', 'name', 'description', 'current_image_asset_id', 'revision', 'archived_at', 'created_at', 'updated_at'];
+
     public function __construct(private WorkspaceContext $workspace, private AssetStore $assets) {}
 
     public function findMany(array $ids, bool $includeArchived = false): array
@@ -24,7 +27,7 @@ class CatalogReader implements AsanaReader
             }
         }
         $ids = array_values(array_unique(array_map('strtolower', $ids)));
-        $query = Asana::where('workspace_id', $this->workspace->id())->whereIn('id', $ids);
+        $query = Asana::query()->select(self::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id())->whereIn('id', $ids);
         if (! $includeArchived) {
             $query->whereNull('archived_at');
         }
@@ -41,7 +44,7 @@ class CatalogReader implements AsanaReader
         return $this->serialize($asanas);
     }
 
-    public function serialize(Collection $asanas): array
+    public function serialize(Collection $asanas, bool $includeDrawingSource = false): array
     {
         if ($asanas->isEmpty()) {
             return [];
@@ -50,11 +53,12 @@ class CatalogReader implements AsanaReader
         $images = $this->assets->getMany($asanas->pluck('current_image_asset_id')->unique()->all());
         $memberships = app(CollectionMembership::class)->collectionIdsForAsanas($asanas->modelKeys());
         $links = DB::table('catalog_asana_relations')->whereIn('asana_id', $asanas->modelKeys())->get();
-        $related = Asana::where('workspace_id', $this->workspace->id())->whereIn('id', $links->pluck('related_asana_id')->unique())->get()->keyBy('id');
+        $related = Asana::query()->select(self::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id())->whereIn('id', $links->pluck('related_asana_id')->unique())->get()->keyBy('id');
         $relatedImages = $this->assets->getMany($related->pluck('current_image_asset_id')->unique()->all());
 
         return $asanas->mapWithKeys(fn (Asana $asana) => [$asana->id => [
             'id' => $asana->id, 'name' => $asana->name, 'description' => $asana->description,
+            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source] : []),
             'aliases' => $asana->aliases->pluck('name')->all(),
             'collection_ids' => $memberships[$asana->id] ?? [],
             'relations' => $links->where('asana_id', $asana->id)->filter(fn ($link) => isset($related[$link->related_asana_id]))->map(fn ($link) => [

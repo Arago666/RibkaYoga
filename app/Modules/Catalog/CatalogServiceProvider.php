@@ -4,6 +4,7 @@ namespace App\Modules\Catalog;
 
 use App\Modules\Catalog\Console\CatalogJson;
 use App\Modules\Catalog\Console\ImportAsanas;
+use App\Modules\Catalog\Console\ImportDrawingPack;
 use App\Modules\Catalog\PublicApi\AsanaReader;
 use App\Modules\Catalog\Services\CatalogReader;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -22,7 +23,7 @@ class CatalogServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([ImportAsanas::class, CatalogJson::class]);
+            $this->commands([ImportAsanas::class, CatalogJson::class, ImportDrawingPack::class]);
         }
         RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
         Route::middleware(['web', 'auth'])->group(__DIR__.'/routes.php');

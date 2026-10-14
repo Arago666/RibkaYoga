@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, X, Save, ExternalLink, Copy, RefreshCw } from '@lucide/vue';
+import { ArrowLeft, Plus, X, Save, ExternalLink, Copy, RefreshCw, GripVertical } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import AsanaPalette from '../components/AsanaPalette.vue';
 import { api, ApiError } from '@/shared/api';
 import type { Asana, Page } from '@/modules/catalog/types';
 import type { Practice } from '../types';
+import { uid } from '../types';
+import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
+import {
+  isMesocycleEvent,
+  mesocycleCellAtPoint,
+  scrollMesocycleAtPoint,
+  type MesocycleCommandPayload,
+  type MesocycleTarget,
+} from '../mesocycleChannel';
 interface Week {
   id: string;
   position: number;
@@ -33,13 +42,19 @@ const cycle = ref<Cycle | null>(null),
   cloudOpen = ref(false),
   notice = ref('');
 const frames = new Map<string, HTMLIFrameElement>();
+const frameSessions = new Map<string, string>();
+const insertionSequences = new Map<string, number>();
 const weekDirty = ref<Record<string, boolean>>({});
 const weekSaveRequests = new Map<
   string,
-  { resolve: (saved: boolean) => void; timer: ReturnType<typeof setTimeout> }
+  { requestId: string; resolve: (saved: boolean) => void; timer: ReturnType<typeof setTimeout> }
 >();
 const allSaving = ref(false);
-const target = ref<{ documentId: string; cellId: string; label: string } | null>(null);
+const target = ref<MesocycleTarget | null>(null);
+const dragTarget = ref<MesocycleTarget | null>(null);
+const weeksBoard = ref<HTMLElement | null>(null);
+let lastCloudPoint: PaletteDragPoint | null = null,
+  dragScrollFrame = 0;
 const replacement = ref<Week | null>(null),
   sources = ref<{ id: string; title: string }[]>([]),
   sourceId = ref(''),
@@ -72,7 +87,75 @@ const status = computed(() =>
           ? 'Не удалось сохранить'
           : 'Тема и облако сохранены',
 );
+const cloudDisabled = computed(
+  () =>
+    loading.value || conflict.value || !!cycle.value?.archived_at || !!replacement.value || cloudOpen.value,
+);
+function frameSource(documentId: string) {
+  let sessionId = frameSessions.get(documentId);
+  if (!sessionId) {
+    sessionId = uid();
+    frameSessions.set(documentId, sessionId);
+  }
+  return `/practices/${documentId}/edit?embedded=1&mesocycle_session=${sessionId}`;
+}
+function sendToWeek(documentId: string, command: MesocycleCommandPayload) {
+  const frame = frames.get(documentId),
+    sessionId = frameSessions.get(documentId);
+  if (!frame?.contentWindow || !sessionId) return false;
+  frame.contentWindow.postMessage({ ...command, documentId, sessionId }, window.location.origin);
+  return true;
+}
+function setDragTarget(next: MesocycleTarget | null) {
+  if (dragTarget.value?.documentId === next?.documentId && dragTarget.value?.cellId === next?.cellId) return;
+  if (dragTarget.value) sendToWeek(dragTarget.value.documentId, { type: 'ribka:meso-hover', cellId: null });
+  dragTarget.value = next;
+  if (next) sendToWeek(next.documentId, { type: 'ribka:meso-hover', cellId: next.cellId });
+}
+function moveCloud(point: PaletteDragPoint) {
+  lastCloudPoint = point;
+  setDragTarget(mesocycleCellAtPoint(frames, point));
+  if (!dragScrollFrame) dragScrollFrame = requestAnimationFrame(scrollCloud);
+}
+function scrollCloud() {
+  dragScrollFrame = 0;
+  if (!lastCloudPoint || !dragPreview.value) return;
+  scrollMesocycleAtPoint(frames, weeksBoard.value, lastCloudPoint);
+  setDragTarget(mesocycleCellAtPoint(frames, lastCloudPoint));
+  dragScrollFrame = requestAnimationFrame(scrollCloud);
+}
+function endCloudDrag() {
+  lastCloudPoint = null;
+  cancelAnimationFrame(dragScrollFrame);
+  dragScrollFrame = 0;
+  setDragTarget(null);
+}
+const pointerDrag = usePaletteDrag({
+  enabled: () => !cloudDisabled.value,
+  move: moveCloud,
+  drop: (card, point) => {
+    const destination = mesocycleCellAtPoint(frames, point);
+    if (destination) insertCloud(card, destination);
+  },
+  end: endCloudDrag,
+});
+const dragPreview = pointerDrag.preview;
+const dragPreviewStyle = computed(() =>
+  dragPreview.value
+    ? {
+        left: `${Math.max(8, Math.min(dragPreview.value.x + 16, window.innerWidth - 140))}px`,
+        top: `${Math.max(8, Math.min(dragPreview.value.y + 16, window.innerHeight - 130))}px`,
+      }
+    : {},
+);
+function clickCloud(event: MouseEvent, card: Asana) {
+  if (pointerDrag.allowClick(event)) insertCloud(card);
+}
+watch(cloudDisabled, (disabled) => {
+  if (disabled) pointerDrag.cancel();
+});
 async function load() {
+  pointerDrag.cancel();
   loading.value = true;
   error.value = '';
   try {
@@ -148,12 +231,14 @@ function addCloud(card: Asana) {
 }
 function removeCloud(id: string) {
   if (!cycle.value) return;
+  pointerDrag.cancel();
   cycle.value.cloud_asana_ids = cycle.value.cloud_asana_ids.filter((value) => value !== id);
   cycle.value.cloud_asanas = cycle.value.cloud_asanas.filter((value) => value.id !== id);
   schedule();
 }
-function insertCloud(card: Asana) {
-  if (!target.value) {
+function insertCloud(card: Asana, destination = target.value) {
+  if (cloudDisabled.value || !cycle.value?.cloud_asana_ids.includes(card.id)) return;
+  if (!destination) {
     notice.value = 'Сначала нажмите на ячейку нужной недели.';
     return;
   }
@@ -161,31 +246,35 @@ function insertCloud(card: Asana) {
     notice.value = 'Эта асана в архиве. Восстановите её в библиотеке.';
     return;
   }
-  frames.get(target.value.documentId)?.contentWindow?.postMessage(
-    {
-      type: 'ribka:meso-asana',
-      documentId: target.value.documentId,
-      cellId: target.value.cellId,
-      asanaId: card.id,
-    },
-    window.location.origin,
-  );
+  const sequence = (insertionSequences.get(destination.documentId) || 0) + 1;
+  insertionSequences.set(destination.documentId, sequence);
+  sendToWeek(destination.documentId, {
+    type: 'ribka:meso-asana',
+    cellId: destination.cellId,
+    asanaId: card.id,
+    name: card.name.slice(0, 160),
+    requestId: uid(),
+    sequence,
+  });
 }
 function receive(event: MessageEvent) {
-  if (event.origin !== window.location.origin) return;
-  const documentId = event.data?.documentId;
-  if (!frames.get(documentId) || event.source !== frames.get(documentId)?.contentWindow) return;
-  if (event.data.type === 'ribka:meso-cell' && typeof event.data.cellId === 'string')
-    target.value = { documentId, cellId: event.data.cellId, label: event.data.label };
-  if (event.data.type === 'ribka:meso-clear-target' && target.value?.documentId === documentId)
-    target.value = null;
-  if (event.data.type === 'ribka:meso-status')
-    weekDirty.value[documentId] = !!event.data.dirty || !!event.data.pending;
-  if (event.data.type === 'ribka:meso-saved') {
+  if (event.origin !== window.location.origin || !isMesocycleEvent(event.data)) return;
+  const data = event.data,
+    documentId = data.documentId;
+  if (
+    !frames.get(documentId) ||
+    event.source !== frames.get(documentId)?.contentWindow ||
+    data.sessionId !== frameSessions.get(documentId)
+  )
+    return;
+  if (data.type === 'ribka:meso-cell') target.value = { documentId, cellId: data.cellId, label: data.label };
+  if (data.type === 'ribka:meso-clear-target' && target.value?.documentId === documentId) target.value = null;
+  if (data.type === 'ribka:meso-status') weekDirty.value[documentId] = data.dirty || data.pending > 0;
+  if (data.type === 'ribka:meso-saved') {
     const request = weekSaveRequests.get(documentId);
-    if (request) {
+    if (request && request.requestId === data.requestId) {
       clearTimeout(request.timer);
-      request.resolve(!!event.data.saved);
+      request.resolve(data.saved);
       weekSaveRequests.delete(documentId);
     }
   }
@@ -199,12 +288,13 @@ function saveWeek(documentId: string): Promise<boolean> {
     previous.resolve(false);
   }
   return new Promise((resolve) => {
+    const requestId = uid();
     const timer = setTimeout(() => {
       weekSaveRequests.delete(documentId);
       resolve(false);
     }, 35000);
-    weekSaveRequests.set(documentId, { resolve, timer });
-    frame.contentWindow!.postMessage({ type: 'ribka:meso-save', documentId }, window.location.origin);
+    weekSaveRequests.set(documentId, { requestId, resolve, timer });
+    sendToWeek(documentId, { type: 'ribka:meso-save', requestId });
   });
 }
 async function saveAll() {
@@ -308,6 +398,7 @@ onMounted(() => {
   );
 });
 onBeforeUnmount(() => {
+  pointerDrag.cancel();
   alive = false;
   clearTimeout(timer);
   window.removeEventListener('message', receive);
@@ -377,10 +468,20 @@ onBeforeUnmount(() => {
           <div v-for="card in cycle.cloud_asanas" :key="card.id" class="cloud-card">
             <button
               :title="card.name"
-              :disabled="!!card.archived_at || !!cycle.archived_at"
-              @click="insertCloud(card)"
+              :disabled="!!card.archived_at || cloudDisabled"
+              draggable="false"
+              @dragstart.prevent
+              @pointerdown="pointerDrag.start($event, card)"
+              @click="clickCloud($event, card)"
             >
-              <img :src="card.thumbnail_url || card.image_url" :alt="card.name" /><span>{{
+              <span
+                data-palette-drag-handle
+                class="cloud-drag-handle"
+                title="Перетащить асану"
+                aria-hidden="true"
+                ><GripVertical :size="17"
+              /></span>
+              <img :src="card.thumbnail_url || card.image_url" :alt="card.name" draggable="false" /><span>{{
                 card.name
               }}</span></button
             ><button
@@ -395,14 +496,22 @@ onBeforeUnmount(() => {
         </div>
         <p class="cloud-target">
           {{
-            target
-              ? `Неделя ${(selectedWeek?.position ?? 0) + 1}: выбрана ячейка «${target.label}». Нажмите на асану выше.`
-              : 'Нажмите на ячейку любой недели для заполнения из общего облака.'
+            dragPreview
+              ? dragTarget
+                ? 'Отпустите асану в подсвеченную ячейку. Esc — отмена.'
+                : 'Перетащите асану в ячейку любой недели. Esc — отмена.'
+              : target
+                ? `Неделя ${(selectedWeek?.position ?? 0) + 1}: выбрана ячейка «${target.label}». Нажмите на асану выше.`
+                : 'Нажмите на ячейку любой недели для заполнения из общего облака.'
           }}
+        </p>
+        <p class="cloud-help">
+          Перетащите рисунок в любую неделю. На сенсорном экране тяните за значок ⋮⋮. Можно выбрать ячейку и
+          нажать на асану; с клавиатуры используйте Tab и Enter.
         </p>
       </div>
       <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
-      <div class="weeks-board">
+      <div ref="weeksBoard" class="weeks-board">
         <section v-for="week in cycle.weeks" :key="week.document_id" class="week-column">
           <header>
             <h2>Неделя {{ week.position + 1 }}</h2>
@@ -429,7 +538,7 @@ onBeforeUnmount(() => {
                 else frames.delete(week.document_id);
               }
             "
-            :src="`/practices/${week.document_id}/edit?embedded=1`"
+            :src="frameSource(week.document_id)"
             :title="`Редактор недели ${week.position + 1}`"
           />
         </section>
@@ -485,6 +594,14 @@ onBeforeUnmount(() => {
       ></Modal
     >
   </AppShell>
+  <Teleport to="body">
+    <div v-if="dragPreview" data-mesocycle-drag-overlay class="cloud-drag-overlay" aria-hidden="true">
+      <div class="cloud-drag-preview" :class="{ 'has-target': !!dragTarget }" :style="dragPreviewStyle">
+        <img :src="dragPreview.card.thumbnail_url || dragPreview.card.image_url" alt="" />
+        <span>{{ dragPreview.card.name }}</span>
+      </div>
+    </div>
+  </Teleport>
 </template>
 <style scoped>
 .cycle-heading {
@@ -551,6 +668,7 @@ onBeforeUnmount(() => {
   width: 92px;
 }
 .cloud-card > button:first-child {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -560,6 +678,60 @@ onBeforeUnmount(() => {
   padding: 8px 5px;
   width: 100%;
   height: 108px;
+}
+.cloud-drag-handle {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #edf5e7;
+  color: #397a28;
+  cursor: grab;
+  touch-action: none;
+}
+.cloud-help {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.cloud-drag-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  cursor: grabbing;
+  touch-action: none;
+}
+.cloud-drag-preview {
+  position: fixed;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 120px;
+  padding: 8px;
+  border: 2px solid #a0ad99;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 5px 24px #0003;
+  pointer-events: none;
+}
+.cloud-drag-preview.has-target {
+  border-color: #4d9638;
+}
+.cloud-drag-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+.cloud-drag-preview span {
+  font-size: 12px;
+  max-width: 104px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cloud-card img {
   width: 65px;

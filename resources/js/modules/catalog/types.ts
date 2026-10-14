@@ -16,6 +16,7 @@ export interface Asana {
   archived_at: string | null;
   collection_ids?: string[];
   relations?: AsanaRelation[];
+  drawing_source?: DrawingDocument | null;
 }
 export type RelationKind = 'simpler' | 'harder' | 'preparation';
 export interface AsanaRelation {
@@ -78,3 +79,4 @@ export function cardCount(count: number): string {
           : 'карточек';
   return `${count} ${word}`;
 }
+import type { DrawingDocument } from './drawing';

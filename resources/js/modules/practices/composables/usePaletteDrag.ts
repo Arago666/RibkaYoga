@@ -36,7 +36,7 @@ export function usePaletteDrag(options: DragOptions) {
     window.removeEventListener('click', suppressClick, true);
   }
 
-  function stop() {
+  function stop(cancelled = false) {
     const previous = gesture;
     gesture = null;
     window.removeEventListener('pointermove', move);
@@ -44,15 +44,20 @@ export function usePaletteDrag(options: DragOptions) {
     window.removeEventListener('pointercancel', cancel);
     window.removeEventListener('keydown', keyboard);
     window.removeEventListener('blur', cancel);
-    if (previous?.dragging) {
+    if (previous) {
+      previous.source.removeEventListener('lostpointercapture', lostCapture);
       try {
         if (previous.source.hasPointerCapture(previous.pointerId))
           previous.source.releasePointerCapture(previous.pointerId);
       } catch {
         /* The browser may have released capture already. */
       }
+    }
+    if (previous?.dragging) {
       document.body.style.cursor = oldCursor;
       document.body.style.userSelect = oldUserSelect;
+    }
+    if (previous && (previous.dragging || cancelled)) {
       suppressUntil = performance.now() + 450;
       window.addEventListener('click', suppressClick, true);
       clearTimeout(clickTimer);
@@ -76,6 +81,13 @@ export function usePaletteDrag(options: DragOptions) {
       source: event.currentTarget as HTMLElement,
       dragging: false,
     };
+    // Capture before crossing a frame boundary, even if the first move is a large jump.
+    try {
+      gesture.source.setPointerCapture(event.pointerId);
+    } catch {
+      /* Window listeners still receive the gesture on older surfaces. */
+    }
+    gesture.source.addEventListener('lostpointercapture', lostCapture);
     window.addEventListener('pointermove', move, { passive: false });
     window.addEventListener('pointerup', finish);
     window.addEventListener('pointercancel', cancel);
@@ -120,7 +132,10 @@ export function usePaletteDrag(options: DragOptions) {
   }
 
   function cancel() {
-    if (gesture) stop();
+    if (gesture) stop(true);
+  }
+  function lostCapture(event: PointerEvent) {
+    if (gesture?.pointerId === event.pointerId) cancel();
   }
   function keyboard(event: KeyboardEvent) {
     if (event.key === 'Escape') {

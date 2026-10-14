@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { Crop, Pencil } from '@lucide/vue';
 import type { Category } from '../types';
+import type { DrawingDocument } from '../drawing';
 import ImageEditor from './ImageEditor.vue';
 import AsanaDrawing from './AsanaDrawing.vue';
 const props = defineProps<{
@@ -11,13 +13,27 @@ const props = defineProps<{
   imageUrl: string;
   imageName?: string;
   imageRequired?: boolean;
+  drawingSource?: DrawingDocument | null;
+  draftKey?: string;
 }>();
 const name = defineModel<string>('name', { required: true });
 const aliases = defineModel<string>('aliases', { required: true });
 const categoryIds = defineModel<string[]>('categoryIds', { required: true });
-const emit = defineEmits<{ image: [file: File] }>();
+const emit = defineEmits<{ image: [file: File, drawing: DrawingDocument | null]; dirty: [value: boolean] }>();
 const tool = ref<'edit' | 'draw' | null>(null);
 const drawingOpened = ref(false);
+const drawingDirty = ref(false);
+interface DrawingHandle {
+  hasUnappliedChanges(): boolean;
+  discardDraft(): void;
+  apply(): Promise<boolean>;
+}
+const drawingEditor = ref<DrawingHandle | null>(null);
+const page = usePage();
+const scopedDraftKey = computed(() => {
+  const auth = page.props.auth as { user?: { id: number }; workspace?: { id: string } } | undefined;
+  return `ribka-drawing:${auth?.user?.id ?? 'guest'}:${auth?.workspace?.id ?? 'none'}:${props.draftKey || props.prefix}`;
+});
 const taskContext = computed(() => ({
   name: name.value,
   aliases: aliases.value
@@ -26,11 +42,56 @@ const taskContext = computed(() => ({
     .filter(Boolean),
   category_ids: categoryIds.value,
 }));
-function useImage(file: File) {
+async function useImage(file: File) {
   if (props.disabled) return;
-  emit('image', file);
+  const valid =
+    ['image/png', 'image/jpeg', 'image/webp'].includes(file.type) && file.size <= 10 * 1024 * 1024;
+  if (!valid) {
+    emit('image', file, null);
+    return;
+  }
+  if (
+    hasUnsavedDrawing() &&
+    !window.confirm(
+      'Использовать готовое изображение вместо рисунка? Черновик рисунка останется в этом браузере.',
+    )
+  )
+    return;
+  // Flush the old drawing under its existing draft key before its source changes.
+  // A retained hidden editor must never reapply that drawing over the chosen photo.
+  await resetDrawing();
+  emit('image', file, null);
+}
+function useDrawing(file: File, drawing: DrawingDocument) {
+  // The editor still has its own busy flag while delivering this event.
+  if (props.disabled) return;
+  emit('image', file, drawing);
   tool.value = null;
 }
+function markDrawingDirty(value: boolean) {
+  drawingDirty.value = value;
+  emit('dirty', value);
+}
+function hasUnsavedDrawing(): boolean {
+  return drawingEditor.value?.hasUnappliedChanges() ?? drawingDirty.value;
+}
+async function guardBeforeSave(): Promise<boolean> {
+  if (!hasUnsavedDrawing()) return true;
+  const applied = (await drawingEditor.value?.apply()) ?? false;
+  if (!applied) tool.value = 'draw';
+  return applied;
+}
+function saved() {
+  drawingEditor.value?.discardDraft();
+  markDrawingDirty(false);
+}
+async function resetDrawing() {
+  drawingOpened.value = false;
+  tool.value = null;
+  await nextTick();
+  markDrawingDirty(false);
+}
+defineExpose({ guardBeforeSave, hasUnsavedDrawing, saved, resetDrawing });
 function openDrawing() {
   drawingOpened.value = true;
   tool.value = tool.value === 'draw' ? null : 'draw';
@@ -38,7 +99,7 @@ function openDrawing() {
 function chooseImage(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (file) emit('image', file);
+  if (file) useImage(file);
   input.value = '';
 }
 </script>
@@ -113,7 +174,7 @@ function chooseImage(event: Event) {
         :aria-expanded="tool === 'draw'"
         @click="openDrawing"
       >
-        <Pencil :size="16" />Нарисовать асану
+        <Pencil :size="16" />{{ drawingSource ? 'Редактировать рисунок' : 'Нарисовать асану' }}
       </button>
     </div>
     <ImageEditor
@@ -127,9 +188,14 @@ function chooseImage(event: Event) {
     <AsanaDrawing
       v-if="drawingOpened"
       v-show="tool === 'draw'"
+      ref="drawingEditor"
       :context="taskContext"
       :disabled="disabled"
-      @image="useImage"
+      :initial-drawing="drawingSource"
+      :draft-key="scopedDraftKey"
+      :active="tool === 'draw'"
+      @image="useDrawing"
+      @dirty="markDrawingDirty"
       @close="tool = null"
     />
   </div>

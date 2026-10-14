@@ -7,6 +7,7 @@ use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\Models\Asana;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Services\CatalogReader;
+use App\Modules\Catalog\Services\DrawingSource;
 use App\Modules\Catalog\Services\Names;
 use App\Modules\Collections\PublicApi\CollectionMembership;
 use App\Modules\Media\PublicApi\AssetStore;
@@ -30,7 +31,7 @@ class AsanaController
             'sort' => ['nullable', Rule::in(['name_asc', 'name_desc', 'recent', 'used_recently'])],
             'page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:96'],
         ]);
-        $query = Asana::where('workspace_id', $this->workspace->id());
+        $query = Asana::query()->select(CatalogReader::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id());
         match ($input['archive'] ?? 'active') {
             'archived' => $query->whereNotNull('archived_at'),
             'all' => null,
@@ -113,6 +114,8 @@ class AsanaController
                 $this->checkRevision($asana, $data['expected_revision']);
                 if ($asset) {
                     $asana->current_image_asset_id = $asset['id'];
+                    // An ordinary replacement has no editable drawing associated with it.
+                    $asana->drawing_source = $data['drawing_source'] ?? null;
                 }
                 $asana->revision++;
                 $this->apply($asana, $data);
@@ -171,6 +174,19 @@ class AsanaController
 
     private function validate(Request $request, bool $update): array
     {
+        if ($request->exists('drawing_source')) {
+            $source = app(DrawingSource::class)->validate($request->input('drawing_source'));
+            if ($source !== null && (! $request->hasFile('image') || $request->file('image')->getMimeType() !== 'image/png')) {
+                throw ValidationException::withMessages(['drawing_source' => 'Сохранение исходника рисунка требует нового изображения PNG.']);
+            }
+            if ($source !== null) {
+                $dimensions = @getimagesize($request->file('image')->getRealPath());
+                if (! $dimensions || $dimensions[0] !== 1024 || $dimensions[1] !== 1024) {
+                    throw ValidationException::withMessages(['image' => 'Изображение рисунка должно иметь размер 1024 × 1024.']);
+                }
+            }
+            $request->merge(['drawing_source' => $source]);
+        }
         foreach (['aliases', 'category_ids', 'collection_ids', 'relations'] as $field) {
             if (is_string($request->input($field))) {
                 $decoded = json_decode($request->input($field), true);
@@ -191,6 +207,7 @@ class AsanaController
             'relations.*.asana_id' => ['required', 'uuid'],
             'relations.*.kind' => ['required', Rule::in(['simpler', 'harder', 'preparation'])],
             'image' => [$update ? 'nullable' : 'required', 'file', 'max:'.config('ribka.upload_max_kb', 10240)],
+            'drawing_source' => ['sometimes', 'nullable', 'array'],
             'expected_revision' => [$update ? 'required' : 'sometimes', 'integer', 'min:1'],
         ]);
         if (isset($data['category_ids']) && Category::where('workspace_id', $this->workspace->id())->whereIn('id', $data['category_ids'])->count() !== count($data['category_ids'])) {
@@ -215,6 +232,9 @@ class AsanaController
             }
         }
         $asana->name = $data['name'] ?? $asana->name;
+        if (array_key_exists('drawing_source', $data)) {
+            $asana->drawing_source = $data['drawing_source'];
+        }
         if (array_key_exists('description', $data)) {
             $asana->description = $data['description'];
         }
@@ -235,7 +255,7 @@ class AsanaController
         }
         if (array_key_exists('relations', $data)) {
             $ids = array_values(array_unique(array_column($data['relations'], 'asana_id')));
-            $targets = Asana::where('workspace_id', $this->workspace->id())->whereIn('id', $ids)->sharedLock()->get()->keyBy('id');
+            $targets = Asana::query()->select(['id', 'archived_at'])->where('workspace_id', $this->workspace->id())->whereIn('id', $ids)->sharedLock()->get()->keyBy('id');
             $previous = DB::table('catalog_asana_relations')->where('asana_id', $asana->id)->get()->keyBy(fn ($relation) => $relation->related_asana_id.':'.$relation->kind);
             if (in_array($asana->id, $ids, true) || $targets->count() !== count($ids)) {
                 throw ValidationException::withMessages(['relations' => 'Связанный вариант недоступен или совпадает с этой асаной.']);
@@ -271,6 +291,6 @@ class AsanaController
 
     private function response(Asana $asana, int $status = 200): JsonResponse
     {
-        return response()->json(['data' => $this->reader->serialize(new Collection([$asana]))[$asana->id]], $status);
+        return response()->json(['data' => $this->reader->serialize(new Collection([$asana]), true)[$asana->id]], $status);
     }
 }
