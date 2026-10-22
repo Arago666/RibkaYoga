@@ -21,7 +21,15 @@ import UploadDialog from '../components/UploadDialog.vue';
 import TaxonomyDialog from '../components/TaxonomyDialog.vue';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
 import CollectionsPanel from '../../collections/components/CollectionsPanel.vue';
-import { cardCount, categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
+import {
+  cardCount,
+  categoryLabel,
+  errorText,
+  type Asana,
+  type Category,
+  type LibraryImageStyle,
+  type Page,
+} from '../types';
 import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
 import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
@@ -31,6 +39,9 @@ const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
 filters.value = filtersFromUrl(initial.searchParams);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
+const imageStyle = ref<LibraryImageStyle>(
+  initial.searchParams.get('image_style') === 'volume' ? 'volume' : 'original',
+);
 const query = ref(initial.searchParams.get('q') || ''),
   category = ref(initial.searchParams.get('category') || ''),
   archive = ref(initial.searchParams.get('archive') || 'active'),
@@ -81,6 +92,7 @@ function updateUrl() {
     archive: archive.value === 'active' ? '' : archive.value,
     sort: sort.value === 'name_asc' ? '' : sort.value,
     page: page.value > 1 ? String(page.value) : '',
+    image_style: imageStyle.value === 'volume' ? 'volume' : '',
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
@@ -94,7 +106,7 @@ async function load() {
   updateUrl();
   try {
     const response = await api<Page<Asana>>(
-      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value) }), filters.value)}`,
+      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value), image_style: imageStyle.value }), filters.value)}`,
     );
     if (request === sequence) {
       if (page.value > response.last_page) {
@@ -137,6 +149,10 @@ watch(
   { deep: true },
 );
 watch(tab, updateUrl);
+watch(imageStyle, () => {
+  result.value = null;
+  void load();
+});
 onMounted(() => {
   void load();
   void loadMetadata();
@@ -234,6 +250,24 @@ async function taxonomyChanged() {
       <button class="btn btn-ghost" @click="loadMetadata">Повторить загрузку категорий</button>
     </div>
     <template v-if="tab === 'asanas'">
+      <div class="library-image-style" role="group" aria-label="Стиль изображений в библиотеке">
+        <button
+          type="button"
+          :class="{ active: imageStyle === 'original' }"
+          :aria-pressed="imageStyle === 'original'"
+          @click="imageStyle = 'original'"
+        >
+          Мои рисунки
+        </button>
+        <button
+          type="button"
+          :class="{ active: imageStyle === 'volume' }"
+          :aria-pressed="imageStyle === 'volume'"
+          @click="imageStyle = 'volume'"
+        >
+          Объёмные фигуры
+        </button>
+      </div>
       <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
       <div class="library-tools">
         <div class="library-search">
@@ -299,6 +333,7 @@ async function taxonomyChanged() {
             v-for="card in result.data"
             :key="card.id"
             :card="card"
+            :display-image="imageStyle === 'volume' ? card.display_image : undefined"
             :selected="selection.has(card.id)"
             :selectable="!card.archived_at"
             @select="toggle"
@@ -355,6 +390,7 @@ async function taxonomyChanged() {
     <AsanaEditDialog :card="editing" :categories="categories" @close="editing = null" @saved="load" />
     <AsanaPreview
       :card="preview"
+      :image-style="imageStyle"
       @close="preview = null"
       @related="preview = $event"
       @created="
@@ -413,6 +449,38 @@ async function taxonomyChanged() {
 }
 .taxonomy-button {
   font-size: 0.82rem;
+}
+.library-image-style {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  margin: 0 0 20px;
+  border: 1px solid #dfe7da;
+  border-radius: 14px;
+  background: #f5f8f2;
+}
+.library-image-style button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #687568;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.library-image-style button.active {
+  border-color: #caddc0;
+  background: #fff;
+  color: #2f6f20;
+  font-weight: 650;
+}
+.library-image-style button:focus-visible {
+  outline: 3px solid #397a2880;
+  outline-offset: 2px;
 }
 .library-tools {
   display: flex;

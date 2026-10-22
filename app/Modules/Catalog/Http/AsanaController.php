@@ -6,6 +6,7 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\Models\Asana;
 use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Catalog\Services\CatalogQuery;
 use App\Modules\Catalog\Services\CatalogReader;
 use App\Modules\Catalog\Services\Classification;
@@ -42,9 +43,11 @@ class AsanaController
         return response()->json(['facets' => $query->counts($input), 'total' => $query->query($input)->count()]);
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        return $this->response($this->find($id));
+        $input = $request->validate(['image_style' => ['nullable', Rule::in(['original', 'volume'])]]);
+
+        return $this->response($this->find($id), 200, $input['image_style'] ?? 'original');
     }
 
     public function store(Request $request): JsonResponse
@@ -369,8 +372,13 @@ class AsanaController
         abort_unless($asana->revision === $revision, 409, 'Карточка изменена в другом окне. Обновите данные перед сохранением.');
     }
 
-    private function response(Asana $asana, int $status = 200): JsonResponse
+    private function response(Asana $asana, int $status = 200, string $imageStyle = 'original'): JsonResponse
     {
-        return response()->json(['data' => $this->reader->serialize(new Collection([$asana]), true)[$asana->id]], $status);
+        $cards = $this->reader->serialize(new Collection([$asana]), true);
+        if ($imageStyle === 'volume') {
+            $cards[$asana->id]['display_image'] = app(IllustrationStyles::class)->displayImagesForLibrary($cards)[$asana->id];
+        }
+
+        return response()->json(['data' => $cards[$asana->id]], $status);
     }
 }

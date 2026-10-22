@@ -62,6 +62,47 @@ class IllustrationStyles
         return $this->preferenceData($this->preference());
     }
 
+    /** Read-only library presentation; canonical card images and snapshot selections stay original. */
+    public function displayImagesForLibrary(array $cards): array
+    {
+        if ($cards === []) {
+            return [];
+        }
+        $workspaceId = $this->workspace->id();
+        $asanas = Asana::where('workspace_id', $workspaceId)->whereIn('id', array_keys($cards))
+            ->get(['id', 'current_image_asset_id', 'drawing_source'])->keyBy('id');
+        $variants = DB::table('catalog_illustration_variants')->where('workspace_id', $workspaceId)
+            ->whereIn('asana_id', $asanas->modelKeys())->where('style', 'volume')->where('character', 'neutral')
+            ->whereIn('source_asset_id', $asanas->pluck('current_image_asset_id')->unique())
+            ->where('model_revision', AnatomicalVolumeRenderer::MODEL_REVISION)->get()
+            ->filter(fn ($variant) => $variant->source_asset_id === $asanas[$variant->asana_id]->current_image_asset_id)->keyBy('asana_id');
+        $sourceIds = $asanas->filter(fn ($asana) => isset($variants[$asana->id])
+            && $variants[$asana->id]->source_asset_id === $asana->current_image_asset_id
+            && $cards[$asana->id]['image_asset_id'] === $asana->current_image_asset_id)->pluck('current_image_asset_id')->unique()->all();
+        $hashes = $this->fingerprints->forMany($sourceIds);
+        $matched = [];
+        foreach ($asanas as $asana) {
+            $variant = $variants[$asana->id] ?? null;
+            $hash = $hashes[$asana->current_image_asset_id] ?? null;
+            if (! $variant || $hash === null || $cards[$asana->id]['image_asset_id'] !== $asana->current_image_asset_id) {
+                continue;
+            }
+            $source = $this->volumeSources->resolve($asana->drawing_source, $hash);
+            if ($source !== null && $this->matchesCurrentVolume($variant, $asana->current_image_asset_id, $hash, $source)) {
+                $matched[$asana->id] = $variant->image_asset_id;
+            }
+        }
+        $images = $this->assets->getMany(array_values(array_unique($matched)));
+        $result = [];
+        foreach ($cards as $id => $card) {
+            $image = isset($matched[$id]) ? $images[$matched[$id]] : $card;
+            $result[$id] = ['image_url' => $image['image_url'], 'thumbnail_url' => $image['thumbnail_url'],
+                'style' => isset($matched[$id]) ? 'volume' : 'original', 'available' => isset($matched[$id])];
+        }
+
+        return $result;
+    }
+
     /** Historical pictures are never replaced merely because their asana ID matches. */
     public function prepareForSnapshot(string $asanaId, string $imageAssetId, string $style, string $character): array
     {
@@ -116,18 +157,7 @@ class IllustrationStyles
                 $query = DB::table('catalog_illustration_variants')->where('workspace_id', $this->workspace->id())->where('asana_id', $asanaId)->where('source_asset_id', $sourceAssetId)->where('style', $style)->where('character', $character)->where('model_revision', $modelRevision);
                 $variant = $query->first();
                 if ($variant && $volumeSource) {
-                    $stored = json_decode($variant->render_source, true, 64, JSON_THROW_ON_ERROR);
-                    abort_unless($variant->source_sha256 === $hash
-                        && ($stored['format'] ?? null) === 'ribka-anatomical-volume'
-                        && ($stored['model_revision'] ?? null) === AnatomicalVolumeRenderer::MODEL_REVISION
-                        && ($stored['renderer_revision'] ?? null) === AnatomicalVolumeRenderer::REVISION
-                        && ($stored['source_asset_id'] ?? null) === $sourceAssetId
-                        && ($stored['source_sha256'] ?? null) === $hash
-                        && ($stored['source_drawing_sha256'] ?? null) === $volumeSource['source_drawing_sha256']
-                        && ($stored['source_pose_sha256'] ?? null) === $volumeSource['source_pose_sha256']
-                        && ($stored['render_options'] ?? []) === $volumeSource['render_options']
-                        && $variant->drawing_source === null
-                        && $variant->image_asset_id !== $sourceAssetId, 409, 'Геометрия исходника или анатомической модели изменилась. Требуется новая ревизия объёмного варианта.');
+                    abort_unless($this->matchesCurrentVolume($variant, $sourceAssetId, $hash, $volumeSource), 409, 'Геометрия исходника или анатомической модели изменилась. Требуется новая ревизия объёмного варианта.');
                 }
                 if (! $variant) {
                     $pose = $volumeSource ? null : $pack['poses'][$mapping['pose_key']];
@@ -174,6 +204,26 @@ class IllustrationStyles
             }
             throw $error;
         }
+    }
+
+    private function matchesCurrentVolume(object $variant, string $sourceAssetId, string $hash, array $volumeSource): bool
+    {
+        $stored = json_decode($variant->render_source, true);
+
+        return is_array($stored) && $variant->source_asset_id === $sourceAssetId
+            && $variant->style === 'volume' && $variant->character === ($stored['character'] ?? null)
+            && (int) $variant->model_revision === AnatomicalVolumeRenderer::MODEL_REVISION
+            && $variant->source_sha256 === $hash
+            && ($stored['format'] ?? null) === 'ribka-anatomical-volume'
+            && ($stored['style'] ?? null) === 'volume'
+            && ($stored['model_revision'] ?? null) === AnatomicalVolumeRenderer::MODEL_REVISION
+            && ($stored['renderer_revision'] ?? null) === AnatomicalVolumeRenderer::REVISION
+            && ($stored['source_asset_id'] ?? null) === $sourceAssetId
+            && ($stored['source_sha256'] ?? null) === $hash
+            && ($stored['source_drawing_sha256'] ?? null) === $volumeSource['source_drawing_sha256']
+            && ($stored['source_pose_sha256'] ?? null) === $volumeSource['source_pose_sha256']
+            && ($stored['render_options'] ?? []) === $volumeSource['render_options']
+            && $variant->drawing_source === null && $variant->image_asset_id !== $sourceAssetId;
     }
 
     /** Validate an explicit snapshot selection without silently using a global preference. */

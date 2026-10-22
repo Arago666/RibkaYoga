@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Check, Expand, Pencil, Archive, RotateCcw } from '@lucide/vue';
-import type { Asana } from '../types';
+import type { Asana, AsanaDisplayImage } from '../types';
 import { api } from '@/shared/api';
 import { ref } from 'vue';
 const favoriteBusy = ref(false),
@@ -21,11 +21,20 @@ async function favorite(card: Asana) {
     favoriteBusy.value = false;
   }
 }
-withDefaults(defineProps<{ card: Asana; selected?: boolean; selectable?: boolean; actions?: boolean }>(), {
-  selected: false,
-  selectable: true,
-  actions: true,
-});
+withDefaults(
+  defineProps<{
+    card: Asana;
+    displayImage?: AsanaDisplayImage;
+    selected?: boolean;
+    selectable?: boolean;
+    actions?: boolean;
+  }>(),
+  {
+    selected: false,
+    selectable: true,
+    actions: true,
+  },
+);
 defineEmits<{
   select: [card: Asana];
   preview: [card: Asana];
@@ -54,11 +63,16 @@ defineEmits<{
       :aria-label="`Рассмотреть: ${card.name}`"
       @click="$emit('preview', card)"
     >
-      <img :src="card.thumbnail_url || card.image_url" :alt="card.name" loading="lazy" />
+      <img
+        :src="displayImage?.thumbnail_url || displayImage?.image_url || card.thumbnail_url || card.image_url"
+        :alt="card.name"
+        loading="lazy"
+      />
       <span class="enlarge"><Expand :size="15" aria-hidden="true" /></span>
     </button>
     <div class="asana-info">
       <h3 :title="card.name">{{ card.name }}</h3>
+      <p v-if="displayImage && !displayImage.available" class="style-fallback">Нет объёмного варианта</p>
       <p v-if="card.sanskrit_cyrillic || card.sanskrit_latin" class="asana-category">
         {{ card.sanskrit_cyrillic || card.sanskrit_latin }}
       </p>
@@ -198,6 +212,12 @@ defineEmits<{
   overflow: hidden;
   margin: 0;
   min-height: 1.2em;
+}
+.style-fallback {
+  margin: 0 0 7px;
+  font-size: 0.73rem;
+  line-height: 1.4;
+  color: #687568;
 }
 .asana-actions {
   display: flex;

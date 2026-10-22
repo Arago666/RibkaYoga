@@ -5,6 +5,13 @@ export interface Category {
   dimension?: import('./facets').Dimension | null;
   system_key?: string | null;
 }
+export type LibraryImageStyle = 'original' | 'volume';
+export interface AsanaDisplayImage {
+  image_url: string;
+  thumbnail_url: string;
+  style: LibraryImageStyle;
+  available: boolean;
+}
 export interface Asana {
   illustration_variant_id?: string | null;
   id: string;
@@ -14,6 +21,7 @@ export interface Asana {
   categories: Category[];
   image_url: string;
   thumbnail_url: string;
+  display_image?: AsanaDisplayImage;
   image_asset_id: string;
   revision: number;
   archived_at: string | null;

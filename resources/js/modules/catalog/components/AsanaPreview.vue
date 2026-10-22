@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
-import { relationLabels, errorText, type Asana } from '../types';
+import { relationLabels, errorText, type Asana, type LibraryImageStyle } from '../types';
 import { api } from '@/shared/api';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
 import IllustrationSettings, { type PreparedIllustration } from './IllustrationSettings.vue';
-const props = defineProps<{ card: Asana | null }>();
+const props = withDefaults(defineProps<{ card: Asana | null; imageStyle?: LibraryImageStyle }>(), {
+  imageStyle: 'original',
+});
 const emit = defineEmits<{
   close: [];
   related: [card: Asana];
@@ -20,9 +22,17 @@ const detail = ref<Asana | null>(null),
 const styleOpen = ref(false),
   preparedStyle = ref<PreparedIllustration | null>(null);
 let sequence = 0;
+const previewImageUrl = computed(() =>
+  props.imageStyle === 'volume' && detail.value?.display_image
+    ? detail.value.display_image.image_url
+    : detail.value?.image_url,
+);
+function detailUrl(id: string): string {
+  return `/api/asanas/${id}${props.imageStyle === 'volume' ? '?image_style=volume' : ''}`;
+}
 watch(
-  () => props.card,
-  async (card) => {
+  () => [props.card, props.imageStyle] as const,
+  async ([card]) => {
     const version = ++sequence;
     detail.value = card;
     styleOpen.value = false;
@@ -31,7 +41,7 @@ watch(
     if (!card) return;
     loading.value = true;
     try {
-      const value = (await api<{ data: Asana }>(`/api/asanas/${card.id}`)).data;
+      const value = (await api<{ data: Asana }>(detailUrl(card.id))).data;
       if (version === sequence) detail.value = value;
     } catch (failure) {
       if (version === sequence) error.value = errorText(failure);
@@ -42,11 +52,13 @@ watch(
   { immediate: true },
 );
 async function related(id: string) {
+  const version = sequence;
   error.value = '';
   try {
-    emit('related', (await api<{ data: Asana }>(`/api/asanas/${id}`)).data);
+    const value = (await api<{ data: Asana }>(detailUrl(id))).data;
+    if (version === sequence) emit('related', value);
   } catch (failure) {
-    error.value = errorText(failure);
+    if (version === sequence) error.value = errorText(failure);
   }
 }
 function insert() {
@@ -98,7 +110,10 @@ async function duplicate() {
 <template>
   <Modal :open="Boolean(card)" :title="detail?.name || 'Карточка асаны'" @close="!busy && emit('close')">
     <template v-if="detail">
-      <img class="preview-image" :src="detail.image_url" :alt="detail.name" />
+      <img class="preview-image" :src="previewImageUrl" :alt="detail.name" />
+      <p v-if="imageStyle === 'volume' && detail.display_image?.available === false" class="muted">
+        Для этой асаны нет готовой объёмной фигуры. Показан исходный рисунок.
+      </p>
       <p v-if="detail.sanskrit_cyrillic || detail.sanskrit_latin" class="sanskrit">
         {{ [detail.sanskrit_cyrillic, detail.sanskrit_latin].filter(Boolean).join(' · ') }}
       </p>
