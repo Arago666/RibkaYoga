@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { uid } from '../types';
 import { ArrowLeft, RefreshCw, MessageSquare, Pencil, Trash2, CornerDownRight } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api, ApiError } from '@/shared/api';
-import SequencePreview from '../components/SequencePreview.vue';
 import type { PracticeComment, SharedPracticeData } from '../sharing-types';
 const props = defineProps<{ documentId: string }>();
+const copyKey = ref(uid());
+async function copyAllowed() {
+  if (!state.value?.access.can_copy) return;
+  try {
+    const result = await api<{ data: { id: string } }>(`/api/shared-practices/${props.documentId}/copy`, {
+      method: 'POST',
+      body: JSON.stringify({ idempotency_key: copyKey.value }),
+    });
+    router.visit(`/practices/${result.data.id}/edit`);
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось создать независимую копию.';
+  }
+}
 const state = ref<SharedPracticeData | null>(null),
   loading = ref(true),
   error = ref(''),
@@ -17,6 +30,34 @@ const state = ref<SharedPracticeData | null>(null),
   editing = ref<PracticeComment | null>(null),
   showNames = ref(false);
 const composer = ref<HTMLTextAreaElement | null>(null);
+const frame = ref<HTMLIFrameElement | null>(null),
+  frameHeight = ref(650),
+  printReady = ref(false);
+async function sheetLoaded() {
+  printReady.value = false;
+  const content = frame.value?.contentDocument;
+  if (!content?.querySelector('h1')) return;
+  await content.fonts.ready;
+  await Promise.all(
+    Array.from(content.images).map((image) =>
+      image.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            image.onload = () => resolve();
+            image.onerror = () => resolve();
+          }),
+    ),
+  );
+  if (Array.from(content.images).some((image) => !image.naturalWidth)) {
+    error.value = 'Не все изображения загрузились. Обновите лист перед печатью.';
+    return;
+  }
+  frameHeight.value = Math.max(500, content.documentElement.scrollHeight + 30);
+  printReady.value = true;
+}
+function printSheet() {
+  if (printReady.value) frame.value?.contentWindow?.print();
+}
 const channels = computed(() => state.value?.access.channels.filter((share) => !share.revoked_at) || []);
 const cells = computed(
   () =>
@@ -155,8 +196,27 @@ onMounted(load);
                 : 'Только просмотр'
           }}
           <label><input v-model="showNames" type="checkbox" />Названия асан</label>
+          <button v-if="state.access.can_copy" class="btn btn-secondary" @click="copyAllowed">
+            Создать копию в своём кабинете
+          </button>
+          <Link class="btn btn-primary" :href="`/practices/${documentId}/run?mode=practice`"
+            >Практиковать</Link
+          >
         </div>
-        <SequencePreview :document="state.document" :show-names="showNames" />
+        <button class="btn btn-secondary" :disabled="!printReady" @click="printSheet">
+          Печать / PDF браузера
+        </button>
+        <div class="shared-renderer">
+          <iframe
+            ref="frame"
+            :key="`${state.document.revision}:${showNames}`"
+            :src="`/api/shared-practices/${documentId}/sheet?show_names=${showNames ? 1 : 0}`"
+            :style="{ height: `${frameHeight}px` }"
+            title="Лист практики"
+            sandbox="allow-same-origin allow-modals"
+            @load="sheetLoaded"
+          />
+        </div>
       </section>
       <aside class="card shared-comments">
         <h2><MessageSquare :size="19" />Комментарии</h2>
@@ -261,6 +321,16 @@ onMounted(load);
   </AppShell>
 </template>
 <style scoped>
+.shared-renderer {
+  overflow: auto;
+  margin-top: 18px;
+}
+.shared-renderer iframe {
+  width: 100%;
+  min-width: 1050px;
+  border: 0;
+  display: block;
+}
 .shared-header {
   display: flex;
   justify-content: space-between;

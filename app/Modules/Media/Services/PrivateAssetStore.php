@@ -6,6 +6,7 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Media\Models\Asset;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\PublicApi\DocumentMediaAccess;
+use App\Modules\Sketchbook\PublicApi\SketchImages;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -93,6 +94,7 @@ class PrivateAssetStore implements AssetStore
             abort_unless(is_string($id) && Str::isUuid($id), 404);
         }
         $ids = array_values(array_unique(array_map('strtolower', $ids)));
+        app(SketchImages::class)->authorize($ids);
         $assets = Asset::where('workspace_id', $this->workspace->id())->whereIn('id', $ids)->get();
         abort_unless($assets->count() === count($ids), 404);
 
@@ -143,6 +145,7 @@ class PrivateAssetStore implements AssetStore
     public function find(string $id): Asset
     {
         abort_unless(Str::isUuid($id), 404);
+        app(SketchImages::class)->authorize([$id]);
 
         return Asset::where('workspace_id', $this->workspace->id())->findOrFail($id);
     }

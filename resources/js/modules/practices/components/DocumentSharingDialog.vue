@@ -6,6 +6,7 @@ import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import type { PracticeShare, SharingPermissions } from '../sharing-types';
 const props = defineProps<{ open: boolean; documentId: string; title?: string }>();
+const allowCopy = ref(false);
 defineEmits<{ close: [] }>();
 const state = ref<SharingPermissions | null>(null),
   loading = ref(false),
@@ -42,6 +43,7 @@ watch(
     state.value = null;
     login.value = '';
     permission.value = 'comment';
+    allowCopy.value = false;
     success.value = '';
     void load();
   },
@@ -58,6 +60,7 @@ async function grant(share?: PracticeShare) {
       body: JSON.stringify({
         login: share?.recipient.login || login.value.trim(),
         permission: share?.permission || permission.value,
+        allow_copy: share?.allow_copy ?? allowCopy.value,
         expected_document_revision: state.value.document_revision,
         ...(target ? { expected_revision: target.revision } : {}),
       }),
@@ -103,6 +106,7 @@ async function revoke(share: PracticeShare) {
 function choose(share: PracticeShare) {
   login.value = share.recipient.login;
   permission.value = share.permission;
+  allowCopy.value = share.allow_copy;
   success.value = '';
 }
 </script>
@@ -141,6 +145,10 @@ function choose(share: PracticeShare) {
             <option value="comment">Просмотр и комментарии</option>
           </select>
         </div>
+        <label class="check-label"
+          ><input v-model="allowCopy" type="checkbox" :disabled="busy" />Разрешить независимую копию в
+          собственном кабинете</label
+        >
         <button class="btn btn-primary" type="submit" :disabled="busy || !login.trim()">
           <UserPlus :size="17" />{{ busy ? 'Сохраняем…' : current ? 'Обновить доступ' : 'Дать доступ' }}
         </button>

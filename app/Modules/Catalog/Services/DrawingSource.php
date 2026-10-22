@@ -10,7 +10,7 @@ class DrawingSource
 {
     public const MAX_BYTES = 4 * 1024 * 1024;
 
-    public function validate(mixed $value): ?array
+    public function validate(mixed $value, bool $allowEmpty = false): ?array
     {
         if (is_string($value)) {
             $this->require(strlen($value) <= self::MAX_BYTES, 'Исходник рисунка должен быть не больше 4 МБ.');
@@ -33,13 +33,23 @@ class DrawingSource
             return null;
         }
         $this->object($value, ['format', 'version', 'width', 'height', 'smoothing', 'elements']);
-        $this->require($value->format === 'ribka-drawing' && $value->version === 1 && $value->width === 1024 && $value->height === 1024);
+        $this->require($value->format === 'ribka-drawing' && in_array($value->version, [1, 2], true) && $value->width === 1024 && $value->height === 1024);
         $this->number($value->smoothing, 0, 100);
-        $this->require(is_array($value->elements) && array_is_list($value->elements) && count($value->elements) >= 1 && count($value->elements) <= 1000);
+        $this->require(is_array($value->elements) && array_is_list($value->elements) && count($value->elements) >= ($allowEmpty ? 0 : 1) && count($value->elements) <= 1000);
         $ids = [];
         $totalPoints = 0;
+        $groups = [];
         foreach ($value->elements as $element) {
-            $this->object($element, ['id', 'kind', 'width', 'rotation', 'points']);
+            $this->object($element, ['id', 'kind', 'width', 'rotation', 'points'], $value->version === 2 ? ['color', 'group_id'] : []);
+            if (property_exists($element, 'color')) {
+                $this->require(is_string($element->color) && preg_match('/^#[0-9a-f]{6}$/iD', $element->color) === 1);
+                $element->color = strtolower($element->color);
+            }
+            if (property_exists($element, 'group_id')) {
+                $this->require(is_string($element->group_id) && Str::isUuid($element->group_id));
+                $element->group_id = strtolower($element->group_id);
+                $groups[$element->group_id] = ($groups[$element->group_id] ?? 0) + 1;
+            }
             $this->require(is_string($element->id) && Str::isUuid($element->id));
             $id = strtolower($element->id);
             $this->require(! isset($ids[$id]));
@@ -65,16 +75,18 @@ class DrawingSource
             }
         }
 
+        $this->require(! array_filter($groups, fn ($count) => $count < 2));
+
         return json_decode(json_encode($value, JSON_THROW_ON_ERROR), true, 32, JSON_THROW_ON_ERROR);
     }
 
-    private function object(mixed $value, array $keys): void
+    private function object(mixed $value, array $keys, array $optional = []): void
     {
         $this->require($value instanceof \stdClass);
         $actual = array_keys(get_object_vars($value));
         sort($actual);
         sort($keys);
-        $this->require($actual === $keys);
+        $this->require(! array_diff($keys, $actual) && ! array_diff($actual, [...$keys, ...$optional]));
     }
 
     private function number(mixed $value, float $minimum, float $maximum): void

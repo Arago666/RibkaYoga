@@ -72,6 +72,7 @@ class DocumentSharing
                 throw ValidationException::withMessages(['login' => 'У этой практики уже 100 действующих доступов. Сначала отзовите ненужный.']);
             }
             $values = [
+                'allow_copy' => $input['allow_copy'] ?? ($existing->allow_copy ?? false),
                 'permission' => $input['permission'], 'revision' => $existing ? $existing->revision + 1 : 1,
                 'revoked_at' => null, 'updated_by' => $this->workspace->userId(), 'updated_at' => now(),
             ];
@@ -138,6 +139,7 @@ class DocumentSharing
                 'document' => [
                     'id' => $document->id, 'title' => $document->title, 'theme' => $document->theme, 'kind' => $document->kind,
                     'revision' => (int) $document->revision, 'note' => null, 'practice_date' => null,
+                    'fragment_kind' => $document->fragment_kind, 'illustration_style' => $document->illustration_style, 'illustration_character' => $document->illustration_character,
                     'blocks' => $blocks->map(fn ($block) => [
                         'id' => $block->id, 'title' => $block->title, 'purpose' => $block->purpose,
                         'rows' => $rows->where('block_id', $block->id)->map(fn ($row) => [
@@ -145,7 +147,7 @@ class DocumentSharing
                             'cells' => $cells->where('row_id', $row->id)->map(function ($cell) use ($snapshots, $document) {
                                 $snapshot = $cell->card_snapshot_id ? $snapshots[$cell->card_snapshot_id] ?? null : null;
 
-                                return [
+                                return ExecutionParameters::values($cell) + [
                                     'id' => $cell->id, 'card_snapshot_id' => $cell->card_snapshot_id, 'custom_name' => $cell->custom_name,
                                     'group_key' => $cell->group_key, 'arrow_direction' => $cell->arrow_direction, 'note' => $cell->note,
                                     'card' => $snapshot ? ['id' => $snapshot->id, 'name' => $snapshot->name,
@@ -156,6 +158,7 @@ class DocumentSharing
                     ])->values()->all(),
                 ],
                 'access' => [
+                    'can_copy' => ! $access['owner'] && (bool) ($access['share']->allow_copy ?? false),
                     'owner' => $access['owner'], 'can_comment' => $access['owner'] || $access['share']->permission === 'comment',
                     'share_id' => $access['share']?->id, 'owner_name' => $owner[$document->created_by]['name'] ?? 'Преподаватель', 'channels' => $channels,
                 ],
@@ -247,6 +250,7 @@ class DocumentSharing
         return $records->map(fn ($share) => [
             'id' => $share->id, 'recipient' => $users[$share->recipient_user_id] ?? ['name' => 'Преподаватель', 'login' => ''],
             'permission' => $share->permission, 'revision' => (int) $share->revision, 'revoked_at' => $share->revoked_at,
+            'allow_copy' => (bool) $share->allow_copy,
         ])->all();
     }
 

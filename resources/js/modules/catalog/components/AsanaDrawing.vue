@@ -22,6 +22,16 @@ import {
   Maximize2,
   FlipHorizontal2,
 } from '@lucide/vue';
+import {
+  selectionBounds,
+  frameCorners,
+  moveElements,
+  rotateElements,
+  scaleElements,
+  fitElements,
+  selectedByPolygon,
+  normalizeSelection,
+} from '../drawingSelection';
 import { uid } from '@/shared/uuid';
 import { canvasFile, downloadJson, imageFileName, type ImageTaskContext } from '../imageTools';
 import {
@@ -74,17 +84,33 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-type Tool = DrawingKind | 'asana' | 'select' | 'rotate' | 'pan';
+type Tool = DrawingKind | 'asana' | 'select' | 'lasso' | 'rotate' | 'pan';
 interface Snapshot {
   drawing: DrawingDocument;
   brushWidth: number;
+  brushColor?: string;
 }
 interface Interaction {
-  mode: 'draw' | 'move' | 'resize' | 'head-resize' | 'rotate' | 'point' | 'pan';
+  mode:
+    | 'draw'
+    | 'move'
+    | 'resize'
+    | 'head-resize'
+    | 'rotate'
+    | 'point'
+    | 'pan'
+    | 'box'
+    | 'lasso'
+    | 'group-move'
+    | 'group-rotate'
+    | 'group-resize';
   pointer: number;
   start: Point;
   before: string;
   original?: DrawingElement;
+  originals?: DrawingElement[];
+  selectionBefore?: string[];
+  additive?: boolean;
   element?: DrawingElement;
   index?: number;
   pan?: Point;
@@ -107,12 +133,47 @@ const headCenter = computed(() => drawingHeadCenter(drawing.value.elements));
 const guides = ref<DrawingGuide[]>([]),
   snapLabel = ref<string | null>(null);
 const branch = ref<{ start: Point; segment?: [Point, Point] } | null>(null);
-const showSelection = computed(() => ['asana', 'select', 'rotate'].includes(tool.value));
-const brushWidth = ref(5);
-const selectedId = ref<string | null>(null);
-const selected = computed(
-  () => drawing.value.elements.find((element) => element.id === selectedId.value) ?? null,
+const showSelection = computed(() => ['asana', 'select', 'lasso', 'rotate'].includes(tool.value));
+const brushWidth = ref(5),
+  brushColor = ref('#111111');
+const selectedIds = ref<string[]>([]),
+  selectionPath = ref<Point[]>([]),
+  additiveSelection = ref(false);
+const selectedElements = computed(() =>
+  drawing.value.elements.filter((element) => selectedIds.value.includes(element.id)),
 );
+function setSelection(ids: string[], expand = true) {
+  const selected = new Set(ids);
+  if (expand) {
+    const groups = new Set(
+      drawing.value.elements.filter((e) => selected.has(e.id) && e.group_id).map((e) => e.group_id),
+    );
+    for (const element of drawing.value.elements)
+      if (element.group_id && groups.has(element.group_id)) selected.add(element.id);
+  }
+  selectedIds.value = drawing.value.elements.filter((e) => selected.has(e.id)).map((e) => e.id);
+  selectedId.value = selectedIds.value[0] ?? null;
+}
+function toggleSelection(element: DrawingElement, additive = false) {
+  const ids = element.group_id
+    ? drawing.value.elements.filter((e) => e.group_id === element.group_id).map((e) => e.id)
+    : [element.id];
+  setSelection(
+    additive
+      ? selectedIds.value.includes(element.id)
+        ? selectedIds.value.filter((id) => !ids.includes(id))
+        : [...selectedIds.value, ...ids]
+      : ids,
+  );
+}
+const selectedId = ref<string | null>(null);
+watch(selectedId, (id) => {
+  if (id && !selectedIds.value.includes(id)) setSelection([id]);
+  else if (!id) selectedIds.value = [];
+});
+const selected = computed(() => (selectedElements.value.length === 1 ? selectedElements.value[0] : null));
+const multiple = computed(() => selectedElements.value.length > 1);
+const groupBounds = computed(() => selectionBounds(selectedElements.value));
 const current = ref<DrawingElement | null>(null);
 const interacting = ref(false);
 const undoStack = ref<string[]>([]),
@@ -131,6 +192,7 @@ const locked = computed(() => props.disabled || busy.value);
 const tools = [
   { id: 'asana', label: 'Асана', hint: 'Сначала голова, затем линии (A)', icon: PersonStanding },
   { id: 'select', label: 'Выделение', hint: 'Выделить и изменить элемент (V)', icon: MousePointer2 },
+  { id: 'lasso', label: 'Лассо', hint: 'Обвести несколько элементов', icon: MousePointer2 },
   { id: 'rotate', label: 'Вращение', hint: 'Вращать выбранный элемент (R)', icon: RotateCw },
   { id: 'pen', label: 'Перо', hint: 'Рисовать от руки (P)', icon: Pencil },
   { id: 'eraser', label: 'Ластик', hint: 'Стереть часть рисунка (E)', icon: Eraser },
@@ -157,8 +219,16 @@ const editablePoints = computed(() =>
       }))
     : [],
 );
-const corners = computed(() => (selected.value ? selectionCorners(selected.value) : []));
-const rotateHandle = computed(() => (selected.value ? rotationHandle(selected.value) : null));
+const corners = computed(() =>
+  multiple.value ? frameCorners(groupBounds.value) : selected.value ? selectionCorners(selected.value) : [],
+);
+const rotateHandle = computed(() =>
+  multiple.value
+    ? { x: groupBounds.value.x + groupBounds.value.width / 2, y: groupBounds.value.y - 35 }
+    : selected.value
+      ? rotationHandle(selected.value)
+      : null,
+);
 const selectedBounds = computed(() => (selected.value ? elementBounds(selected.value) : null));
 const polygon = computed(() => corners.value.map((point) => `${point.x},${point.y}`).join(' '));
 const surfaceStyle = computed(() => ({
@@ -187,7 +257,11 @@ let numericResize: { id: string; axis: 'width' | 'height'; original: DrawingElem
   null;
 
 function snapshot(): string {
-  return JSON.stringify({ drawing: drawing.value, brushWidth: brushWidth.value } satisfies Snapshot);
+  return JSON.stringify({
+    drawing: drawing.value,
+    brushWidth: brushWidth.value,
+    brushColor: brushColor.value,
+  } satisfies Snapshot);
 }
 function fingerprint(): string {
   return JSON.stringify(drawing.value);
@@ -223,6 +297,7 @@ function restoreSnapshot(value: string) {
   const state = JSON.parse(value) as Snapshot;
   drawing.value = parseDrawing(state.drawing);
   brushWidth.value = state.brushWidth;
+  brushColor.value = state.brushColor ?? '#111111';
   if (!selected.value) selectedId.value = null;
   pointIndex.value = 0;
   branch.value = null;
@@ -361,7 +436,7 @@ watch(
     offeredDraft = null;
     drawing.value = initial;
     appliedFingerprint = nextFingerprint;
-    selectedId.value = null;
+    setSelection([]);
     current.value = null;
     numericResize = null;
     interaction = null;
@@ -559,6 +634,7 @@ function beginDrawing(
     kind,
     width: kind === 'eraser' ? Math.min(100, brushWidth.value * 4) : brushWidth.value,
     rotation: 0,
+    ...(brushColor.value !== '#111111' ? { color: brushColor.value } : {}),
     points: Array.from({ length: requiredPoints }, () => ({ ...start })),
   };
   const state: Interaction = {
@@ -618,15 +694,61 @@ function begin(event: PointerEvent) {
     if (interaction) move(event);
     return;
   }
-  if (tool.value === 'rotate') {
-    const found = elementAt(point) ?? selected.value;
-    if (found) {
-      selectedId.value = found.id;
-      capture(event, { ...base, mode: 'rotate', original: JSON.parse(JSON.stringify(found)) });
-    }
+  if (tool.value === 'lasso') {
+    selectionPath.value = [point];
+    capture(event, {
+      ...base,
+      mode: 'lasso',
+      selectionBefore: [...selectedIds.value],
+      additive: event.shiftKey || additiveSelection.value,
+    });
     return;
   }
+  if (tool.value === 'rotate') {
+    const found = elementAt(point);
+    if (found && !selectedIds.value.includes(found.id)) toggleSelection(found);
+    if (multiple.value)
+      capture(event, {
+        ...base,
+        mode: 'group-rotate',
+        originals: JSON.parse(JSON.stringify(selectedElements.value)),
+      });
+    else if (selected.value)
+      capture(event, { ...base, mode: 'rotate', original: JSON.parse(JSON.stringify(selected.value)) });
+    return;
+  }
+  if (tool.value === 'select' && multiple.value) {
+    if (rotateHandle.value && near(rotateHandle.value, point)) {
+      capture(event, {
+        ...base,
+        mode: 'group-rotate',
+        originals: JSON.parse(JSON.stringify(selectedElements.value)),
+      });
+      return;
+    }
+    const corner = corners.value.findIndex((p) => near(p, point));
+    if (corner >= 0) {
+      capture(event, {
+        ...base,
+        mode: 'group-resize',
+        index: corner,
+        originals: JSON.parse(JSON.stringify(selectedElements.value)),
+      });
+      return;
+    }
+  }
   if (tool.value === 'asana') {
+    const grouped = elementAt(point);
+    if (grouped?.group_id) {
+      toggleSelection(grouped);
+      tool.value = 'select';
+      capture(event, {
+        ...base,
+        mode: 'group-move',
+        originals: JSON.parse(JSON.stringify(selectedElements.value)),
+      });
+      return;
+    }
     const endpoint = endpointAt(point);
     if (endpoint && endpoint.element.kind !== 'ellipse') {
       selectedId.value = endpoint.element.id;
@@ -652,7 +774,7 @@ function begin(event: PointerEvent) {
   }
   if (tool.value === 'select' || tool.value === 'asana') {
     const element = selected.value;
-    if (element) {
+    if (element && !event.shiftKey && !additiveSelection.value) {
       const node = editablePoints.value.find((handle) => near(handle, point));
       if (node) {
         pointIndex.value = node.index;
@@ -681,13 +803,32 @@ function begin(event: PointerEvent) {
       }
     }
     const found = elementAt(point);
-    selectedId.value = found?.id ?? null;
     pointIndex.value = 0;
     if (found) {
-      capture(event, { ...base, mode: 'move', original: JSON.parse(JSON.stringify(found)) });
+      const additive = event.shiftKey || additiveSelection.value;
+      if (additive || !selectedIds.value.includes(found.id)) toggleSelection(found, additive);
+      if (additive) return;
+      if (multiple.value)
+        capture(event, {
+          ...base,
+          mode: 'group-move',
+          originals: JSON.parse(JSON.stringify(selectedElements.value)),
+        });
+      else if (selected.value)
+        capture(event, { ...base, mode: 'move', original: JSON.parse(JSON.stringify(selected.value)) });
       return;
     }
-    if (tool.value === 'select') return;
+    if (tool.value === 'select') {
+      selectionPath.value = [point, point, point, point];
+      capture(event, {
+        ...base,
+        mode: 'box',
+        selectionBefore: [...selectedIds.value],
+        additive: event.shiftKey || additiveSelection.value,
+      });
+      return;
+    }
+    setSelection([]);
   }
   const head = tool.value === 'asana' && !drawing.value.elements.length;
   beginDrawing(
@@ -715,6 +856,51 @@ function move(event: PointerEvent) {
     return;
   }
   const point = pointFromEvent(event);
+  if (state.mode === 'box') {
+    selectionPath.value = frameCorners({
+      x: Math.min(state.start.x, point.x),
+      y: Math.min(state.start.y, point.y),
+      width: Math.abs(point.x - state.start.x),
+      height: Math.abs(point.y - state.start.y),
+    });
+    return;
+  }
+  if (state.mode === 'lasso') {
+    if (!near(selectionPath.value[selectionPath.value.length - 1], point, 2)) {
+      if (selectionPath.value.length >= 512)
+        selectionPath.value = selectionPath.value.filter((_, index) => index % 2 === 0);
+      selectionPath.value.push(clampPoint(point));
+    }
+    return;
+  }
+  if (state.originals) {
+    const bounds = selectionBounds(state.originals),
+      center = boundsCenter(bounds);
+    let result: DrawingElement[] = state.originals;
+    if (state.mode === 'group-move')
+      result = moveElements(state.originals, point.x - state.start.x, point.y - state.start.y);
+    else if (state.mode === 'group-rotate') {
+      let angle =
+        ((Math.atan2(point.y - center.y, point.x - center.x) -
+          Math.atan2(state.start.y - center.y, state.start.x - center.x)) *
+          180) /
+        Math.PI;
+      if (event.shiftKey) angle = Math.round(angle / 15) * 15;
+      else if (snapping.value && !event.altKey && Math.abs(angle - Math.round(angle / 90) * 90) <= 4)
+        angle = Math.round(angle / 90) * 90;
+      snapLabel.value = `${Math.round(angle)}°`;
+      result = rotateElements(state.originals, angle, center);
+    } else if (state.mode === 'group-resize') {
+      const fixed = frameCorners(bounds)[(state.index! + 2) % 4];
+      const factor = Math.max(
+        0.03,
+        Math.min(Math.abs(point.x - fixed.x) / bounds.width, Math.abs(point.y - fixed.y) / bounds.height),
+      );
+      result = fitElements(scaleElements(state.originals, factor, fixed));
+    }
+    replaceMany(result);
+    return;
+  }
   if (state.mode === 'draw') {
     const element = current.value!,
       end = limitDrawPoint(clampPoint(point), state);
@@ -854,6 +1040,13 @@ function move(event: PointerEvent) {
 function finish(event?: PointerEvent) {
   if (!interaction || (event && event.pointerId !== interaction.pointer)) return;
   const state = interaction;
+  if (state.mode === 'box' || state.mode === 'lasso') {
+    const ids = drawing.value.elements
+      .filter((e) => selectedByPolygon(e, selectionPath.value))
+      .map((e) => e.id);
+    setSelection(state.additive ? [...(state.selectionBefore ?? []), ...ids] : ids);
+    selectionPath.value = [];
+  }
   if (state.mode === 'draw' && current.value) {
     const element = current.value;
     const valid =
@@ -873,6 +1066,7 @@ function finish(event?: PointerEvent) {
         error.value =
           'Для зеркальной пары не хватает места в исходнике. Удалите лишние элементы или отключите симметрию.';
       } else {
+        if (element.color) drawing.value.version = 2;
         drawing.value.elements.push(state.mirrorAxis === undefined ? confineElement(element) : element);
         if (mirrored) drawing.value.elements.push(mirrored);
         selectedId.value = element.id;
@@ -889,13 +1083,16 @@ function finish(event?: PointerEvent) {
   guides.value = [];
   snapLabel.value = null;
   releasePointer(state.pointer);
-  if (state.mode !== 'pan') commit(state.before);
+  if (!['pan', 'box', 'lasso'].includes(state.mode)) commit(state.before);
   scheduleRender();
 }
 function cancelInteraction(event?: PointerEvent) {
   if (!interaction || (event && event.pointerId !== interaction.pointer)) return;
   const state = interaction;
   if (state.original) replaceSelected(state.original);
+  if (state.originals) replaceMany(state.originals);
+  if (state.selectionBefore) setSelection(state.selectionBefore);
+  selectionPath.value = [];
   current.value = null;
   interaction = null;
   interacting.value = false;
@@ -911,6 +1108,10 @@ function bendSelected(id = selectedId.value) {
   if (locked.value || interacting.value) return;
   const element = drawing.value.elements.find((item) => item.id === id);
   if (!element || !['line', 'curve'].includes(element.kind)) return;
+  if (element.group_id) {
+    error.value = 'Разгруппируйте рисунок, чтобы изменить изгиб отдельной линии.';
+    return;
+  }
   if (element.kind === 'line') {
     if (drawingPointCount(drawing.value) >= drawingLimits.points) {
       error.value = 'В рисунке достигнут предел числа точек.';
@@ -976,30 +1177,80 @@ function clear() {
   tool.value = 'asana';
   commit();
 }
+function replaceMany(elements: DrawingElement[]) {
+  const replacements = new Map(elements.map((e) => [e.id, e]));
+  drawing.value.elements = drawing.value.elements.map((e) => replacements.get(e.id) ?? e);
+  scheduleRender();
+}
+function cleanGroups() {
+  const counts = new Map<string, number>();
+  for (const element of drawing.value.elements)
+    if (element.group_id) counts.set(element.group_id, (counts.get(element.group_id) ?? 0) + 1);
+  for (const element of drawing.value.elements)
+    if (element.group_id && (counts.get(element.group_id) ?? 0) < 2) delete element.group_id;
+}
 function removeSelected() {
-  if (locked.value || interacting.value || !selected.value) return;
-  drawing.value.elements = drawing.value.elements.filter((element) => element.id !== selectedId.value);
-  selectedId.value = null;
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  const ids = new Set(selectedIds.value);
+  drawing.value.elements = drawing.value.elements.filter((e) => !ids.has(e.id));
+  cleanGroups();
+  setSelection([]);
   commit();
 }
 function duplicateSelected() {
-  if (locked.value || interacting.value || !selected.value) return;
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
   if (
-    drawing.value.elements.length >= drawingLimits.elements ||
-    drawingPointCount(drawing.value) + selected.value.points.length > drawingLimits.points
+    drawing.value.elements.length + selectedElements.value.length > drawingLimits.elements ||
+    drawingPointCount(drawing.value) + selectedElements.value.reduce((n, e) => n + e.points.length, 0) >
+      drawingLimits.points
   ) {
     error.value = 'Достигнут предел размера рисунка.';
     return;
   }
-  const copy = confineElement(
-    moveElement(
-      { ...selected.value, id: uid(), points: selected.value.points.map((point) => ({ ...point })) },
-      24,
-      24,
-    ),
+  const groups = new Map<string, string>();
+  const copies = moveElements(
+    selectedElements.value.map((e) => ({
+      ...e,
+      id: uid(),
+      points: e.points.map((p) => ({ ...p })),
+      ...(e.group_id
+        ? { group_id: groups.get(e.group_id) ?? (groups.set(e.group_id, uid()), groups.get(e.group_id)) }
+        : {}),
+    })),
+    24,
+    24,
   );
-  drawing.value.elements.push(copy);
-  selectedId.value = copy.id;
+  drawing.value.elements.push(...copies);
+  setSelection(copies.map((e) => e.id));
+  commit();
+}
+function groupSelected() {
+  if (locked.value || interacting.value || selectedElements.value.length < 2) return;
+  const id = uid();
+  for (const element of selectedElements.value) element.group_id = id;
+  drawing.value.version = 2;
+  cleanGroups();
+  commit();
+}
+function ungroupSelected() {
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  for (const element of selectedElements.value) delete element.group_id;
+  cleanGroups();
+  commit();
+}
+function mirrorSelected() {
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  const axis = boundsCenter(groupBounds.value).x;
+  replaceMany(fitElements(selectedElements.value.map((e) => mirrorElement(e, axis, e.id))));
+  commit();
+}
+function setColor(event: Event) {
+  if (locked.value || interacting.value) return;
+  brushColor.value = (event.target as HTMLInputElement).value.toLowerCase();
+  if (selectedElements.value.length) {
+    drawing.value.version = 2;
+    replaceMany(selectedElements.value.map((e) => ({ ...e, color: brushColor.value })));
+  }
   commit();
 }
 function addFigure() {
@@ -1016,6 +1267,7 @@ function addFigure() {
     kind: 'figure',
     width: brushWidth.value,
     rotation: 0,
+    ...(brushColor.value !== '#111111' ? { color: brushColor.value } : {}),
     points: [
       [512, 230],
       [512, 305],
@@ -1034,6 +1286,7 @@ function addFigure() {
       [589, 790],
     ].map(([x, y]) => ({ x, y })),
   };
+  if (element.color) drawing.value.version = 2;
   drawing.value.elements.push(element);
   selectedId.value = element.id;
   pointIndex.value = 0;
@@ -1055,8 +1308,8 @@ function setRotation(event: Event) {
   });
 }
 function turnSelected() {
-  if (locked.value || interacting.value || !selected.value) return;
-  replaceSelected({ ...selected.value, rotation: ((selected.value.rotation + 195) % 360) - 180 });
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  replaceMany(rotateElements(selectedElements.value, 15));
   commit();
 }
 function resizeSelected(event: Event, axis: 'width' | 'height') {
@@ -1099,14 +1352,22 @@ function finishResize(event?: Event) {
 }
 function selectElement(event: Event) {
   if (locked.value || interacting.value) return;
-  selectedId.value = (event.target as HTMLSelectElement).value || null;
+  const id = (event.target as HTMLSelectElement).value;
+  const element = drawing.value.elements.find((e) => e.id === id);
+  if (additiveSelection.value && element) toggleSelection(element, true);
+  else setSelection(id ? [id] : []);
   pointIndex.value = 0;
   if (tool.value !== 'rotate') tool.value = 'select';
   branch.value = null;
 }
 function nudge(dx: number, dy: number, node = false) {
-  if (locked.value || interacting.value || !selected.value) return;
-  const original = selected.value;
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  if (multiple.value) {
+    replaceMany(moveElements(selectedElements.value, dx, dy));
+    commit();
+    return;
+  }
+  const original = selected.value!;
   if (node && editablePoints.value.length) {
     const index = Math.min(pointIndex.value, original.points.length - 1),
       points = original.points.map((point) => ({ ...point }));
@@ -1172,10 +1433,10 @@ function keydown(event: KeyboardEvent) {
   } else if (command && physicalKey === 'd') {
     event.preventDefault();
     duplicateSelected();
-  } else if (['delete', 'backspace'].includes(key) && selected.value) {
+  } else if (['delete', 'backspace'].includes(key) && selectedElements.value.length) {
     event.preventDefault();
     removeSelected();
-  } else if (key.startsWith('arrow') && selected.value) {
+  } else if (key.startsWith('arrow') && selectedElements.value.length) {
     event.preventDefault();
     const amount = event.shiftKey ? 10 : 1;
     nudge(
@@ -1183,6 +1444,13 @@ function keydown(event: KeyboardEvent) {
       key === 'arrowup' ? -amount : key === 'arrowdown' ? amount : 0,
       event.altKey,
     );
+  } else if (command && physicalKey === 'a') {
+    event.preventDefault();
+    tool.value = 'select';
+    setSelection(drawing.value.elements.map((e) => e.id));
+  } else if (command && physicalKey === 'g') {
+    event.preventDefault();
+    event.shiftKey ? ungroupSelected() : groupSelected();
   } else if (!command && event.code === 'Space' && !target.closest('button,a,summary')) {
     event.preventDefault();
     spacePan.value = true;
@@ -1197,6 +1465,7 @@ function keydown(event: KeyboardEvent) {
       c: 'curve',
       o: 'ellipse',
       h: 'pan',
+      q: 'lasso',
     };
     if (physicalKey === 'b') {
       event.preventDefault();
@@ -1232,6 +1501,39 @@ function blur() {
 function flushDraft() {
   if (interaction) finish();
   saveDraft();
+}
+async function exportDrawing(): Promise<{ file: File; drawing: DrawingDocument }> {
+  if (locked.value) throw new Error('Редактор занят. Завершите текущее действие.');
+  if (interaction) finish();
+  commit();
+  const source = parseDrawing(drawing.value),
+    output = document.createElement('canvas');
+  output.width = output.height = 1024;
+  const ctx = output.getContext('2d');
+  if (!ctx) throw new Error('Браузер не поддерживает рисование.');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 1024, 1024);
+  for (const element of source.elements) drawElement(ctx, element, source.smoothing);
+  return { file: await canvasFile(output, props.context.name), drawing: source };
+}
+async function exportSelection(): Promise<{ file: File; drawing: DrawingDocument }> {
+  if (locked.value || interacting.value || !selectedElements.value.length)
+    throw new Error('Сначала выделите элементы рисунка.');
+  const elements = normalizeSelection(
+    selectedElements.value.map((element) => ({
+      ...element,
+      points: element.points.map((point) => ({ ...point })),
+    })),
+  );
+  const source = parseDrawing({ ...cloneDrawing(drawing.value), elements });
+  const output = document.createElement('canvas');
+  output.width = output.height = 1024;
+  const ctx = output.getContext('2d');
+  if (!ctx) throw new Error('Браузер не поддерживает рисование.');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 1024, 1024);
+  for (const element of source.elements) drawElement(ctx, element, source.smoothing);
+  return { file: await canvasFile(output, props.context.name), drawing: source };
 }
 async function apply(): Promise<boolean> {
   if (locked.value || interacting.value || !canvas.value) return false;
@@ -1314,7 +1616,7 @@ function close() {
   fullscreen.value = false;
   emit('close');
 }
-defineExpose({ hasUnappliedChanges, discardDraft, apply });
+defineExpose({ hasUnappliedChanges, discardDraft, apply, exportDrawing, exportSelection });
 onMounted(() => {
   render();
   window.addEventListener('keydown', keydown, true);
@@ -1427,6 +1729,13 @@ onBeforeUnmount(() => {
               </div>
               <div class="settings-row">
                 <label
+                  >Цвет<input
+                    type="color"
+                    :value="brushColor"
+                    aria-label="Цвет штриха и выделенных элементов"
+                    @change="setColor"
+                /></label>
+                <label
                   >Толщина <output>{{ brushWidth }}</output
                   ><input v-model.number="brushWidth" type="range" min="1" max="25" @change="commit()"
                 /></label>
@@ -1520,7 +1829,7 @@ onBeforeUnmount(() => {
               Выбрать элемент
               <select
                 class="select"
-                :value="selectedId || ''"
+                :value="additiveSelection ? '' : selectedId || ''"
                 :disabled="locked || interacting"
                 @change="selectElement"
               >
@@ -1530,14 +1839,117 @@ onBeforeUnmount(() => {
                 </option>
               </select>
             </label>
+            <div v-if="showSelection" class="toolbar selection-actions">
+              <button
+                type="button"
+                class="btn btn-ghost"
+                :disabled="locked || interacting || !drawing.elements.length"
+                @click="setSelection(drawing.elements.map((e) => e.id))"
+              >
+                Выбрать всё
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost"
+                :disabled="locked || interacting || !selectedElements.length"
+                @click="setSelection([])"
+              >
+                Снять выделение
+              </button>
+              <label
+                ><input
+                  v-model="additiveSelection"
+                  type="checkbox"
+                  :disabled="locked || interacting"
+                />Добавлять к выбору</label
+              >
+              <span v-if="selectedElements.length">Выбрано: {{ selectedElements.length }}</span>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting || selectedElements.length < 2"
+                @click="groupSelected"
+              >
+                Группировать
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting || !selectedElements.some((e) => e.group_id)"
+                @click="ungroupSelected"
+              >
+                Разгруппировать
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting || !selectedElements.length"
+                @click="mirrorSelected"
+              >
+                Отразить
+              </button>
+            </div>
+            <div v-if="multiple && showSelection" class="toolbar selection-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting"
+                @click="duplicateSelected"
+              >
+                Копировать выбранное</button
+              ><button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting"
+                @click="turnSelected"
+              >
+                Повернуть на 15°</button
+              ><button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="locked || interacting"
+                @click="removeSelected"
+              >
+                Удалить выбранное
+              </button>
+              <button
+                type="button"
+                class="nudge-button"
+                aria-label="Сдвинуть выбранное влево"
+                @click="nudge(-5, 0)"
+              >
+                ←</button
+              ><button
+                type="button"
+                class="nudge-button"
+                aria-label="Сдвинуть выбранное вверх"
+                @click="nudge(0, -5)"
+              >
+                ↑</button
+              ><button
+                type="button"
+                class="nudge-button"
+                aria-label="Сдвинуть выбранное вниз"
+                @click="nudge(0, 5)"
+              >
+                ↓</button
+              ><button
+                type="button"
+                class="nudge-button"
+                aria-label="Сдвинуть выбранное вправо"
+                @click="nudge(5, 0)"
+              >
+                →
+              </button>
+            </div>
             <div
               ref="viewport"
               class="drawing-viewport"
               :class="{
                 panning: tool === 'pan' || spacePan,
-                selecting: tool === 'select',
+                selecting: tool === 'select' || tool === 'lasso',
                 rotating: tool === 'rotate',
-                drawing: !['select', 'rotate', 'pan'].includes(tool),
+                drawing: !['select', 'lasso', 'rotate', 'pan'].includes(tool),
               }"
               @pointerdown.prevent="begin"
               @pointermove.prevent="move"
@@ -1549,6 +1961,17 @@ onBeforeUnmount(() => {
               @wheel="wheel"
             >
               <div class="drawing-surface" :style="surfaceStyle">
+                <svg
+                  v-if="selectionPath.length"
+                  class="selection-overlay"
+                  viewBox="0 0 1024 1024"
+                  aria-hidden="true"
+                >
+                  <polygon
+                    :points="selectionPath.map((p) => `${p.x},${p.y}`).join(' ')"
+                    class="lasso-outline"
+                  />
+                </svg>
                 <canvas
                   ref="canvas"
                   width="1024"
@@ -1588,7 +2011,7 @@ onBeforeUnmount(() => {
                   />
                 </svg>
                 <svg
-                  v-if="selected && showSelection"
+                  v-if="selectedElements.length && showSelection"
                   class="selection-overlay"
                   viewBox="0 0 1024 1024"
                   aria-hidden="true"
@@ -1619,7 +2042,7 @@ onBeforeUnmount(() => {
                     class="resize-handle"
                   />
                   <polyline
-                    v-if="selected.kind === 'curve'"
+                    v-if="selected?.kind === 'curve'"
                     :points="editablePoints.map((point) => `${point.x},${point.y}`).join(' ')"
                     class="curve-guide"
                   />
@@ -1646,6 +2069,11 @@ onBeforeUnmount(() => {
               Потяните для линии или нажмите её начало и конец. Левой кнопкой двигайте конец, правой —
               продолжайте линию от него. Двойной щелчок по середине включает изгиб. Край головы меняет её
               размер.
+            </p>
+            <p class="muted help" v-else-if="tool === 'select' || tool === 'lasso'">
+              Потяните по пустому месту для рамки или обведите лассо. Shift или «Добавлять к выбору» расширяет
+              выделение. Поворот и размер работают со всем выбранным; один жест можно отменить одним
+              действием.
             </p>
             <p class="muted help" v-else-if="tool === 'rotate'">
               Выделите элемент и потяните вокруг него для поворота. Угол также можно задать в поле «Поворот».
@@ -1896,6 +2324,25 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.lasso-outline {
+  fill: #397a2818;
+  stroke: #397a28;
+  stroke-width: 2;
+  stroke-dasharray: 8 5;
+  vector-effect: non-scaling-stroke;
+}
+.selection-actions {
+  padding: 8px 0;
+  font-size: 0.8rem;
+}
+.selection-actions label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.selection-overlay {
+  z-index: 2;
+}
 .drawing-host {
   min-width: 0;
   width: 100%;

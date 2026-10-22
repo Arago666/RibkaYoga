@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { errorText, type Asana, type Category, type AsanaRelation } from '../types';
+import { emptyAssignments, emptyReference, referenceFromCard, appendReference } from '../facets';
 import type { DrawingDocument } from '../drawing';
 import AsanaFields from './AsanaFields.vue';
 import CollectionChoices from './CollectionChoices.vue';
@@ -12,6 +13,8 @@ const emit = defineEmits<{ close: []; saved: [] }>();
 const name = ref(''),
   aliases = ref(''),
   error = ref('');
+const reference = ref(emptyReference()),
+  facetAssignments = ref(emptyAssignments());
 const categoryIds = ref<string[]>([]);
 const collectionIds = ref<string[]>([]),
   relations = ref<AsanaRelation[]>([]);
@@ -29,6 +32,8 @@ const baseline = ref('');
 let loadVersion = 0;
 function formState(): string {
   return JSON.stringify({
+    reference: reference.value,
+    facetAssignments: facetAssignments.value,
     name: name.value,
     aliases: aliases.value,
     categoryIds: categoryIds.value,
@@ -85,6 +90,8 @@ watch(
     function populate(value: Asana) {
       currentCard.value = value;
       name.value = value.name;
+      reference.value = referenceFromCard(value);
+      facetAssignments.value = JSON.parse(JSON.stringify(value.facet_assignments ?? emptyAssignments()));
       aliases.value = value.aliases?.join('\n') || '';
       categoryIds.value = value.categories?.map((item) => item.id) || [];
       collectionIds.value = [...(value.collection_ids || [])];
@@ -121,8 +128,8 @@ async function save() {
     error.value = 'Укажите название карточки.';
     return;
   }
-  if (!categoryIds.value.length || !collectionIds.value.length) {
-    error.value = 'Выберите хотя бы одну категорию и одну подборку.';
+  if (!collectionIds.value.length) {
+    error.value = 'Выберите хотя бы одну подборку.';
     return;
   }
   busy.value = true;
@@ -139,6 +146,7 @@ async function save() {
         .filter(Boolean),
     ),
   );
+  appendReference(data, reference.value, facetAssignments.value);
   data.set('category_ids', JSON.stringify(categoryIds.value));
   data.set('collection_ids', JSON.stringify(collectionIds.value));
   data.set('relations', JSON.stringify(relations.value.map(({ asana_id, kind }) => ({ asana_id, kind }))));
@@ -196,6 +204,8 @@ onBeforeUnmount(clearReplacement);
       <AsanaFields
         :key="card?.id"
         ref="fields"
+        v-model:reference="reference"
+        v-model:facet-assignments="facetAssignments"
         v-model:name="name"
         v-model:aliases="aliases"
         v-model:category-ids="categoryIds"

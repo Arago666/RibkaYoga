@@ -6,6 +6,7 @@ import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import type { Page } from '@/modules/catalog/types';
+import { uid } from '../types';
 interface Cycle {
   id: string;
   title: string;
@@ -13,6 +14,8 @@ interface Cycle {
   revision: number;
   archived_at: string | null;
   cloud_asana_ids: string[];
+  positions_count: number;
+  kind: 'cycle' | 'template';
 }
 interface Source {
   id: string;
@@ -31,6 +34,8 @@ const createOpen = ref(false),
   base = ref(''),
   sources = ref<Source[]>([]),
   busy = ref(false);
+const count = ref(5),
+  operationKey = ref(uid());
 async function load() {
   loading.value = true;
   error.value = '';
@@ -45,6 +50,8 @@ async function load() {
   }
 }
 async function openCreate() {
+  count.value = 5;
+  operationKey.value = uid();
   title.value = '';
   theme.value = '';
   base.value = '';
@@ -79,6 +86,8 @@ async function create() {
       method: 'POST',
       body: JSON.stringify({
         title: title.value.trim(),
+        count: count.value,
+        idempotency_key: operationKey.value,
         theme: theme.value.trim() || null,
         base_document_id: base.value || null,
       }),
@@ -94,7 +103,7 @@ async function changeArchive(item: Cycle) {
   if (
     busy.value ||
     (!item.archived_at &&
-      !window.confirm(`Переместить «${item.title}» в архив? Пять практик останутся в списке практик.`))
+      !window.confirm(`Переместить «${item.title}» в архив? Все занятия останутся в списке практик.`))
   )
     return;
   busy.value = true;
@@ -113,13 +122,13 @@ async function changeArchive(item: Cycle) {
 onMounted(load);
 </script>
 <template>
-  <Head title="Мезоциклы" />
+  <Head title="Программы и циклы" />
   <AppShell section="practices">
     <Link class="btn btn-ghost" href="/practices"><ArrowLeft :size="16" />Все практики</Link>
     <header class="page-header">
       <div>
-        <h1 class="page-title">Мезоциклы</h1>
-        <p class="muted">Тема месяца, общий набор асан и пять независимых практик по неделям.</p>
+        <h1 class="page-title">Программы и циклы</h1>
+        <p class="muted">От 1 до 52 независимых занятий. Облако асан необязательно.</p>
       </div>
       <button class="btn btn-primary" @click="openCreate"><Plus :size="18" />Создать мезоцикл</button>
     </header>
@@ -154,9 +163,9 @@ onMounted(load);
         <CalendarDays :size="28" />
         <h2>{{ item.title }}</h2>
         <p>{{ item.theme || 'Без темы' }}</p>
-        <small>5 недель · {{ item.cloud_asana_ids.length }} асан в облаке</small
+        <small>{{ item.positions_count }} занятий · {{ item.cloud_asana_ids.length }} асан в облаке</small
         ><Link v-if="!item.archived_at" class="btn btn-primary" :href="`/mesocycles/${item.id}/edit`"
-          >Открыть пять практик</Link
+          >Открыть занятия</Link
         ><button class="btn btn-ghost" :disabled="busy" @click="changeArchive(item)">
           <RotateCcw v-if="item.archived_at" :size="16" /><Archive v-else :size="16" />{{
             item.archived_at ? 'Восстановить' : 'В архив'
@@ -194,16 +203,19 @@ onMounted(load);
     </div>
     <Modal :open="createOpen" title="Новый мезоцикл" @close="!busy && (createOpen = false)"
       ><p class="muted">
-        Создадим пять самостоятельных практик. Изменение основы после создания не изменит недели.
+        Создадим независимые занятия. Изменение основы после создания не изменит программу.
       </p>
       <p v-if="error" class="error-banner">{{ error }}</p>
       <label class="field"
         ><span class="label">Название</span
         ><input v-model="title" class="input" maxlength="160" placeholder="Мой месяц практики" /></label
       ><label class="field"
+        ><span class="label">Количество занятий</span
+        ><input v-model.number="count" class="input" type="number" min="1" max="52" required /></label
+      ><label class="field"
         ><span class="label">Тема месяца</span><input v-model="theme" class="input" maxlength="240" /></label
       ><label class="field"
-        ><span class="label">Базовая последовательность для всех пяти недель</span
+        ><span class="label">Базовая последовательность для всех занятий</span
         ><select v-model="base" class="select" :disabled="busy">
           <option value="">Пустые практики</option>
           <option v-for="source in sources" :key="source.id" :value="source.id">
@@ -213,7 +225,7 @@ onMounted(load);
       ><template #footer
         ><button class="btn btn-secondary" :disabled="busy" @click="createOpen = false">Отмена</button
         ><button class="btn btn-primary" :disabled="busy || !title.trim()" @click="create">
-          {{ busy ? 'Создаём…' : 'Создать пять недель' }}
+          {{ busy ? 'Создаём…' : 'Создать программу' }}
         </button></template
       ></Modal
     >

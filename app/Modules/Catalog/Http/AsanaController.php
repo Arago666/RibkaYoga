@@ -6,15 +6,19 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\Models\Asana;
 use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Services\CatalogQuery;
 use App\Modules\Catalog\Services\CatalogReader;
+use App\Modules\Catalog\Services\Classification;
 use App\Modules\Catalog\Services\DrawingSource;
+use App\Modules\Catalog\Services\Facets;
 use App\Modules\Catalog\Services\Names;
 use App\Modules\Collections\PublicApi\CollectionMembership;
 use App\Modules\Media\PublicApi\AssetStore;
-use App\Modules\Practices\PublicApi\RecentAsanas;
+use App\Modules\Practices\PublicApi\NativeImages;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,49 +29,17 @@ class AsanaController
 
     public function index(Request $request): JsonResponse
     {
-        $input = $request->validate([
-            'q' => ['nullable', 'string', 'max:200'], 'category' => ['nullable', 'uuid'],
-            'archive' => ['nullable', Rule::in(['active', 'archived', 'all'])],
-            'sort' => ['nullable', Rule::in(['name_asc', 'name_desc', 'recent', 'used_recently'])],
-            'page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:96'],
-        ]);
-        $query = Asana::query()->select(CatalogReader::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id());
-        match ($input['archive'] ?? 'active') {
-            'archived' => $query->whereNotNull('archived_at'),
-            'all' => null,
-            default => $query->whereNull('archived_at'),
-        };
-        if (! empty($input['q'])) {
-            $query->where('normalized_search_text', 'like', Names::like($input['q']));
-        }
-        if (! empty($input['category'])) {
-            $category = Category::where('workspace_id', $this->workspace->id())->findOrFail($input['category']);
-            $query->whereHas('categories', fn ($categories) => $categories->where('catalog_categories.id', $category->id));
-        }
-        $sort = $input['sort'] ?? 'name_asc';
-        if ($sort === 'used_recently') {
-            $ids = app(RecentAsanas::class)->ids();
-            $query->whereIn('id', $ids);
-            if ($ids) {
-                $cases = implode(' ', array_map(fn ($i) => 'WHEN ? THEN '.$i, array_keys($ids)));
-                $query->orderByRaw('CASE id '.$cases.' ELSE '.count($ids).' END', $ids);
-            }
-        } elseif ($sort === 'recent') {
-            $query->orderByDesc('created_at');
-        } else {
-            $direction = $sort === 'name_desc' ? 'desc' : 'asc';
-            if (DB::getDriverName() === 'pgsql') {
-                $query->orderByRaw('normalized_name COLLATE ribka_ru '.$direction);
-            } else {
-                $query->orderBy('normalized_name', $direction);
-            }
-        }
-        $page = $query->orderBy('id')->paginate($input['per_page'] ?? 48);
+        $query = app(CatalogQuery::class);
 
-        return response()->json([
-            'data' => array_values($this->reader->serialize($page->getCollection())),
-            'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total(),
-        ]);
+        return response()->json($query->response($query->input($request)));
+    }
+
+    public function facetCounts(Request $request): JsonResponse
+    {
+        $query = app(CatalogQuery::class);
+        $input = $query->input($request);
+
+        return response()->json(['facets' => $query->counts($input), 'total' => $query->query($input)->count()]);
     }
 
     public function show(string $id): JsonResponse
@@ -147,6 +119,75 @@ class AsanaController
         return $this->setArchived($request, $id, false);
     }
 
+    public function duplicate(Request $request, string $id): JsonResponse
+    {
+        $input = $request->validate(['name' => ['required', 'string', 'max:160'], 'expected_revision' => ['required', 'integer', 'min:1']]);
+        $source = $this->find($id);
+        $original = $this->assets->originalData($source->current_image_asset_id);
+        $bytes = base64_decode(substr($original['data_url'], strpos($original['data_url'], ',') + 1), true);
+        if ($bytes === false) {
+            throw new \RuntimeException('Не удалось прочитать изображение.');
+        }
+        $temp = tmpfile();
+        if (! $temp) {
+            throw new \RuntimeException('Не удалось подготовить изображение.');
+        }
+        try {
+            fwrite($temp, $bytes);
+            $asset = $this->assets->store(new UploadedFile(stream_get_meta_data($temp)['uri'], 'variant.png', null, null, true));
+        } finally {
+            fclose($temp);
+        }
+        try {
+            $card = DB::transaction(function () use ($id, $input, $asset) {
+                $this->collections->lockWorkspace();
+                $limits = app(Entitlements::class);
+                $limits->lock($this->workspace->id());
+                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::where('workspace_id', $this->workspace->id())->whereNull('archived_at')->count());
+                $source = $this->find($id, true);
+                $this->checkRevision($source, $input['expected_revision']);
+                $card = $source->replicate(['id', 'import_key', 'import_source', 'created_at', 'updated_at', 'archived_at']);
+                $card->setRelations([]);
+                $card->forceFill(['name' => trim($input['name']), 'normalized_name' => Names::normalize($input['name']),
+                    'normalized_search_text' => Names::normalize(implode(' ', [$input['name'], $source->sanskrit_cyrillic ?? '', $source->sanskrit_latin ?? '', ...$source->aliases->pluck('name')->all()])),
+                    'current_image_asset_id' => $asset['id'], 'revision' => 1, 'created_by' => $this->workspace->userId(), 'updated_by' => $this->workspace->userId()])->save();
+                $card->aliases()->createMany($source->aliases->map->only(['name', 'normalized_name'])->all());
+                $card->categories()->sync($source->categories->pluck('id')->all());
+                DB::table('catalog_asana_relations')->insert(['asana_id' => $card->id, 'related_asana_id' => $source->id, 'kind' => 'variation']);
+                if ($card->drawing_source !== null) {
+                    app(NativeImages::class)->remember($asset['id'], $card->drawing_source);
+                }
+                $memberships = $this->collections->collectionIdsForAsanas([$id])[$id] ?? [];
+                $this->collections->addAsana($card->id, $memberships ?: [$this->collections->starterCollection()]);
+
+                return $card;
+            });
+        } catch (\Throwable $error) {
+            $this->assets->discardUnattached($asset['id']);
+            throw $error;
+        }
+
+        return $this->response($card, 201);
+    }
+
+    public function classify(Request $request): JsonResponse
+    {
+        $data = $request->validate(['manifest' => ['required', 'array'], 'apply' => ['sometimes', 'boolean']]);
+
+        return response()->json(app(Classification::class)->run($data['manifest'], (bool) ($data['apply'] ?? false)));
+    }
+
+    public function favorite(Request $request, string $id): JsonResponse
+    {
+        $data = $request->validate(['favorite' => ['required', 'boolean']]);
+        $this->find($id);
+        DB::table('catalog_asana_preferences')->upsert([
+            ['workspace_id' => $this->workspace->id(), 'user_id' => $this->workspace->userId(), 'asana_id' => $id, 'favorite' => $data['favorite'], 'last_used_at' => null],
+        ], ['workspace_id', 'user_id', 'asana_id'], ['favorite']);
+
+        return response()->json(['favorite' => (bool) $data['favorite']]);
+    }
+
     private function setArchived(Request $request, string $id, bool $archived): JsonResponse
     {
         $data = $request->validate(['expected_revision' => ['required', 'integer', 'min:1']]);
@@ -158,8 +199,8 @@ class AsanaController
             }
             $asana = $this->find($id, true);
             $this->checkRevision($asana, $data['expected_revision']);
-            if (! $archived && (! $asana->categories()->exists() || ! ($this->collections->collectionIdsForAsanas([$asana->id])[$asana->id] ?? []))) {
-                throw ValidationException::withMessages(['asana' => 'Перед восстановлением укажите категорию и действующую подборку в карточке.']);
+            if (! $archived && (! ($this->collections->collectionIdsForAsanas([$asana->id])[$asana->id] ?? []))) {
+                throw ValidationException::withMessages(['asana' => 'Перед восстановлением укажите действующую подборку в карточке.']);
             }
             if (! $archived && $asana->archived_at) {
                 $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::where('workspace_id', $this->workspace->id())->whereNull('archived_at')->count());
@@ -187,7 +228,7 @@ class AsanaController
             }
             $request->merge(['drawing_source' => $source]);
         }
-        foreach (['aliases', 'category_ids', 'collection_ids', 'relations'] as $field) {
+        foreach (['aliases', 'category_ids', 'collection_ids', 'relations', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations'] as $field) {
             if (is_string($request->input($field))) {
                 $decoded = json_decode($request->input($field), true);
                 if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded) || ! array_is_list($decoded)) {
@@ -196,22 +237,51 @@ class AsanaController
                 $request->merge([$field => $decoded]);
             }
         }
+        foreach (['facet_assignments', 'editorial'] as $field) {
+            if (is_string($request->input($field))) {
+                try {
+                    $decoded = json_decode($request->input($field), true, 32, JSON_THROW_ON_ERROR);
+                } catch (\JsonException) {
+                    throw ValidationException::withMessages([$field => 'Ожидается объект JSON.']);
+                }
+                if (! is_array($decoded) || ($decoded !== [] && array_is_list($decoded))) {
+                    throw ValidationException::withMessages([$field => 'Ожидается объект значений.']);
+                }
+                $request->merge([$field => $decoded]);
+            }
+        }
         $data = $request->validate([
+            'sanskrit_cyrillic' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'sanskrit_latin' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'steps' => ['sometimes', 'array', 'list', 'max:50'], 'steps.*' => ['required', 'string', 'max:2000'],
+            'teacher_cues' => ['sometimes', 'array', 'list', 'max:30'], 'teacher_cues.*' => ['required', 'string', 'max:1000'],
+            'equipment' => ['sometimes', 'array', 'list', 'max:20'], 'equipment.*' => ['required', 'string', 'max:80', 'distinct'],
+            'precautions' => ['sometimes', 'array', 'list', 'max:30'], 'precautions.*' => ['required', 'string', 'max:2000'],
+            'adaptations' => ['sometimes', 'array', 'list', 'max:30'], 'adaptations.*' => ['required', 'string', 'max:2000'],
+            'editorial' => ['sometimes', 'array:author,source,reviewed,review_note'],
+            'editorial.author' => ['nullable', 'string', 'max:160'], 'editorial.source' => ['nullable', 'string', 'max:2000'],
+            'editorial.reviewed' => ['sometimes', 'boolean'], 'editorial.review_note' => ['nullable', 'string', 'max:2000'],
+            'has_bind' => ['sometimes', 'nullable', 'boolean'],
+            'classification_status' => ['sometimes', Rule::in(['unreviewed', 'partial', 'reviewed'])],
+            'facet_assignments' => ['sometimes', 'array'],
             'name' => [$update ? 'sometimes' : 'required', 'required', 'string', 'max:160'],
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
-            'aliases' => ['sometimes', 'array', 'list', 'max:20'], 'aliases.*' => ['required', 'string', 'max:160', 'distinct'],
-            'category_ids' => [$update ? 'sometimes' : 'required', 'array', 'list', 'min:1', 'max:30'], 'category_ids.*' => ['uuid', 'distinct:ignore_case'],
+            'aliases' => ['sometimes', 'array', 'list', 'max:500'], 'aliases.*' => ['required', 'string', 'max:160', 'distinct'],
+            'category_ids' => ['sometimes', 'array', 'list', 'max:100'], 'category_ids.*' => ['uuid', 'distinct:ignore_case'],
             'collection_ids' => [$update ? 'sometimes' : 'required', 'array', 'list', 'min:1', 'max:100'],
             'collection_ids.*' => ['required', 'uuid', 'distinct:ignore_case'],
             'relations' => ['sometimes', 'array', 'list', 'max:60'],
             'relations.*.asana_id' => ['required', 'uuid'],
-            'relations.*.kind' => ['required', Rule::in(['simpler', 'harder', 'preparation'])],
+            'relations.*.kind' => ['required', Rule::in(['simpler', 'harder', 'preparation', 'follow_up', 'compensation', 'variation'])],
             'image' => [$update ? 'nullable' : 'required', 'file', 'max:'.config('ribka.upload_max_kb', 10240)],
             'drawing_source' => ['sometimes', 'nullable', 'array'],
             'expected_revision' => [$update ? 'required' : 'sometimes', 'integer', 'min:1'],
         ]);
-        if (isset($data['category_ids']) && Category::where('workspace_id', $this->workspace->id())->whereIn('id', $data['category_ids'])->count() !== count($data['category_ids'])) {
+        if (isset($data['category_ids']) && Category::where('workspace_id', $this->workspace->id())->whereNull('dimension')->whereIn('id', $data['category_ids'])->count() !== count($data['category_ids'])) {
             throw ValidationException::withMessages(['category_ids' => 'Одна из выбранных категорий недоступна.']);
+        }
+        if (isset($data['facet_assignments'])) {
+            $data['facet_assignments'] = app(Facets::class)->validate($data['facet_assignments'], $this->workspace->id());
         }
         foreach ($data['relations'] ?? [] as $index => $relation) {
             $data['relations'][$index]['asana_id'] = strtolower($relation['asana_id']);
@@ -222,14 +292,8 @@ class AsanaController
 
     private function apply(Asana $asana, array $data): void
     {
-        // Recheck categories within the write transaction in case one was
-        // removed after request validation completed.
-        if (isset($data['category_ids'])) {
-            $available = Category::where('workspace_id', $this->workspace->id())
-                ->whereIn('id', $data['category_ids'])->orderBy('id')->sharedLock()->get(['id']);
-            if ($available->count() !== count($data['category_ids'])) {
-                throw ValidationException::withMessages(['category_ids' => 'Категория уже удалена. Обновите список.']);
-            }
+        if (isset($data['facet_assignments'])) {
+            app(Facets::class)->validate($data['facet_assignments'], $this->workspace->id(), true);
         }
         $asana->name = $data['name'] ?? $asana->name;
         if (array_key_exists('drawing_source', $data)) {
@@ -238,20 +302,36 @@ class AsanaController
         if (array_key_exists('description', $data)) {
             $asana->description = $data['description'];
         }
+        foreach (['sanskrit_cyrillic', 'sanskrit_latin', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations', 'editorial', 'has_bind', 'classification_status'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $asana->{$field} = $data[$field];
+            }
+        }
         $aliases = $data['aliases'] ?? ($asana->exists ? $asana->aliases->pluck('name')->all() : []);
         $asana->normalized_name = Names::normalize($asana->name);
-        $asana->normalized_search_text = Names::normalize(implode(' ', [$asana->name, ...$aliases]));
+        $asana->normalized_search_text = Names::normalize(implode(' ', [$asana->name, $asana->sanskrit_cyrillic ?? '', $asana->sanskrit_latin ?? '', ...$aliases]));
         $asana->updated_by = $this->workspace->userId();
         $asana->save();
+        if (! empty($data['drawing_source'])) {
+            app(NativeImages::class)->remember($asana->current_image_asset_id, $asana->drawing_source);
+        }
         if (array_key_exists('aliases', $data)) {
             $asana->aliases()->delete();
             $asana->aliases()->createMany(array_map(fn ($name) => ['name' => trim($name), 'normalized_name' => Names::normalize($name)], $aliases));
         }
         if (array_key_exists('category_ids', $data)) {
-            $asana->categories()->sync($data['category_ids']);
+            app(Facets::class)->syncLegacy($asana, $data['category_ids']);
         }
-        if (! $asana->categories()->exists()) {
-            throw ValidationException::withMessages(['category_ids' => 'Выберите хотя бы одну категорию.']);
+        if (array_key_exists('facet_assignments', $data)) {
+            app(Facets::class)->sync($asana, $data['facet_assignments']);
+        }
+        if ($asana->classification_status === 'reviewed') {
+            foreach (Facets::DIMENSIONS as $dimension) {
+                if (! $asana->categories()->where('dimension', $dimension)->exists()) {
+                    $asana->forceFill(['classification_status' => 'partial'])->save();
+                    break;
+                }
+            }
         }
         if (array_key_exists('relations', $data)) {
             $ids = array_values(array_unique(array_column($data['relations'], 'asana_id')));

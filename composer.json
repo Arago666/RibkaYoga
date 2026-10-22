@@ -6,6 +6,7 @@
   "description": "RibkaYoga — конструктор последовательностей асан",
   "require": {
     "php": "^8.3",
+    "dompdf/dompdf": "^3.1.6",
     "inertiajs/inertia-laravel": "^3.0",
     "laravel/fortify": "^1.37.2",
     "laravel/framework": "^13.17",

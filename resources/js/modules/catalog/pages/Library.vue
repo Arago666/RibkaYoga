@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
   Plus,
   Search,
@@ -23,9 +23,15 @@ import AddToCollectionDialog from '../../collections/components/AddToCollectionD
 import CollectionsPanel from '../../collections/components/CollectionsPanel.vue';
 import { cardCount, categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
 import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
+import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
+import FacetFilters from '../components/FacetFilters.vue';
+import ClassificationDialog from '../components/ClassificationDialog.vue';
 import CatalogExchangeDialog from '../components/CatalogExchangeDialog.vue';
-const exchangeOpen = ref(false);
+const exchangeOpen = ref(false),
+  classificationOpen = ref(false);
+const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
+filters.value = filtersFromUrl(initial.searchParams);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
 const query = ref(initial.searchParams.get('q') || ''),
   category = ref(initial.searchParams.get('category') || ''),
@@ -54,7 +60,13 @@ let sequence = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const selectedIds = computed(() => [...selection.value.keys()]);
 const hasFilters = computed(() =>
-  Boolean(query.value || category.value || archive.value !== 'active' || sort.value === 'used_recently'),
+  Boolean(
+    query.value ||
+    category.value ||
+    archive.value !== 'active' ||
+    sort.value === 'used_recently' ||
+    JSON.stringify(filters.value) !== JSON.stringify(emptyFilters()),
+  ),
 );
 const visibleSelected = computed(
   () =>
@@ -74,6 +86,7 @@ function updateUrl() {
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
+  setFilterParams(url.searchParams, filters.value);
   window.history.replaceState(window.history.state, '', url);
 }
 async function load() {
@@ -83,7 +96,7 @@ async function load() {
   updateUrl();
   try {
     const response = await api<Page<Asana>>(
-      `/api/asanas?${new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value) })}`,
+      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value) }), filters.value)}`,
     );
     if (request === sequence) {
       if (page.value > response.last_page) {
@@ -117,6 +130,14 @@ watch([category, archive, sort], () => {
   page.value = 1;
   void load();
 });
+watch(
+  filters,
+  () => {
+    page.value = 1;
+    void load();
+  },
+  { deep: true },
+);
 watch(tab, updateUrl);
 onMounted(() => {
   void load();
@@ -140,6 +161,7 @@ function selectVisible() {
   selection.value = next;
 }
 function clearFilters() {
+  filters.value = emptyFilters();
   query.value = '';
   category.value = '';
   archive.value = 'active';
@@ -217,7 +239,7 @@ async function taxonomyChanged() {
       <button class="btn btn-ghost" @click="loadMetadata">Повторить загрузку категорий</button>
     </div>
     <template v-if="tab === 'asanas'">
-      <CategoryQuickFilters v-model="category" :categories="categories" />
+      <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
       <div class="library-tools">
         <div class="library-search">
           <Search :size="19" /><input
@@ -230,7 +252,7 @@ async function taxonomyChanged() {
           </button>
         </div>
         <select v-model="category" class="select category-select" aria-label="Фильтр по категории">
-          <option value="">Все категории</option>
+          <option value="">Мои категории: все</option>
           <option v-for="item in categories" :key="item.id" :value="item.id">
             {{ categoryLabel(item) }}
           </option>
@@ -260,6 +282,7 @@ async function taxonomyChanged() {
           <span class="selected-count"><Check :size="17" /> Выбрано {{ selection.size }}</span
           ><button class="btn btn-ghost" @click="selection = new Map()">Сбросить</button>
         </div>
+        <button class="btn btn-secondary" @click="classificationOpen = true">Разметить</button>
         <button class="btn btn-primary" @click="addToCollection = true">
           <Layers3 :size="17" /> Добавить в подборку
         </button>
@@ -319,6 +342,15 @@ async function taxonomyChanged() {
       </div>
     </template>
     <CollectionsPanel v-else ref="collectionsPanel" />
+    <ClassificationDialog
+      :open="classificationOpen"
+      :cards="[...selection.values()]"
+      @close="classificationOpen = false"
+      @saved="
+        selection = new Map();
+        load();
+      "
+    />
     <UploadDialog
       :open="uploadOpen"
       :categories="categories"
@@ -332,7 +364,20 @@ async function taxonomyChanged() {
       @imported="load"
     />
     <AsanaEditDialog :card="editing" :categories="categories" @close="editing = null" @saved="load" />
-    <AsanaPreview :card="preview" @close="preview = null" @related="preview = $event" />
+    <AsanaPreview
+      :card="preview"
+      @close="preview = null"
+      @related="preview = $event"
+      @created="
+        editing = $event;
+        load();
+      "
+      @insert="
+        router.visit(
+          `/practices?insert_asana=${$event.id}${'illustration_variant_id' in $event ? `&insert_variant=${encodeURIComponent($event.illustration_variant_id ?? 'original')}` : ''}`,
+        )
+      "
+    />
     <TaxonomyDialog
       :open="taxonomyOpen"
       :categories="categories"

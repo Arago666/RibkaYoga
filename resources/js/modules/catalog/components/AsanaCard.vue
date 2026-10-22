@@ -1,7 +1,26 @@
 <script setup lang="ts">
 import { Check, Expand, Pencil, Archive, RotateCcw } from '@lucide/vue';
 import type { Asana } from '../types';
-import CategoryMarkers from './CategoryMarkers.vue';
+import { api } from '@/shared/api';
+import { ref } from 'vue';
+const favoriteBusy = ref(false),
+  favoriteError = ref('');
+async function favorite(card: Asana) {
+  if (favoriteBusy.value) return;
+  favoriteBusy.value = true;
+  favoriteError.value = '';
+  try {
+    await api(`/api/asanas/${card.id}/favorite`, {
+      method: 'PUT',
+      body: JSON.stringify({ favorite: !card.favorite }),
+    });
+    card.favorite = !card.favorite;
+  } catch (error) {
+    favoriteError.value = error instanceof Error ? error.message : 'Не удалось изменить избранное.';
+  } finally {
+    favoriteBusy.value = false;
+  }
+}
 withDefaults(defineProps<{ card: Asana; selected?: boolean; selectable?: boolean; actions?: boolean }>(), {
   selected: false,
   selectable: true,
@@ -18,10 +37,6 @@ defineEmits<{
 
 <template>
   <article class="asana-card" :class="{ selected, archived: card.archived_at }">
-    <CategoryMarkers
-      :categories="card.categories"
-      style="position: absolute; right: 12px; top: 15px; z-index: 1"
-    />
     <button
       v-if="selectable"
       class="selection-toggle"
@@ -44,11 +59,28 @@ defineEmits<{
     </button>
     <div class="asana-info">
       <h3 :title="card.name">{{ card.name }}</h3>
+      <p v-if="card.sanskrit_cyrillic || card.sanskrit_latin" class="asana-category">
+        {{ card.sanskrit_cyrillic || card.sanskrit_latin }}
+      </p>
+      <span v-if="card.facet_values?.some((v) => v.dimension === 'difficulty')" class="badge">{{
+        card.facet_values.find((v) => v.dimension === 'difficulty')?.name
+      }}</span>
       <span v-if="card.archived_at" class="badge">В архиве</span>
       <p v-else class="asana-category">
         {{ card.categories?.map((item) => item.name).join(' · ') || 'Без категории' }}
       </p>
+      <p v-if="favoriteError" class="error-banner" role="alert">{{ favoriteError }}</p>
       <div v-if="actions" class="asana-actions">
+        <button
+          type="button"
+          class="icon-btn"
+          :disabled="favoriteBusy"
+          :aria-pressed="!!card.favorite"
+          :aria-label="card.favorite ? 'Убрать из избранного' : 'В избранное'"
+          @click="favorite(card)"
+        >
+          {{ card.favorite ? '★' : '☆' }}
+        </button>
         <button type="button" class="btn btn-ghost" @click="$emit('edit', card)">
           <Pencil :size="14" aria-hidden="true" /> Изменить
         </button>

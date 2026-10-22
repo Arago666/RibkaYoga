@@ -4,6 +4,7 @@ namespace App\Modules\Practices\Http\Controllers;
 
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\Services\DocumentSharing;
+use App\Modules\Practices\Services\SheetRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,7 @@ class DocumentSharingController
     {
         $input = $request->validate([
             'login' => ['required', 'string', 'max:64'], 'permission' => ['required', Rule::in(['view', 'comment'])],
+            'allow_copy' => ['sometimes', 'boolean'],
             'expected_document_revision' => ['required', 'integer', 'min:1'], 'expected_revision' => ['sometimes', 'integer', 'min:1'],
         ]);
 
@@ -45,6 +47,25 @@ class DocumentSharingController
     public function show(string $id): JsonResponse
     {
         return response()->json(['data' => $this->sharing->viewer($id)]);
+    }
+
+    public function sheet(Request $request, string $id, SheetRenderer $renderer)
+    {
+        $input = $request->validate(['show_names' => 'sometimes|boolean', 'orientation' => 'sometimes|in:portrait,landscape']);
+        $document = $this->sharing->viewer($id)['document'];
+        $images = [];
+        foreach ($document['blocks'] as $block) {
+            foreach ($block['rows'] as $row) {
+                foreach ($row['cells'] as $cell) {
+                    if ($cell['card']) {
+                        $images[$cell['card_snapshot_id']] = $cell['card']['image_url'];
+                    }
+                }
+            }
+        }
+        $names = (bool) ($input['show_names'] ?? false);
+
+        return response($renderer->render($document, $images, ['show_names' => $names, 'preset' => $names ? 'names' : 'clean', 'orientation' => $input['orientation'] ?? 'landscape']))->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'private, no-store')->header('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'");
     }
 
     public function media(string $id, string $assetId, AssetStore $assets): BinaryFileResponse

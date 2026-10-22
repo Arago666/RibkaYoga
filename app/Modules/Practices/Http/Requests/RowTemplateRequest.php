@@ -2,6 +2,7 @@
 
 namespace App\Modules\Practices\Http\Requests;
 
+use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RowTemplateRequest extends FormRequest
@@ -15,7 +16,7 @@ class RowTemplateRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return ExecutionParameters::rules('cells.*.') + [
             'expected_revision' => [$this->isMethod('PUT') ? 'required' : 'sometimes', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:160'],
             'kind' => ['sometimes', 'in:row,transition'],

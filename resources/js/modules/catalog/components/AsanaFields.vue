@@ -4,6 +4,13 @@ import { usePage } from '@inertiajs/vue3';
 import { Crop, Pencil } from '@lucide/vue';
 import type { Category } from '../types';
 import type { DrawingDocument } from '../drawing';
+import {
+  emptyAssignments,
+  emptyReference,
+  type FacetAssignments,
+  type ReferenceFields as ReferenceData,
+} from '../facets';
+import ReferenceFields from './ReferenceFields.vue';
 import ImageEditor from './ImageEditor.vue';
 import AsanaDrawing from './AsanaDrawing.vue';
 const props = defineProps<{
@@ -16,6 +23,8 @@ const props = defineProps<{
   drawingSource?: DrawingDocument | null;
   draftKey?: string;
 }>();
+const reference = defineModel<ReferenceData>('reference', { default: emptyReference });
+const facetAssignments = defineModel<FacetAssignments>('facetAssignments', { default: emptyAssignments });
 const name = defineModel<string>('name', { required: true });
 const aliases = defineModel<string>('aliases', { required: true });
 const categoryIds = defineModel<string[]>('categoryIds', { required: true });
@@ -129,7 +138,7 @@ function chooseImage(event: Event) {
       />
     </div>
     <fieldset class="choice-group">
-      <legend class="label">Категории</legend>
+      <legend class="label">Мои категории</legend>
       <div v-if="categories.length" class="choices">
         <label v-for="category in categories" :key="category.id">
           <input v-model="categoryIds" type="checkbox" :value="category.id" :disabled="disabled" />{{
@@ -139,6 +148,12 @@ function chooseImage(event: Event) {
       </div>
       <p v-else class="muted">Категории можно создать в разделе «Категории».</p>
     </fieldset>
+    <ReferenceFields
+      v-model:reference="reference"
+      v-model:assignments="facetAssignments"
+      :disabled="disabled"
+      :prefix="prefix"
+    />
     <div class="image-field">
       <img v-if="imageUrl" :src="imageUrl" :alt="name || 'Предпросмотр карточки'" />
       <div class="field">

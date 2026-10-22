@@ -13,11 +13,14 @@ export interface DrawingElement {
   width: number;
   rotation: number;
   points: Point[];
+  /** V2 only; a flat persistent group, unrelated to practice brackets. */
+  group_id?: string;
+  color?: string;
 }
 
 export interface DrawingDocument {
   format: 'ribka-drawing';
-  version: 1;
+  version: 1 | 2;
   width: 1024;
   height: 1024;
   smoothing: number;
@@ -59,8 +62,11 @@ export function parseDrawing(value: unknown): DrawingDocument {
     });
   }
   if (
+    Object.keys(input).some(
+      (key) => !['format', 'version', 'width', 'height', 'smoothing', 'elements'].includes(key),
+    ) ||
     input.format !== 'ribka-drawing' ||
-    input.version !== 1 ||
+    (input.version !== 1 && input.version !== 2) ||
     input.width !== 1024 ||
     input.height !== 1024 ||
     !Number.isFinite(input.smoothing) ||
@@ -91,6 +97,27 @@ export function parseDrawing(value: unknown): DrawingDocument {
       !Array.isArray(element.points)
     )
       throw new Error('Некорректный элемент рисунка.');
+    const allowed = [
+      'id',
+      'kind',
+      'width',
+      'rotation',
+      'points',
+      ...(input.version === 2 ? ['color', 'group_id'] : []),
+    ];
+    if (Object.keys(element).some((key) => !allowed.includes(key)))
+      throw new Error('Исходник содержит неподдерживаемые свойства элемента.');
+    if (
+      element.color !== undefined &&
+      (typeof element.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(element.color))
+    )
+      throw new Error('Некорректный цвет рисунка.');
+    if (
+      element.group_id !== undefined &&
+      (typeof element.group_id !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(element.group_id))
+    )
+      throw new Error('Некорректная группа рисунка.');
     ids.add(element.id.toLowerCase());
     const kind = element.kind as DrawingKind;
     const expected =
@@ -123,9 +150,21 @@ export function parseDrawing(value: unknown): DrawingDocument {
       width: Number(element.width),
       rotation: Number(element.rotation),
       points,
+      ...(element.color !== undefined ? { color: String(element.color).toLowerCase() } : {}),
+      ...(element.group_id !== undefined ? { group_id: String(element.group_id).toLowerCase() } : {}),
     };
   });
-  const document = { ...emptyDrawing(), smoothing: Number(input.smoothing), elements };
+  const document: DrawingDocument = {
+    ...emptyDrawing(),
+    version: input.version as 1 | 2,
+    smoothing: Number(input.smoothing),
+    elements,
+  };
+  const groups = new Map<string, number>();
+  for (const element of elements)
+    if (element.group_id) groups.set(element.group_id, (groups.get(element.group_id) ?? 0) + 1);
+  if ([...groups.values()].some((count) => count < 2))
+    throw new Error('Группа рисунка должна содержать хотя бы два элемента.');
   if (new TextEncoder().encode(JSON.stringify(document)).length > drawingLimits.bytes)
     throw new Error('Исходник рисунка больше 4 МБ. Удалите лишние элементы.');
   return document;

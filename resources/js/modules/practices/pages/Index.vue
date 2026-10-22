@@ -23,6 +23,8 @@ import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { emptyRow, uid, type Cell } from '../types';
 import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+import PracticeFolders from '../components/PracticeFolders.vue';
+import PortableImportDialog from '../components/PortableImportDialog.vue';
 const sharingItem = ref<PracticeListItem | null>(null);
 type Tab = 'practices' | 'templates' | 'rows' | 'transitions';
 interface PreviewCard {
@@ -35,6 +37,9 @@ interface PracticeListItem {
   title: string;
   theme: string | null;
   revision: number;
+  duration_seconds?: number | null;
+  folders?: { id: string; name: string }[];
+  cycles?: { id: string; title: string; position: number }[];
   updated_at: string;
   archived_at: string | null;
   kind?: 'practice' | 'template';
@@ -59,6 +64,22 @@ interface DocumentData extends PracticeListItem {
   cells?: unknown[];
 }
 const initial = new URL(window.location.href);
+const insertAsana = initial.searchParams.get('insert_asana');
+const insertVariant = initial.searchParams.get('insert_variant');
+const foldersOpen = ref(false);
+const importOpen = ref(false);
+const selection = ref(new Map<string, PracticeListItem>());
+const includeCycleDocuments = ref(false);
+const folderId = ref(initial.searchParams.get('folder') || '');
+const selectedDocuments = computed(() =>
+  [...selection.value.values()].map(({ id, revision }) => ({ id, revision })),
+);
+function toggleSelection(item: PracticeListItem) {
+  const next = new Map(selection.value);
+  if (next.has(item.id)) next.delete(item.id);
+  else next.set(item.id, item);
+  selection.value = next;
+}
 const initialTab = initial.searchParams.get('tab');
 const tab = ref<Tab>(
   initialTab === 'templates' || initialTab === 'rows' || initialTab === 'transitions'
@@ -140,6 +161,7 @@ function updateUrl() {
     q: query.value,
     archive: archive.value === 'active' ? '' : archive.value,
     page: page.value > 1 ? String(page.value) : '',
+    folder: folderId.value,
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
@@ -153,7 +175,7 @@ async function load() {
   const endpoint = rowTab.value ? '/api/row-templates' : '/api/practices';
   try {
     const response = await api<Page<PracticeListItem>>(
-      `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, page: String(page.value) })}`,
+      `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, page: String(page.value), folder_id: folderId.value, include_cycle_documents: includeCycleDocuments.value ? '1' : '0' })}`,
     );
     if (request === sequence) {
       if (page.value > response.last_page) {
@@ -174,7 +196,7 @@ watch(query, () => {
     void load();
   }, 250);
 });
-watch([tab, archive], () => {
+watch([tab, archive, folderId, includeCycleDocuments], () => {
   page.value = 1;
   result.value = null;
   success.value = '';
@@ -190,7 +212,10 @@ function go(value: number) {
   void load();
 }
 function editUrl(item: PracticeListItem) {
-  return rowTab.value ? `/row-templates/${item.id}/edit` : `/practices/${item.id}/edit`;
+  const path = rowTab.value ? `/row-templates/${item.id}/edit` : `/practices/${item.id}/edit`;
+  return insertAsana
+    ? `${path}?${new URLSearchParams({ insert_asana: insertAsana, ...(insertVariant ? { insert_variant: insertVariant } : {}) })}`
+    : path;
 }
 function formatDate(value: string) {
   if (!value) return '';
@@ -380,6 +405,11 @@ async function saveName() {
 }
 </script>
 <template>
+  <PortableImportDialog :open="importOpen" @close="importOpen = false" />
+  <Modal :open="foldersOpen" title="Категории практик" @close="foldersOpen = false">
+    <PracticeFolders :documents="selectedDocuments" @changed="load" />
+    <template #footer><button class="btn btn-primary" @click="foldersOpen = false">Готово</button></template>
+  </Modal>
   <Head :title="heading" />
   <AppShell section="practices">
     <header class="page-header practices-heading">
@@ -390,20 +420,23 @@ async function saveName() {
       <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
         <Plus :size="19" /> {{ createLabel }}
       </button>
+      <button class="btn btn-secondary" @click="importOpen = true">Импорт JSON</button>
     </header>
     <div class="practices-nav tabs">
-      <button class="tab" :class="{ active: tab === 'practices' }" @click="tab = 'practices'">
-        <BookOpen :size="17" /> Практики</button
-      ><button class="tab" :class="{ active: tab === 'templates' }" @click="tab = 'templates'">
-        <LayoutTemplate :size="17" /> Шаблоны</button
-      ><button class="tab" :class="{ active: tab === 'rows' }" @click="tab = 'rows'">
-        <Rows3 :size="17" /> Сохранённые строки
+      <Link class="tab active" href="/practices">Все практики</Link>
+      <Link class="tab" href="/mesocycles">Программы и циклы</Link>
+      <Link class="tab" href="/practice-folders">Категории</Link>
+      <Link class="tab" href="/shared-practices">Мне дали доступ</Link>
+    </div>
+    <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
+    <div class="folder-tools">
+      <label class="check-label"
+        ><input v-model="includeCycleDocuments" type="checkbox" />Показывать занятия внутри циклов</label
+      >
+      <button v-if="folderId" class="btn btn-ghost" @click="folderId = ''">Все категории</button>
+      <button class="btn btn-secondary" @click="foldersOpen = true">
+        Категории выбранных ({{ selection.size }})
       </button>
-      <button class="tab" :class="{ active: tab === 'transitions' }" @click="tab = 'transitions'">
-        <Rows3 :size="17" />Связки и переходы
-      </button>
-      <Link class="tab" href="/mesocycles"><CalendarDays :size="17" />Мезоциклы</Link>
-      <Link class="tab" href="/shared-practices"><UserPlus :size="17" />Мне дали доступ</Link>
     </div>
     <div class="practices-toolbar">
       <div class="practice-search">
@@ -428,6 +461,10 @@ async function saveName() {
     </div>
     <div v-else-if="result?.data.length" class="practice-grid">
       <article v-for="item in result.data" :key="item.id" class="card practice-card">
+        <label class="practice-selection"
+          ><input type="checkbox" :checked="selection.has(item.id)" @change="toggleSelection(item)" />Выбрать
+          для категорий</label
+        >
         <Link class="practice-cover" :href="editUrl(item)" :aria-label="`Открыть: ${item.title}`"
           ><span class="cover-kind"
             ><Rows3 v-if="rowTab" :size="14" /><LayoutTemplate
@@ -471,6 +508,22 @@ async function saveName() {
             rowTab ? 'Для ваших последовательностей' : 'В своём ритме'
           }}</span
           ><Link class="practice-title" :href="editUrl(item)">{{ item.title }}</Link>
+          <div v-if="item.cycles?.length" class="cycle-context">
+            <Link v-for="cycle in item.cycles" :key="cycle.id" :href="`/mesocycles/${cycle.id}/edit`"
+              >{{ cycle.title }} · занятие {{ cycle.position + 1 }}</Link
+            >
+          </div>
+          <div v-if="item.folders?.length" class="cycle-context">
+            <button
+              v-for="folder in item.folders"
+              :key="folder.id"
+              class="btn btn-ghost"
+              @click="folderId = folder.id"
+            >
+              {{ folder.name }}
+            </button>
+          </div>
+          <p v-if="item.duration_seconds" class="muted">{{ Math.ceil(item.duration_seconds / 60) }} мин</p>
           <div class="practice-meta">
             <span>{{ counts(item) }}</span
             ><span v-if="item.updated_at"><CalendarDays :size="13" /> {{ formatDate(item.updated_at) }}</span>
@@ -756,6 +809,24 @@ async function saveName() {
   />
 </template>
 <style scoped>
+.folder-tools,
+.cycle-context {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 12px 0;
+}
+.practice-selection {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+.cycle-context > a {
+  font-size: 13px;
+  color: var(--muted);
+}
 .practices-heading {
   margin-bottom: 31px;
 }

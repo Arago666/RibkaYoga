@@ -1,0 +1,143 @@
+{
+  "format": "ribka-mannequin-pack",
+  "version": 1,
+  "model_revision": 1,
+  "author": "RibkaYoga",
+  "rights": "Собственные координаты суставов и параметрическая геометрия; сторонние модели и иллюстрации не использованы",
+  "poses": {
+    "tadasana": {
+      "name": "Тадасана",
+      "camera": {
+        "yaw": 90,
+        "pitch": 0
+      },
+      "head_direction": [0, 0, 1],
+      "joints": {
+        "head": [0, 2.12, 0],
+        "neck": [0, 1.91, 0],
+        "leftShoulder": [-0.23, 1.78, 0],
+        "rightShoulder": [0.23, 1.78, 0],
+        "pelvis": [0, 1.12, 0],
+        "leftHip": [-0.13, 1.1, 0],
+        "rightHip": [0.13, 1.1, 0],
+        "leftElbow": [-0.25, 1.38, -0.08],
+        "leftWrist": [-0.25, 0.98, -0.13],
+        "rightElbow": [0.25, 1.38, -0.08],
+        "rightWrist": [0.25, 0.98, -0.13],
+        "leftKnee": [-0.1, 0.58, 0],
+        "leftAnkle": [-0.1, 0.08, 0],
+        "leftToe": [-0.1, 0.04, 0.22],
+        "rightKnee": [0.1, 0.58, 0],
+        "rightAnkle": [0.1, 0.08, 0],
+        "rightToe": [0.1, 0.04, 0.22]
+      }
+    },
+    "tree": {
+      "name": "Врикшасана — руки над головой",
+      "camera": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "head_direction": [0, 0, 1],
+      "joints": {
+        "head": [0, 2.12, 0],
+        "neck": [0, 1.91, 0],
+        "leftShoulder": [-0.23, 1.78, 0],
+        "rightShoulder": [0.23, 1.78, 0],
+        "pelvis": [0, 1.12, 0],
+        "leftHip": [-0.13, 1.1, 0],
+        "rightHip": [0.13, 1.1, 0],
+        "leftElbow": [-0.35, 2.12, 0],
+        "leftWrist": [-0.015, 2.55, 0],
+        "rightElbow": [0.35, 2.12, 0],
+        "rightWrist": [0.015, 2.55, 0],
+        "leftKnee": [-0.1, 0.58, 0],
+        "leftAnkle": [-0.1, 0.08, 0],
+        "leftToe": [-0.2, 0.04, 0.1],
+        "rightKnee": [0.65, 0.65, 0],
+        "rightAnkle": [0.03, 0.65, 0],
+        "rightToe": [0.03, 0.45, 0]
+      }
+    },
+    "warrior2": {
+      "name": "Вирабхадрасана 2 — правое колено согнуто",
+      "camera": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "head_direction": [1, 0, 0],
+      "joints": {
+        "head": [0, 1.84, 0],
+        "neck": [0, 1.62, 0],
+        "leftShoulder": [-0.24, 1.55, 0],
+        "rightShoulder": [0.24, 1.55, 0],
+        "pelvis": [0, 0.88, 0],
+        "leftHip": [-0.13, 0.88, 0],
+        "rightHip": [0.13, 0.88, 0],
+        "leftElbow": [-0.75, 1.55, 0],
+        "leftWrist": [-1.22, 1.55, 0],
+        "rightElbow": [0.75, 1.55, 0],
+        "rightWrist": [1.22, 1.55, 0],
+        "leftKnee": [-0.7, 0.48, 0],
+        "leftAnkle": [-1.28, 0.07, 0],
+        "leftToe": [-1.48, 0.04, 0],
+        "rightKnee": [0.65, 0.88, 0],
+        "rightAnkle": [0.65, 0.07, 0],
+        "rightToe": [0.87, 0.04, 0]
+      }
+    },
+    "shavasana": {
+      "name": "Шавасана — руки и ноги свободно разведены",
+      "camera": {
+        "yaw": 0,
+        "pitch": 72
+      },
+      "head_direction": [-0.15, 1, 0],
+      "joints": {
+        "head": [-1.25, 0.18, 0],
+        "neck": [-1.01, 0.16, 0],
+        "leftShoulder": [-0.9, 0.14, -0.2],
+        "rightShoulder": [-0.9, 0.14, 0.2],
+        "pelvis": [-0.23, 0.13, 0],
+        "leftHip": [-0.23, 0.13, -0.12],
+        "rightHip": [-0.23, 0.13, 0.12],
+        "leftElbow": [-0.45, 0.11, -0.4],
+        "leftWrist": [0.02, 0.09, -0.5],
+        "rightElbow": [-0.45, 0.11, 0.4],
+        "rightWrist": [0.02, 0.09, 0.5],
+        "leftKnee": [0.39, 0.1, -0.21],
+        "leftAnkle": [1.02, 0.09, -0.34],
+        "leftToe": [1.05, 0.3, -0.34],
+        "rightKnee": [0.39, 0.1, 0.21],
+        "rightAnkle": [1.02, 0.09, 0.34],
+        "rightToe": [1.05, 0.3, 0.34]
+      }
+    }
+  },
+  "verified_sources": [
+    {
+      "source_sha256": "25640d5439d684c224f0162612e857896bbcb9f54100d8c5447e57c5043d391f",
+      "pose_key": "tadasana",
+      "verification": "Ручная сверка конкретного изображения: положение головы, конечностей, опор и стороны",
+      "verified_on": "2026-10-22"
+    },
+    {
+      "source_sha256": "7966af688a4c08e11e2307fbf5a46744e2e119511b859204c06fd4375f42ca00",
+      "pose_key": "tree",
+      "verification": "Ручная сверка конкретного изображения: положение головы, конечностей, опор и стороны",
+      "verified_on": "2026-10-22"
+    },
+    {
+      "source_sha256": "146652bc0fdcff3b2e7bcb1367d317406d55ac9e9ff4f768437fc962e611f5fc",
+      "pose_key": "warrior2",
+      "verification": "Ручная сверка конкретного изображения: положение головы, конечностей, опор и стороны",
+      "verified_on": "2026-10-22"
+    },
+    {
+      "source_sha256": "9ec158647dba8d36c3cbd53a12f7244f7bd9961dd9c230de6db8d7cc1fd8f760",
+      "pose_key": "shavasana",
+      "verification": "Ручная сверка конкретного изображения: положение головы, конечностей, опор и стороны",
+      "verified_on": "2026-10-22"
+    }
+  ]
+}

@@ -33,6 +33,15 @@ import AsanaPalette from '../components/AsanaPalette.vue';
 import CellPicker from '../components/CellPicker.vue';
 import SequenceRow from '../components/SequenceRow.vue';
 import ArrowSymbol from '../components/ArrowSymbol.vue';
+import ExecutionDialog from '../components/ExecutionDialog.vue';
+import InsertionStyleSettings from '@/modules/catalog/components/InsertionStyleSettings.vue';
+import ApplyIllustrationsDialog from '../components/ApplyIllustrationsDialog.vue';
+import FragmentPicker, {
+  type FragmentSource,
+  type FragmentPlacement,
+} from '../components/FragmentPicker.vue';
+import SaveRangeDialog from '../components/SaveRangeDialog.vue';
+import { executionParameters, type ExecutionParameters } from '../types';
 import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
 const sharingOpen = ref(false);
 import { useEditor } from '../composables/useEditor';
@@ -111,6 +120,158 @@ watch(
   },
   { flush: 'post' },
 );
+const executionOpen = ref(false);
+const illustrationsOpen = ref(false);
+async function openIllustrations() {
+  if (await editor.save()) illustrationsOpen.value = true;
+  else message('Сначала сохраните изменения практики.');
+}
+const fragmentOpen = ref(false),
+  rangeOpen = ref(false),
+  fragmentBlockId = ref<string | null>(null);
+const pendingLibraryAsana = ref(new URL(window.location.href).searchParams.get('insert_asana'));
+const pendingIllustrationVariant = new URL(window.location.href).searchParams.get('insert_variant');
+const pendingDrawingIds =
+  new URL(window.location.href).searchParams.get('insert_snapshots')?.split(',').filter(Boolean) || [];
+const pendingDrawings = ref<Snapshot[]>([]);
+async function loadPendingDrawings() {
+  if (!pendingDrawingIds.length) return;
+  try {
+    pendingDrawings.value = (
+      await api<{ data: Snapshot[] }>('/api/editor/snapshots/resolve', {
+        method: 'POST',
+        body: JSON.stringify({ snapshot_ids: pendingDrawingIds }),
+      })
+    ).data;
+  } catch (e) {
+    message(e instanceof Error ? e.message : 'Не удалось открыть рисунки скетчбука.');
+  }
+}
+function insertDrawingQueue(id: string) {
+  const target = findCell(id);
+  if (!target || !pendingDrawings.value.length) return;
+  const index = target.row.cells.indexOf(target.cell);
+  if (pendingDrawings.value.length + index > 12) {
+    message(
+      'Рисунки не помещаются в строку. Выберите её первую ячейку или экспортируйте не больше 12 фигур.',
+    );
+    return;
+  }
+  if (
+    target.row.cells.slice(index, index + pendingDrawings.value.length).some(cellFilled) &&
+    !window.confirm(
+      `Вставить ${pendingDrawings.value.length} рисунков с заменой заполненных позиций? Скобки и стрелки сохранятся.`,
+    )
+  )
+    return;
+  edit(() =>
+    pendingDrawings.value.forEach((snapshot, offset) => {
+      if (!target.row.cells[index + offset]) target.row.cells.push(emptyCell());
+      const cell = target.row.cells[index + offset]!;
+      Object.assign(cell, executionParameters(), {
+        card_snapshot_id: snapshot.id,
+        card: clone(snapshot),
+        custom_name: null,
+        note: null,
+      });
+    }),
+  );
+  pendingDrawings.value = [];
+  const url = new URL(location.href);
+  url.searchParams.delete('insert_snapshots');
+  history.replaceState(history.state, '', url);
+  notice.value = 'Рисунки вставлены. Исходный скетчбук сохранён; вставку можно отменить.';
+}
+function chooseFragment(blockId: string) {
+  fragmentBlockId.value = blockId;
+  fragmentOpen.value = true;
+}
+function insertFragment(source: FragmentSource, placement: FragmentPlacement) {
+  if (!doc.value || locked.value) return;
+  const block = doc.value.blocks.find((item) => item.id === fragmentBlockId.value);
+  if (!block) return;
+  const rows = source.row ? [source.row] : source.document?.blocks.flatMap((item) => item.rows) || [];
+  const freshRow = (row: Row): Row => {
+    const value = copyRow(row),
+      groups = new Map<string, string>();
+    for (const cell of value.cells) {
+      if (cell.group_key && !groups.has(cell.group_key)) groups.set(cell.group_key, uid());
+      if (cell.group_key) cell.group_key = groups.get(cell.group_key)!;
+    }
+    return value;
+  };
+  if (placement === 'blocks') {
+    const copies = source.document
+      ? source.document.blocks.map(copyBlock)
+      : [{ ...emptyBlock(source.row?.title || 'Фрагмент'), rows: rows.map(freshRow) }];
+    if (doc.value.blocks.length + copies.length > 20) {
+      message('В практике может быть до 20 блоков.');
+      return;
+    }
+    edit(() => doc.value!.blocks.splice(doc.value!.blocks.indexOf(block) + 1, 0, ...copies));
+  } else if (placement === 'rows') {
+    if (block.rows.length + rows.length > 20) {
+      message('В блоке может быть до 20 строк.');
+      return;
+    }
+    const index = block.rows.findIndex((row) => row.id === activeRow.value);
+    edit(() => block.rows.splice(index < 0 ? block.rows.length : index + 1, 0, ...rows.map(freshRow)));
+  } else {
+    const target = selected.value;
+    if (!target || target.block.id !== block.id || rows.length !== 1) {
+      message('Для вставки в позиции выберите ячейку и однострочный фрагмент.');
+      return;
+    }
+    const cells = freshRow(rows[0]!).cells,
+      index = target.row.cells.indexOf(target.cell);
+    if (placement === 'after') {
+      if (target.row.cells.length + cells.length > 12) {
+        message('Фрагмент не помещается: максимум 12 ячеек. Вставьте его строкой.');
+        return;
+      }
+      if (target.cell.group_key && target.row.cells[index + 1]?.group_key === target.cell.group_key) {
+        message(
+          'Нельзя разрывать существующие скобки. Выберите последнюю позицию группы или вставьте строкой.',
+        );
+        return;
+      }
+      edit(() => target.row.cells.splice(index + 1, 0, ...cells));
+    } else {
+      if (index + cells.length > target.row.cells.length) {
+        message('Для замены недостаточно целевых позиций. Добавьте ячейки или вставьте строкой.');
+        return;
+      }
+      if (
+        target.row.cells.slice(index, index + cells.length).some(cellFilled) &&
+        !window.confirm('Заменить содержимое выбранных позиций? Скобки и стрелки целевых позиций сохранятся.')
+      )
+        return;
+      edit(() =>
+        cells.forEach((cell, offset) => {
+          const destination = target.row.cells[index + offset]!;
+          Object.assign(destination, {
+            ...clone(cell),
+            id: destination.id,
+            group_key: destination.group_key,
+            arrow_direction: destination.arrow_direction,
+          });
+        }),
+      );
+    }
+  }
+  fragmentOpen.value = false;
+  notice.value = 'Фрагмент вставлен независимой копией. Действие можно отменить.';
+}
+const executionTarget = ref<string | null>(null);
+function openExecution() {
+  executionTarget.value = activeCell.value;
+  executionOpen.value = true;
+}
+function saveExecution(value: ExecutionParameters) {
+  const cell = executionTarget.value ? findCell(executionTarget.value)?.cell : null;
+  if (cell && !locked.value) edit(() => Object.assign(cell, value));
+  executionOpen.value = false;
+}
 const activeBlock = ref<string | null>(null),
   activeRow = ref<string | null>(null);
 const pendingCells = ref(new Set<string>()),
@@ -380,6 +541,32 @@ function selectCell(id: string, showPicker = true) {
   if (locked.value) return;
   const found = findCell(id);
   if (!found) return;
+  if (pendingDrawings.value.length && showPicker) {
+    insertDrawingQueue(id);
+    return;
+  }
+  if (pendingLibraryAsana.value && showPicker) {
+    activeCell.value = id;
+    activeBlock.value = found.block.id;
+    activeRow.value = found.row.id;
+    if (cellFilled(found.cell) && !window.confirm(`Заменить «${cellLabel(found.cell)}» выбранной асаной?`))
+      return;
+    const asanaId = pendingLibraryAsana.value;
+    void insertAsana(
+      asanaId,
+      id,
+      pendingIllustrationVariant === 'original' ? null : pendingIllustrationVariant || undefined,
+    ).then((inserted) => {
+      if (inserted) {
+        pendingLibraryAsana.value = null;
+        const url = new URL(location.href);
+        url.searchParams.delete('insert_asana');
+        url.searchParams.delete('insert_variant');
+        history.replaceState(history.state, '', url);
+      }
+    });
+    return;
+  }
   highlightedCell.value = id;
   if (arrowMode.value) {
     activeCell.value = id;
@@ -443,7 +630,7 @@ async function pickAsana(card: Asana) {
     session = pickerSession;
   if (!target || pendingCells.value.has(target)) return;
   pickerError.value = '';
-  const inserted = await insertAsana(card.id, target);
+  const inserted = await insertAsana(card.id, target, card.illustration_variant_id);
   if (!pickerOpen.value || session !== pickerSession) return;
   if (inserted) closePicker();
   else pickerError.value = notice.value || 'Не удалось добавить карточку. Попробуйте ещё раз.';
@@ -478,12 +665,14 @@ function moveContent(from: string, to: string, copy = false) {
       target = findCell(to)?.cell;
     if (!source || !cellFilled(source) || !target) return;
     const previous = {
+      ...executionParameters(target),
       card: clone(target.card),
       card_snapshot_id: target.card_snapshot_id,
       custom_name: target.custom_name || null,
       note: target.note,
     };
     Object.assign(target, {
+      ...executionParameters(source),
       card: clone(source.card),
       card_snapshot_id: source.card_snapshot_id,
       custom_name: source.custom_name || null,
@@ -492,7 +681,11 @@ function moveContent(from: string, to: string, copy = false) {
     if (!copy) Object.assign(source, previous);
   });
 }
-async function insertAsana(asanaId: string, targetId = activeCell.value): Promise<boolean> {
+async function insertAsana(
+  asanaId: string,
+  targetId = activeCell.value,
+  illustrationVariantId?: string | null,
+): Promise<boolean> {
   if (!targetId || !findCell(targetId)) {
     message('Сначала выберите ячейку в последовательности.');
     return false;
@@ -505,7 +698,16 @@ async function insertAsana(asanaId: string, targetId = activeCell.value): Promis
   try {
     const result = await api<{ data: Snapshot[] }>('/api/editor/cards/resolve', {
       method: 'POST',
-      body: JSON.stringify({ asana_ids: [asanaId] }),
+      body: JSON.stringify({
+        asana_ids: [asanaId],
+        illustration: {
+          style: doc.value?.illustration_style || 'original',
+          character: doc.value?.illustration_character || 'neutral',
+        },
+        ...(illustrationVariantId !== undefined
+          ? { illustration_variants: [{ asana_id: asanaId, variant_id: illustrationVariantId }] }
+          : {}),
+      }),
       signal: AbortSignal.timeout(30000),
     });
     if (!alive || tokens.get(targetId) !== token || locked.value) return false;
@@ -515,6 +717,7 @@ async function insertAsana(asanaId: string, targetId = activeCell.value): Promis
       const found = findCell(targetId);
       if (found)
         Object.assign(found.cell, {
+          ...executionParameters(),
           card: clone(card),
           card_snapshot_id: card.id,
           custom_name: null,
@@ -575,7 +778,14 @@ function clearCell(id: string) {
   cancelInsertion(id);
   edit(() => {
     const cell = findCell(id)?.cell;
-    if (cell) Object.assign(cell, { card: null, card_snapshot_id: null, custom_name: null, note: null });
+    if (cell)
+      Object.assign(cell, {
+        ...executionParameters(),
+        card: null,
+        card_snapshot_id: null,
+        custom_name: null,
+        note: null,
+      });
   });
 }
 function ask(title: string, text: string, action: () => void | Promise<void>) {
@@ -878,6 +1088,22 @@ function rowNote(row: Row) {
     true,
   );
 }
+function saveBlockFragment(block: Block) {
+  prompt('Сохранить блок как фрагмент', block.title, async (title) => {
+    if (!title.trim() || !doc.value) throw new Error('Введите название.');
+    if (!(await editor.save())) throw new Error('Сначала сохраните практику.');
+    const current = doc.value.blocks.find((item) => item.id === block.id);
+    if (!current) throw new Error('Блок больше не существует.');
+    await api('/api/fragments', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...payload({ ...clone(doc.value), title: title.trim(), blocks: [copyBlock(current)] }),
+        fragment_kind: 'block',
+      }),
+    });
+    message('Блок доступен в разделе «Шаблоны → Фрагменты».');
+  });
+}
 function saveRow(row: Row) {
   prompt('Сохранить строку', 'Моя последовательность', async (value) => {
     if (!value.trim()) throw new Error('Введите название строки.');
@@ -890,19 +1116,18 @@ function saveRow(row: Row) {
         title: value.trim(),
         theme: doc.value?.theme,
         note: current.note,
-        cells: copyRow(current).cells.map(
-          ({ id, card_snapshot_id, custom_name, group_key, arrow_direction, note }) => ({
-            id,
-            card_snapshot_id,
-            custom_name: custom_name || null,
-            group_key: group_key || null,
-            arrow_direction: arrow_direction || null,
-            note,
-          }),
-        ),
+        cells: copyRow(current).cells.map((cell) => ({
+          ...executionParameters(cell),
+          id: cell.id,
+          card_snapshot_id: cell.card_snapshot_id,
+          custom_name: cell.custom_name || null,
+          group_key: cell.group_key || null,
+          arrow_direction: cell.arrow_direction || null,
+          note: cell.note,
+        })),
       }),
     });
-    message('Строка сохранена. Она доступна в разделе «Практики → Сохранённые строки».');
+    message('Фрагмент сохранён в разделе «Шаблоны → Фрагменты».');
   });
 }
 function saveSelectedTransition() {
@@ -922,17 +1147,18 @@ function saveSelectedTransition() {
         kind: 'transition',
         theme: doc.value?.theme,
         note: null,
-        cells: cells.map(({ card_snapshot_id, custom_name, arrow_direction, note }) => ({
+        cells: cells.map((cell) => ({
+          ...executionParameters(cell),
           id: uid(),
-          card_snapshot_id,
-          custom_name,
+          card_snapshot_id: cell.card_snapshot_id,
+          custom_name: cell.custom_name,
           group_key: key,
-          arrow_direction,
-          note,
+          arrow_direction: cell.arrow_direction,
+          note: cell.note,
         })),
       }),
     });
-    message('Связка сохранена. Найти её можно во вкладке «Связки и переходы».');
+    message('Фрагмент сохранён в разделе «Шаблоны → Фрагменты».');
   });
 }
 function chooseTransition() {
@@ -1293,6 +1519,7 @@ function beforeUnload(event: BeforeUnloadEvent) {
 }
 onMounted(() => {
   void editor.load();
+  void loadPendingDrawings();
   window.addEventListener('keydown', keydown);
   if (embedded) window.addEventListener('message', receiveMesocycle);
   window.addEventListener('beforeunload', beforeUnload);
@@ -1323,6 +1550,39 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <ApplyIllustrationsDialog
+    v-if="doc"
+    :open="illustrationsOpen"
+    :document-id="doc.id"
+    :revision="doc.revision"
+    @close="illustrationsOpen = false"
+    @updated="
+      editor.acceptSaved($event);
+      illustrationsOpen = false;
+    "
+  />
+  <FragmentPicker
+    :open="fragmentOpen"
+    :has-cell="!!selected"
+    @close="fragmentOpen = false"
+    @insert="insertFragment"
+  />
+  <SaveRangeDialog
+    :open="rangeOpen"
+    :row="selected?.row || null"
+    :theme="doc?.theme"
+    @close="rangeOpen = false"
+    @saved="
+      rangeOpen = false;
+      notice = 'Фрагмент сохранён в разделе «Шаблоны».';
+    "
+  />
+  <ExecutionDialog
+    :open="executionOpen"
+    :cell="executionTarget ? findCell(executionTarget)?.cell || null : null"
+    @close="executionOpen = false"
+    @save="saveExecution"
+  />
   <Head :title="doc?.title || 'Конструктор'" />
   <AppShell section="practices" wide :class="{ 'embedded-editor': embedded }">
     <div v-if="loading" class="editor-loading">
@@ -1379,6 +1639,30 @@ onBeforeUnmount(() => {
           <button
             v-if="!rowMode && !embedded"
             class="btn btn-secondary"
+            :disabled="pending > 0 || locked"
+            @click="openIllustrations"
+          >
+            Изменить стиль листа
+          </button>
+          <button
+            v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
+            class="btn btn-secondary"
+            :disabled="pending > 0 || navigating"
+            @click="go(`/practices/${doc.id}/run?mode=teach`)"
+          >
+            Вести занятие
+          </button>
+          <button
+            v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
+            class="btn btn-secondary"
+            :disabled="pending > 0 || navigating"
+            @click="go(`/practices/${doc.id}/run?mode=practice`)"
+          >
+            Практиковать
+          </button>
+          <button
+            v-if="!rowMode && !embedded"
+            class="btn btn-secondary"
             :disabled="saving || pending > 0 || dirty"
             @click="sharingOpen = true"
           >
@@ -1405,7 +1689,27 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </header>
+      <p v-if="pendingLibraryAsana" class="success-banner">
+        Выберите ячейку для асаны из библиотеки.
+        <button class="btn btn-ghost" @click="pendingLibraryAsana = null">Отменить вставку</button>
+      </p>
+      <p v-if="pendingDrawings.length" class="success-banner">
+        Выбрано рисунков: {{ pendingDrawings.length }}. Нажмите первую целевую ячейку.
+        <button class="btn btn-ghost" @click="pendingDrawings = []">Отменить</button>
+      </p>
       <div class="document-meta">
+        <InsertionStyleSettings
+          v-if="!rowMode && !readOnly"
+          :style="doc.illustration_style || 'original'"
+          :character="doc.illustration_character || 'neutral'"
+          :disabled="locked"
+          @change="
+            edit((document) => {
+              document.illustration_style = $event.style;
+              document.illustration_character = $event.character;
+            })
+          "
+        />
         <div class="theme-field">
           <span>Тема</span
           ><input
@@ -1614,6 +1918,7 @@ onBeforeUnmount(() => {
             <RefreshCw :size="15" />Варианты
           </button>
           <span class="selected-label">{{ cellLabel(selected.cell) }}</span
+          ><button class="btn btn-ghost" @click="rangeOpen = true">Сохранить позиции</button
           ><button class="btn btn-ghost" @click="openPicker(selected.cell.id)">
             <Library :size="15" />{{ cellFilled(selected.cell) ? 'Изменить' : 'Заполнить ячейку' }}</button
           ><button
@@ -1625,6 +1930,7 @@ onBeforeUnmount(() => {
             Отменить вставку</button
           ><template v-if="cellFilled(selected.cell)"
             ><button class="btn btn-ghost" @click="cellNote"><StickyNote :size="15" />Подпись</button
+            ><button class="btn btn-ghost" @click="openExecution">Выполнение</button
             ><button class="btn btn-ghost" @click="transfer = { mode: 'move', source: activeCell! }">
               <ArrowRight :size="15" />Переместить</button
             ><button
@@ -1697,6 +2003,7 @@ onBeforeUnmount(() => {
                   >
                     <StickyNote :size="16" />Задача блока</button
                   ><button @click="duplicateBlock(block)"><Copy :size="16" />Дублировать</button
+                  ><button @click="saveBlockFragment(block)">Сохранить блок как фрагмент</button
                   ><button @click="changeBlockOrder(block.id, -1)"><ArrowUp :size="16" />Выше</button
                   ><button @click="changeBlockOrder(block.id, 1)"><ArrowDown :size="16" />Ниже</button
                   ><button class="danger-text" @click="removeBlock(block)">
@@ -1738,8 +2045,8 @@ onBeforeUnmount(() => {
             <footer v-if="!rowMode && !readOnly && !annotationMode" class="block-footer">
               <button class="btn btn-ghost" @click="addRow(block.id)">
                 <Plus :size="16" />Добавить строку</button
-              ><button class="btn btn-ghost" @click="chooseSavedRow(block.id)">
-                <Bookmark :size="15" />Из сохранённых
+              ><button class="btn btn-ghost" @click="chooseFragment(block.id)">
+                <Bookmark :size="15" />Из фрагментов
               </button>
             </footer>
           </section>

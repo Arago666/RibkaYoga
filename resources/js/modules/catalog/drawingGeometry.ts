@@ -313,7 +313,7 @@ export function drawElement(ctx: CanvasRenderingContext2D, element: DrawingEleme
   ctx.translate(center.x, center.y);
   ctx.rotate((element.rotation * Math.PI) / 180);
   ctx.translate(-center.x, -center.y);
-  ctx.strokeStyle = ctx.fillStyle = element.kind === 'eraser' ? '#fff' : '#111';
+  ctx.strokeStyle = ctx.fillStyle = element.kind === 'eraser' ? '#fff' : (element.color ?? '#111');
   ctx.lineWidth = element.width;
   ctx.lineCap = ctx.lineJoin = 'round';
   if (element.points.length === 1) ctx.fill(path);

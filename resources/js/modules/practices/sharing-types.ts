@@ -4,6 +4,7 @@ export interface PracticeShare {
   id: string;
   recipient: { name: string; login: string };
   permission: 'view' | 'comment';
+  allow_copy: boolean;
   revision: number;
   revoked_at: string | null;
 }
@@ -29,6 +30,7 @@ export interface SharedPracticeData {
   access: {
     owner: boolean;
     can_comment: boolean;
+    can_copy: boolean;
     share_id: string | null;
     owner_name: string;
     channels: PracticeShare[];

@@ -1,331 +1,263 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, FileDown, LoaderCircle, Printer, RefreshCw } from '@lucide/vue';
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
-import SequencePreview from '../components/SequencePreview.vue';
+import PublicationDialog from '../components/PublicationDialog.vue';
 import type { Practice } from '../types';
-
 const props = withDefaults(defineProps<{ documentId: string; printMode?: boolean }>(), { printMode: false });
-const practice = ref<Practice | null>(null);
-const loading = ref(true);
-const loadError = ref('');
-const assetError = ref('');
-const preparing = ref(false);
-const printReady = ref(false);
-const showNames = ref(false);
-const imageVersion = ref(0);
-const sheetRegion = ref<HTMLElement | null>(null);
-let controller = new AbortController();
-let preparation = 0;
-let disposed = false;
-let autoPrinted = false;
-
-function waitForImage(image: HTMLImageElement, signal: AbortSignal): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (signal.aborted) return resolve(false);
-    if (image.complete) return resolve(image.naturalWidth > 0);
-    const finish = (loaded: boolean) => {
-      window.clearTimeout(timeout);
-      image.removeEventListener('load', loadedImage);
-      image.removeEventListener('error', failedImage);
-      signal.removeEventListener('abort', failedImage);
-      resolve(loaded);
-    };
-    const loadedImage = () => finish(image.naturalWidth > 0);
-    const failedImage = () => finish(false);
-    const timeout = window.setTimeout(failedImage, 25000);
-    image.addEventListener('load', loadedImage, { once: true });
-    image.addEventListener('error', failedImage, { once: true });
-    signal.addEventListener('abort', failedImage, { once: true });
-  });
-}
-
-async function prepareImages() {
-  const current = ++preparation;
-  preparing.value = true;
+const practice = ref<Practice | null>(null),
+  loading = ref(true),
+  error = ref(''),
+  printReady = ref(false),
+  preset = ref<'clean' | 'names' | 'teach'>('clean'),
+  showNames = ref(false),
+  orientation = ref<'portrait' | 'landscape'>('landscape'),
+  preferenceRevision = ref<number | null>(null),
+  preferencesMessage = ref(''),
+  sharing = ref(false),
+  frame = ref<HTMLIFrameElement | null>(null),
+  frameHeight = ref(650);
+const options = computed(
+  () =>
+    new URLSearchParams({
+      preset: preset.value,
+      show_names: showNames.value ? '1' : '0',
+      orientation: orientation.value,
+    }),
+);
+const sheetUrl = computed(() => `/api/practices/${props.documentId}/sheet?${options.value}`);
+const pdfUrl = computed(() => `/api/practices/${props.documentId}/pdf?${options.value}`);
+let autoPrinted = false,
+  preparation = 0;
+watch([preset, showNames, orientation], () => {
   printReady.value = false;
-  assetError.value = '';
-  await nextTick();
+  error.value = '';
+});
+function choosePreset() {
+  showNames.value = preset.value !== 'clean';
+}
+async function load() {
+  loading.value = true;
+  error.value = '';
   try {
-    await document.fonts.ready;
-    const images = Array.from(sheetRegion.value?.querySelectorAll<HTMLImageElement>('img') ?? []);
+    const [document, preferences] = await Promise.all([
+      api<{ data: Practice }>(`/api/practices/${props.documentId}`),
+      api<{
+        data: {
+          revision: number | null;
+          preferences: {
+            preset: 'clean' | 'names' | 'teach';
+            show_names: boolean;
+            orientation: 'portrait' | 'landscape';
+          };
+        };
+      }>('/api/practice-output-preferences'),
+    ]);
+    practice.value = document.data;
+    preferenceRevision.value = preferences.data.revision;
+    preset.value = preferences.data.preferences.preset;
+    showNames.value = preferences.data.preferences.show_names;
+    orientation.value = preferences.data.preferences.orientation;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось открыть практику.';
+  } finally {
+    loading.value = false;
+  }
+}
+async function loadedSheet() {
+  const version = ++preparation;
+  printReady.value = false;
+  try {
+    const content = frame.value?.contentDocument;
+    if (!content || content.querySelector('h1')?.textContent !== practice.value?.title)
+      throw new Error('Не удалось загрузить полный лист. Обновите страницу.');
+    await content.fonts.ready;
+    const images = Array.from(content.images);
     const results = await Promise.all(
-      images.map(async (image) => {
-        const loaded = await waitForImage(image, controller.signal);
-        if (!loaded) return false;
-        try {
-          await image.decode();
-          return image.naturalWidth > 0;
-        } catch {
-          return false;
-        }
-      }),
+      images.map(
+        (image) =>
+          new Promise<boolean>((resolve) => {
+            if (image.complete) {
+              resolve(image.naturalWidth > 0);
+              return;
+            }
+            const timer = setTimeout(() => resolve(false), 25000);
+            image.addEventListener(
+              'load',
+              () => {
+                clearTimeout(timer);
+                resolve(image.naturalWidth > 0);
+              },
+              { once: true },
+            );
+            image.addEventListener(
+              'error',
+              () => {
+                clearTimeout(timer);
+                resolve(false);
+              },
+              { once: true },
+            );
+          }),
+      ),
     );
-    if (disposed || current !== preparation) return;
-    const missing = images.filter((_image, index) => !results[index]);
-    if (missing.length) {
-      const names = [...new Set(missing.map((image) => image.alt))].slice(0, 3).join(', ');
-      assetError.value = `Не удалось загрузить ${missing.length} изображений${names ? `: ${names}` : ''}. Повторите загрузку, чтобы напечатать лист полностью.`;
-      return;
-    }
+    if (version !== preparation) return;
+    if (results.some((value) => !value))
+      throw new Error('Не все изображения загрузились. Повторите подготовку листа.');
+    frameHeight.value = Math.max(500, content.documentElement.scrollHeight + 30);
     printReady.value = true;
     if (props.printMode && !autoPrinted) {
       autoPrinted = true;
-      await printSheet();
+      printSheet();
     }
-  } catch {
-    if (!disposed && current === preparation)
-      assetError.value = 'Не удалось подготовить лист к печати. Повторите загрузку изображений.';
-  } finally {
-    if (!disposed && current === preparation) preparing.value = false;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось подготовить лист.';
   }
 }
-
-async function loadPractice() {
-  controller.abort();
-  controller = new AbortController();
-  loading.value = true;
-  loadError.value = '';
-  printReady.value = false;
+function printSheet() {
+  if (!printReady.value) return;
+  frame.value?.contentWindow?.focus();
+  frame.value?.contentWindow?.print();
+}
+async function savePreferences() {
+  preferencesMessage.value = '';
   try {
-    const result = await api<{ data: Practice }>(`/api/practices/${props.documentId}`, {
-      signal: controller.signal,
+    const result = await api<{ data: { revision: number } }>('/api/practice-output-preferences', {
+      method: 'PUT',
+      body: JSON.stringify({
+        preset: preset.value,
+        show_names: showNames.value,
+        orientation: orientation.value,
+        expected_revision: preferenceRevision.value,
+      }),
     });
-    if (disposed) return;
-    practice.value = result.data;
-    loading.value = false;
-    await prepareImages();
-  } catch (error) {
-    if (disposed || (error instanceof DOMException && error.name === 'AbortError')) return;
-    loadError.value = error instanceof Error ? error.message : 'Не удалось открыть практику.';
-  } finally {
-    if (!disposed) loading.value = false;
+    preferenceRevision.value = result.data.revision;
+    preferencesMessage.value = 'Настройки листа сохранены для вашего кабинета.';
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось сохранить настройки.';
   }
 }
-
-async function retryImages() {
-  imageVersion.value++;
-  await prepareImages();
-}
-
-async function printSheet() {
-  if (!printReady.value || !practice.value || disposed) return;
-  await nextTick();
-  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-  if (!disposed && printReady.value) window.print();
-}
-
-onMounted(loadPractice);
-onBeforeUnmount(() => {
-  disposed = true;
-  preparation++;
-  controller.abort();
-});
+onMounted(load);
 </script>
-
 <template>
-  <Head :title="practice ? `${practice.title} — лист практики` : 'Лист практики'" />
-  <AppShell section="practices" :class="['practice-preview-shell', { 'print-blocked': !printReady }]">
-    <div class="preview-controls">
-      <div class="preview-heading">
-        <Link :href="`/practices/${documentId}/edit`" class="preview-back"
-          ><ArrowLeft :size="17" />К редактированию</Link
-        >
+  <Head :title="practice ? `${practice.title} — готовый лист` : 'Лист практики'" />
+  <AppShell section="practices" wide>
+    <header class="page-header">
+      <div>
+        <Link class="btn btn-ghost" :href="`/practices/${documentId}/edit`">К редактированию</Link>
         <h1 class="page-title">Готовый лист</h1>
-        <p class="page-description">Посмотрите последовательность целиком и сохраните её для занятия.</p>
       </div>
-      <button type="button" class="btn btn-primary" :disabled="!printReady" @click="printSheet">
-        <Printer :size="18" />Печать / PDF
-      </button>
-    </div>
-
-    <div v-if="loadError" class="error-banner preview-ui" role="alert">
-      <p>{{ loadError }}</p>
-      <button class="btn btn-secondary" type="button" @click="loadPractice">
-        <RefreshCw :size="16" />Повторить
-      </button>
-    </div>
-    <div v-if="assetError" class="error-banner preview-ui" role="alert">
-      <p>{{ assetError }}</p>
-      <button class="btn btn-secondary" type="button" :disabled="preparing" @click="retryImages">
-        <RefreshCw :size="16" />Загрузить изображения снова
-      </button>
-    </div>
-
-    <div v-if="practice" class="preview-settings preview-ui">
-      <label class="check-label"><input v-model="showNames" type="checkbox" />Показывать названия асан</label>
-      <span v-if="preparing" class="readiness-status" role="status"
-        ><LoaderCircle :size="15" class="spinning" />Подготавливаем изображения…</span
-      >
-      <span v-else-if="printReady" class="readiness-status">A4 · альбомная ориентация</span>
-    </div>
-
-    <div v-if="loading" class="preview-loading preview-ui" role="status">
-      <LoaderCircle :size="25" class="spinning" /><span>Открываем лист практики…</span>
-    </div>
-    <div v-if="practice" ref="sheetRegion" class="sheet-region">
-      <SequencePreview :document="practice" :show-names="showNames" :image-version="imageVersion" />
-    </div>
-    <p v-if="practice" class="mobile-sheet-hint preview-ui">Лист можно прокручивать по горизонтали.</p>
-    <p class="print-readiness-warning">
-      Лист ещё не готов к печати. Дождитесь загрузки всех изображений на странице и нажмите «Печать / PDF».
+      <div class="output-actions">
+        <button class="btn btn-primary" :disabled="!printReady" @click="printSheet">
+          Печать / PDF браузера</button
+        ><a class="btn btn-secondary" :href="pdfUrl" :aria-disabled="!practice" target="_blank" rel="noopener"
+          >Скачать PDF</a
+        ><a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
+          >Экспорт JSON с рисунками</a
+        ><button class="btn btn-secondary" :disabled="!practice" @click="sharing = true">
+          Поделиться по ссылке
+        </button>
+      </div>
+    </header>
+    <p v-if="error" class="error-banner" role="alert">
+      {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
     </p>
-    <p v-if="practice" class="pdf-hint preview-ui">
-      <FileDown :size="17" /><span
-        >Чтобы получить PDF, выберите «Сохранить как PDF» в окне печати. Для чистого листа отключите
-        колонтитулы браузера.</span
-      >
+    <p v-if="loading" class="muted" role="status">Открываем лист…</p>
+    <div v-if="practice" class="output-settings">
+      <label class="field"
+        ><span class="label">Преднастройка</span
+        ><select v-model="preset" class="select" @change="choosePreset">
+          <option value="clean">Чистый лист</option>
+          <option value="names">С названиями</option>
+          <option value="teach">Для проведения</option>
+        </select></label
+      ><label class="field"
+        ><span class="label">Ориентация A4</span
+        ><select v-model="orientation" class="select">
+          <option value="landscape">Альбомная</option>
+          <option value="portrait">Книжная</option>
+        </select></label
+      ><label class="check-label"
+        ><input v-model="showNames" type="checkbox" :disabled="preset === 'clean'" />Названия асан</label
+      ><button class="btn btn-ghost" @click="savePreferences">Запомнить настройки</button
+      ><span class="muted" role="status">{{ printReady ? 'Лист готов' : 'Загружаем рисунки…' }}</span>
+    </div>
+    <p v-if="preferencesMessage" class="success-banner" role="status">{{ preferencesMessage }}</p>
+    <div v-if="practice" class="sheet-region">
+      <iframe
+        ref="frame"
+        :key="sheetUrl"
+        :src="sheetUrl"
+        class="sheet-frame"
+        :class="orientation"
+        :style="{ height: `${frameHeight}px` }"
+        title="Готовый лист практики"
+        sandbox="allow-same-origin allow-modals"
+        @load="loadedSheet"
+      />
+    </div>
+    <p v-if="practice" class="muted output-hint">
+      На узком экране лист прокручивается по горизонтали. Просмотр и скачиваемый PDF используют один макет;
+      исходные изображения остаются в базе.
     </p>
+    <PublicationDialog
+      v-if="practice"
+      :open="sharing"
+      :document-id="documentId"
+      :revision="practice.revision"
+      :show-names="showNames"
+      :orientation="orientation"
+      @close="sharing = false"
+    />
   </AppShell>
 </template>
-
 <style scoped>
-.preview-controls {
+.output-actions,
+.output-settings {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 26px;
-}
-.preview-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 18px;
-}
-.preview-back:hover {
-  color: var(--accent);
-}
-.preview-settings {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
 }
-.readiness-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  color: var(--muted);
+.output-actions {
+  justify-content: flex-end;
+}
+.output-settings {
+  margin: 18px 0;
+}
+.output-settings .field {
+  min-width: 180px;
 }
 .sheet-region {
+  overflow: auto;
+  background: white;
+  border: 1px solid #dce6d6;
+  border-radius: 12px;
+  padding: 18px;
+}
+.sheet-frame {
+  display: block;
+  border: 0;
   width: 100%;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 8px 30px #22361c04;
   background: #fff;
 }
-.preview-loading {
-  min-height: 340px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  color: var(--muted);
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
+.sheet-frame.landscape {
+  min-width: 1050px;
 }
-.error-banner .btn {
-  margin-top: 10px;
+.sheet-frame.portrait {
+  min-width: 730px;
 }
-.pdf-hint {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 9px;
+.output-hint {
+  margin-top: 14px;
   font-size: 13px;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-top: 22px;
 }
-.pdf-hint svg {
-  margin-top: 2px;
-}
-.print-readiness-warning {
-  display: none;
-}
-.mobile-sheet-hint {
-  display: none;
-}
-.spinning {
-  animation: preview-spin 1.2s linear infinite;
-}
-@keyframes preview-spin {
-  to {
-    transform: rotate(360deg);
+@media (max-width: 700px) {
+  .page-header {
+    align-items: stretch;
   }
-}
-@media (max-width: 760px) {
-  .preview-controls {
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  .preview-controls > .btn {
-    width: 100%;
-  }
-  .sheet-region {
-    border-radius: 10px;
-    overflow-x: auto;
-  }
-  .mobile-sheet-hint {
-    display: block;
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .preview-settings {
-    font-size: 13px;
-  }
-}
-@page ribka-sequence {
-  size: A4 landscape;
-  margin: 10mm;
-}
-@media print {
-  .practice-preview-shell {
-    page: ribka-sequence;
-    display: block !important;
-    min-height: 0 !important;
-    background: #fff !important;
-  }
-  .practice-preview-shell :deep(.app-header),
-  .practice-preview-shell :deep(.app-footer),
-  .preview-controls,
-  .preview-ui {
-    display: none !important;
-  }
-  .practice-preview-shell :deep(.app-main) {
-    display: block !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  .sheet-region {
-    display: block;
-    width: 100%;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .print-blocked .sheet-region {
-    display: none !important;
-  }
-  .print-blocked .print-readiness-warning {
-    display: block;
-    font-size: 12pt;
-    padding: 10mm;
+  .output-actions {
+    justify-content: flex-start;
   }
 }
 </style>

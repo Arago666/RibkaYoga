@@ -2,6 +2,7 @@
 
 namespace App\Modules\Practices\Http\Requests;
 
+use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DocumentRequest extends FormRequest
@@ -15,9 +16,12 @@ class DocumentRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return ExecutionParameters::rules('blocks.*.rows.*.cells.*.') + [
             'expected_revision' => [$this->isMethod('PUT') ? 'required' : 'sometimes', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:160'],
+            'fragment_kind' => ['sometimes', 'nullable', 'in:block,sequence'],
+            'illustration_style' => ['sometimes', 'nullable', 'in:original,line,volume'],
+            'illustration_character' => ['sometimes', 'nullable', 'in:neutral,female,male'],
             'theme' => ['nullable', 'string', 'max:240'],
             'note' => ['nullable', 'string', 'max:3000'],
             'practice_date' => ['nullable', 'date_format:Y-m-d'],

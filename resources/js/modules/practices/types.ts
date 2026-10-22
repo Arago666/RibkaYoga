@@ -17,7 +17,23 @@ export interface Snapshot {
   image_url: string;
   source_asana_id?: string | null;
 }
-export interface Cell {
+export interface ExecutionParameters {
+  advance_mode: 'manual' | 'time' | 'breaths' | null;
+  duration_seconds: number | null;
+  breath_count: number | null;
+  repetitions: number | null;
+  side: 'left' | 'right' | 'both' | null;
+  side_order: 'left_first' | 'right_first' | null;
+}
+export const executionParameters = (cell?: Partial<ExecutionParameters>): ExecutionParameters => ({
+  advance_mode: cell?.advance_mode ?? null,
+  duration_seconds: cell?.duration_seconds ?? null,
+  breath_count: cell?.breath_count ?? null,
+  repetitions: cell?.repetitions ?? null,
+  side: cell?.side ?? null,
+  side_order: cell?.side_order ?? null,
+});
+export interface Cell extends Partial<ExecutionParameters> {
   id: string;
   card_snapshot_id: string | null;
   custom_name: string | null;
@@ -39,7 +55,10 @@ export interface Block {
 }
 export interface Practice {
   id: string;
-  kind: 'practice' | 'template';
+  kind: 'practice' | 'template' | 'fragment';
+  fragment_kind?: 'block' | 'sequence' | null;
+  illustration_style?: 'original' | 'line' | 'volume' | null;
+  illustration_character?: 'neutral' | 'female' | 'male' | null;
   title: string;
   theme: string | null;
   note: string | null;
@@ -69,6 +88,7 @@ export interface RowTemplate {
 }
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 export const emptyCell = (): Cell => ({
+  ...executionParameters(),
   id: uid(),
   card_snapshot_id: null,
   custom_name: null,
@@ -110,13 +130,14 @@ export const copyBlock = (block: Block): Block => ({
 });
 export function payload(document: Practice, rowMode = false) {
   const cells = (row: Row) =>
-    row.cells.map(({ id, card_snapshot_id, custom_name, group_key, arrow_direction, note }) => ({
-      id,
-      card_snapshot_id,
-      group_key: group_key || null,
-      arrow_direction: arrow_direction || null,
-      custom_name: card_snapshot_id ? null : custom_name?.trim() || null,
-      note: card_snapshot_id || custom_name?.trim() ? note || null : null,
+    row.cells.map((cell) => ({
+      ...executionParameters(cell),
+      id: cell.id,
+      card_snapshot_id: cell.card_snapshot_id,
+      group_key: cell.group_key || null,
+      arrow_direction: cell.arrow_direction || null,
+      custom_name: cell.card_snapshot_id ? null : cell.custom_name?.trim() || null,
+      note: cell.card_snapshot_id || cell.custom_name?.trim() ? cell.note || null : null,
     }));
   const common = {
     title: document.title.trim(),
@@ -136,6 +157,9 @@ export function payload(document: Practice, rowMode = false) {
     };
   return {
     ...common,
+    fragment_kind: document.fragment_kind || null,
+    illustration_style: document.illustration_style || null,
+    illustration_character: document.illustration_character || null,
     note: document.note || null,
     practice_date: document.practice_date || null,
     blocks: document.blocks.map((block) => ({

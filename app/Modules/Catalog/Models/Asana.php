@@ -17,7 +17,7 @@ class Asana extends Model
 
     protected function casts(): array
     {
-        return ['archived_at' => 'datetime', 'revision' => 'integer', 'drawing_source' => 'array'];
+        return ['archived_at' => 'datetime', 'revision' => 'integer', 'drawing_source' => 'array', 'steps' => 'array', 'teacher_cues' => 'array', 'equipment' => 'array', 'precautions' => 'array', 'adaptations' => 'array', 'editorial' => 'array', 'has_bind' => 'boolean'];
     }
 
     public function aliases(): HasMany

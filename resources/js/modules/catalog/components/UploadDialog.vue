@@ -4,7 +4,15 @@ import { Upload, CheckCircle2, AlertCircle, X, LoaderCircle, ChevronDown, Chevro
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
-import { errorText, type Category } from '../types';
+import { errorText, type Category, type AsanaRelation } from '../types';
+import {
+  emptyAssignments,
+  emptyReference,
+  appendReference,
+  type FacetAssignments,
+  type ReferenceFields,
+} from '../facets';
+import RelationsEditor from './RelationsEditor.vue';
 import type { DrawingDocument } from '../drawing';
 import AsanaFields from './AsanaFields.vue';
 import CollectionChoices from './CollectionChoices.vue';
@@ -26,6 +34,9 @@ interface UploadItem {
   invalid: boolean;
   drawing: DrawingDocument | null;
   drawingDirty: boolean;
+  reference: ReferenceFields;
+  facetAssignments: FacetAssignments;
+  relations: AsanaRelation[];
 }
 function emptyItem(): UploadItem {
   return {
@@ -42,6 +53,9 @@ function emptyItem(): UploadItem {
     invalid: false,
     drawing: null,
     drawingDirty: false,
+    reference: emptyReference(),
+    facetAssignments: emptyAssignments(),
+    relations: [],
   };
 }
 const items = ref<UploadItem[]>([emptyItem()]);
@@ -147,9 +161,9 @@ async function upload() {
         item.expanded = true;
         continue;
       }
-      if (!item.categoryIds.length || !item.collectionIds.length) {
+      if (!item.collectionIds.length) {
         item.state = 'error';
-        item.error = 'Выберите хотя бы одну категорию и одну подборку.';
+        item.error = 'Выберите хотя бы одну подборку.';
         item.expanded = true;
         continue;
       }
@@ -168,6 +182,8 @@ async function upload() {
             .filter(Boolean),
         ),
       );
+      appendReference(data, item.reference, item.facetAssignments);
+      data.set('relations', JSON.stringify(item.relations.map(({ asana_id, kind }) => ({ asana_id, kind }))));
       data.set('category_ids', JSON.stringify(item.categoryIds));
       data.set('collection_ids', JSON.stringify(item.collectionIds));
       try {
@@ -291,6 +307,8 @@ onBeforeUnmount(() => {
           :ref="(component) => setFields(item.id, component)"
           v-show="items.length === 1 || item.expanded"
           :id="`upload-fields-${item.id}`"
+          v-model:reference="item.reference"
+          v-model:facet-assignments="item.facetAssignments"
           v-model:name="item.name"
           v-model:aliases="item.aliases"
           v-model:category-ids="item.categoryIds"
@@ -305,6 +323,7 @@ onBeforeUnmount(() => {
           @image="(file, drawing) => replaceImage(item, file, drawing)"
           @dirty="item.drawingDirty = $event"
         />
+        <RelationsEditor v-model="item.relations" asana-id="" :disabled="busy || item.state === 'done'" />
         <CollectionChoices
           v-model="item.collectionIds"
           :open="open"

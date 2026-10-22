@@ -3,9 +3,13 @@
 namespace App\Modules\Practices\Actions;
 
 use App\Modules\Access\PublicApi\WorkspaceContext;
-use App\Modules\Catalog\PublicApi\AsanaReader;
-use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Billing\PublicApi\Entitlements;
+use App\Modules\Catalog\PublicApi\AsanaReader;
+use App\Modules\Catalog\PublicApi\CatalogUsage;
+use App\Modules\Catalog\PublicApi\IllustrationStyles;
+use App\Modules\Media\PublicApi\AssetStore;
+use App\Modules\Practices\PublicApi\NativeImages;
+use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +37,14 @@ class PracticeEditor
         } else {
             $query->where('kind', $filters['kind'] ?? 'row');
         }
+        if (! $rows && ! empty($filters['folder_id'])) {
+            $folder = DB::table('practice_personal_folders')->where('workspace_id', $this->workspace())->where('user_id', $this->context->userId())->where('id', $filters['folder_id'])->first();
+            abort_unless($folder, 404);
+            $query->whereIn('id', DB::table('practice_document_folders')->where('folder_id', $folder->id)->select('document_id'));
+        }
+        if (! $rows && ($filters['include_cycle_documents'] ?? true) === false && empty($filters['q'])) {
+            $query->whereNotIn('id', DB::table('practice_mesocycle_weeks')->select('document_id'));
+        }
         $archived = ($filters['archive'] ?? '') === 'archived' || ($filters['archived'] ?? false);
         $archived ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at');
         $search = trim($filters['q'] ?? '');
@@ -59,7 +71,8 @@ class PracticeEditor
                 ->join('practice_blocks', 'practice_blocks.id', '=', 'practice_rows.block_id')
                 ->whereIn('practice_blocks.document_id', $documentIds)
                 ->orderBy('practice_blocks.position')->orderBy('practice_rows.position')->orderBy('practice_cells.position')
-                ->select('practice_cells.id', 'practice_cells.card_snapshot_id', 'practice_cells.custom_name', 'practice_cells.group_key', 'practice_cells.arrow_direction', 'practice_cells.note', 'practice_blocks.document_id')->get()->groupBy('document_id');
+                ->select(array_map(fn ($field) => 'practice_cells.'.$field, ExecutionParameters::FIELDS))
+                ->addSelect('practice_cells.id', 'practice_cells.card_snapshot_id', 'practice_cells.custom_name', 'practice_cells.group_key', 'practice_cells.arrow_direction', 'practice_cells.note', 'practice_blocks.document_id')->get()->groupBy('document_id');
         }
         $previewIds = $cellGroups->flatMap(fn ($cells) => $cells->pluck('card_snapshot_id')->filter()->unique()->take(4))->unique()->values()->all();
         $snapshots = $this->snapshots($previewIds);
@@ -68,10 +81,17 @@ class PracticeEditor
             ->whereIn('relations.transition_id', $documentIds)->where('related.workspace_id', $this->workspace())
             ->orderBy('related.title')->get(['relations.transition_id', 'related.id', 'related.title', 'related.archived_at', 'relations.kind'])
             ->groupBy('transition_id') : collect();
+        $cycleLinks = ! $rows ? DB::table('practice_mesocycle_weeks as slots')->join('practice_mesocycles as cycles', 'cycles.id', '=', 'slots.mesocycle_id')->where('cycles.workspace_id', $this->workspace())->whereIn('slots.document_id', $documentIds)->select('slots.document_id', 'cycles.id', 'cycles.title', 'slots.position')->get()->groupBy('document_id') : collect();
+        $folderLinks = ! $rows ? DB::table('practice_document_folders as links')->join('practice_personal_folders as folders', 'folders.id', '=', 'links.folder_id')->where('folders.workspace_id', $this->workspace())->where('folders.user_id', $this->context->userId())->whereNull('folders.archived_at')->whereIn('links.document_id', $documentIds)->select('links.document_id', 'folders.id', 'folders.name')->get()->groupBy('document_id') : collect();
         $items = [];
         foreach ($page->items() as $record) {
             $item = (array) $record;
             $cells = $cellGroups[$record->id] ?? collect();
+            if (! $rows) {
+                $item['cycles'] = ($cycleLinks[$record->id] ?? collect())->values()->all();
+                $item['folders'] = ($folderLinks[$record->id] ?? collect())->values()->all();
+            }
+            $item['duration_seconds'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name)->contains(fn ($cell) => ! $cell->duration_seconds) ? null : $cells->sum(fn ($cell) => (int) ($cell->duration_seconds ?? 0) * max(1, (int) ($cell->repetitions ?? 1)) * (($cell->side ?? null) === 'both' ? 2 : 1));
             $item['cell_count'] = $item['cells_count'] = $cells->count();
             $item['filled_cell_count'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id !== null || $cell->custom_name !== null)->count();
             $item['custom_cell_count'] = $cells->whereNotNull('custom_name')->count();
@@ -83,8 +103,10 @@ class PracticeEditor
                 ->map(fn ($id) => $snapshots[$id])->values()->all();
             $item['preview_cells'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id !== null || $cell->custom_name !== null)
                 ->take(4)->map(fn ($cell) => $this->hydrateCell($cell, $snapshots))->values()->all();
-            if ($rows) $item['relations'] = ($relations[$record->id] ?? collect())
-                ->map(fn ($related) => ['transition_id' => $related->id, 'title' => $related->title, 'kind' => $related->kind, 'archived_at' => $related->archived_at])->all();
+            if ($rows) {
+                $item['relations'] = ($relations[$record->id] ?? collect())
+                    ->map(fn ($related) => ['transition_id' => $related->id, 'title' => $related->title, 'kind' => $related->kind, 'archived_at' => $related->archived_at])->all();
+            }
             $items[] = $item;
         }
 
@@ -113,7 +135,10 @@ class PracticeEditor
                 $tree['theme'] = $input['theme'] ?? $source->theme;
                 $tree['practice_date'] = $input['practice_date'] ?? null;
             } else {
+                $preferred = app(IllustrationStyles::class)->preferred();
                 $tree = [
+                    'illustration_style' => $input['illustration_style'] ?? $preferred['style'],
+                    'illustration_character' => $input['illustration_character'] ?? $preferred['character'],
                     'title' => $input['title'] ?? 'Новая практика',
                     'theme' => $input['theme'] ?? null,
                     'note' => $input['note'] ?? null,
@@ -134,8 +159,16 @@ class PracticeEditor
             $record = $this->find('practice_documents', $id, true);
             $this->assertRevision($record, $input['expected_revision']);
             $this->assertEditable($record);
+            foreach (['fragment_kind', 'illustration_style', 'illustration_character'] as $field) {
+                if (! array_key_exists($field, $input)) {
+                    $input[$field] = $record->$field ?? null;
+                }
+            }
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], $id);
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], $id, 'arrow_direction');
+            foreach (ExecutionParameters::FIELDS as $field) {
+                $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], $id, $field);
+            }
             $this->validateTree($input['blocks'], $id);
             DB::table('practice_documents')->where('id', $id)->update($this->metadata($input) + [
                 'revision' => $record->revision + 1,
@@ -154,6 +187,10 @@ class PracticeEditor
             $this->entitlements->lock($this->workspace());
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks']);
             $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], null, 'arrow_direction');
+
+            foreach (ExecutionParameters::FIELDS as $field) {
+                $input['blocks'] = $this->restoreMissingTreeGroups($input['blocks'], null, $field);
+            }
 
             return $this->insertDocument($input, 'practice');
         });
@@ -174,14 +211,31 @@ class PracticeEditor
         });
     }
 
+    public function copyForCycle(string $id, string $title, bool $asTemplate, int $expectedRevision): array
+    {
+        return DB::transaction(function () use ($id, $title, $asTemplate, $expectedRevision) {
+            $record = $this->find('practice_documents', $id, true);
+            $this->assertRevision($record, $expectedRevision);
+            $this->assertEditable($record);
+            $tree = $this->hydrateDocument($record);
+            $tree['title'] = $title;
+
+            return $this->insertDocument($tree, $asTemplate ? 'template' : 'practice');
+        });
+    }
+
     public function archive(string $id, int $revision, bool $restore = false, bool $rowTemplate = false): array
     {
         return DB::transaction(function () use ($id, $revision, $restore, $rowTemplate) {
-            if (! $rowTemplate) $this->entitlements->lock($this->workspace());
+            if (! $rowTemplate) {
+                $this->entitlements->lock($this->workspace());
+            }
             $table = $rowTemplate ? 'practice_row_templates' : 'practice_documents';
             $record = $this->find($table, $id, true);
             $this->assertRevision($record, $revision);
-            if ($restore && ! $rowTemplate && $record->archived_at) $this->entitlements->assertCanCreate($this->workspace(), 'practices', $this->owned('practice_documents')->whereNull('archived_at')->count());
+            if ($restore && ! $rowTemplate && $record->archived_at) {
+                $this->entitlements->assertCanCreate($this->workspace(), 'practices', $this->owned('practice_documents')->whereNull('archived_at')->count());
+            }
             DB::table($table)->where('id', $id)->update([
                 'archived_at' => $restore ? null : now(),
                 'revision' => $record->revision + 1,
@@ -205,11 +259,17 @@ class PracticeEditor
                 $revision = $record->revision + 1;
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells'], $id);
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells'], $id, 'arrow_direction');
+                foreach (ExecutionParameters::FIELDS as $field) {
+                    $input['cells'] = $this->restoreMissingRowGroups($input['cells'], $id, $field);
+                }
             } else {
                 $id = (string) Str::uuid();
                 $revision = 1;
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells']);
                 $input['cells'] = $this->restoreMissingRowGroups($input['cells'], null, 'arrow_direction');
+                foreach (ExecutionParameters::FIELDS as $field) {
+                    $input['cells'] = $this->restoreMissingRowGroups($input['cells'], null, $field);
+                }
                 foreach ($input['cells'] as &$cell) {
                     $cell['id'] = (string) Str::uuid();
                 }
@@ -238,40 +298,95 @@ class PracticeEditor
                 'id' => $cell['id'], 'row_template_id' => $id, 'position' => $position,
             ] + $this->cellContent($cell), $input['cells'], array_keys($input['cells'])));
             if (array_key_exists('relations', $input)) {
-                if ($values['kind'] !== 'transition' && $input['relations']) throw ValidationException::withMessages(['relations' => 'Варианты можно задать только для связки.']);
+                if ($values['kind'] !== 'transition' && $input['relations']) {
+                    throw ValidationException::withMessages(['relations' => 'Варианты можно задать только для связки.']);
+                }
                 $relations = [];
                 $previousRelations = DB::table('practice_transition_relations')->where('transition_id', $id)->get()
                     ->mapWithKeys(fn ($relation) => [$relation->related_transition_id.':'.$relation->kind => true])->all();
                 foreach ($input['relations'] as $relation) {
                     $target = $this->find('practice_row_templates', strtolower($relation['transition_id']));
-                    if ($target->id === $id || $target->kind !== 'transition' || ($target->archived_at && ! isset($previousRelations[$target->id.':'.$relation['kind']]))) throw ValidationException::withMessages(['relations' => 'Выберите другую активную связку своего пространства.']);
+                    if ($target->id === $id || $target->kind !== 'transition' || ($target->archived_at && ! isset($previousRelations[$target->id.':'.$relation['kind']]))) {
+                        throw ValidationException::withMessages(['relations' => 'Выберите другую активную связку своего пространства.']);
+                    }
                     $relations[$target->id.':'.$relation['kind']] = ['transition_id' => $id, 'related_transition_id' => $target->id, 'kind' => $relation['kind']];
                 }
                 DB::table('practice_transition_relations')->where('transition_id', $id)->delete();
-                if ($relations) DB::table('practice_transition_relations')->insert(array_values($relations));
+                if ($relations) {
+                    DB::table('practice_transition_relations')->insert(array_values($relations));
+                }
             }
 
             return $this->rowTemplate($id);
         });
     }
 
-    public function resolveCards(array $asanaIds): array
+    public function saveFragment(array $input): array
     {
-        return DB::transaction(function () use ($asanaIds) {
+        return DB::transaction(function () use ($input) {
+            $this->entitlements->lock($this->workspace());
+            $input['fragment_kind'] = $input['fragment_kind'] ?? 'sequence';
+
+            return $this->insertDocument($input, 'fragment');
+        });
+    }
+
+    public function importTree(array $input, string $kind): array
+    {
+        abort_unless(in_array($kind, ['practice', 'template', 'fragment'], true), 422);
+
+        return DB::transaction(function () use ($input, $kind) {
+            $this->entitlements->lock($this->workspace());
+
+            return $this->insertDocument($input, $kind);
+        });
+    }
+
+    public function readSnapshots(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('strtolower', $ids)));
+        $snapshots = $this->snapshots($ids);
+        abort_unless(count($snapshots) === count($ids), 404, 'Один из рисунков недоступен в этом пространстве.');
+
+        return array_map(fn ($id) => $snapshots[$id], $ids);
+    }
+
+    public function resolveCards(array $asanaIds, array $variantIds = [], array $illustration = ['style' => 'original', 'character' => 'neutral']): array
+    {
+        return DB::transaction(function () use ($asanaIds, $variantIds, $illustration) {
             $asanas = $this->asanas->findMany($asanaIds);
+            $styles = app(IllustrationStyles::class);
             $result = [];
             foreach ($asanaIds as $id) {
                 $asana = $asanas[$id] ?? null;
                 if (! $asana || ! empty($asana['archived_at'])) {
                     throw ValidationException::withMessages(['asana_ids' => 'Одна из асан недоступна или находится в архиве. Обновите библиотеку.']);
                 }
+                $imageAssetId = $asana['image_asset_id'];
+                $variantId = $variantIds[$id] ?? null;
+                $drawing = null;
+                if (array_key_exists($id, $variantIds)) {
+                    $resolved = $styles->resolve($id, $imageAssetId, $variantId);
+                    $imageAssetId = $resolved['image_asset_id'];
+                    $drawing = $resolved['drawing_source'];
+                } elseif ($illustration['style'] !== 'original') {
+                    $prepared = $styles->prepare($id, $imageAssetId, $illustration['style'], $illustration['character']);
+                    $imageAssetId = $prepared['image_asset_id'];
+                    $variantId = $prepared['variant_id'] ?? null;
+                    $drawing = $prepared['drawing_source'] ?? null;
+                }
+                if ($drawing) {
+                    app(NativeImages::class)->remember($imageAssetId, $drawing);
+                }
+                $image = $this->assets->get($imageAssetId);
                 $snapshotId = (string) Str::uuid();
                 DB::table('practice_card_snapshots')->insert([
                     'id' => $snapshotId, 'workspace_id' => $this->workspace(), 'source_asana_id' => $id,
-                    'name' => $asana['name'], 'image_asset_id' => $asana['image_asset_id'], 'created_at' => now(),
+                    'name' => $asana['name'], 'image_asset_id' => $imageAssetId, 'created_at' => now(),
                 ]);
                 $result[] = [
-                    'id' => $snapshotId, 'name' => $asana['name'], 'image_url' => $asana['image_url'], 'source_asana_id' => $id,
+                    'id' => $snapshotId, 'name' => $asana['name'], 'image_url' => $image['image_url'], 'source_asana_id' => $id,
+                    'illustration_variant_id' => $variantId, 'image_asset_id' => $imageAssetId,
                 ];
             }
 
@@ -284,6 +399,7 @@ class PracticeEditor
         return DB::transaction(function () use ($id) {
             $document = $this->find('practice_documents', $id, true);
             $this->assertEditable($document);
+
             return ['revision' => (int) $document->revision, 'changes' => $this->snapshotChanges($id)];
         });
     }
@@ -310,10 +426,15 @@ class PracticeEditor
             $replacement = [];
             foreach ($changes as $change) {
                 $source = $change['source_asana_id'];
-                if (! isset($replacement[$source])) $replacement[$source] = $this->resolveCards([$source])[0]['id'];
+                if (! isset($replacement[$source])) {
+                    $replacement[$source] = $this->resolveCards([$source])[0]['id'];
+                }
                 DB::table('practice_cells')->whereIn('row_id', $rowIds)->where('card_snapshot_id', $change['snapshot_id'])->update(['card_snapshot_id' => $replacement[$source]]);
             }
-            if ($changes) DB::table('practice_documents')->where('id', $id)->update(['revision' => $document->revision + 1, 'updated_by' => $this->context->userId(), 'updated_at' => now()]);
+            if ($changes) {
+                DB::table('practice_documents')->where('id', $id)->update(['revision' => $document->revision + 1, 'updated_by' => $this->context->userId(), 'updated_at' => now()]);
+            }
+
             return $this->document($id);
         });
     }
@@ -329,7 +450,9 @@ class PracticeEditor
         $changes = [];
         foreach ($snapshots as $snapshot) {
             $card = $cards[$snapshot->source_asana_id] ?? null;
-            if (! $card || $card['archived_at'] || ($snapshot->name === $card['name'] && $snapshot->image_asset_id === $card['image_asset_id'])) continue;
+            if (! $card || $card['archived_at'] || ($snapshot->name === $card['name'] && $snapshot->image_asset_id === $card['image_asset_id'])) {
+                continue;
+            }
             $changes[] = [
                 'snapshot_id' => $snapshot->id, 'source_asana_id' => $snapshot->source_asana_id,
                 'source_revision' => (int) $card['revision'],
@@ -337,6 +460,7 @@ class PracticeEditor
                 'after_name' => $card['name'], 'after_image_url' => $card['image_url'],
             ];
         }
+
         return $changes;
     }
 
@@ -387,6 +511,9 @@ class PracticeEditor
         return [
             'title' => $input['title'], 'theme' => $input['theme'] ?? null,
             'note' => $input['note'] ?? null, 'practice_date' => $input['practice_date'] ?? null,
+            'fragment_kind' => $input['fragment_kind'] ?? null,
+            'illustration_style' => $input['illustration_style'] ?? null,
+            'illustration_character' => $input['illustration_character'] ?? null,
         ];
     }
 
@@ -465,6 +592,7 @@ class PracticeEditor
             throw ValidationException::withMessages(['cells' => 'Одна из карточек недоступна в этом рабочем пространстве.']);
         }
         foreach ($cells as $cell) {
+            ExecutionParameters::values($cell);
             $customName = $this->customName($cell);
             if ($cell['card_snapshot_id'] !== null && $customName !== null) {
                 throw ValidationException::withMessages(['cells' => 'В ячейке можно сохранить изображение асаны или своё название, но не оба одновременно.']);
@@ -495,7 +623,7 @@ class PracticeEditor
     {
         $customName = $this->customName($cell);
 
-        return [
+        return ExecutionParameters::values($cell) + [
             'card_snapshot_id' => $cell['card_snapshot_id'],
             'custom_name' => $customName,
             'group_key' => $this->groupKey($cell),
@@ -680,6 +808,11 @@ class PracticeEditor
         foreach (array_chunk($cellRecords, 300) as $chunk) {
             DB::table('practice_cells')->insert($chunk);
         }
+        $snapshotIds = array_values(array_unique(array_filter(array_column($cellRecords, 'card_snapshot_id'))));
+        $sourceIds = $this->owned('practice_card_snapshots')->whereIn('id', $snapshotIds)->whereNotNull('source_asana_id')->pluck('source_asana_id')->unique()->all();
+        if ($sourceIds) {
+            app(CatalogUsage::class)->record($sourceIds);
+        }
     }
 
     private function hydrateDocument(object $record): array
@@ -720,7 +853,7 @@ class PracticeEditor
 
     private function hydrateCell(object $cell, array $snapshots): array
     {
-        return ['id' => $cell->id, 'card_snapshot_id' => $cell->card_snapshot_id, 'custom_name' => $cell->custom_name, 'group_key' => $cell->group_key, 'arrow_direction' => $cell->arrow_direction, 'note' => $cell->note, 'card' => $snapshots[$cell->card_snapshot_id] ?? null];
+        return ExecutionParameters::values($cell) + ['id' => $cell->id, 'card_snapshot_id' => $cell->card_snapshot_id, 'custom_name' => $cell->custom_name, 'group_key' => $cell->group_key, 'arrow_direction' => $cell->arrow_direction, 'note' => $cell->note, 'card' => $snapshots[$cell->card_snapshot_id ?? ''] ?? null];
     }
 
     private function snapshots(array $ids): array

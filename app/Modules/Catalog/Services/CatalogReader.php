@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 class CatalogReader implements AsanaReader
 {
     /** Summary readers never fetch the potentially large editable drawing JSON. */
-    public const SUMMARY_COLUMNS = ['id', 'workspace_id', 'name', 'description', 'current_image_asset_id', 'revision', 'archived_at', 'created_at', 'updated_at'];
+    public const SUMMARY_COLUMNS = ['id', 'workspace_id', 'name', 'description', 'current_image_asset_id', 'revision', 'archived_at', 'created_at', 'updated_at', 'sanskrit_cyrillic', 'sanskrit_latin', 'has_bind', 'classification_status'];
 
     public function __construct(private WorkspaceContext $workspace, private AssetStore $assets) {}
 
@@ -56,9 +56,16 @@ class CatalogReader implements AsanaReader
         $related = Asana::query()->select(self::SUMMARY_COLUMNS)->where('workspace_id', $this->workspace->id())->whereIn('id', $links->pluck('related_asana_id')->unique())->get()->keyBy('id');
         $relatedImages = $this->assets->getMany($related->pluck('current_image_asset_id')->unique()->all());
 
+        $preferences = DB::table('catalog_asana_preferences')->where('workspace_id', $this->workspace->id())->where('user_id', $this->workspace->userId())->whereIn('asana_id', $asanas->modelKeys())->get()->keyBy('asana_id');
+
         return $asanas->mapWithKeys(fn (Asana $asana) => [$asana->id => [
             'id' => $asana->id, 'name' => $asana->name, 'description' => $asana->description,
-            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source] : []),
+            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source, 'steps' => $asana->steps ?? [], 'teacher_cues' => $asana->teacher_cues ?? [], 'equipment' => $asana->equipment ?? [], 'precautions' => $asana->precautions ?? [], 'adaptations' => $asana->adaptations ?? [], 'editorial' => $asana->editorial ?? []] : []),
+            'sanskrit_cyrillic' => $asana->sanskrit_cyrillic, 'sanskrit_latin' => $asana->sanskrit_latin,
+            'has_bind' => $asana->has_bind, 'classification_status' => $asana->classification_status,
+            'favorite' => (bool) ($preferences[$asana->id]->favorite ?? false),
+            'facet_assignments' => collect(Facets::DIMENSIONS)->mapWithKeys(fn ($dimension) => [$dimension => $asana->categories->where('dimension', $dimension)->pluck('id')->values()->all()])->all(),
+            'facet_values' => $asana->categories->whereNotNull('dimension')->map->only(['id', 'name', 'dimension', 'system_key', 'revision'])->values()->all(),
             'aliases' => $asana->aliases->pluck('name')->all(),
             'collection_ids' => $memberships[$asana->id] ?? [],
             'relations' => $links->where('asana_id', $asana->id)->filter(fn ($link) => isset($related[$link->related_asana_id]))->map(fn ($link) => [
@@ -67,7 +74,7 @@ class CatalogReader implements AsanaReader
                 'image_url' => $relatedImages[$related[$link->related_asana_id]->current_image_asset_id]['thumbnail_url'],
                 'archived_at' => $related[$link->related_asana_id]->archived_at?->toISOString(),
             ])->values()->all(),
-            'categories' => $asana->categories->map->only(['id', 'name', 'revision'])->all(),
+            'categories' => $asana->categories->whereNull('dimension')->map->only(['id', 'name', 'revision'])->all(),
             'image_asset_id' => $asana->current_image_asset_id,
             'image_url' => $images[$asana->current_image_asset_id]['image_url'],
             'thumbnail_url' => $images[$asana->current_image_asset_id]['thumbnail_url'],

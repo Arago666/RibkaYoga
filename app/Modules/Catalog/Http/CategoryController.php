@@ -4,6 +4,7 @@ namespace App\Modules\Catalog\Http;
 
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Services\Facets;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,8 +16,10 @@ class CategoryController
 
     public function index(): JsonResponse
     {
-        return response()->json(['data' => Category::where('workspace_id', $this->workspace->id())
-            ->orderBy('name')->orderBy('id')->get()->map->only(['id', 'name', 'revision'])]);
+        app(Facets::class)->ensure($this->workspace->id());
+
+        return response()->json(['facets' => Category::where('workspace_id', $this->workspace->id())->whereNotNull('dimension')->orderBy('sort_order')->get()->groupBy('dimension'), 'data' => Category::where('workspace_id', $this->workspace->id())
+            ->whereNull('dimension')->orderBy('name')->orderBy('id')->get()->map->only(['id', 'name', 'revision'])]);
     }
 
     public function store(Request $request): JsonResponse
@@ -36,6 +39,7 @@ class CategoryController
         $data = $this->validate($request, true);
         $category = DB::transaction(function () use ($data, $id) {
             $category = Category::where('workspace_id', $this->workspace->id())->lockForUpdate()->findOrFail($id);
+            abort_if($category->system_key !== null, 422, 'Системные признаки нельзя изменять или удалять как личную категорию.');
             $this->checkRevision($category, $data['expected_revision']);
             unset($data['expected_revision']);
             $category->fill([...$data, 'parent_id' => null, 'revision' => $category->revision + 1])->save();
@@ -51,6 +55,7 @@ class CategoryController
         $data = $request->validate(['expected_revision' => ['required', 'integer', 'min:1']]);
         DB::transaction(function () use ($id, $data) {
             $category = Category::where('workspace_id', $this->workspace->id())->lockForUpdate()->findOrFail($id);
+            abort_if($category->system_key !== null, 422, 'Системные признаки нельзя изменять или удалять как личную категорию.');
             $this->checkRevision($category, $data['expected_revision']);
             if (DB::table('catalog_asana_category')->where('category_id', $id)->exists()) {
                 throw ValidationException::withMessages(['category' => 'Сначала снимите эту категорию с асан.']);

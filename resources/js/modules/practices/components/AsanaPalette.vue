@@ -14,7 +14,8 @@ import {
 import { api } from '@/shared/api';
 import type { Asana, Category, Collection, Page } from '@/modules/catalog/types';
 import CategoryQuickFilters from '@/modules/catalog/components/CategoryQuickFilters.vue';
-import CategoryMarkers from '@/modules/catalog/components/CategoryMarkers.vue';
+import FacetFilters from '@/modules/catalog/components/FacetFilters.vue';
+import { emptyFilters, setFilterParams } from '@/modules/catalog/facets';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
 const props = defineProps<{
   documentId: string;
@@ -58,6 +59,7 @@ const pageProps = usePage();
 const sourceInputId = useId();
 const searchInput = ref<HTMLInputElement | null>(null);
 const key = `ribka:palette:${(pageProps.props.auth as { user?: { id: number } })?.user?.id}:${props.documentId}`;
+const filters = ref(emptyFilters());
 const query = ref(''),
   category = ref(''),
   source = ref('all'),
@@ -79,7 +81,9 @@ const title = computed(() =>
     ? 'Все асаны'
     : collections.value.find((item) => item.id === source.value)?.name || 'Подборка',
 );
-const hasSearchFilter = computed(() => !!query.value || (source.value === 'all' && !!category.value));
+const hasSearchFilter = computed(
+  () => !!query.value || !!category.value || JSON.stringify(filters.value) !== JSON.stringify(emptyFilters()),
+);
 function remember() {
   try {
     localStorage.setItem(key, JSON.stringify({ source: source.value }));
@@ -93,29 +97,20 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    if (source.value === 'all') {
-      const search = new URLSearchParams({
-        q: query.value,
-        sort: sort.value,
-        page: String(page.value),
-        per_page: '24',
-      });
-      if (category.value) search.set('category', category.value);
-      const result = await api<Page<Asana>>(`/api/asanas?${search}`);
-      if (current !== serial) return;
-      cards.value = result.data;
-      total.value = result.total;
-      lastPage.value = result.last_page;
-    } else {
-      const result = await api<{ data: Collection }>(`/api/collections/${source.value}`);
-      if (current !== serial) return;
-      const normalize = (text: string) => text.toLocaleLowerCase('ru').replaceAll('ё', 'е');
-      cards.value = result.data.items.filter((card) =>
-        normalize([card.name, ...(card.aliases ?? [])].join(' ')).includes(normalize(query.value)),
-      );
-      total.value = cards.value.length;
-      lastPage.value = 1;
-    }
+    const search = new URLSearchParams({
+      q: query.value,
+      sort: sort.value,
+      page: String(page.value),
+      per_page: '24',
+      archive: 'active',
+    });
+    if (category.value) search.set('category', category.value);
+    if (source.value !== 'all') search.set('collection', source.value);
+    const result = await api<Page<Asana>>(`/api/asanas?${setFilterParams(search, filters.value)}`);
+    if (current !== serial) return;
+    cards.value = result.data;
+    total.value = result.total;
+    lastPage.value = result.last_page;
   } catch (e) {
     if (current === serial) error.value = e instanceof Error ? e.message : 'Не удалось загрузить асаны.';
   } finally {
@@ -130,6 +125,14 @@ watch([query, category, source, sort], () => {
   clearTimeout(timer);
   timer = setTimeout(load, 250);
 });
+watch(
+  filters,
+  () => {
+    page.value = 1;
+    void load();
+  },
+  { deep: true },
+);
 watch(page, load);
 onMounted(async () => {
   if (props.embedded) void nextTick(() => searchInput.value?.focus());
@@ -197,7 +200,6 @@ onBeforeUnmount(() => {
           aria-label="Найти асану в панели"
           :disabled="disabled"
         /><button
-          v-if="source === 'all'"
           class="icon-btn"
           aria-label="Фильтры асан"
           :aria-expanded="moreFilters"
@@ -206,9 +208,9 @@ onBeforeUnmount(() => {
           <SlidersHorizontal :size="17" />
         </button>
       </div>
-      <div v-if="moreFilters && source === 'all'" class="palette-extra">
+      <div v-if="moreFilters" class="palette-extra">
         <select class="select" v-model="category" aria-label="Категория" :disabled="disabled">
-          <option value="">Все категории</option>
+          <option value="">Мои категории: все</option>
           <option v-for="item in categories" :key="item.id" :value="item.id">
             {{ item.name }}
           </option>
@@ -219,12 +221,12 @@ onBeforeUnmount(() => {
           <option value="recent">Недавно добавленные</option>
         </select>
       </div>
-      <CategoryQuickFilters
-        v-if="source === 'all'"
-        v-model="category"
-        :categories="categories"
-        :disabled="disabled"
+      <FacetFilters
+        v-model="filters"
+        :context="{ q: query, category, collection: source === 'all' ? '' : source, sort, archive: 'active' }"
+        compact
       />
+      <CategoryQuickFilters v-model="category" :categories="categories" :disabled="disabled" />
     </div>
     <p v-if="!embedded" class="palette-hint">
       {{ active ? 'Нажмите на асану, чтобы вставить её' : 'Выберите ячейку или перетащите асану' }}
@@ -273,7 +275,9 @@ onBeforeUnmount(() => {
           draggable="false"
         /><span>{{ card.name }}</span
         ><small v-if="card.archived_at">В архиве</small>
-        <CategoryMarkers :categories="card.categories" style="position: absolute; left: 8px; top: 8px" />
+        <small v-if="card.facet_values?.some((v) => v.dimension === 'difficulty')">{{
+          card.facet_values.find((v) => v.dimension === 'difficulty')?.name
+        }}</small>
       </button>
     </div>
     <footer class="palette-footer">

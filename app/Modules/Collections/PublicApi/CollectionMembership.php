@@ -19,6 +19,16 @@ class CollectionMembership
         $this->tree->lock();
     }
 
+    /** Complete source membership for the catalog query; never a partially loaded UI page. */
+    public function asanaIdsForSource(string $collectionId): array
+    {
+        $collection = AsanaCollection::where('workspace_id', $this->workspace->id())
+            ->whereNull('archived_at')->whereKey(strtolower($collectionId))->first();
+        abort_unless($collection, 404);
+
+        return $collection->items()->orderBy('position')->pluck('asana_id')->all();
+    }
+
     /** The starter catalog has a usable active collection before its first card is created. */
     public function starterCollection(): string
     {

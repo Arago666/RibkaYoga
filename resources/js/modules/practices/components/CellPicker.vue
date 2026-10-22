@@ -5,6 +5,9 @@ import Modal from '@/shared/Modal.vue';
 import AsanaPalette from './AsanaPalette.vue';
 import type { Asana } from '@/modules/catalog/types';
 import type { Cell } from '../types';
+import IllustrationSettings, {
+  type PreparedIllustration,
+} from '@/modules/catalog/components/IllustrationSettings.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -14,7 +17,9 @@ const props = defineProps<{
   error?: string;
 }>();
 const emit = defineEmits<{ close: []; select: [card: Asana]; custom: [name: string] }>();
-const mode = ref<'library' | 'custom'>('library');
+const mode = ref<'library' | 'custom' | 'illustration'>('library');
+const styleCard = ref<Asana | null>(null),
+  preparedStyle = ref<PreparedIllustration | null>(null);
 const customName = ref('');
 const nameInput = ref<HTMLInputElement | null>(null);
 const formId = useId();
@@ -25,13 +30,25 @@ watch(
     if (!open) return;
     customName.value = props.cell?.custom_name || '';
     mode.value = props.cell?.custom_name ? 'custom' : 'library';
+    styleCard.value = null;
+    preparedStyle.value = null;
     if (mode.value === 'custom') void nextTick(() => nameInput.value?.focus());
   },
 );
-function chooseMode(value: 'library' | 'custom') {
+function chooseMode(value: 'library' | 'custom' | 'illustration') {
   if (props.busy) return;
   mode.value = value;
   if (value === 'custom') void nextTick(() => nameInput.value?.focus());
+}
+function chooseCard(card: Asana) {
+  if (mode.value === 'illustration') {
+    styleCard.value = card;
+    preparedStyle.value = null;
+  } else emit('select', card);
+}
+function insertStyle() {
+  if (styleCard.value && preparedStyle.value && !props.busy)
+    emit('select', { ...styleCard.value, illustration_variant_id: preparedStyle.value.variant_id ?? null });
 }
 function saveName() {
   if (!props.busy && customName.value.trim()) emit('custom', customName.value.trim());
@@ -59,9 +76,18 @@ function saveName() {
       >
         <Type :size="18" /> Своё название
       </button>
+      <button
+        class="tab"
+        :class="{ active: mode === 'illustration' }"
+        :aria-pressed="mode === 'illustration'"
+        :disabled="busy"
+        @click="chooseMode('illustration')"
+      >
+        Стиль и персонаж
+      </button>
     </div>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
-    <template v-if="mode === 'library'">
+    <template v-if="mode === 'library' || mode === 'illustration'">
       <p class="picker-description">
         Найдите асану по названию или откройте подборку. Нажмите на карточку, чтобы вставить её.
       </p>
@@ -73,8 +99,19 @@ function saveName() {
         :mobile-open="false"
         :disabled="busy"
         embedded
-        @select="emit('select', $event)"
+        @select="chooseCard"
       />
+      <template v-if="mode === 'illustration' && styleCard"
+        ><h3>{{ styleCard.name }}</h3>
+        <IllustrationSettings
+          :key="styleCard.id"
+          :asana-id="styleCard.id"
+          :source-asset-id="styleCard.image_asset_id"
+          :image-url="styleCard.image_url"
+          compact
+          @select="preparedStyle = $event"
+          @reset="preparedStyle = null"
+      /></template>
     </template>
     <form v-else :id="formId" class="custom-form" @submit.prevent="saveName">
       <p class="picker-description">
@@ -110,6 +147,14 @@ function saveName() {
         :disabled="busy || !customName.trim()"
       >
         Вставить название
+      </button>
+      <button
+        v-if="mode === 'illustration'"
+        class="btn btn-primary"
+        :disabled="busy || !preparedStyle"
+        @click="insertStyle"
+      >
+        Вставить выбранное представление
       </button>
     </template>
   </Modal>

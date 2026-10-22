@@ -4,7 +4,10 @@ import { Search, Check, ChevronLeft, ChevronRight } from '@lucide/vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { errorText, type Asana, type Page, type Category } from '../types';
+import FacetFilters from './FacetFilters.vue';
+import { emptyFilters, setFilterParams } from '../facets';
 import CategoryQuickFilters from './CategoryQuickFilters.vue';
+const filters = ref(emptyFilters());
 const categories = ref<Category[]>([]),
   category = ref('');
 const props = withDefaults(defineProps<{ open: boolean; existingIds?: string[]; existingLabel?: string }>(), {
@@ -26,7 +29,7 @@ async function load() {
   error.value = '';
   try {
     const response = await api<Page<Asana>>(
-      `/api/asanas?${new URLSearchParams({ q: query.value, category: category.value, page: String(page.value), archive: 'active', sort: 'name_asc' })}`,
+      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, page: String(page.value), archive: 'active', sort: 'name_asc' }), filters.value)}`,
     );
     if (request === sequence) result.value = response;
   } catch (failure) {
@@ -40,6 +43,7 @@ watch(
   (open) => {
     if (open) {
       selection.value = new Map();
+      filters.value = emptyFilters();
       query.value = '';
       page.value = 1;
       void load();
@@ -56,6 +60,14 @@ watch(query, () => {
     void load();
   }, 250);
 });
+watch(
+  filters,
+  () => {
+    page.value = 1;
+    void load();
+  },
+  { deep: true },
+);
 watch(category, () => {
   page.value = 1;
   void load();
@@ -80,6 +92,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <Modal :open="open" title="Выбрать асаны" @close="$emit('close')">
+    <FacetFilters v-model="filters" :context="{ q: query, category, archive: 'active' }" compact />
     <CategoryQuickFilters v-model="category" :categories="categories" />
     <div class="picker-search">
       <Search :size="18" /><input

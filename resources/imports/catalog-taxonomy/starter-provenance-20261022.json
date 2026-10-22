@@ -1,0 +1,1110 @@
+{
+  "format": "ribka-starter-provenance-v1",
+  "manifest_sha256": "a647cb5b6b007dade662f3cecc67ccc5d97d7befb5f2673c86d2840a5e359b83",
+  "items": [
+    {
+      "asana_id": "01a0e872-7f78-7307-a8f1-8caffd0ea148",
+      "image_asset_id": "d128d4e9-7901-44bb-9866-60297ed6c537",
+      "image_sha256": "b6c739e2fff2ed20da99abbe64fc0334b3fc061c6850778bc91f222a2c6314ec",
+      "drawing_sha256": "b943e3f7c1375fbf1af187c46b787d6792920d9335dd1c3dae8d3c85c868e347"
+    },
+    {
+      "asana_id": "01a0e872-84a9-73f9-9055-5605bdda016b",
+      "image_asset_id": "c26f452c-d682-4aa6-8b9b-a35c89fb3e1d",
+      "image_sha256": "2caa7d18a166a3fddade8480950e0805b2b1bb7dfcdf5ffbdd507c2bc12b5132",
+      "drawing_sha256": "71ccde6f8cc4de4cf645e36841eadc0d2d96f268f7211cf0f680ea940a13a561"
+    },
+    {
+      "asana_id": "01a0e872-78aa-7144-babf-0c25ad45932a",
+      "image_asset_id": "0de639ba-42f6-456e-a01b-4049b14b950d",
+      "image_sha256": "2326fdae4211eff9f575919b252fd269f92c8e7b15d7b34b39e4db09dde3d0b1",
+      "drawing_sha256": "4fff22b5b2c8973c0c3d2d1a8924ac4c4d3b35abfa18f03e78a7dc2079b8422d"
+    },
+    {
+      "asana_id": "01a0e872-7958-739c-a56c-1699345ff51c",
+      "image_asset_id": "3073caf5-c863-4d24-b6d4-7b58d06381a1",
+      "image_sha256": "8209ffa637abfd27e21ecee7ddb40c3387b15f4ff602c1d5b504457db8dd0b50",
+      "drawing_sha256": "76d5d6dc76a2ddb71ec3c2c37f38560326e98869e17525fa429a0e5fd86a9d9f"
+    },
+    {
+      "asana_id": "01a126b2-b0a6-7222-9d66-71e33a77dc7f",
+      "image_asset_id": "b0516262-6d33-441b-9754-ba535df4d4fd",
+      "image_sha256": "a12f98a2150793a51dce4dd22246f379a30e8e9bab96861b1ce106892ce4f1c0",
+      "drawing_sha256": "ebd8d1ad0ec25e10feb909005e90ef17cfdfc05cc9d42dea720823e048eeefbd"
+    },
+    {
+      "asana_id": "01a12698-5d62-7057-b74a-522a42e278b7",
+      "image_asset_id": "ffc2bf40-9201-42ee-84c5-82e933dcc7b5",
+      "image_sha256": "5d360acd1b5bf38ef526a10e1b1733d906b4a96e4e9aeffb7402d3548cbdf41f",
+      "drawing_sha256": "42d788ffb487bf81eeac3a989ebf1949dad083ced1a8d3111f1d5513e1b7ba08"
+    },
+    {
+      "asana_id": "01a0e872-8373-7238-acdb-e8fbb243bef6",
+      "image_asset_id": "6bdfb90e-45a3-433c-848c-3cefdd80cd66",
+      "image_sha256": "2cf64bfb848a66be98fd5c5a52b0de411af7198dbe7fbc61bebecee8b61faa57",
+      "drawing_sha256": "fe9b542ce59167b60285b82b147c793bd79dab422e51a0ad44471344110d1f45"
+    },
+    {
+      "asana_id": "01a0e872-8354-7106-aed3-babbd59f3cfc",
+      "image_asset_id": "5407c947-39cb-4c22-b9ab-349325d08194",
+      "image_sha256": "9589a1a697c8bd2cb3b06e16694d1f2116f7667a0ded13481693f34d222dc426",
+      "drawing_sha256": "069af7121d6e19001437212e462ee530d6e19091b81979e1d4e70b60891dc85b"
+    },
+    {
+      "asana_id": "01a0e872-7dad-711d-9c19-19b0c4b30228",
+      "image_asset_id": "ff09fc6c-ba04-4978-9d75-f3d21f641681",
+      "image_sha256": "1a3a0df56bece56bb4681e3ac424189fa8379d27133b245a4df780d2bd793f1c",
+      "drawing_sha256": "19478cb396a5a8f51c4c54aefee6e80f19667cbac6332bb6341e27504a8a4b68"
+    },
+    {
+      "asana_id": "01a112a4-03ee-7071-b264-f343cd6b390e",
+      "image_asset_id": "84545cbe-e669-42fd-8238-43f300d4d9b1",
+      "image_sha256": "2f34842d573a4017593f131b0e5814b4ee46b6f9ee8e1c5f6b4f5420f1c3b940",
+      "drawing_sha256": "ac55f5ae76f165a9b56136f71a7dddb5baac4e6be387c2b924cc5cf8a4343c6f"
+    },
+    {
+      "asana_id": "01a0e872-7e97-70c5-ae7d-ba259809aa91",
+      "image_asset_id": "cc389286-a33b-4561-a4a3-7cc3b1adb4ad",
+      "image_sha256": "4c5a8758edce67dfab9c4a76224edd47e0e533d5b2ce6c53184331e8853c60e4",
+      "drawing_sha256": "727fe512b70461a12339b088eb33319eacbd44ca6786f7f9a62b086ffc0b9acb"
+    },
+    {
+      "asana_id": "01a0e872-83fc-722c-899a-4d625db1f1ac",
+      "image_asset_id": "48743187-e9e9-4950-9999-a439d28a220c",
+      "image_sha256": "9fa79175cda84c9f8771e3cfe8bbfcece29998f6b6b75f5013f00ffe32786dca",
+      "drawing_sha256": "4df8c96f80c3005c4210d8f6bb849f8bb0408dc8fd5983d11d488c3af34c38e4"
+    },
+    {
+      "asana_id": "01a0e872-7e11-7310-8619-09f69e9f302f",
+      "image_asset_id": "e9161f6b-a60c-479a-9247-3ac75dbb1887",
+      "image_sha256": "0704628c96026ba900d23576779e87a8437cacfa81bfce07779910b29b6497e3",
+      "drawing_sha256": "46bef7cee3ed131dd73e6e8db34c9a343ad50c664d3304db0610c85e0591385d"
+    },
+    {
+      "asana_id": "01a0e872-7c5e-7060-a038-e3c0e19b8b29",
+      "image_asset_id": "376a6362-8855-4a1d-aef4-1916d23c2fc2",
+      "image_sha256": "9e111878ab3d7e804a86770e9d60ce243d969e4a311d53935e7a694573dc8eee",
+      "drawing_sha256": "7e98e2de7961195815ca8052f3201464288e0ec2e915f0079d6b5ab1fdd11950"
+    },
+    {
+      "asana_id": "01a13a0d-8ed5-724c-994f-fd49b3da46b2",
+      "image_asset_id": "03a039d2-5d29-4808-b22f-f6e686798cbf",
+      "image_sha256": "c4025602b1ee74ad98b387527ff7ae88d99645b0edb2eb0ee923095e390504aa",
+      "drawing_sha256": "9b85c5f39b3434942b7c58b7037cfb8076fb639108ddee8edd6a541fa7b897ed"
+    },
+    {
+      "asana_id": "01a13a0d-8ec5-7016-a004-614525dbf93c",
+      "image_asset_id": "a9160d9d-3d8b-4bb8-9d5b-21f3565a4e30",
+      "image_sha256": "c5c733e86a473b038c84b9dbc20df78c96909300eb0dd0d51a8dab8af40e3eab",
+      "drawing_sha256": "e7f4b6c7b5e960bbfda3756cd881afdc30162512a5d1c88c464c2ad4796fe9d8"
+    },
+    {
+      "asana_id": "01a126b3-b113-7398-9645-3157693eb165",
+      "image_asset_id": "a2aec850-f657-4d4e-a502-161fe56fdb96",
+      "image_sha256": "49c3fc7b148e10db82594f547b57fe40d2fdc8ccabb06676bbb820d12eece878",
+      "drawing_sha256": "d4e55df3a5d38c55c6556e418c8553bbfa883c173d7eef7b6a855c1c162afbc7"
+    },
+    {
+      "asana_id": "01a13a0d-8cae-7147-9367-460fd934b61b",
+      "image_asset_id": "ccc0a332-5648-44d2-9659-3e8806fa3288",
+      "image_sha256": "b0ee6af959c421615ac33fbcd23ad3697bcc0e259b25ccd4cda1bc071023d653",
+      "drawing_sha256": "d5afa8b6b21d0ebc4c66c8e106d2dfd89f3a09852e264c4159fe21802cdfc354"
+    },
+    {
+      "asana_id": "01a13a0d-8c90-7043-9a53-8068ea0e205d",
+      "image_asset_id": "99469cd1-2a86-427e-a76d-99baa75b447e",
+      "image_sha256": "7b96daabe7faf8b202d587f13a408c063dda26d158302804ddfe316eeee340e3",
+      "drawing_sha256": "8de21ac9c35123d20fa0a77de27ad9afad8dbd1d89e69109422fdf217f53264e"
+    },
+    {
+      "asana_id": "01a126b3-7241-729e-9a57-5f633da98750",
+      "image_asset_id": "90dc7940-50bc-41d8-82a9-7df28ef3e394",
+      "image_sha256": "7edf53e6b2e73536203aa3229eb98436d08b2d0c7b784353e23aa3cff2fc029e",
+      "drawing_sha256": "035e46f49c43700ec3c47a4a0877c722dcea7986d7972453efdf1950257462fd"
+    },
+    {
+      "asana_id": "01a0e872-7d39-7364-b0f7-71ef4300159d",
+      "image_asset_id": "4c75e363-b8ab-4ff6-a836-54faef4e3373",
+      "image_sha256": "a4dc3e7031a33b761cbabd2ecb6fb37db16d2a522b68afb7a3617720c921d2d0",
+      "drawing_sha256": "7fc894023fd51ef4022935ffab5a024d2d43dfe358d3f9d41c1c6be0c1522401"
+    },
+    {
+      "asana_id": "01a0e872-7b1c-72f5-8b8d-eed238ef1ab1",
+      "image_asset_id": "925272a3-71c6-4863-bab2-73a3efdea04b",
+      "image_sha256": "e9cedbff5a724e1f266d1ca5002eea908ed9cb7f46c275930c02705dfdea0cfb",
+      "drawing_sha256": "a11c1fea2216c8057f77b569b6e5d3dad05f9f46b360c3c534e89265c23c5351"
+    },
+    {
+      "asana_id": "01a0e872-80d5-73e8-8daa-b021dee0eb97",
+      "image_asset_id": "75924e58-2399-4207-b391-cca67bd4f8e9",
+      "image_sha256": "f311f7fce66a200a41cec391ce20a52254bd96866ea5e36d1a0fe9abc7dfa194",
+      "drawing_sha256": "0213b1a3869454df406817c3ff2f0304fbfcfffaa27165e23b3c7cb74a535ffd"
+    },
+    {
+      "asana_id": "01a0e872-810a-72a3-a6b6-7e9064a2ba9b",
+      "image_asset_id": "dfd2cd07-9027-455d-b15a-e320ba50cf41",
+      "image_sha256": "e3014d93eb60dd1c048c230d90e3ed0ff60e05ed46b777f08aa021a849b7a860",
+      "drawing_sha256": "59f87baa81da8123329e0dbb8d479c06385b268021fe9299a63cf8e9aa3010e2"
+    },
+    {
+      "asana_id": "01a0ed63-5a5e-72f7-9211-271f6325f01e",
+      "image_asset_id": "5d10500e-f046-4a18-a98e-62460bfcdde1",
+      "image_sha256": "146652bc0fdcff3b2e7bcb1367d317406d55ac9e9ff4f768437fc962e611f5fc",
+      "drawing_sha256": "a40e2b81c4f270bd62f7fb1a889a1100bae6762ebc78af63a6a81899788706e6"
+    },
+    {
+      "asana_id": "01a0e872-8331-73df-bf23-64bc98de431c",
+      "image_asset_id": "f66c7482-326d-4f43-b129-a5a7a20ad469",
+      "image_sha256": "bd457097f1f2ab98be56ee1cead807118d37160928558eb8e316511d3d1f5c27",
+      "drawing_sha256": "608abe6ef251356bb6a7a065d3e50f2129373912dc21b08a2fc6822b80a62956"
+    },
+    {
+      "asana_id": "01a13a0d-9100-724c-aa7c-db76d8d5308b",
+      "image_asset_id": "16d29b11-1bd3-428e-83bd-f4ee62bcccfe",
+      "image_sha256": "9fe6b4d7f984d373aa02e7213dbc1e6d804eb2efa306eb0bbe7d1c244f3cfa3b",
+      "drawing_sha256": "647f9242c3a00ac36c29b0491f7d768e5ebbbaab9cef37fedf02eb53326d5894"
+    },
+    {
+      "asana_id": "01a126b4-1792-70aa-ab53-996fb37ecaa7",
+      "image_asset_id": "38d4c86a-bc06-43b6-81fa-5c08e21cace9",
+      "image_sha256": "6f9165fb7520303d8b3546d2d21add5265bdf286cdd30519236d61651c78f091",
+      "drawing_sha256": "cb1434d3e44508a3ce030f694ab8e00a75450a531053f6edd5ce04d5c24d742e"
+    },
+    {
+      "asana_id": "01a0e872-81c9-7285-929c-7a584fdd1ca0",
+      "image_asset_id": "a7092db7-f031-44ab-8a42-f375295d8a3d",
+      "image_sha256": "7966af688a4c08e11e2307fbf5a46744e2e119511b859204c06fd4375f42ca00",
+      "drawing_sha256": "5a46270f0cba57b0905d1b3749795a00aca4fb93553d39b5131e9b0a306d288a"
+    },
+    {
+      "asana_id": "01a13a0d-8d6e-7390-9ca0-a76f0191515a",
+      "image_asset_id": "56a2144c-8ec2-480c-abbe-1efdf6959949",
+      "image_sha256": "1626777f564a711a2b2035d987aaaee3a03d7991a051914e9a828e22f5b04632",
+      "drawing_sha256": "0073239dba5517ccbe245f9528ad5cab124308caeb776b10d0c800e9cdacfef7"
+    },
+    {
+      "asana_id": "01a112d2-f2f7-700e-8c1d-6b2fd1848297",
+      "image_asset_id": "0e6d7c65-05ad-4600-9aea-14e240bfe7df",
+      "image_sha256": "e2ec3cdd828274cc75f2198c64e0617c66b36ebbd4775b6e16afc579f5a0550f",
+      "drawing_sha256": "00818dcad28ddc18a4cfa1965faca58a52165037e71df2c3cec481d3d75cf1e2"
+    },
+    {
+      "asana_id": "01a0e872-8130-7144-881b-d7218a6465f2",
+      "image_asset_id": "7d527365-58ab-4588-93b8-0e20acf55f0a",
+      "image_sha256": "dc92bc12a1199225cc5e9aad7754059e43fb6aa357f0163a0da163acf16bfb7b",
+      "drawing_sha256": "5ce92435eda9461bb91f4aaffdf6ed6989efbae804b51ccfbf50c334c148520b"
+    },
+    {
+      "asana_id": "01a0e872-8420-729b-b14b-25ef7e3ec58c",
+      "image_asset_id": "9147c385-6071-4202-86c3-43fdb2d80dc4",
+      "image_sha256": "790ec71c0e894b2a31693b040bd399e2aa343dfdb74af1ea80aab7f2e8d79a3e",
+      "drawing_sha256": "9a387573515109a15cf9cd7c70745e22d21f9dde1463f37ac1456f74ea76db3a"
+    },
+    {
+      "asana_id": "01a0e872-7df4-7314-b1c7-5952b745a6eb",
+      "image_asset_id": "b67b234c-5cd1-4953-af92-c676df7b958f",
+      "image_sha256": "84645cbc86a0720de05a8c0644ec92650be72558fc954deb9022675527761661",
+      "drawing_sha256": "7613c4ea357b9dc6d0e3d90f8cb92b4db1151d0750afaadb0f25eefd189d562c"
+    },
+    {
+      "asana_id": "01a13a0d-8e2f-71e6-891f-8188baa8a3f4",
+      "image_asset_id": "d96a7a6d-d143-451b-b072-aa3d0d076c29",
+      "image_sha256": "e2edf15d81c611809f082284bae0ed626b72433300be1719a68afb913ad1019b",
+      "drawing_sha256": "b665caba5dda2e59dbb42c9bf6e96723df8c63507ec32be997d1ddb2c931467c"
+    },
+    {
+      "asana_id": "01a13a0d-8e6a-70f7-954b-dac34c30db23",
+      "image_asset_id": "5d291398-bff0-45f8-a2f4-dcfb5f5fe6e7",
+      "image_sha256": "fec4e7fcf26f74139ae1ca7fab7eee7123d52da9a28a9a04b2183941d347d890",
+      "drawing_sha256": "f83a19262789773d95a9884a5b1af5bc7836cba6fc8309de08a22f67da90db0e"
+    },
+    {
+      "asana_id": "01a13a0d-900b-7362-841e-eef28e777dd3",
+      "image_asset_id": "44b6a535-028e-4f8f-8975-b491abed37f9",
+      "image_sha256": "9165479fbfa6316947d0c23466c3a494cfef82cb70c0f62d8239b21e678a0c57",
+      "drawing_sha256": "ffc7a5d086da67885c254e89d779960a815915bce71341ceec5fe2889da47589"
+    },
+    {
+      "asana_id": "01a13a0d-910f-72f7-b8c8-0723b5ec143a",
+      "image_asset_id": "4ff369e7-e524-41d8-ad1c-51145bb21a1a",
+      "image_sha256": "29e81a87d65824d5f3c96bd983ce317baff243ac60484e35cef1e2e124309260",
+      "drawing_sha256": "df0ae7fbc430058ce534a02605f27aeec5ff6acfbc1628e19b8c8e79504df380"
+    },
+    {
+      "asana_id": "01a12678-bbf2-73bb-b9cd-a8cd2f9a2265",
+      "image_asset_id": "932c5879-4fed-487f-876f-dc67dd356ac4",
+      "image_sha256": "21088cb26a8f7efc9bf7a4e5aba7b4cede38b15dd7cbe82ba6b8b03bb17acfdf",
+      "drawing_sha256": "04c9a313d7e84715c95e0927df5046d39cbb356a229f08f80579b4387409cbca"
+    },
+    {
+      "asana_id": "01a12679-03ff-7046-9bb4-da6ea2fd8378",
+      "image_asset_id": "f8e48f71-3570-45f9-ac85-5dacfda08311",
+      "image_sha256": "8d6ffb63fe65272586b51c0e1b3206e34d2c739b727a99cfcc668e17029ac70f",
+      "drawing_sha256": "7ebea3c58daab794881b11c18ac6e29f58fc0929f5161c54d58716b8a21aad4c"
+    },
+    {
+      "asana_id": "01a0e872-825a-7231-9744-c71901a187f1",
+      "image_asset_id": "54cb8ac8-de41-4a6a-adaf-4d44b07de910",
+      "image_sha256": "02ffd16ca4c695b6e63662d70585250a18ed03bdad0285ffc4945b6580657b08",
+      "drawing_sha256": "30a92808fc45d8faa8d4bc587a735ffb769505a5c3ae9fcd60aeb7c41e83fb66"
+    },
+    {
+      "asana_id": "01a13a0d-8e87-73f4-b3cd-e4c9f224f661",
+      "image_asset_id": "da451e7d-1431-46f3-852d-66c80b9f7b84",
+      "image_sha256": "6dc7bdc316032060cc4891b81cae53eb879a40aa85b1187b692376b6a32d4fa1",
+      "drawing_sha256": "f22e32b0ea0024b4c9a50f141bcf5191d5046047363be6b1808d6e0853333b25"
+    },
+    {
+      "asana_id": "01a13a0d-8cea-7217-a6a6-8d594bf1e5da",
+      "image_asset_id": "08ea543c-49a7-45ea-82cc-2aaec22becda",
+      "image_sha256": "63da75b8b3b0045889370d476d5943cfe5b61888ce1a0e29b1aab5557b1578e5",
+      "drawing_sha256": "44fd94759d31ca241aa2b0b1588111d19c728e2ac21d7f34b4e5fd41cdd1dab8"
+    },
+    {
+      "asana_id": "01a13a0d-8d25-703d-a48b-0a0fc897f7b2",
+      "image_asset_id": "f0328451-1981-4dc7-9c80-284fbaeb65e4",
+      "image_sha256": "4123929f7453a0d25d39b728da10cedd0d5e5124c33dea3024c83f8a350ecd16",
+      "drawing_sha256": "f413e234d61068304e119cc711b638edb1a5608f8560837ee7528c8c9b7235f9"
+    },
+    {
+      "asana_id": "01a13a0d-8cdb-7039-9394-d0c4819eb093",
+      "image_asset_id": "b69bfead-ffa1-47e3-aee9-ff9ecd914af3",
+      "image_sha256": "2bcb450934b13d464c0d9f547f03e36997e3c080954a067d78a658d23038d340",
+      "drawing_sha256": "8acbb06b5e1b26598bcd4eee0a216323f3a2e0ca40f0afa9899d5489e9d1f64a"
+    },
+    {
+      "asana_id": "01a13a0d-8ccc-73ee-bc54-7a0c7c736f72",
+      "image_asset_id": "5bbabbfd-5625-48a9-9ef9-cdc8234170a1",
+      "image_sha256": "1fae21d02bf14562223fbdb4ec8333b78d7dcc4a5e3a5ec17eeca208cf8f77fd",
+      "drawing_sha256": "fe20d08ddd4013ee864add3d0fb89ac0d0254ee283d1824b02f350a67c2f6c34"
+    },
+    {
+      "asana_id": "01a13a0d-8d34-71b9-bfc1-1866b7d4815b",
+      "image_asset_id": "404d351f-8dc8-4714-9769-bb832f37ab23",
+      "image_sha256": "aaf544105dc3ff8d1b74ec2aaf1a8c5e8bfefc1c00301ed3ce42e566050930eb",
+      "drawing_sha256": "d215fae4a0cc9f47b066a35c11ba5013e7aaa82946a36728d095f33e130d29d3"
+    },
+    {
+      "asana_id": "01a13a0d-8d07-713e-acc2-2b0b889ab9ac",
+      "image_asset_id": "166ff6c5-f5a1-4601-869f-8986a00792ca",
+      "image_sha256": "4d33cd45035fd2ad458674d282ad1c8c0f96641f60a00ab9a35683332a97c72d",
+      "drawing_sha256": "d7f4261960b8c541713f55246d5b1395e271da1fc056ea3f90b265b3f8d4c5b6"
+    },
+    {
+      "asana_id": "01a112bd-1560-7382-81c9-bc6feee6aa71",
+      "image_asset_id": "50e0b9ce-a2e3-485a-bffe-dda3299dcc1e",
+      "image_sha256": "a429f2bc58146c7544b8cfdc31649c5f0e3f3c8e8884fb506bb4ed88da493964",
+      "drawing_sha256": "28d2dfe4441daaeddb56529c7dc971edf2b13fd3eaf041c66ea3abf207f656da"
+    },
+    {
+      "asana_id": "01a126b5-627c-728f-91d2-07576a38d37f",
+      "image_asset_id": "23f28d9a-f7be-4630-806c-e33d36622dbd",
+      "image_sha256": "c91de73de2f0a33ffecde08a6b8d630b82507e830df731bd44176ad4a9f518ca",
+      "drawing_sha256": "766efab346164b56d31abaec2f2feb534eeb5bb349bc5911bf2c0beb5b5d6032"
+    },
+    {
+      "asana_id": "01a13a70-9b82-7278-ab80-9ae416ef6d63",
+      "image_asset_id": "074fa060-3ca0-4d7b-a6ee-1441b46ae59f",
+      "image_sha256": "d7ae7c1f0b83ba673f4cb547ce7ce3324e98dd7fc28cacd62ab9e0fdaff2a4f0",
+      "drawing_sha256": "ffde0aa5c4d9b72acbedcd3f5b867283aeedb7d1930e0e17142c2246a9336a87"
+    },
+    {
+      "asana_id": "01a13a70-9baf-7338-ba60-e2869ad38fb2",
+      "image_asset_id": "21da9c33-24c6-4855-bf94-1c266c56bbc2",
+      "image_sha256": "d7ae7c1f0b83ba673f4cb547ce7ce3324e98dd7fc28cacd62ab9e0fdaff2a4f0",
+      "drawing_sha256": "fc11809fc4c14b155ecd095cfb1cbb471ec0613a2f607a6fb2bb1b2c329a4594"
+    },
+    {
+      "asana_id": "01a13a0d-90c0-7268-bbef-bbdabb7cceec",
+      "image_asset_id": "6c08e3d8-1187-4176-a9ee-cd0b857cbe20",
+      "image_sha256": "796424fcb1288190460d693ee837d47a71afec5b732dca11c35bde643d6e9995",
+      "drawing_sha256": "a5606c290c61a4d0746c65347cff7a46a3b8dcda70551b6dce97f97a7061438e"
+    },
+    {
+      "asana_id": "01a13a0d-9065-71dc-8c4e-eeb364a604d0",
+      "image_asset_id": "e3ef979d-f2ed-4903-94a2-9bee00c4780f",
+      "image_sha256": "e2ba2242675807e04dc81a930925a01215b05f9e338c21057cbdaf68b5fcc907",
+      "drawing_sha256": "1ff3b7651b6958c97c816c686dc89cf8812879d3bd41e9888347f65170c93a0c"
+    },
+    {
+      "asana_id": "01a13a0d-8d16-7324-ad44-f070f580ccf2",
+      "image_asset_id": "4c9f977a-49b7-4c9d-a010-eb2207e4aebf",
+      "image_sha256": "931543d241c48944051a0ab79c5929decf6abd65510b0209335ef34e04b25428",
+      "drawing_sha256": "a84e4094f7f0a77fb1def45f0b4f8e96aaccaefb613ab58739c99e4e0ee1b757"
+    },
+    {
+      "asana_id": "01a13a0d-9075-7232-8932-e3c491b628d8",
+      "image_asset_id": "eebf82da-17a4-4c3e-b880-9dc5a64b2221",
+      "image_sha256": "e5a9a4ae52c23fd268dc07f868d16b72d1cf5b8c440aec7969a209d4440c21c9",
+      "drawing_sha256": "b466e62b4112ba0d92553edf88bf8fc607db4b522d81936aae992709fa5292d2"
+    },
+    {
+      "asana_id": "01a13a0d-9038-70c1-ae00-ba30743752f8",
+      "image_asset_id": "078aa617-e12f-431d-a8ba-6e78abd2aaeb",
+      "image_sha256": "b928041c335ed43a11b836b33cb6672ca129ef818d0df832ed89883ade27b4b1",
+      "drawing_sha256": "b2238b624d2422a8e2744967ca7ba6047b42b1e1b932b0092c54c2ded8650870"
+    },
+    {
+      "asana_id": "01a13a0d-9056-7261-8bf1-2eb9e07f6a5b",
+      "image_asset_id": "0f31ac7f-a78e-4179-acf1-92e272f86791",
+      "image_sha256": "08a87e0a8b2937a55ab2a89439da5a45a8db5648987e37b66fb7a5284f4fcc83",
+      "drawing_sha256": "7f83fc5fdf29652f8a369943974a91cffd999152d18bb52da72c272c40e733b9"
+    },
+    {
+      "asana_id": "01a13a0d-8cf8-7290-9eb1-3aa69bf36676",
+      "image_asset_id": "867e1244-1345-43c5-a06a-bff8ea98ecb9",
+      "image_sha256": "dd8a0570d66e75d17bb62d65a1b95006f083b3be006e7d2ae9e5c40c2ee222f5",
+      "drawing_sha256": "e603c9ce20c41e88293b03ef8e2804e8801f7423b765136c24cd1fa7fc2f1e1f"
+    },
+    {
+      "asana_id": "01a13a0d-8df3-73c2-864f-b3f96a36ebf4",
+      "image_asset_id": "a1618d12-0f48-4bb9-b581-9424184de037",
+      "image_sha256": "34b7f47af222a70d9a1b0852ffa102cc68febb329e1722479e152d1314219546",
+      "drawing_sha256": "27a73c5615a1a3d9de09fe080507ed2a212f403ffbfdac44c546f81b9bd41210"
+    },
+    {
+      "asana_id": "01a0e872-83d8-73a6-be7b-aa75fbc86c13",
+      "image_asset_id": "997c153f-2a57-4b05-8fec-5a848f981fa8",
+      "image_sha256": "ae7fc202137ed23949eb5170e8b1d797f5585f347fb4075990cf1ebe731976bd",
+      "drawing_sha256": "7235bce55610867db1dc4b69c820145ecff5227102607f7d44dba82207ccf172"
+    },
+    {
+      "asana_id": "01a0e872-8393-7053-9eb0-4051bc8b32b3",
+      "image_asset_id": "70beac4a-741f-4632-ac2f-58169af5d8f8",
+      "image_sha256": "46497010bd9384c6fb8ce9f9b05c492fc276f58a4a67accde2ac9f78a3f3e0f7",
+      "drawing_sha256": "5261dd5567510974f71b31ce6b46d358cbb97e383e7709e14ecf756ee44163c9"
+    },
+    {
+      "asana_id": "01a0e872-7bd5-7343-a698-ddad003f21c1",
+      "image_asset_id": "1db2ac4f-8584-4a20-850e-1f9ee88e48af",
+      "image_sha256": "87b75c6365e2732e3af4c475f0191746e32befcfe7ee0f36a952c64550c695dd",
+      "drawing_sha256": "9ab5824da0509991c23ffc90d165dee851c49b40fc9bcc48f2d9e2d9b98fe26b"
+    },
+    {
+      "asana_id": "01a0e872-7b85-7180-8676-4e2e88a26d2f",
+      "image_asset_id": "0bd5e8c5-b350-4948-b7b2-8625b94a9bbc",
+      "image_sha256": "30f9684f597e9fe7cd59794aa856010b25e702ab95d4ec571565d15bf952ab2e",
+      "drawing_sha256": "b29bdc11db64374ed897abcb698a52cb17687c465923aa0778607fa3e21455b5"
+    },
+    {
+      "asana_id": "01a0e872-7b4e-70f5-b630-c6ad983502a4",
+      "image_asset_id": "4b5828cb-63d1-49c0-8ccf-78d0e11113b3",
+      "image_sha256": "eac6bef527353f9ae9db6945e3f62cb40293bc8451cc322340c9b2c079ed3935",
+      "drawing_sha256": "ce8d5df261cbcd30bcf11814284218fe320c6f45d6b4d1cf2f37c973da5a889a"
+    },
+    {
+      "asana_id": "01a0e872-79fd-7251-b175-aaf96aa4691e",
+      "image_asset_id": "ab06af1d-55c2-4f22-afcf-0807660d78bf",
+      "image_sha256": "1cdb1fe178653d10ac49e8a5adb48c14f5f4a85512415c3a44e702ca71573416",
+      "drawing_sha256": "14b863e72707ce6f3c9e39eb176c12125abb757814832a95bfee30661cebb1b5"
+    },
+    {
+      "asana_id": "01a13a70-9b73-7265-b9b4-c87d4203218b",
+      "image_asset_id": "1fe4e586-adef-42e1-86a7-64567062f24e",
+      "image_sha256": "0ced3638f15fb936bec1bc1b72eacc5a4838b6f3e4710824e9d054ef399d0df6",
+      "drawing_sha256": "a6fa3c48c2a85ad00572f77e18c4500583c37a6c5c0bdaf65bf5eb7761d4ef57"
+    },
+    {
+      "asana_id": "01a126b3-2f54-72e0-9b97-694bcde884fb",
+      "image_asset_id": "68f7b6aa-f7d1-4616-96e7-7d54c467af06",
+      "image_sha256": "47b9c03644bcd7292297890ba3a4b294ee9eceb9887a61f3b13add2cf3d090a0",
+      "drawing_sha256": "c76855344bc5dc589bbe545bc8ab3a408e06f0254e3cde924c806c220eac3bf7"
+    },
+    {
+      "asana_id": "01a12692-dc0c-722c-8231-cbb95307314f",
+      "image_asset_id": "0cbdcd6e-58ed-42b6-b509-ab887e0c7b1a",
+      "image_sha256": "9d10fa828e4a9e3ed2e21686e1fd6b44a74335a5d190af45f1ee31ac4b3b27b5",
+      "drawing_sha256": "33ef765f69573523424ebf8ff24a5924a9e4b60bcee835e3a0423070fad2ff37"
+    },
+    {
+      "asana_id": "01a0e872-7931-71ed-a395-409af9153a07",
+      "image_asset_id": "a396670b-a41a-4d1e-8c77-db8800bfc15a",
+      "image_sha256": "54af86b1fd976c0f1cf40a41c6ad55ee10275d64a6f5e3e0e4ef2025aed2752e",
+      "drawing_sha256": "ed790d4253f67b2cd98dd41e545c79f00a6ad72843436e58d37da4f7b24ffc86"
+    },
+    {
+      "asana_id": "01a13a70-9ba0-7148-9a6a-b49eaedace38",
+      "image_asset_id": "563a153f-4d9b-4c07-9f73-e69ae424453a",
+      "image_sha256": "ccb007e58faf0ede8147d87782a7a316c4d123ecc827954484722327701fca83",
+      "drawing_sha256": "17abee330f14dd3896af9df6c509baf5e648e369d38e2510419a7ac95b9da268"
+    },
+    {
+      "asana_id": "01a0e872-790b-72ff-8868-c52a95a1a081",
+      "image_asset_id": "1af0ee88-4e99-46ce-9fa2-324b243eca3d",
+      "image_sha256": "31d3ba6b867224b951a83d80b9711b0b392a04a426cf1272d07a5c45cddf6d65",
+      "drawing_sha256": "e9f84c2e49d8809b90d4ba2144c92191fb35ced88386d8330282d02cf9b7ea0c"
+    },
+    {
+      "asana_id": "01a13a70-9b60-71f7-8e52-8edfd19010ea",
+      "image_asset_id": "e07b699d-0aa4-4b92-b157-57abd86968c5",
+      "image_sha256": "41c089796da63c298ff43025adca16e2255d0d836b367fb01fce375f3524901b",
+      "drawing_sha256": "ec50e7c45ba4261fa00cbcb28d2e70952978464b0db151c88c2705231f049016"
+    },
+    {
+      "asana_id": "01a13a70-9b91-73a9-8de2-14fbc89031f5",
+      "image_asset_id": "f61ac7f6-820e-4c12-82bc-9c4b3c407208",
+      "image_sha256": "48735747bf23ee9a0a0bf9db18d7610a9dbf3208184382d50a984d3174998fa0",
+      "drawing_sha256": "3055c1959d170df6a77a3f0450e6257e5aeeffbdcdaa141e77584480fdf21aa4"
+    },
+    {
+      "asana_id": "01a13a0d-8d7d-708b-820c-5e400a1e62b1",
+      "image_asset_id": "68d895f6-b296-47ae-a16a-86247dfceb03",
+      "image_sha256": "6862c9b07c2d338459a1365ffc400c75aebba1174f9b37a291308907f3991484",
+      "drawing_sha256": "27bd63667fe9346a2b880cae082a611321ac44e8c30bea048bb9b686465baaef"
+    },
+    {
+      "asana_id": "01a13a0d-8fee-72fa-b205-dcaa92e94be8",
+      "image_asset_id": "7a84ee74-462f-4ea0-a82f-b5f2b5af59fc",
+      "image_sha256": "52c4dad494347f19d32b794f84efb508efaded6ec90d1981f59540b5c67cbf91",
+      "drawing_sha256": "7096982160ce1d9ba33237d2b5ab3b2cdf2b3417f38acb218b8ee15116a6f1d1"
+    },
+    {
+      "asana_id": "01a0e872-7891-727e-80a0-1537de212de1",
+      "image_asset_id": "760d3caa-759c-4a61-a800-c6e7099419d5",
+      "image_sha256": "f0c898c9e61553094c0ac1f3599294d996d645b303a0a541d130f265b2cb137c",
+      "drawing_sha256": "63f04a4b81a85fd0e3e207caba538a7b856fcb75b9cc391f8b8907e10be716ec"
+    },
+    {
+      "asana_id": "01a13a70-9bbe-70f4-844c-b4af057063fe",
+      "image_asset_id": "f09d1060-2ea5-4880-a638-2445dbcce248",
+      "image_sha256": "b81bd4dda820384cf7eb3189e61cc789227846165ddab53b8c6ec76537732f30",
+      "drawing_sha256": "0876aaca2245ebbfa71744b58e1296f45ff217bfcdc39dc1212a5795cd509898"
+    },
+    {
+      "asana_id": "01a13a0d-8d60-7156-a8ec-4bff8e99a012",
+      "image_asset_id": "ac1cfb00-4afe-411b-8984-2cf50e26d4b7",
+      "image_sha256": "225ece3298e04ab8f015e443df9ffc91a6e05a8091a12a14cf733b11fe451396",
+      "drawing_sha256": "b37a21b2a3eebcec753cd527bdcbb2d35482b90d5db8693452a92e0aef6e0126"
+    },
+    {
+      "asana_id": "01a13a0d-8fa4-71eb-9326-66e9affc9e4c",
+      "image_asset_id": "1a3f1f18-5c5c-46b9-854b-16ea85f61c52",
+      "image_sha256": "fc474491ba895ddbf074471c04048e8dc268306cfdc1f4eb8a54121638df47c0",
+      "drawing_sha256": "6a4a17723dbb2698ee8bafecca5e64146be805b08427b29b40a539d54e2d1dd5"
+    },
+    {
+      "asana_id": "01a13a0d-8f87-721a-9e79-0967a8e8036f",
+      "image_asset_id": "6feba73e-bb81-4522-9cee-d144f83dae58",
+      "image_sha256": "bef0cd6a2dd22dc9d3d645fc05643502f2accfd13697ba073b963a0489f150bc",
+      "drawing_sha256": "d295b93f0fd284a32b3fb0f7e1cf6c5f94bad418007ce2d2d33f364b6cc81972"
+    },
+    {
+      "asana_id": "01a13a0d-8f20-7063-b128-f352a737b844",
+      "image_asset_id": "d4380ed1-f29a-4d5e-8e77-80faacab4a34",
+      "image_sha256": "6a582b9ce01d7a6e408e2db82a9ba9101c49d6bb2033388ad4dd6327d966f5b6",
+      "drawing_sha256": "c2b914803c3d34e308adc42cc518b6c4b1cf286e58325354176da3359663ff05"
+    },
+    {
+      "asana_id": "01a13a0d-8f2f-708f-b298-09cbfea1f7a1",
+      "image_asset_id": "93a2412f-7e92-42cf-b46e-99db0a742044",
+      "image_sha256": "3ccbba11c58fb66ccfc3b638ce8861be05ad68f3464262d461cb3e236d65f653",
+      "drawing_sha256": "a096de7f03034b1a5a00d5773c7a101531197507c95835f648b1ec3bc302c07f"
+    },
+    {
+      "asana_id": "01a13a0d-8f11-71a7-9592-4722c0246305",
+      "image_asset_id": "ff9f6161-af75-4f4d-a660-8137accfb191",
+      "image_sha256": "3aa99d83ee38253b28985166c8127b0503a9f2f0a460737adfe5ba167eca7443",
+      "drawing_sha256": "ba20d480c5b2a128548a34bf5cca5445b1566dc66f9302be9096976e683c63d3"
+    },
+    {
+      "asana_id": "01a13a0d-8fc2-70bc-bb62-49afb635e33f",
+      "image_asset_id": "5f73abd5-0ee6-466c-8310-3a6ca770dbd1",
+      "image_sha256": "b537b506923cefde016f52ac04e826f22c1c138e12c47e34851864ec6a3d1ae7",
+      "drawing_sha256": "839c0faae1ec43f6c5704dbb1e2c834ee49c710889ad160fc82cb6e75b593eee"
+    },
+    {
+      "asana_id": "01a13a0d-8f02-7176-9679-6169bd987b83",
+      "image_asset_id": "37f9205a-c389-402b-ad46-6fda6a0fd493",
+      "image_sha256": "5c8e860b01622e5f1a0087c7f87cc5fb34eb963c5398bfa363d477013ca0f744",
+      "drawing_sha256": "dec6f183ca62d5d017cf0142d4b182c5536cbc29a79d362c299d7a1813cf6b22"
+    },
+    {
+      "asana_id": "01a13a0d-8f3e-7136-8c6a-7f003ed9d0a5",
+      "image_asset_id": "3a6c74c4-8556-45eb-8c50-0b5928c7674e",
+      "image_sha256": "88b9c8b32ccdacec01cfae800c3ad54b65b76224ec68db47625f039f84734f9c",
+      "drawing_sha256": "f16f9331d54ef069ccb38dacb30f2f652e56ec0604a48856c4e60c3206fcb51d"
+    },
+    {
+      "asana_id": "01a126a9-77ec-736f-b91b-9683e6ae7554",
+      "image_asset_id": "54e9faaa-d900-479f-9426-bbd8708b0f73",
+      "image_sha256": "d30b33f5d159f8c727777fea3ece75a98ff66957eb1a5eb115731ef8523a5a6f",
+      "drawing_sha256": "85a071eab717b4bcaae2cca064d6c42668bd24a3795587b0fb7b7a292c773590"
+    },
+    {
+      "asana_id": "01a13a0d-8e20-711c-a321-358f83d6d963",
+      "image_asset_id": "25d614ef-78ec-4b1d-842f-7c045eba985d",
+      "image_sha256": "0fdb12c89b16afbea0577b5e835c2b7c0e086be1970e5ad54f2d3b2687a3a67a",
+      "drawing_sha256": "ae4d53b1ee4a909b302549636e237ac6c4d87aa8aa094e33bd70fde1a7c88030"
+    },
+    {
+      "asana_id": "01a13a0d-8e02-7257-a898-2d1fc1b5660f",
+      "image_asset_id": "4be82d29-1c2e-4b35-ac05-fda155212d53",
+      "image_sha256": "b9dbf614af167473ec33c2d50018acf19d3cd80bb9b727d1d012965dae6d19af",
+      "drawing_sha256": "b3ab36074bcbb2945cbc3e61e74072b3855a35a33cb2b69d04e65603171680d7"
+    },
+    {
+      "asana_id": "01a0e872-81fa-7145-a7c6-f2971d1e6ecf",
+      "image_asset_id": "7dc37563-210b-4939-abb5-697ad546e911",
+      "image_sha256": "b4bb4448f55678409cb4d5876c616d49feaa2f390504365ca715e77993834f92",
+      "drawing_sha256": "c39e329f66f755b3e92fffbb7dd634b446abf0d76fa5869455a46bccaa552191"
+    },
+    {
+      "asana_id": "01a0e872-79c1-727e-90be-3d77b93007d9",
+      "image_asset_id": "266ce7a2-d8b2-43ea-9d82-3c06ad8ed75c",
+      "image_sha256": "e4516187d309a423fb835c940e545ec87daa749acee3b3f74a55a2af4ff35919",
+      "drawing_sha256": "8f8cbdae2f4d5b20dcdd8e913b543ad6182fc481dd536abdc4403208f6b46e42"
+    },
+    {
+      "asana_id": "01a13a0d-8d9a-73c1-b202-712562fa0184",
+      "image_asset_id": "46e29d26-0afb-4a2b-b955-56507bac3200",
+      "image_sha256": "d5b65068020b27002234c97aebec6b1973c93d425c21fa1fa6941e596fd59311",
+      "drawing_sha256": "2b1cc768d4b638263d64f45be45c8ef1e3c895424db2fe54d9f2ee9e3ab45e65"
+    },
+    {
+      "asana_id": "01a13a0d-8d8c-715c-bc3c-0ebc40ab002d",
+      "image_asset_id": "5ba50a95-5b86-4655-a2fb-aea8a3199006",
+      "image_sha256": "1bd295851c0b0ae82d41c09f59770c27044ded1840639c81bb7d0e4d384eedec",
+      "drawing_sha256": "d7f4ec2da9e9a5bc7f92581057d1bf611818388379d41b3722dcbe119c30acf0"
+    },
+    {
+      "asana_id": "01a0e872-80a3-7143-84e9-b41f3924a2d0",
+      "image_asset_id": "f5aa6f12-ebfc-47c6-912f-57c9b1600b20",
+      "image_sha256": "a999282a1b734edbcf3063467f8519b680f240d617ba3781b1eb754ed5dfec01",
+      "drawing_sha256": "b4dae36a57fbbabd60382f6f40f2929d6865b4e957255264d13a3dd1b81c33b3"
+    },
+    {
+      "asana_id": "01a1265c-508e-71bb-bf44-a8c933e56456",
+      "image_asset_id": "18a64780-d8e3-4229-9d48-de07a7c7b577",
+      "image_sha256": "0e30c1771b9e17a9aae5ea9d65c02618a4313dc2ffeb7bf32ef07179411e2db9",
+      "drawing_sha256": "bc6bea6ed2d9e5ceb6103e9bf209838643ac071b6ad51816e09f05c1de94f976"
+    },
+    {
+      "asana_id": "01a112b7-c7e2-721c-8cd7-a03b5f61d761",
+      "image_asset_id": "62173f55-75ef-4b27-aeef-e970ecfad05a",
+      "image_sha256": "98b95794ef7fc9fce89a584bfc3260e5381d7d09151260f3b94d593947ffe0de",
+      "drawing_sha256": "3fca27fb7daa0b6ead02dcba122eeca5ef61445dd18c10adfe5ea03e877de7ee"
+    },
+    {
+      "asana_id": "01a12677-b550-73ef-9f70-803c47945256",
+      "image_asset_id": "d572c904-afe3-4ede-9106-0e42af3f2559",
+      "image_sha256": "775e8d4caa520a247e31639b6c7ca783d2386e2d421f8af689a7685f747579e3",
+      "drawing_sha256": "fca33c1bab55c4aca1dc5ebe0b7987be5763930bbe20d53abd6b84a97f45b7e9"
+    },
+    {
+      "asana_id": "01a13a0d-8e11-7337-ade0-89feb4c4c92c",
+      "image_asset_id": "791830b9-87e9-42a9-97aa-c218d2ce92ad",
+      "image_sha256": "019cae26632c4dae618ab0c6576060572ed955bfc2a765e529495484eb14e000",
+      "drawing_sha256": "2abc2676b64397fac8477aa5ba06576d76018cbb7638dc8d2de34ef1850d71a3"
+    },
+    {
+      "asana_id": "01a0e872-7e58-706c-a1cb-42ac9544baff",
+      "image_asset_id": "f06f8aa1-581e-4cb1-bed5-73596d5937c6",
+      "image_sha256": "8d1161a909f35ca81e6d5e9f59fe27ea36f751f4033e92605717f2e076a2575f",
+      "drawing_sha256": "414fb318c897f7a98e0d51190066fd7bb891f08f4e5d7909e7189330a8c3c9dd"
+    },
+    {
+      "asana_id": "01a0e872-801b-73e3-8f94-aa1233ea2daa",
+      "image_asset_id": "7ddd4a85-21dd-4bbc-ae22-02ed1fea9063",
+      "image_sha256": "8536258b51044bb01cc190aad688d6a8faf3033ac8ed7226286f4e457594832d",
+      "drawing_sha256": "48fe3c5cac0c72b695c6e26af8844c2d55a17212f827b45e64dcc2fe8d4f143d"
+    },
+    {
+      "asana_id": "01a0e872-7eb3-710d-863e-2543c0e00caf",
+      "image_asset_id": "be21c15b-7b5e-4b81-9198-93b5620c676e",
+      "image_sha256": "358cdfc3083eff4556970b6c39ea44268735da5f25e022efb40079ef74f12412",
+      "drawing_sha256": "68a7f4869217f330980d130342d1925bec26eb7b9b10aa4db2ba192f661f5413"
+    },
+    {
+      "asana_id": "01a13a0d-8e4d-72d8-ada6-90104d7e28d9",
+      "image_asset_id": "d1b1ebfc-68ae-44df-a7ff-2ce5726823e8",
+      "image_sha256": "36c3a45b1cbb424bafb045885c9ad5ba9dac0056932d00e55c05a4ed1bda11d5",
+      "drawing_sha256": "a42f8300daac83ba38414ecc4daceca884507ab36cfec4f203f8ac6c5c061085"
+    },
+    {
+      "asana_id": "01a13a0d-8ea6-70fc-82ce-7dfc9528f380",
+      "image_asset_id": "a0849ee5-863b-4dd5-98ef-ce0f710c1b1d",
+      "image_sha256": "d6f2b46f8e948bc491d82d16c3d42781a4267fef031b55b791798468268d0825",
+      "drawing_sha256": "83dec9a6fe910f04643df8387359f2706219b687b90c13983ce36082918f57f4"
+    },
+    {
+      "asana_id": "01a13a0d-8ef4-72fb-b391-198ddef4467a",
+      "image_asset_id": "04adba36-934d-4949-8618-c4d81d81dd19",
+      "image_sha256": "5a5f615af251186402e451dbfa521c66ea78a9fbe8e9be99a06d3600cfe4c899",
+      "drawing_sha256": "f37da23c09783909618e18c907104dcacab427cc0e492c60ce560ee88c9d1a61"
+    },
+    {
+      "asana_id": "01a13a0d-8ee4-704a-bfda-6e099321006f",
+      "image_asset_id": "a0ade4c5-1bdc-4e8c-88c9-9352e1e84741",
+      "image_sha256": "7a23c5b115a06ae3e889a433d414aafd86735715bba0f4d52d841d69b048ae35",
+      "drawing_sha256": "b304e403fd0d47462576e0b89ed2220595b3954d6c93290fc5232eb7dc354417"
+    },
+    {
+      "asana_id": "01a13a0d-90e3-7334-94ce-0a27f93159e4",
+      "image_asset_id": "8c3a992f-420c-4bc5-b322-0a431b5400b9",
+      "image_sha256": "f301600256e4fe2bc15602eb65dbe66f23d67ac7c870a5fb9ccc16482586dca9",
+      "drawing_sha256": "3033b52b574b3dc305e4b9c93fe698e37769dd981e78caffa700faab3200f14d"
+    },
+    {
+      "asana_id": "01a0e872-78d3-70f1-9976-285de722c084",
+      "image_asset_id": "1219a0c2-3f2b-4fa4-9220-c4259686c3dd",
+      "image_sha256": "80a243b68e0b44a39b24a8e9353875927e9ca64cb3e4b7cea11e3703f13db004",
+      "drawing_sha256": "87d3c98e506c618c9b2e56f683d2ff22be1e89bff81e63632bff646b5530035a"
+    },
+    {
+      "asana_id": "01a13a0d-9092-72fe-a3ee-0516527a7bfa",
+      "image_asset_id": "02b7c222-ff8f-4bfd-86b2-87357f6a7f0e",
+      "image_sha256": "805854f0680ec136e146625c93fde09a1bf341d901d9327a47d8d52e3b5bf5e7",
+      "drawing_sha256": "6ca5f41e8d7552eb5f7876c0cadb2704a7110b8f964ff81d8dfada1034a511a8"
+    },
+    {
+      "asana_id": "01a126b4-f83f-7003-8dee-7e5de742affe",
+      "image_asset_id": "1cc14b89-4079-4fbf-93c5-12dbe2148676",
+      "image_sha256": "6c41ad874b99e8329e86767bb2d325172e1d0c09c7bd1bc38493b230516b61f5",
+      "drawing_sha256": "0a3edc1e1908addb1405812a2b7615a8bd154d315e87a5567f42cd64828c1c41"
+    },
+    {
+      "asana_id": "01a0e872-7c8b-7297-a797-2dd5351b6740",
+      "image_asset_id": "f5f2b5e4-3a47-4d8a-9626-545304ad505b",
+      "image_sha256": "332688ef70195d6fa53761f15ba724c4c74a725586bf80f42114670e8b569e85",
+      "drawing_sha256": "22e26abe6a72713710c65daf54ea542762388cc2f97a85fdfc05cc75200fe021"
+    },
+    {
+      "asana_id": "01a13a0d-8dc7-72c1-88e3-4e3c7f43617e",
+      "image_asset_id": "090ddda6-1844-469c-a44b-7787a794b370",
+      "image_sha256": "ac58ec3e85431550721d0020681ccddc3105dd8766a8e395f47e315166e2c1f9",
+      "drawing_sha256": "9b97262ee0868c60fc19d2a746d5bc8d145dd30146a2688c3bcaf90914bec4c5"
+    },
+    {
+      "asana_id": "01a13a0d-8da9-71bd-9270-9d9f3286c580",
+      "image_asset_id": "97ec6b90-16c0-4833-8582-a04730839bd8",
+      "image_sha256": "733cadb97ea926bc814f6e3f2e31fb545f310ba5b2bd71050f4de452302ecb15",
+      "drawing_sha256": "cc6529d155df34b48cad62640b4e3f148a4b1212472a33adecad22ee3a7cc375"
+    },
+    {
+      "asana_id": "01a13a0d-8db8-7116-b0ec-78c048a9f05c",
+      "image_asset_id": "6a9b93f0-3a12-4115-99b9-085a9a25e7b2",
+      "image_sha256": "c5319f810756e2e5528cc428b375c0c3994bf3d5179e87251d82dcf25901c3dc",
+      "drawing_sha256": "940eb9f198e60283ba9d5bd17891e361227dd1a84a2cb8ed7393663c0751b5de"
+    },
+    {
+      "asana_id": "01a13a0d-90d1-720b-89c4-db5f3e2ed3a2",
+      "image_asset_id": "5c8c2452-ef86-41ec-aa81-faf8a0454875",
+      "image_sha256": "b09fd4455ae5267c0a1b85b9697565171a14ec3a2b6a242dbdaecca5c5d6f901",
+      "drawing_sha256": "a18d66ea7b4b70fe8aa245b8d9be17488016a8ca25f005fe4f68a619a5cb8e22"
+    },
+    {
+      "asana_id": "01a13a0d-8fd0-7301-8dd5-75482cb0711b",
+      "image_asset_id": "584d79c9-7b58-4aa9-84fb-e3fd13d086c1",
+      "image_sha256": "2026bfb26dee1bdf7c84894994c9ce9aae4ded4640e3234a5daecf32f5e136cc",
+      "drawing_sha256": "8c7e45ee92febb4adb34f9037b3bb879386b6094c9ad84a1fb4ef3cdcaf9c167"
+    },
+    {
+      "asana_id": "01a13a0d-8fdf-70ac-9c92-ab505bf32228",
+      "image_asset_id": "5e1a7062-db86-478d-a728-b828308c2cae",
+      "image_sha256": "30c5b772fcb8bb12556fcba295338137267a39d3d9ffa97618fcdff6b4c34bc9",
+      "drawing_sha256": "a4b191d048018867a360237bba301cec41b0042df58013b6a290c28c3d79ecc8"
+    },
+    {
+      "asana_id": "01a13a0d-8fb3-71ef-9003-17b69dbf84ed",
+      "image_asset_id": "404606c1-ea38-424d-930a-b584a4c0952e",
+      "image_sha256": "6a4338ef4c855642221aa48c163b3a030473ab90df8d2bf8b0d73874675d521c",
+      "drawing_sha256": "c72f97d58ce0643108dd372c9d67ab61b4559ec5c7e62988729243344a41dd1a"
+    },
+    {
+      "asana_id": "01a0e872-7a33-7315-b976-3eaadfd7edbf",
+      "image_asset_id": "6530dabb-399d-41fe-9cb0-cf247b339132",
+      "image_sha256": "fd6bcfa7de69f96cdad632c23aaca8feffe1787a9e7f305279bf541e217ad22c",
+      "drawing_sha256": "c0f7da76e52f15c6df45950f9b1b0553fe7708a1b6679eb08d344dee790c291f"
+    },
+    {
+      "asana_id": "01a13a0d-8e5b-70e1-8f42-f857c7495c6a",
+      "image_asset_id": "95c93c14-80a5-4668-9056-f4efc0b95fb0",
+      "image_sha256": "18108dec218cbfc6f30723a78b14adb9fe1c1e5e321c296ae1e617924d43ca62",
+      "drawing_sha256": "58d704c427bca296422b2487a285069d0e4de6a3a45495f3109fc44171145929"
+    },
+    {
+      "asana_id": "01a13a0d-8e79-7335-8298-ba11670d1eea",
+      "image_asset_id": "5d0d2c30-956c-475d-96a9-322f7de738b1",
+      "image_sha256": "564e2bb1bf0598f5a36f70e7aa4194ddc6e6c99d5f8bf2348ea933deb7311586",
+      "drawing_sha256": "e525070a1a59591cdb0730024b778b837bfb3081300a32649b9a6bb5c4b671e0"
+    },
+    {
+      "asana_id": "01a13a0d-90a0-72aa-afcd-30b5c5166522",
+      "image_asset_id": "130d2b11-a5d7-4422-b736-82109695084d",
+      "image_sha256": "e7f03f8ac940e703644df91f7126b827f30687781cfa41e93b5d7501923206c5",
+      "drawing_sha256": "f1fc82d1e7a382a271f730eb24c3dd13ccdeda96e114181193285e60e508563a"
+    },
+    {
+      "asana_id": "01a13a0d-90f2-7126-a507-7c128ef3cd98",
+      "image_asset_id": "a9e924d4-281b-4a0e-a7bd-863e04ebc380",
+      "image_sha256": "d11410582dd2f831f521ba43fe534e47ebaf103cbf1b2e5168821b705e9fa1c9",
+      "drawing_sha256": "9ff3800b015b8ab05a2e16f727e6630a6c35fa4b1d0c32c29cbdb4d4acbbf19d"
+    },
+    {
+      "asana_id": "01a13a0d-911f-728f-855d-c1eede68f1f7",
+      "image_asset_id": "4946d1ef-5c3b-4927-b1ff-f73d3f22d055",
+      "image_sha256": "7442094a37f7636c5939d9a082be1558ee9eafe50e2c9a45a3603e8d1a76fedc",
+      "drawing_sha256": "8b9ccfdaef6c2f5dc6a66223aaf7c5617b4c43d664b34ba83d9fb595b1aaae11"
+    },
+    {
+      "asana_id": "01a0e872-7f30-72ec-98f1-f94278511c92",
+      "image_asset_id": "9cda0095-f921-4e09-8ce8-1bf0ffda8b0b",
+      "image_sha256": "2e5c0d98edbabd3cfea0934ba4d12daf2b6edc0c195d65adccef36831317d42e",
+      "drawing_sha256": "13d9786ca14235fbc0c61387e7636128eb5435b4f47a7d4216c7faebdf19d510"
+    },
+    {
+      "asana_id": "01a12678-7857-708b-9eb7-3099de23cb72",
+      "image_asset_id": "43d6315f-d786-4f52-8cd1-555b8f81e38d",
+      "image_sha256": "c0198a5158d43970449790c149740613e67d3b7c20ae38d9a0778f0ab4f34fc9",
+      "drawing_sha256": "72bbebeba98ff826d6db9a7e5d4d758a656e5f0b424b46e80e49ed92a5cef207"
+    },
+    {
+      "asana_id": "01a0e872-83b8-7305-9b1a-b736b58ba46e",
+      "image_asset_id": "4acd9877-8010-41a2-b1dc-e6b742a6ee89",
+      "image_sha256": "aafe712086dcf4584a3302d83b5e3d18ddde35d9a4facd244572b2c2f4e9afa7",
+      "drawing_sha256": "d7409b40c845035eb1a4de9d7babd2122ba2483fd98fbb282c982d3084f404ff"
+    },
+    {
+      "asana_id": "01a13a0d-8cbd-71b4-8109-a76e1734d233",
+      "image_asset_id": "6d2def97-4187-4656-96f0-bfb4450725f8",
+      "image_sha256": "17733db5495d008a1949eb7945f5409f627c659c25f0d9425c959447f5984f70",
+      "drawing_sha256": "2dd61db8cfcd081bdb42cb9b2d9881ea01836029c195019c8d2614380ecb52f9"
+    },
+    {
+      "asana_id": "01a0e872-84d1-709c-9dd2-c87ea71dc504",
+      "image_asset_id": "9176d46c-516f-4975-8d00-110f7e5ecafe",
+      "image_sha256": "45cbc4a6b3b0983c1d2c434c1425ceed6e19673a4cc5196c8932fa1c32b09788",
+      "drawing_sha256": "b5ad0e69dcfede9f875fd3fe21b5451fed59aaf01c46f137d68b519b4c017d3b"
+    },
+    {
+      "asana_id": "01a0ed6b-34b6-70cb-b4d7-b817685a7ce6",
+      "image_asset_id": "692f17fc-b757-476e-b9fa-af622abc87f6",
+      "image_sha256": "c92797261c687a41bf83962264552293a34287d2a9cccf4e082591c7424f7a06",
+      "drawing_sha256": "8d8332ffd36f89886090b821c37ec469d5fa52076f8f0071efa04fb8b8e202a4"
+    },
+    {
+      "asana_id": "01a12693-dde1-722d-98e0-1d8c141ec721",
+      "image_asset_id": "141cfbd6-e509-45b0-8114-00f0b1b3e0c5",
+      "image_sha256": "5cf08e2b0f2d5a8e3e53a97e6fcef1e2b6d32d3ff9c53a0522ade9eabce9c1fc",
+      "drawing_sha256": "8074a38acefcecdbbd47e58435d76a948896b55216b91e8d9d487330224de1cf"
+    },
+    {
+      "asana_id": "01a12694-5fb1-7395-9212-c978fd15505a",
+      "image_asset_id": "d9f100dc-950d-4629-a7f4-c2d36a6e2a10",
+      "image_sha256": "61ffacec3c7376dc2292642ca1b8969b6bcb9fa6056cf3b50d015fb221d2b3ca",
+      "drawing_sha256": "5ddf7454160dd993d013b63034f1d9af1c3ce1cafe1b7c1cd93b763943364da1"
+    },
+    {
+      "asana_id": "01a13a0d-8d42-72e7-ba38-9bc3abcab2db",
+      "image_asset_id": "cf336294-b597-41b3-8ce3-08260ba7e6ce",
+      "image_sha256": "1f99a3fd45ac7d0ae50eb1ceead4555e5bbcaea0c43c7b87330b477209becf81",
+      "drawing_sha256": "3fd9ed60006931c0d5d89f2fe6a7a19a4eff4fe12682c56a2c21bdc265d352ad"
+    },
+    {
+      "asana_id": "01a13a0d-8d51-7199-823f-60af02f21bfc",
+      "image_asset_id": "ab438c77-20f2-43d4-9d6a-3c9b698f385d",
+      "image_sha256": "935c73cbff6a61ab50ad3eb44f4bf60f4b714d873cc5fb48b34d8b97b7cc7b2c",
+      "drawing_sha256": "2e3b8831f86bd8a80d2d8324832c9e71653eac8f986aece1e44953a228ead9e6"
+    },
+    {
+      "asana_id": "01a13a0d-8c7c-72f6-acc5-3dc9529964e9",
+      "image_asset_id": "e06fd10e-c08d-4cee-b0c5-7725c8d209e9",
+      "image_sha256": "54a5ceb327f930d585df6d9140cfcfb35bce8d2a8d652a9c72e5756eae274fb1",
+      "drawing_sha256": "4d5591a07e5b0b905e2ddd1d085a4da141bddc3f1ff86a704b59a2097293f446"
+    },
+    {
+      "asana_id": "01a13a0d-90b0-73bb-9846-1643cbf01de8",
+      "image_asset_id": "37aff9c6-9c8c-454c-b510-970d5bb01073",
+      "image_sha256": "1e949fa465a83544b814b9c51186f454975dab0c3c531d18a59bc1de0f78c62c",
+      "drawing_sha256": "95185b084bb5879091851e9cac67add5edc2c36a2a083ea40fb501a7a1a0716f"
+    },
+    {
+      "asana_id": "01a13a0d-9047-7310-a60e-5cb6e4835575",
+      "image_asset_id": "fca26577-c5f3-426a-a538-d0f40eb5a976",
+      "image_sha256": "e6fda7b850be2ed62f8edfe22f7ae2584f31303162fca29b6ce973b306f26f2e",
+      "drawing_sha256": "8df9287ee7e885f64751cfe69a374705d7c3e88f3714e45141cb7d74db01e2d9"
+    },
+    {
+      "asana_id": "01a13a0d-8c9f-7177-b5c2-2ceab36d13e2",
+      "image_asset_id": "da2f3313-9344-4ef5-b306-a65c21cd9550",
+      "image_sha256": "9c190efcf0a6c728265ee77a1399560371a64eea3b110471928a70a41fa1dce4",
+      "drawing_sha256": "4f6b8dc40aea9386e94a55623cff38e9de623ec4770e3189f44952985dc745ba"
+    },
+    {
+      "asana_id": "01a13a0d-8e3e-73b1-adf8-0c5de1f50a88",
+      "image_asset_id": "b1f2dc64-7b89-4dda-a120-49842e0584c4",
+      "image_sha256": "120228d5487e5ced79dba8503223cf03e0597be18b1a0bb191e0c0f85fc95580",
+      "drawing_sha256": "de4e9d0ac9e5cdb9255c742342bf3bea1c85bac54ea68785a5aa49545ae19f59"
+    },
+    {
+      "asana_id": "01a13a0d-8ffd-7002-b3ad-cced9891032d",
+      "image_asset_id": "fa9bb63d-7618-4b40-83c9-796e7859cd8f",
+      "image_sha256": "01c0495b4bb3e7fc4cab9fdb86e06637b9f80d8611ec51d129a4d0879623efdd",
+      "drawing_sha256": "05481f249d9e72753ae5247f16d239aa96ad2cbca3ba133e9ece52578142a445"
+    },
+    {
+      "asana_id": "01a13a0d-8dd6-7243-a58b-63ec666ef436",
+      "image_asset_id": "378a03ef-7169-43c8-8d36-f7c8dca27475",
+      "image_sha256": "b8593221af9972057fae32a51f6454fce9a464a702e120c386e51114b3278d95",
+      "drawing_sha256": "ccb85055bdcea809a2c9ab0f30afbd40d89164c0deb773f54e651f784b2504d8"
+    },
+    {
+      "asana_id": "01a13a0d-8eb6-7296-a75c-9ecd6d32c712",
+      "image_asset_id": "322d43a3-9985-477c-b98e-905c49c53c16",
+      "image_sha256": "0fa5c77854f812b32ba11eaabbe66f157a60b013ce65f0f42717ae5f6292614e",
+      "drawing_sha256": "2575d8d0a93dd7f167db8430aa854cba81d6501a31c56d08fc9fa389141d5d1d"
+    },
+    {
+      "asana_id": "01a13a0d-8de5-7159-8be3-37155ab373eb",
+      "image_asset_id": "1b3994d7-5db2-4a67-943b-7338da9d194b",
+      "image_sha256": "48e790e62b8c1efdfaab22e9e238d77ecc05e8409679b60801ecc1c369633911",
+      "drawing_sha256": "fe40a592adacf03e0c3bd8fecb5a39d097a4ec41894ec604a62125e6e5ac795c"
+    },
+    {
+      "asana_id": "01a13a0d-8e96-7195-9bb5-f07aa9def73a",
+      "image_asset_id": "89218644-3334-482e-b338-b9e5c979ebeb",
+      "image_sha256": "38881180c1576d1689d0189549c7c4188504b33493aa2e7ce701a0447d734d60",
+      "drawing_sha256": "52c32aaf88c503c4404d39d451a8c8cbe42007a58cde533c74da0bbafb9620e5"
+    },
+    {
+      "asana_id": "01a13a0d-912e-7000-bcfc-66d3a666e308",
+      "image_asset_id": "9142e6ca-3d3d-4597-8499-e73450609a73",
+      "image_sha256": "46537ec8d7d246b3afe2e8363d59bf5a10329c1299d0c9a1a6f17f38e2b01791",
+      "drawing_sha256": "4577b9232490e47d5b19770cff5f8108ee5b3a2b8361b8b268504f481061a56f"
+    },
+    {
+      "asana_id": "01a13a0d-9019-720d-97ad-de77ac38cf79",
+      "image_asset_id": "e4c4771e-9086-4e7c-9b1c-cf8abd25fab5",
+      "image_sha256": "16f55c442146209a91bdc6c65977bf2ddde3aedfb98c5db8930b120db4f4a580",
+      "drawing_sha256": "45ead0a2a2e5c104d954f1301e67055679dd2ad17f3c2335e61541b1f3309046"
+    },
+    {
+      "asana_id": "01a13a0d-9083-71a1-8b93-95feab144113",
+      "image_asset_id": "cfe8ee60-25f2-40d1-b102-eb345b5f3822",
+      "image_sha256": "bdbab5abf873c33534e402587ff8adff987fccdde1cb28f8d090178790c36212",
+      "drawing_sha256": "c93e1ae1272b9bdc18360d54db1fbeca29f50e52e52ad39202b725549d51882c"
+    },
+    {
+      "asana_id": "01a13a0d-9028-724d-8c62-f7564cfdf2a2",
+      "image_asset_id": "d3765839-fc8d-4410-bd70-7b3442928ed6",
+      "image_sha256": "ab596158a7102f232e3c416168e7ea6fd425af40a04abe4c512a923de89ed69d",
+      "drawing_sha256": "2a05d47bb27a9163ca7808de849b8613509b2c37e631076d36b43d6fd6f86266"
+    },
+    {
+      "asana_id": "01a13a0d-8f4d-71a1-a72b-463da8e8a09d",
+      "image_asset_id": "86c982fb-866c-45f6-978a-9b6e1534907f",
+      "image_sha256": "83d0c7e68ab7b4329d287d48025ac0760a5c16c19efdc143c7d18c56b1687ea8",
+      "drawing_sha256": "ceb4719bef1e13937cf067f844cfd9ebb3755003c5a5e63ae3a6f91ec5693d72"
+    },
+    {
+      "asana_id": "01a13a0d-8f78-706c-b7e0-efb1c2415b84",
+      "image_asset_id": "96f0cf58-53eb-4a5e-8bc2-f1304617b46b",
+      "image_sha256": "cccc1594965f31c5880d0dac24399e81091cd99f2589366ddb8f5c7c8d3a2ef4",
+      "drawing_sha256": "475629ca793252cfbf08ba750c7e6a41f833e92b6f9737e94715324912514358"
+    },
+    {
+      "asana_id": "01a13a0d-8f69-709f-bb94-4268ce4f0bbe",
+      "image_asset_id": "44ac4312-8bd9-48a5-a01a-11f2298ce462",
+      "image_sha256": "05914abb53870e4ac66a374a2497a17fa4db818611541f251d4f149964b8b6a9",
+      "drawing_sha256": "61f09180b31de8657a9d4498baa4cee1b4eb6a870a7a5580e4a0a50066419297"
+    },
+    {
+      "asana_id": "01a13a0d-8f5b-719f-8f27-a2e52739068f",
+      "image_asset_id": "651d63d7-cdc4-4c67-b6f6-f786c10897a1",
+      "image_sha256": "02d74f88fb4c6e9ee623028b010ea6c2920a40a1503a16ada5d809e860707ba3",
+      "drawing_sha256": "75e4e609646d6166941f000e446e566b79a434f101d609b0401615efd7484612"
+    },
+    {
+      "asana_id": "01a13a0d-8f96-7268-b51d-0cecaad605bc",
+      "image_asset_id": "7c2040c4-ee42-43ca-b14e-842249d0b1e7",
+      "image_sha256": "c9c9511d479bf1427ffda8a85bd7a166972fd5a3a8bc6244c9355b9c68913fba",
+      "drawing_sha256": "aa69520cd9c9d9edc93e3f5cf7d8c19bf1b8c62d8c7cc867ca8fe97f89d19501"
+    },
+    {
+      "asana_id": "01a0e872-8519-71d8-8c14-4af6744c5202",
+      "image_asset_id": "c24aebc6-d90d-40a4-8fe0-46197f8d4c00",
+      "image_sha256": "44ec7cb216d9b931e6caf65a450cca2a1dcbe2846b4a104335f6eac10de3f549",
+      "drawing_sha256": "892185fb2bf12197c367015edc10a8b83f4eb199186f4d893de3fb70182136e2"
+    },
+    {
+      "asana_id": "01a0e872-8188-7287-befe-f828e6f322f2",
+      "image_asset_id": "dde167be-3713-4242-915e-bfc729248dc2",
+      "image_sha256": "25640d5439d684c224f0162612e857896bbcb9f54100d8c5447e57c5043d391f",
+      "drawing_sha256": "29d3bc0c01f64e8ea7cd012ca86818329be779f23ce1d5cd72e79d0edb59f629"
+    },
+    {
+      "asana_id": "01a0e872-798a-7024-851c-e212105bf86a",
+      "image_asset_id": "84b3a8b6-dbe0-4a15-993a-0698a187a8ee",
+      "image_sha256": "f36dcdb907900f29596fc24430f492255673414e5c38022ca4d30f83de9e6e2f",
+      "drawing_sha256": "1ea31ca6bc5b9fabca9aea10c4b3e22c0de64da9a66b3edb24b0e91322517ca1"
+    },
+    {
+      "asana_id": "01a12695-811e-72d0-910f-78390c96d596",
+      "image_asset_id": "fa6e3fde-3eab-4972-a8e0-debc11f92bd1",
+      "image_sha256": "16ba971ad35ce95c3519faef0ac203d44de3ca65283d97a4c928298aba88b3cb",
+      "drawing_sha256": "02f0674f3206f547051fe4b4d66e43e47effaa1b8f327b8619075b63da2b846a"
+    },
+    {
+      "asana_id": "01a12695-1463-725f-831e-c5654c3d339d",
+      "image_asset_id": "6cfd77d3-fb4d-4a94-839e-fb3e691b9239",
+      "image_sha256": "5dd35686a16f9a8dddf87f9cdc29a0573f4cc31c90715d7b35ab1f2c32b7d4ce",
+      "drawing_sha256": "452e2f087f1add0103329b45ec05cd3b36a00d6ba2a599a62ef612416473de09"
+    },
+    {
+      "asana_id": "01a0e872-8447-7372-8c7c-4f4c48eec03e",
+      "image_asset_id": "4e79bfc7-21e1-4d7a-8ccd-b2078f320af9",
+      "image_sha256": "b9b6159fa8dfa57d09fd44c024d30b5a31433510bdbfe13a972548ada7a075f4",
+      "drawing_sha256": "ae2f2d0fb3089040dd54fcf531a7768521303073372b725d13cfa0ce2bfe8dce"
+    },
+    {
+      "asana_id": "01a0e872-7ee9-70fb-bc16-9381f909651f",
+      "image_asset_id": "d33ef535-7a5a-44b4-b6eb-bc0ecd22ca9a",
+      "image_sha256": "97e9d236ba8e7ba6ef2f3e4ac22a11eb7627189ec324cea8980291eca5d4ede5",
+      "drawing_sha256": "8d1dc9fca7ce41b3aa25d4538ba090c92c862bd925fc0017132cb2b50ab418f7"
+    },
+    {
+      "asana_id": "01a0ed58-c128-73a6-90ba-a866a61a4777",
+      "image_asset_id": "1a4236c8-3e87-4462-a3ab-28b715d568d9",
+      "image_sha256": "951d1da62b26697b7b875e1bad55d2776ec24229d807808df079d23f01a6fe1f",
+      "drawing_sha256": "e11f48d3f486da7f416609a6f68d42303f6fd678ac1d76f2f66603704babc8c4"
+    },
+    {
+      "asana_id": "01a0e872-7fbe-7080-a729-0174a55944dc",
+      "image_asset_id": "52f8d94f-9702-4acc-9418-b906f19105bf",
+      "image_sha256": "d32b0f3ec832c6f66aedc018a3ce27f3bcc3b7a2687fe63d3ab750793cf5d348",
+      "drawing_sha256": "cb5a95f335fb19f8503ceabdfab115bc731d5d9ba767c19936f67878f92026ed"
+    },
+    {
+      "asana_id": "01a126a7-cefa-721c-ae94-b2c4446d7d63",
+      "image_asset_id": "52bc9772-af74-4723-94a1-13eaa7831671",
+      "image_sha256": "a1d613dc64be2f029bac3bffb45112866d0b9773393b7eb1469c2e740c71ab0e",
+      "drawing_sha256": "18db10b0f1611a4a887978e350127655c1cdfcd074c952de30076bf824fd054f"
+    },
+    {
+      "asana_id": "01a0e872-8087-7255-98c3-b7a53436144d",
+      "image_asset_id": "fb8eedc0-26f9-4a0c-a579-c3d666c1b571",
+      "image_sha256": "bbb651dfb125d8b6c4b8207f5b7bbc3754ffc1ef6c4447affdfecdddb926ac18",
+      "drawing_sha256": "b17932f91169dc342b0315785809edb4e38fefcabad44fdaa4730ac71dd48f2e"
+    },
+    {
+      "asana_id": "01a0e872-8298-731b-bec2-8f539233c219",
+      "image_asset_id": "b40b9718-d637-46d9-bf66-c7aec1672c2f",
+      "image_sha256": "18aa15f2555ae68763803a0a35e0bdb91c8ebac2ee6cf3a42880c60876690721",
+      "drawing_sha256": "65e124da6b6b9defa54ba3d1581ec894a79127572565c371e9cd85ab9f51a4f9"
+    },
+    {
+      "asana_id": "01a0e872-82cc-738d-8c44-d16e133daa97",
+      "image_asset_id": "6bae7a48-7d7a-4345-8c3a-76acb856d214",
+      "image_sha256": "f7e2192eed21dca2c56ed21b4be67350558dbaa49147385824ad49b4e6fb23ab",
+      "drawing_sha256": "d04f508b5068e39716b4635f04ea4714ddd827654c9fea4bfa1c1e7040127282"
+    },
+    {
+      "asana_id": "01a0e872-82ef-70d1-a982-3885678f1dc8",
+      "image_asset_id": "603551c1-2f02-4a82-af20-d06284c95721",
+      "image_sha256": "5d6052d61a74a8befce5e85e5ec5b43f70991a5e87267992b947003f2370abe1",
+      "drawing_sha256": "cd23a6329d29f00053ead3ebaef1268b2b91638e9fd5169cb3866ec762954bc8"
+    },
+    {
+      "asana_id": "01a0e872-830f-7392-b987-1bb097f360ea",
+      "image_asset_id": "bb7bcf40-bff8-436c-b678-7b8c26307736",
+      "image_sha256": "933a1331b7eb273fb2db3ef8b4f08a9308c9550c3b3a1cfcfb9b2e4a3374f2e2",
+      "drawing_sha256": "3a6e8cb85e61264569db65316f7b93f1bc94fb1cbf1151f52d09cfe0ec9e1fad"
+    },
+    {
+      "asana_id": "01a0ed62-06ff-719d-a554-8cd91429958f",
+      "image_asset_id": "96fd9e60-0adf-4fa0-8c42-6cdd720069e9",
+      "image_sha256": "9706b945e7afe6ad4620e4f497cb77fcfc95e8233bcf42fbcffa43da6c319935",
+      "drawing_sha256": "e31411bae65b446664f5b14acb973d20d8bb7df4cc03f2d7f5581020b3b35cdf"
+    },
+    {
+      "asana_id": "01a0e872-7ac1-7116-944b-74bea20c3c62",
+      "image_asset_id": "d53f48ea-4904-4777-aa56-02eb969544f6",
+      "image_sha256": "715aa1a0aa3ac00d4288fc61bb6defbdb0e09ee1398f7956f769680770b6c778",
+      "drawing_sha256": "3326f695ccd459b5e4a562aca074d07e7f1898c273720ada47e71b74be416733"
+    },
+    {
+      "asana_id": "01a0e872-84f9-728b-9a42-0a11487f691d",
+      "image_asset_id": "4b4274b6-fbbe-43b4-ac64-b495b5e8d3b6",
+      "image_sha256": "cd6a54609745afbd8dbbd290ac6f30bea8a24ec5d75e2486493568a5a99c0177",
+      "drawing_sha256": "533ef249dff51ef917c02480fae25c510df25340b996c4e8a021c16b33fd6b64"
+    },
+    {
+      "asana_id": "01a0e872-8488-732f-a212-7c48d24d008d",
+      "image_asset_id": "9ae4b665-1205-42e9-a2b7-7de622a25af7",
+      "image_sha256": "f41201fca667136fbf789559cfab8db03f2c22372cb170be7672a3f501e73f9c",
+      "drawing_sha256": "4cc09a7acb3c2a3992306db1cc9a0c8e284142ca7b2a98bf5472a830f704c0a3"
+    },
+    {
+      "asana_id": "01a0e872-7e81-7046-b505-d437a554b92d",
+      "image_asset_id": "2228923f-550f-4755-9715-512ef635e228",
+      "image_sha256": "557c1532774e404c4e92125de5d334b2dbe455b833d4c43c8595e9ed4a232257",
+      "drawing_sha256": "9f1318fe731891865d75ac0f1c26cdb22015c448d5f0ce53b80a965716ff949b"
+    },
+    {
+      "asana_id": "01a0e872-7aed-72a3-ae64-5d3692d9a498",
+      "image_asset_id": "53c82946-4558-40af-a818-425768f84b11",
+      "image_sha256": "8ce89cb7477bad82b7b4fb4cc8a0696e17b353f727d822cabc818ddfc4ab5569",
+      "drawing_sha256": "b435263c6643673c43782a09b1dfccf6d9e9cc0b8818b12b5fb0ad8a41b6ed20"
+    },
+    {
+      "asana_id": "01a13a70-9bcc-7004-b47c-2d13f261ab7c",
+      "image_asset_id": "52ad79b2-75e8-4b6e-96c1-38fa566394e9",
+      "image_sha256": "e0d186fd44609d56cb5ec14c72cfa46d0f62abb618db444c67ad8ffede4f0eea",
+      "drawing_sha256": "c950038ae822f718d482f317ebb7fa08026d348fbe35d6f79c780ae50a7560b3"
+    },
+    {
+      "asana_id": "01a0e872-8540-71fc-bb35-3b70f172d126",
+      "image_asset_id": "f690f767-a194-4c4b-b163-223275555959",
+      "image_sha256": "9ec158647dba8d36c3cbd53a12f7244f7bd9961dd9c230de6db8d7cc1fd8f760",
+      "drawing_sha256": "af2cebbb459f755299ea1e26c6b7135c2100d6aa77706ec1a3d23d2e560f4b8a"
+    },
+    {
+      "asana_id": "01a0e872-7a91-7308-9d98-27ee86d30e0b",
+      "image_asset_id": "e3c694b1-7683-40ba-86ad-484a98528534",
+      "image_sha256": "2b3092fd4d1014b46a5c7cff8feebc36b3895a8272f44b27bdcc83ed762aaa93",
+      "drawing_sha256": "25d8c4312392d32a5d198a89b50489bd2aef7c16f3acf0db52c599d98a1235dc"
+    },
+    {
+      "asana_id": "01a0e872-7cff-7273-9a5e-185b5986a66d",
+      "image_asset_id": "283b6261-9ab0-4994-8780-04fc893c8c21",
+      "image_sha256": "938a0c04a8a25fc880723c341e1e49982f343c441c44dda9b57070d1055ef362",
+      "drawing_sha256": "5237456653d18d51051a2ae3e41d1fb834bddf51db6a42c6219703e721add080"
+    },
+    {
+      "asana_id": "01a1264b-cb65-73e4-b4e6-6f989e9d8be2",
+      "image_asset_id": "eb73b450-bb2b-47d6-a4e4-22fa79390a1b",
+      "image_sha256": "a1a821e672277eedf89186d099b0d78b3674dd469a6c2b04adbac5557f5583c0",
+      "drawing_sha256": "be3ea01891ae725dab37d2e1be4aa3e8f6c5834ea5bb9187f731d8307ff110a9"
+    },
+    {
+      "asana_id": "01a1269a-e0ca-7295-bb78-51a35a56b25f",
+      "image_asset_id": "969bd9d1-38d9-4f50-ad24-620fe14dda7a",
+      "image_sha256": "32e3a1c2a21abafa9955e5a1dcdf69db296cc1f448a993c036566a39718cf380",
+      "drawing_sha256": "44a13b263316178cf3db8908c45ac4fcff344a346a6459c1fe626ad289ceb493"
+    },
+    {
+      "asana_id": "01a0e872-8468-7073-812b-b349b765fb66",
+      "image_asset_id": "31a52c1b-da1c-40f3-87f4-dfcae01af4e9",
+      "image_sha256": "0d6c93bd65e124cfce495e5ec27d313990c5bfd82179e5492463059fa8be1572",
+      "drawing_sha256": "ff34341e2f2e33f75ad5b65de9bb43ba897936262df58702ee15657e5b6934fb"
+    },
+    {
+      "asana_id": "01a126aa-7e50-70ef-a4e2-4b20c2e1eac3",
+      "image_asset_id": "76b1b80a-a8fe-4232-a3e8-374f3775e4ed",
+      "image_sha256": "45f3869cb07e3815ead7a7fc568ff8447692d41c0c9da57e455aae778836d35f",
+      "drawing_sha256": "684ea386a3b6c7b983c6f18a14dec02bcb950ccb2ae1b4caad3c9c0136ac049a"
+    },
+    {
+      "asana_id": "01a126aa-1cc2-7031-9227-91777ba46ebf",
+      "image_asset_id": "b7ab5bd5-ca70-42cd-9c58-01ab562fd832",
+      "image_sha256": "57c38837042f5084b74dc015e58b4f87edad5c1bd5a33f2861cb65232df3a635",
+      "drawing_sha256": "d692f248ea42e34e47dd2b36624754d0487d05f3bf262e29b2224a4b62c4bc81"
+    },
+    {
+      "asana_id": "01a0e872-8056-73fb-b549-acb09f603244",
+      "image_asset_id": "990289de-8785-498f-b659-4eabbc439e49",
+      "image_sha256": "464ed96377deb6b2e9b8196109e827da8b500bc922b6511498d5256af88329bd",
+      "drawing_sha256": "78caec01f5ebe2bf26c900933520a226e5a80ff31ca79ac996c7db96b457c8e0"
+    }
+  ]
+}

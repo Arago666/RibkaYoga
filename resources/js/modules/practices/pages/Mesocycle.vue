@@ -7,7 +7,7 @@ import Modal from '@/shared/Modal.vue';
 import AsanaPalette from '../components/AsanaPalette.vue';
 import { api, ApiError } from '@/shared/api';
 import type { Asana, Page } from '@/modules/catalog/types';
-import type { Practice } from '../types';
+import type { Practice, Cell } from '../types';
 import { uid } from '../types';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
 import {
@@ -22,6 +22,7 @@ interface Week {
   position: number;
   document_id: string;
   document: Practice;
+  title: string | null;
 }
 interface Cycle {
   id: string;
@@ -32,6 +33,7 @@ interface Cycle {
   cloud_asanas: Asana[];
   weeks: Week[];
   archived_at: string | null;
+  kind: 'cycle' | 'template';
 }
 const props = defineProps<{ mesocycleId: string }>();
 const cycle = ref<Cycle | null>(null),
@@ -42,6 +44,11 @@ const cycle = ref<Cycle | null>(null),
   cloudOpen = ref(false),
   notice = ref('');
 const frames = new Map<string, HTMLIFrameElement>();
+const activeDocumentId = ref<string | null>(null);
+const switching = ref(false);
+const structureKey = ref(uid());
+const replacementKey = ref(uid());
+const previewUndo = ref<string | null>(null);
 const frameSessions = new Map<string, string>();
 const insertionSequences = new Map<string, number>();
 const weekDirty = ref<Record<string, boolean>>({});
@@ -56,7 +63,7 @@ const weeksBoard = ref<HTMLElement | null>(null);
 let lastCloudPoint: PaletteDragPoint | null = null,
   dragScrollFrame = 0;
 const replacement = ref<Week | null>(null),
-  sources = ref<{ id: string; title: string }[]>([]),
+  sources = ref<{ id: string; title: string; revision: number }[]>([]),
   sourceId = ref(''),
   sourceKind = ref('practice'),
   replaceBusy = ref(false);
@@ -114,14 +121,14 @@ function setDragTarget(next: MesocycleTarget | null) {
 }
 function moveCloud(point: PaletteDragPoint) {
   lastCloudPoint = point;
-  setDragTarget(mesocycleCellAtPoint(frames, point));
+  setDragTarget(cloudTargetAtPoint(point));
   if (!dragScrollFrame) dragScrollFrame = requestAnimationFrame(scrollCloud);
 }
 function scrollCloud() {
   dragScrollFrame = 0;
   if (!lastCloudPoint || !dragPreview.value) return;
   scrollMesocycleAtPoint(frames, weeksBoard.value, lastCloudPoint);
-  setDragTarget(mesocycleCellAtPoint(frames, lastCloudPoint));
+  setDragTarget(cloudTargetAtPoint(lastCloudPoint));
   dragScrollFrame = requestAnimationFrame(scrollCloud);
 }
 function endCloudDrag() {
@@ -134,7 +141,7 @@ const pointerDrag = usePaletteDrag({
   enabled: () => !cloudDisabled.value,
   move: moveCloud,
   drop: (card, point) => {
-    const destination = mesocycleCellAtPoint(frames, point);
+    const destination = cloudTargetAtPoint(point);
     if (destination) insertCloud(card, destination);
   },
   end: endCloudDrag,
@@ -162,6 +169,11 @@ async function load() {
     const result = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`);
     if (!alive) return;
     cycle.value = result.data;
+    if (
+      !activeDocumentId.value ||
+      !result.data.weeks.some((week) => week.document_id === activeDocumentId.value)
+    )
+      activeDocumentId.value = result.data.weeks[0]?.document_id || null;
     weekDirty.value = Object.fromEntries(
       result.data.weeks.map((week) => [week.document_id, weekDirty.value[week.document_id] || false]),
     );
@@ -187,16 +199,25 @@ async function performSave(): Promise<boolean> {
     outgoing = {
       title: cycle.value.title.trim(),
       theme: cycle.value.theme?.trim() || null,
-      cloud_asana_ids: [...cycle.value.cloud_asana_ids],
-      expected_revision: cycle.value.revision,
     };
   try {
+    const previous = JSON.parse(acknowledged.value || '{}') as Partial<Cycle>;
+    const cloud = [...cycle.value.cloud_asana_ids];
     const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`, {
-      method: 'PUT',
-      body: JSON.stringify(outgoing),
+      method: 'PATCH',
+      body: JSON.stringify({ ...outgoing, expected_revision: cycle.value.revision }),
     });
     if (!alive) return false;
     cycle.value.revision = response.data.revision;
+    acknowledged.value = JSON.stringify({ ...outgoing, cloud_asana_ids: previous.cloud_asana_ids || [] });
+    if (JSON.stringify(cloud) !== JSON.stringify(previous.cloud_asana_ids || [])) {
+      const cloudResponse = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ cloud_asana_ids: cloud, expected_revision: cycle.value.revision }),
+      });
+      if (!alive) return false;
+      cycle.value.revision = cloudResponse.data.revision;
+    }
     acknowledged.value = sent;
     return true;
   } catch (e) {
@@ -236,7 +257,21 @@ function removeCloud(id: string) {
   cycle.value.cloud_asanas = cycle.value.cloud_asanas.filter((value) => value.id !== id);
   schedule();
 }
-function insertCloud(card: Asana, destination = target.value) {
+function cloudTargetAtPoint(point: PaletteDragPoint): MesocycleTarget | null {
+  const frameTarget = mesocycleCellAtPoint(frames, point);
+  if (frameTarget) return frameTarget;
+  const element = document
+    .elementFromPoint(point.x, point.y)
+    ?.closest<HTMLElement>('[data-cycle-preview-cell]');
+  return element?.dataset.documentId && element.dataset.cellId
+    ? {
+        documentId: element.dataset.documentId,
+        cellId: element.dataset.cellId,
+        label: element.dataset.label || 'Пустая ячейка',
+      }
+    : null;
+}
+async function insertCloud(card: Asana, destination = target.value) {
   if (cloudDisabled.value || !cycle.value?.cloud_asana_ids.includes(card.id)) return;
   if (!destination) {
     notice.value = 'Сначала нажмите на ячейку нужной недели.';
@@ -244,6 +279,41 @@ function insertCloud(card: Asana, destination = target.value) {
   }
   if (card.archived_at) {
     notice.value = 'Эта асана в архиве. Восстановите её в библиотеке.';
+    return;
+  }
+  if (!frames.has(destination.documentId)) {
+    const week = cycle.value?.weeks.find((item) => item.document_id === destination.documentId);
+    const cell = week?.document.blocks
+      .flatMap((block) => block.rows.flatMap((row) => row.cells))
+      .find((item) => item.id === destination.cellId);
+    if (!week || !cell || !(await saveMetadata())) return;
+    const occupied = !!(cell.card_snapshot_id || cell.custom_name);
+    if (
+      occupied &&
+      !window.confirm(`Заменить «${destination.label}»? Позиционные стрелки и скобки сохранятся.`)
+    )
+      return;
+    const operationId = uid();
+    try {
+      const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/insert`, {
+        method: 'POST',
+        body: JSON.stringify({
+          expected_revision: cycle.value!.revision,
+          idempotency_key: operationId,
+          document_id: week.document_id,
+          expected_document_revision: week.document.revision,
+          cell_id: cell.id,
+          asana_id: card.id,
+          confirm_replace: occupied,
+        }),
+      });
+      cycle.value = response.data;
+      acknowledged.value = signature();
+      notice.value = 'Асана вставлена. Откройте занятие для дальнейшего редактирования.';
+      previewUndo.value = operationId;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Не удалось вставить асану. Обновите превью.';
+    }
     return;
   }
   const sequence = (insertionSequences.get(destination.documentId) || 0) + 1;
@@ -256,6 +326,21 @@ function insertCloud(card: Asana, destination = target.value) {
     requestId: uid(),
     sequence,
   });
+}
+async function undoPreviewInsert() {
+  if (!previewUndo.value) return;
+  try {
+    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/undo-insert`, {
+      method: 'POST',
+      body: JSON.stringify({ operation_id: previewUndo.value, idempotency_key: uid() }),
+    });
+    cycle.value = response.data;
+    acknowledged.value = signature();
+    previewUndo.value = null;
+    notice.value = 'Вставка отменена.';
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось отменить вставку.';
+  }
 }
 function receive(event: MessageEvent) {
   if (event.origin !== window.location.origin || !isMesocycleEvent(event.data)) return;
@@ -281,7 +366,7 @@ function receive(event: MessageEvent) {
 }
 function saveWeek(documentId: string): Promise<boolean> {
   const frame = frames.get(documentId);
-  if (!frame?.contentWindow) return Promise.resolve(false);
+  if (!frame?.contentWindow) return Promise.resolve(!weekDirty.value[documentId]);
   const previous = weekSaveRequests.get(documentId);
   if (previous) {
     clearTimeout(previous.timer);
@@ -305,11 +390,11 @@ async function saveAll() {
     allSaving.value = false;
     return;
   }
-  notice.value = 'Сохраняем пять недель…';
+  notice.value = 'Сохраняем занятия…';
   const results = await Promise.all(cycle.value.weeks.map((week) => saveWeek(week.document_id)));
   notice.value = results.every(Boolean)
-    ? 'Тема, облако и все пять недель сохранены.'
-    : `Сохранено ${results.filter(Boolean).length} из пяти недель. Проверьте сообщения в редакторах остальных недель.`;
+    ? 'Тема, облако и все занятия сохранены.'
+    : 'Не удалось сохранить активное занятие. Проверьте его редактор.';
   allSaving.value = false;
 }
 async function loadSources() {
@@ -319,7 +404,7 @@ async function loadSources() {
     let page = 1,
       last = 1;
     do {
-      const response = await api<Page<{ id: string; title: string }>>(
+      const response = await api<Page<{ id: string; title: string; revision: number }>>(
         `/api/practices?kind=${sourceKind.value}&per_page=100&page=${page}`,
       );
       sources.value.push(...response.data);
@@ -333,6 +418,7 @@ async function loadSources() {
   }
 }
 async function openReplace(week: Week) {
+  replacementKey.value = uid();
   replacement.value = week;
   sourceId.value = '';
   await loadSources();
@@ -357,9 +443,15 @@ async function replaceWeek() {
         expected_revision: cycle.value.revision,
         position: replacement.value.position,
         source_document_id: sourceId.value,
+        expected_source_revision: sources.value.find((source) => source.id === sourceId.value)?.revision,
+        idempotency_key: replacementKey.value,
       }),
     });
     cycle.value = response.data;
+    activeDocumentId.value =
+      response.data.weeks.find((week) => week.position === replacement.value?.position)?.document_id ||
+      response.data.weeks[0]?.document_id ||
+      null;
     acknowledged.value = signature();
     replacement.value = null;
     target.value = null;
@@ -368,6 +460,120 @@ async function replaceWeek() {
     error.value = e instanceof Error ? e.message : 'Не удалось заменить неделю.';
   } finally {
     replaceBusy.value = false;
+  }
+}
+function previewCells(week: Week): Cell[] {
+  return week.document.blocks.flatMap((block) => block.rows.flatMap((row) => row.cells)).slice(0, 4);
+}
+async function activateWeek(week: Week) {
+  if (activeDocumentId.value === week.document_id || switching.value) return;
+  switching.value = true;
+  try {
+    if (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))) {
+      error.value = 'Сохраните активное занятие перед переключением.';
+      return;
+    }
+    if (activeDocumentId.value && cycle.value) {
+      const old = cycle.value.weeks.find((item) => item.document_id === activeDocumentId.value);
+      if (old) old.document = (await api<{ data: Practice }>(`/api/practices/${old.document_id}`)).data;
+    }
+    target.value = null;
+    activeDocumentId.value = week.document_id;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось переключить занятие.';
+  } finally {
+    switching.value = false;
+  }
+}
+async function changeStructure(
+  positions: { id?: string; title?: string | null }[],
+  removed: { id: string; action: 'keep' | 'archive'; expected_revision: number }[] = [],
+) {
+  if (!cycle.value || switching.value || positions.length < 1 || positions.length > 52) return;
+  if (!(await saveMetadata()) || (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))))
+    return;
+  switching.value = true;
+  error.value = '';
+  try {
+    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/structure`, {
+      method: 'POST',
+      body: JSON.stringify({
+        expected_revision: cycle.value.revision,
+        idempotency_key: structureKey.value,
+        positions,
+        removed,
+      }),
+    });
+    cycle.value = response.data;
+    acknowledged.value = signature();
+    structureKey.value = uid();
+    if (!response.data.weeks.some((week) => week.document_id === activeDocumentId.value))
+      activeDocumentId.value = response.data.weeks[0]?.document_id || null;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось изменить структуру.';
+  } finally {
+    switching.value = false;
+  }
+}
+function movePosition(week: Week, offset: number) {
+  if (!cycle.value) return;
+  const positions = cycle.value.weeks.map(({ id, title }) => ({ id, title }));
+  const targetIndex = week.position + offset;
+  if (targetIndex < 0 || targetIndex >= positions.length) return;
+  [positions[week.position], positions[targetIndex]] = [positions[targetIndex]!, positions[week.position]!];
+  void changeStructure(positions);
+}
+function renamePosition(week: Week) {
+  const title = window.prompt('Название занятия в цикле', week.title || `Занятие ${week.position + 1}`);
+  if (title !== null && cycle.value)
+    void changeStructure(
+      cycle.value.weeks.map((item) => ({
+        id: item.id,
+        title: item.id === week.id ? title.slice(0, 160) : item.title,
+      })),
+    );
+}
+async function removePosition(week: Week) {
+  if (!cycle.value || cycle.value.weeks.length <= 1) return;
+  if (!window.confirm('Убрать позицию из цикла? Само занятие и изображения сохранятся отдельно.')) return;
+  if (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))) return;
+  const document = (await api<{ data: Practice }>(`/api/practices/${week.document_id}`)).data;
+  const action = window.confirm('Сохранить занятие в активных практиках? Отмена предложит архивирование.')
+    ? 'keep'
+    : window.confirm('Архивировать занятие? Его можно будет восстановить.')
+      ? 'archive'
+      : null;
+  if (action)
+    await changeStructure(
+      cycle.value.weeks.filter((item) => item.id !== week.id).map(({ id, title }) => ({ id, title })),
+      [{ id: week.id, action, expected_revision: document.revision }],
+    );
+}
+async function duplicateCycle(asTemplate: boolean) {
+  if (
+    !cycle.value ||
+    !(await saveMetadata()) ||
+    (activeDocumentId.value && !(await saveWeek(activeDocumentId.value)))
+  )
+    return;
+  const title = window.prompt(
+    asTemplate ? 'Название шаблона цикла' : 'Название новой программы',
+    cycle.value.title,
+  );
+  if (!title?.trim()) return;
+  try {
+    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/duplicate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        kind: asTemplate ? 'template' : 'cycle',
+        expected_revision: cycle.value.revision,
+        idempotency_key: uid(),
+      }),
+    });
+    router.visit(`/mesocycles/${response.data.id}/edit`);
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось создать копию.';
   }
 }
 function beforeUnload(event: BeforeUnloadEvent) {
@@ -414,8 +620,10 @@ onBeforeUnmount(() => {
 <template>
   <Head :title="cycle?.title || 'Мезоцикл'" />
   <AppShell section="practices" wide>
-    <Link href="/mesocycles" class="btn btn-ghost"><ArrowLeft :size="16" />Мезоциклы</Link>
-    <p v-if="loading" class="muted" role="status">Открываем пять недель…</p>
+    <Link :href="cycle?.kind === 'template' ? '/templates?type=cycle' : '/mesocycles'" class="btn btn-ghost"
+      ><ArrowLeft :size="16" />Программы и циклы</Link
+    >
+    <p v-if="loading" class="muted" role="status">Открываем занятия…</p>
     <p v-if="error" class="error-banner" role="alert">
       {{ error }}
       <button v-if="conflict" class="btn btn-secondary" @click="reloadCurrent">
@@ -448,6 +656,13 @@ onBeforeUnmount(() => {
           @click="saveAll"
         >
           <Save :size="17" />Сохранить всё
+        </button>
+        <button
+          class="btn btn-secondary"
+          :disabled="switching || conflict || !!cycle.archived_at"
+          @click="duplicateCycle(cycle.kind !== 'template')"
+        >
+          {{ cycle.kind === 'template' ? 'Создать программу' : 'Сохранить как шаблон цикла' }}
         </button>
       </header>
       <div class="cycle-cloud">
@@ -511,10 +726,28 @@ onBeforeUnmount(() => {
         </p>
       </div>
       <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
+      <button v-if="previewUndo" class="btn btn-secondary" @click="undoPreviewInsert">
+        Отменить вставку в превью
+      </button>
+      <div class="cycle-structure-tools">
+        <span>{{ cycle.weeks.length }} занятий</span
+        ><button
+          class="btn btn-secondary"
+          :disabled="switching || cycle.weeks.length >= 52 || conflict || !!cycle.archived_at"
+          @click="changeStructure([...cycle.weeks.map(({ id, title }) => ({ id, title })), {}])"
+        >
+          Добавить занятие
+        </button>
+      </div>
       <div ref="weeksBoard" class="weeks-board">
-        <section v-for="week in cycle.weeks" :key="week.document_id" class="week-column">
+        <section
+          v-for="week in cycle.weeks"
+          :key="week.document_id"
+          class="week-column"
+          :class="{ 'active-week': activeDocumentId === week.document_id }"
+        >
           <header>
-            <h2>Неделя {{ week.position + 1 }}</h2>
+            <h2>{{ week.title || `Занятие ${week.position + 1}` }}</h2>
             <a
               :href="`/practices/${week.document_id}/edit`"
               class="icon-btn"
@@ -531,7 +764,39 @@ onBeforeUnmount(() => {
               <Copy :size="17" />
             </button>
           </header>
+          <div class="position-actions">
+            <button
+              class="btn btn-ghost"
+              :disabled="switching || conflict || !!cycle.archived_at"
+              @click="renamePosition(week)"
+            >
+              Название</button
+            ><button
+              class="btn btn-ghost"
+              :disabled="switching || week.position === 0 || conflict || !!cycle.archived_at"
+              @click="movePosition(week, -1)"
+              aria-label="Выше"
+            >
+              ↑</button
+            ><button
+              class="btn btn-ghost"
+              :disabled="
+                switching || week.position === cycle.weeks.length - 1 || conflict || !!cycle.archived_at
+              "
+              @click="movePosition(week, 1)"
+              aria-label="Ниже"
+            >
+              ↓</button
+            ><button
+              class="btn btn-ghost"
+              :disabled="switching || cycle.weeks.length <= 1 || conflict || !!cycle.archived_at"
+              @click="removePosition(week)"
+            >
+              Убрать
+            </button>
+          </div>
           <iframe
+            v-if="activeDocumentId === week.document_id"
             :ref="
               (element) => {
                 if (element) frames.set(week.document_id, element as HTMLIFrameElement);
@@ -539,13 +804,45 @@ onBeforeUnmount(() => {
               }
             "
             :src="frameSource(week.document_id)"
-            :title="`Редактор недели ${week.position + 1}`"
+            :title="`Редактор занятия ${week.position + 1}`"
           />
+          <div v-else class="week-preview">
+            <div class="preview-poses">
+              <button
+                v-for="cell in previewCells(week)"
+                :key="cell.id"
+                type="button"
+                data-cycle-preview-cell
+                :data-document-id="week.document_id"
+                :data-cell-id="cell.id"
+                :data-label="cell.card?.name || cell.custom_name || 'Пустая ячейка'"
+                :class="{ 'preview-target': dragTarget?.cellId === cell.id || target?.cellId === cell.id }"
+                @click="
+                  target = {
+                    documentId: week.document_id,
+                    cellId: cell.id,
+                    label: cell.card?.name || cell.custom_name || 'Пустая ячейка',
+                  }
+                "
+              >
+                <img v-if="cell.card" :src="cell.card.image_url" :alt="cell.card.name" loading="lazy" /><span
+                  v-else
+                  >{{ cell.custom_name || '+' }}</span
+                >
+              </button>
+            </div>
+            <p>{{ week.document.title }}</p>
+            <button class="btn btn-primary" :disabled="switching" @click="activateWeek(week)">
+              Открыть редактор занятия</button
+            ><Link class="btn btn-ghost" :href="`/practices/${week.document_id}/preview`"
+              >Просмотр / печать</Link
+            >
+          </div>
         </section>
       </div>
       <p class="muted board-help">
-        Каждая неделя сохраняется автоматически и имеет отдельную историю отмены. Стрелки, скобки, подписи,
-        связки и печать доступны внутри её редактора. При небольшом экране прокрутите недели по горизонтали.
+        Перед переключением активное занятие сохраняется. Одновременно открыт один редактор; другие занятия
+        показаны лёгкими превью. Стрелки, скобки и история доступны в редакторе.
       </p>
     </template>
     <Modal :open="cloudOpen" title="Добавить асаны в облако" @close="cloudOpen = false"
@@ -604,6 +901,51 @@ onBeforeUnmount(() => {
   </Teleport>
 </template>
 <style scoped>
+.cycle-structure-tools,
+.position-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.week-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  min-height: 300px;
+}
+.preview-poses {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.preview-poses > button {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid #e4eadf;
+  border-radius: 8px;
+}
+.preview-poses > button.preview-target {
+  outline: 3px solid #75a958;
+}
+.preview-poses img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.active-week {
+  outline: 2px solid #74a960;
+}
+.weeks-board {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)) !important;
+}
+.week-column:has(iframe) {
+  grid-column: 1/-1;
+}
 .cycle-heading {
   display: flex;
   gap: 24px;

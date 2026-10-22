@@ -1,6 +1,6 @@
 FROM php:8.4-fpm-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git unzip libpq-dev libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libwebp-dev \
+    git unzip ffmpeg libpq-dev libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libwebp-dev \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) pdo_pgsql intl zip gd opcache \
     && rm -rf /var/lib/apt/lists/*

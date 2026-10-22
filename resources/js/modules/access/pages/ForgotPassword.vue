@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-defineProps<{ status?: string; localMail: boolean }>();
+defineProps<{ status?: string; localMail: boolean; recoveryAvailable: boolean }>();
 const form = useForm({ email: '' });
 </script>
 <template>
@@ -14,9 +14,14 @@ const form = useForm({ email: '' });
       <p v-if="localMail" class="muted">
         Локальный режим: письмо со ссылкой появится в <code>storage/logs/local-mail.log</code>.
       </p>
-      <p v-else class="muted">Укажите почту своего аккаунта. На неё придёт ссылка для смены пароля.</p>
+      <p v-else-if="recoveryAvailable" class="muted">
+        Укажите почту своего аккаунта. На неё придёт ссылка для смены пароля.
+      </p>
+      <p v-else class="muted">
+        Отправка писем пока не подключена. Для восстановления доступа обратитесь к администратору.
+      </p>
       <p v-if="status" class="success-banner" role="status">{{ status }}</p>
-      <form class="login-form" @submit.prevent="form.post('/forgot-password')">
+      <form v-if="recoveryAvailable" class="login-form" @submit.prevent="form.post('/forgot-password')">
         <label class="field"
           ><span class="label">Электронная почта</span
           ><input
