@@ -20,7 +20,15 @@ export interface PreparedIllustration {
 interface State {
   preference: { style: IllustrationStyle; character: Character; revision: number };
   coverage: { total: number; matched: number; original: number; line: number; volume: number };
-  cards: { id: string; name: string; image_asset_id: string; image_url: string; pose_key: string }[];
+  cards: {
+    id: string;
+    name: string;
+    image_asset_id: string;
+    image_url: string;
+    pose_key: string | null;
+    supported_styles: IllustrationStyle[];
+  }[];
+  volume_source_revision: number;
   pack: { model_revision: number; rights: string; poses: Record<string, MannequinPose> };
 }
 const props = defineProps<{
@@ -37,12 +45,28 @@ const state = ref<State | null>(null),
   loading = ref(true);
 const style = ref<IllustrationStyle>('original'),
   character = ref<Character>('neutral'),
-  selectedId = ref('');
+  selectedId = ref(''),
+  search = ref('');
 const prepared = ref<PreparedIllustration | null>(null);
 const selected = computed(() =>
   state.value?.cards.find((card) => card.id === (props.asanaId || selectedId.value)),
 );
-const pose = computed(() => (selected.value ? state.value?.pack.poses[selected.value.pose_key] : null));
+const pose = computed(() =>
+  selected.value?.pose_key ? state.value?.pack.poses[selected.value.pose_key] : null,
+);
+const supported = computed(
+  () =>
+    style.value === 'original' ||
+    (!!selected.value &&
+      (!props.sourceAssetId || selected.value.image_asset_id === props.sourceAssetId) &&
+      selected.value.supported_styles.includes(style.value)),
+);
+const filteredCards = computed(() => {
+  const query = search.value.trim().toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+  return (state.value?.cards ?? []).filter((card) =>
+    card.name.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').includes(query),
+  );
+});
 const originalUrl = computed(() => props.imageUrl || selected.value?.image_url);
 const styleNames: Record<IllustrationStyle, string> = {
   original: 'Мои рисунки',
@@ -87,24 +111,34 @@ async function save(): Promise<void> {
 }
 async function prepare(): Promise<void> {
   const asanaId = props.asanaId || selected.value?.id,
-    assetId = props.sourceAssetId || selected.value?.image_asset_id;
+    assetId = props.sourceAssetId || selected.value?.image_asset_id,
+    requestedStyle = style.value,
+    requestedCharacter = character.value;
   if (!asanaId || !assetId || busy.value) return;
   busy.value = true;
   error.value = '';
   notice.value = '';
   prepared.value = null;
   try {
-    prepared.value = (
+    const result = (
       await api<{ data: PreparedIllustration }>('/api/illustration-styles/prepare', {
         method: 'POST',
         body: JSON.stringify({
           asana_id: asanaId,
           source_asset_id: assetId,
-          style: style.value,
-          character: character.value,
+          style: requestedStyle,
+          character: requestedCharacter,
         }),
       })
     ).data;
+    if (
+      asanaId !== (props.asanaId || selected.value?.id) ||
+      assetId !== (props.sourceAssetId || selected.value?.image_asset_id) ||
+      requestedStyle !== style.value ||
+      requestedCharacter !== character.value
+    )
+      return;
+    prepared.value = result;
     notice.value =
       prepared.value.reason || 'Вариант подготовлен. Исходная карточка и сохранённые снимки не менялись.';
     emit('select', prepared.value);
@@ -114,6 +148,11 @@ async function prepare(): Promise<void> {
     busy.value = false;
   }
 }
+watch(search, () => {
+  if (!filteredCards.value.some((card) => card.id === selectedId.value)) {
+    selectedId.value = filteredCards.value[0]?.id ?? '';
+  }
+});
 watch(
   () => [style.value, character.value, selectedId.value, props.asanaId, props.sourceAssetId],
   () => {
@@ -135,13 +174,13 @@ onMounted(() => {
     <template v-else>
       <div class="illustration-choices">
         <label
-          >Представление<select v-model="style">
+          >Представление<select v-model="style" :disabled="busy">
             <option v-for="(name, key) in styleNames" :key="key" :value="key">
               {{ name }} — {{ state.coverage[key] }} / {{ state.coverage.total }}
             </option>
           </select></label
         ><label
-          >Персонаж<select v-model="character" :disabled="style === 'original'">
+          >Персонаж<select v-model="character" :disabled="busy || style === 'original'">
             <option value="neutral">Нейтральная фигура</option>
             <option value="female">Женщина</option>
             <option value="male">Мужчина</option>
@@ -149,9 +188,9 @@ onMounted(() => {
         >
       </div>
       <p class="muted">
-        Проверенные альтернативы есть для {{ state.coverage.matched }} из {{ state.coverage.total }} активных
-        карточек. Для остальных сохраняется точный исходный рисунок. Женская и мужская фигуры меняют пропорции
-        манекена, сохраняя заданную позу.
+        Объёмные варианты доступны для {{ state.coverage.volume }} из {{ state.coverage.total }} активных
+        карточек, линейный манекен — для {{ state.coverage.line }}. Контуры, изгибы и опоры объёмной фигуры
+        повторяют исходный рисунок. Глубина условная; персонаж меняет толщину фигуры, сохраняя точки опоры.
       </p>
       <div class="illustration-actions">
         <button type="button" class="btn" :disabled="busy" @click="save">
@@ -162,25 +201,41 @@ onMounted(() => {
         Глобальная настройка не меняет старые листы. Применение к существующему занятию требует отдельного
         предпросмотра и подтверждения в редакторе.
       </p>
-      <label v-if="!asanaId"
-        >Проверенная поза для предпросмотра<select v-model="selectedId">
-          <option v-for="card in state.cards" :key="card.id" :value="card.id">{{ card.name }}</option>
-        </select></label
-      >
+      <div v-if="!asanaId" class="illustration-pose-picker">
+        <label
+          >Найти позу<input v-model="search" type="search" :disabled="busy" placeholder="Название асаны"
+        /></label>
+        <label
+          >Поза для предпросмотра<select v-model="selectedId" :disabled="busy || !filteredCards.length">
+            <option v-for="card in filteredCards" :key="card.id" :value="card.id">{{ card.name }}</option>
+          </select></label
+        >
+        <p v-if="!filteredCards.length" class="muted">По этому названию ничего не найдено.</p>
+      </div>
       <div class="illustration-preview">
         <div v-if="originalUrl">
           <h3>Исходный рисунок</h3>
           <img :src="originalUrl" alt="Исходное изображение выбранной асаны" />
         </div>
-        <div v-if="style !== 'original' && pose">
+        <div v-if="style === 'line' && pose && supported">
           <h3>
             {{ styleNames[style] }} ·
             {{ character === 'female' ? 'женщина' : character === 'male' ? 'мужчина' : 'нейтральный' }}
           </h3>
-          <MannequinView :pose="pose" :style="style" :character="character" />
+          <MannequinView :pose="pose" :style="'line'" :character="character" />
+        </div>
+        <div v-if="style === 'volume' && supported" class="prepared-image">
+          <h3>Объёмная фигура</h3>
+          <template v-if="prepared">
+            <img :src="prepared.image_url" alt="Подготовленный объёмный вариант выбранной асаны" />
+            <a :href="prepared.image_url" target="_blank" rel="noopener" class="btn">Открыть PNG</a>
+          </template>
+          <p v-else class="muted">
+            Подготовьте выбранное представление, чтобы увидеть его рядом с исходным рисунком.
+          </p>
         </div>
       </div>
-      <p v-if="style !== 'original' && !pose" class="illustration-notice">
+      <p v-if="style !== 'original' && !supported" class="illustration-notice">
         Для этой точной версии позы проверенного альтернативного представления нет. Будет использован исходный
         рисунок.
       </p>
@@ -194,7 +249,7 @@ onMounted(() => {
           {{ busy ? 'Подготавливаем…' : 'Подготовить выбранное представление' }}
         </button>
       </div>
-      <div v-if="prepared" class="prepared-image">
+      <div v-if="prepared && (style !== 'volume' || !supported)" class="prepared-image">
         <h3>{{ prepared.fallback ? 'Сохранён исходный рисунок' : 'Неизменяемое изображение готово' }}</h3>
         <img :src="prepared.image_url" alt="Подготовленное представление асаны" /><a
           :href="prepared.image_url"
@@ -208,9 +263,12 @@ onMounted(() => {
         <summary>Происхождение набора</summary>
         <p>{{ state.pack.rights }}</p>
         <p>
-          Ревизия модели: {{ state.pack.model_revision }}. Геометрия — суставы, цилиндры и эллипсоиды в трёх
-          измерениях, освещение и камера. Исходные PNG не превращаются в 3D фильтром; точное соответствие
-          проверяется по SHA-256 изображения.
+          Объёмные варианты строятся по сохранённой геометрии конкретного исходного рисунка и закрепляются
+          отдельным изображением. Ревизия объёмных вариантов: {{ state.volume_source_revision }}. Изображение
+          связано с точной версией исходника.
+        </p>
+        <p>
+          Линейный манекен: ревизия {{ state.pack.model_revision }}. Его 3D модель можно вращать для осмотра.
         </p>
       </details>
     </template>
@@ -230,13 +288,18 @@ onMounted(() => {
   display: grid;
   gap: 0.4rem;
 }
-.illustration-settings select {
+.illustration-settings select,
+.illustration-settings input {
   min-height: 44px;
   border: 1px solid #c5d0c0;
   border-radius: 0.5rem;
   padding: 0.5rem;
   width: 100%;
   background: white;
+}
+.illustration-pose-picker {
+  display: grid;
+  gap: 0.75rem;
 }
 .illustration-preview {
   display: grid;
@@ -254,6 +317,9 @@ onMounted(() => {
 .prepared-image img {
   display: block;
   max-width: 320px;
+}
+.illustration-preview .prepared-image img {
+  max-width: 520px;
 }
 .illustration-actions {
   display: flex;
