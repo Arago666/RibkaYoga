@@ -48,9 +48,13 @@ const auth = usePage().props.auth as { user?: { id: number }; workspace?: { id: 
 const draftKey = computed(() => `sketch:${auth?.user?.id}:${auth?.workspace?.id}:${props.pageId}`);
 let timer: ReturnType<typeof setTimeout> | undefined;
 let generation = 0;
-async function save(exported?: Exported) {
+function cancelScheduledSave() {
+  if (timer) clearTimeout(timer);
+  timer = undefined;
+}
+async function save(exported?: Exported, exportedGeneration = generation) {
   if (!row.value || saving.value) return false;
-  const current = generation;
+  const current = exportedGeneration;
   saving.value = true;
   status.value = 'Сохраняется…';
   error.value = '';
@@ -70,6 +74,7 @@ async function save(exported?: Exported) {
     if (current === generation && (exported || !changed.value)) {
       changed.value = false;
       status.value = 'Сохранено';
+      if (exported) editor.value?.discardDraft();
     } else schedule();
     return !changed.value;
   } catch (f) {
@@ -81,13 +86,19 @@ async function save(exported?: Exported) {
   }
 }
 async function saveAll() {
-  if (!row.value || saving.value || !editor.value) return false;
+  if (!row.value || saving.value || working.value || !editor.value || row.value.archived_at) return false;
   try {
-    const exported = await editor.value.exportDrawing();
-    return await save(exported);
+    // Export checks the editor lock synchronously and captures the source before PNG encoding.
+    const pending = editor.value.exportDrawing();
+    const current = generation;
+    working.value = true;
+    cancelScheduledSave();
+    return await save(await pending, current);
   } catch (f) {
     error.value = f instanceof Error ? f.message : 'Не удалось подготовить изображение.';
     return false;
+  } finally {
+    working.value = false;
   }
 }
 function schedule() {
@@ -122,10 +133,28 @@ function remove(index: number) {
   queue.value.splice(index, 1);
 }
 async function insert() {
-  if (!target.value || !queue.value.length) return;
-  working.value = true;
+  if (
+    !target.value ||
+    !queue.value.length ||
+    !row.value ||
+    !editor.value ||
+    row.value.archived_at ||
+    working.value ||
+    saving.value
+  )
+    return;
   error.value = '';
   try {
+    const pending = editor.value.exportDrawing();
+    const current = generation;
+    working.value = true;
+    cancelScheduledSave();
+    const saved = await save(await pending, current);
+    if (!saved || changed.value || saving.value)
+      throw new Error(
+        `${error.value || 'Сначала сохраните лист.'} Очередь фигур остаётся в этом окне; вставку можно повторить.`,
+      );
+    const targetId = target.value;
     const ids = [];
     for (const item of queue.value) {
       const form = new FormData();
@@ -139,10 +168,7 @@ async function insert() {
       });
       ids.push(result.data.id);
     }
-    const saved = await saveAll();
-    if (!saved || changed.value || saving.value)
-      throw new Error('Сначала сохраните лист. Вставка подготовлена, её можно повторить.');
-    router.visit(`/practices/${target.value}/edit?insert_snapshots=${ids.join(',')}`);
+    router.visit(`/practices/${targetId}/edit?insert_snapshots=${ids.join(',')}`);
   } catch (f) {
     error.value = f instanceof Error ? f.message : 'Ошибка подготовки вставки';
   } finally {
@@ -150,11 +176,13 @@ async function insert() {
   }
 }
 async function copy() {
-  if (!row.value || !editor.value) return;
-  working.value = true;
+  if (!row.value || !editor.value || working.value || saving.value || row.value.archived_at) return;
   error.value = '';
   try {
-    const exported = await editor.value.exportDrawing();
+    const pending = editor.value.exportDrawing();
+    working.value = true;
+    cancelScheduledSave();
+    const exported = await pending;
     const created = (
       await api<{ data: Sketch }>('/api/sketchbook', {
         method: 'POST',
@@ -224,7 +252,9 @@ onBeforeUnmount(() => {
       <Link href="/sketchbook">← Все листы</Link><strong role="status">{{ status }}</strong
       ><button class="btn" :disabled="!row || saving || working" @click="copy">Сохранить копию</button
       ><button class="btn primary" :disabled="!row || saving || working" @click="saveAll">Сохранить</button
-      ><button class="btn" :disabled="!row?.image_url" @click="print">Печать / PDF</button>
+      ><button class="btn" :disabled="!row?.image_url || saving || working" @click="print">
+        Печать / PDF
+      </button>
     </div>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <template v-if="row"
@@ -239,7 +269,7 @@ onBeforeUnmount(() => {
           <option value="square">Квадратный лист</option>
           <option value="a4-portrait">A4 — книжная печать</option>
           <option value="a4-landscape">A4 — альбомная печать</option></select
-        ><button class="btn" :disabled="!!row.archived_at || working" @click="selected">
+        ><button class="btn" :disabled="!!row.archived_at || saving || working" @click="selected">
           Выделенное → асана или ячейка
         </button>
       </div>
@@ -262,16 +292,21 @@ onBeforeUnmount(() => {
           <article v-for="(item, index) in queue" :key="item.id">
             <img :src="item.url" :alt="item.name" /><input
               v-model="item.name"
+              :disabled="working"
               :aria-label="`Название фигуры ${index + 1}`"
-            /><button class="btn" @click="remove(index)">Убрать</button>
+            /><button class="btn" :disabled="working" @click="remove(index)">Убрать</button>
           </article>
         </div>
         <label
           >Вставить в практику
-          <select v-model="target">
+          <select v-model="target" :disabled="working">
             <option v-for="doc in documents" :key="doc.id" :value="doc.id">{{ doc.title }}</option>
           </select></label
-        ><button class="btn primary" :disabled="working || !target" @click="insert">
+        ><button
+          class="btn primary"
+          :disabled="working || saving || !!row.archived_at || !target"
+          @click="insert"
+        >
           Открыть практику для вставки
         </button>
         <p v-if="!documents.length">Сначала создайте практику в разделе «Практики».</p>

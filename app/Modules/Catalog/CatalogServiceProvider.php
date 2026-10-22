@@ -4,6 +4,7 @@ namespace App\Modules\Catalog;
 
 use App\Modules\Catalog\Console\CatalogJson;
 use App\Modules\Catalog\Console\ClassifyAsanas;
+use App\Modules\Catalog\Console\EnrichReferences;
 use App\Modules\Catalog\Console\ImportAsanas;
 use App\Modules\Catalog\Console\ImportDrawingPack;
 use App\Modules\Catalog\Console\PinNativeSources;
@@ -26,7 +27,7 @@ class CatalogServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([PinNativeSources::class, SeedTaxonomy::class, ClassifyAsanas::class, ImportAsanas::class, CatalogJson::class, ImportDrawingPack::class]);
+            $this->commands([EnrichReferences::class, PinNativeSources::class, SeedTaxonomy::class, ClassifyAsanas::class, ImportAsanas::class, CatalogJson::class, ImportDrawingPack::class]);
         }
         RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
         Route::middleware(['web', 'auth'])->group(__DIR__.'/routes.php');

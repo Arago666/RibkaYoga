@@ -7,6 +7,7 @@ use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\PublicApi\NativeImages;
+use App\Modules\Practices\PublicApi\SnapshotClassifications;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -73,7 +74,9 @@ class PracticeIllustrations
                     $this->native->remember($change['image_asset_id'], $change['drawing_source']);
                 }
                 $newId = (string) Str::uuid();
-                DB::table('practice_card_snapshots')->insert(['id' => $newId, 'workspace_id' => $old->workspace_id, 'source_asana_id' => $old->source_asana_id, 'name' => $old->name, 'image_asset_id' => $change['image_asset_id'], 'created_at' => now()]);
+                $classifications = app(SnapshotClassifications::class);
+                $pin = $classifications->fromStored($old->classification_snapshot ?? null) ?? $classifications->capture($old->source_asana_id, $change['image_asset_id']);
+                DB::table('practice_card_snapshots')->insert(['id' => $newId, 'workspace_id' => $old->workspace_id, 'source_asana_id' => $old->source_asana_id, 'name' => $old->name, 'image_asset_id' => $change['image_asset_id'], 'classification_snapshot' => $classifications->encode($pin), 'created_at' => now()]);
                 $replacements[$oldId] = $newId;
             }
             foreach ($document['blocks'] as &$block) {

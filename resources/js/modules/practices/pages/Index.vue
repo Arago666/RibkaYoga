@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
   Plus,
@@ -17,6 +17,8 @@ import {
   CalendarDays,
   X,
   UserPlus,
+  LayoutGrid,
+  List,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
@@ -38,6 +40,7 @@ interface PracticeListItem {
   theme: string | null;
   revision: number;
   duration_seconds?: number | null;
+  difficulty?: string | null;
   folders?: { id: string; name: string }[];
   cycles?: { id: string; title: string; position: number }[];
   updated_at: string;
@@ -64,12 +67,25 @@ interface DocumentData extends PracticeListItem {
   cells?: unknown[];
 }
 const initial = new URL(window.location.href);
+const sortOptions = [
+  { value: 'updated_desc', label: 'Сначала обновлённые' },
+  { value: 'updated_asc', label: 'Давно не обновлялись' },
+  { value: 'title_asc', label: 'Название: А–Я' },
+  { value: 'title_desc', label: 'Название: Я–А' },
+  { value: 'created_desc', label: 'Сначала новые' },
+  { value: 'created_asc', label: 'Сначала созданные раньше' },
+] as const;
+type PracticeSort = (typeof sortOptions)[number]['value'];
+const normalizedSort = (value: string | null): PracticeSort =>
+  sortOptions.some((option) => option.value === value) ? (value as PracticeSort) : 'updated_desc';
+const sort = ref<PracticeSort>(normalizedSort(initial.searchParams.get('sort')));
+const view = ref<'grid' | 'list'>(initial.searchParams.get('view') === 'list' ? 'list' : 'grid');
 const insertAsana = initial.searchParams.get('insert_asana');
 const insertVariant = initial.searchParams.get('insert_variant');
 const foldersOpen = ref(false);
 const importOpen = ref(false);
 const selection = ref(new Map<string, PracticeListItem>());
-const includeCycleDocuments = ref(false);
+const includeCycleDocuments = ref(initial.searchParams.get('include_cycle_documents') === '1');
 const folderId = ref(initial.searchParams.get('folder') || '');
 const selectedDocuments = computed(() =>
   [...selection.value.values()].map(({ id, revision }) => ({ id, revision })),
@@ -111,6 +127,7 @@ const nameAction = ref<'rename' | 'template' | null>(null),
   nameError = ref(''),
   renameDocument = ref<DocumentData | null>(null);
 let sequence = 0;
+let restoringUrl = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const rowTab = computed(() => tab.value === 'rows' || tab.value === 'transitions');
 const kind = computed(() =>
@@ -162,6 +179,9 @@ function updateUrl() {
     archive: archive.value === 'active' ? '' : archive.value,
     page: page.value > 1 ? String(page.value) : '',
     folder: folderId.value,
+    sort: sort.value === 'updated_desc' ? '' : sort.value,
+    view: view.value === 'list' ? 'list' : '',
+    include_cycle_documents: includeCycleDocuments.value ? '1' : '',
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
@@ -175,7 +195,7 @@ async function load() {
   const endpoint = rowTab.value ? '/api/row-templates' : '/api/practices';
   try {
     const response = await api<Page<PracticeListItem>>(
-      `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, page: String(page.value), folder_id: folderId.value, include_cycle_documents: includeCycleDocuments.value ? '1' : '0' })}`,
+      `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, sort: sort.value, page: String(page.value), folder_id: folderId.value, include_cycle_documents: includeCycleDocuments.value ? '1' : '0' })}`,
     );
     if (request === sequence) {
       if (page.value > response.last_page) {
@@ -191,21 +211,48 @@ async function load() {
 }
 watch(query, () => {
   clearTimeout(timer);
+  if (restoringUrl) return;
   timer = setTimeout(() => {
     page.value = 1;
     void load();
   }, 250);
 });
-watch([tab, archive, folderId, includeCycleDocuments], () => {
+watch([tab, archive, folderId, includeCycleDocuments, sort], () => {
+  if (restoringUrl) return;
   page.value = 1;
   result.value = null;
   success.value = '';
   void load();
 });
-onMounted(load);
+watch(view, () => {
+  if (!restoringUrl) updateUrl();
+});
+async function restoreUrl() {
+  restoringUrl = true;
+  clearTimeout(timer);
+  const params = new URL(window.location.href).searchParams;
+  const nextTab = params.get('tab');
+  tab.value =
+    nextTab === 'templates' || nextTab === 'rows' || nextTab === 'transitions' ? nextTab : 'practices';
+  query.value = params.get('q') || '';
+  archive.value = params.get('archive') === 'archived' ? 'archived' : 'active';
+  folderId.value = params.get('folder') || '';
+  includeCycleDocuments.value = params.get('include_cycle_documents') === '1';
+  sort.value = normalizedSort(params.get('sort'));
+  view.value = params.get('view') === 'list' ? 'list' : 'grid';
+  page.value = Math.max(1, Number(params.get('page')) || 1);
+  await nextTick();
+  restoringUrl = false;
+  await load();
+}
+onMounted(() => {
+  window.addEventListener('popstate', restoreUrl);
+  void load();
+});
 onBeforeUnmount(() => {
   clearTimeout(timer);
   sequence++;
+  window.removeEventListener('popstate', restoreUrl);
 });
 function go(value: number) {
   page.value = value;
@@ -449,8 +496,25 @@ async function saveName() {
       </div>
       <select v-model="archive" class="select" aria-label="Состояние документов">
         <option value="active">Активные</option>
-        <option value="archived">В архиве</option></select
-      ><span v-if="result && !loading" class="document-count">{{ resultCount }}</span>
+        <option value="archived">В архиве</option>
+      </select>
+      <label class="practice-sort"
+        ><span>Сортировка</span>
+        <select v-model="sort" class="select">
+          <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+      <div class="view-switch" role="group" aria-label="Вид практик">
+        <button class="btn btn-ghost" :aria-pressed="view === 'grid'" @click="view = 'grid'">
+          <LayoutGrid :size="18" />Карточки
+        </button>
+        <button class="btn btn-ghost" :aria-pressed="view === 'list'" @click="view = 'list'">
+          <List :size="18" />Список
+        </button>
+      </div>
+      <span v-if="result && !loading" class="document-count">{{ resultCount }}</span>
     </div>
     <div v-if="success" class="success-banner" role="status">{{ success }}</div>
     <div v-if="error" class="error-banner" role="alert">
@@ -459,7 +523,7 @@ async function saveName() {
     <div v-if="loading" class="practices-loading" role="status">
       Загружаем ваши {{ rowTab ? 'строки' : 'практики' }}…
     </div>
-    <div v-else-if="result?.data.length" class="practice-grid">
+    <div v-else-if="result?.data.length" class="practice-grid" :class="{ 'practice-list': view === 'list' }">
       <article v-for="item in result.data" :key="item.id" class="card practice-card">
         <label class="practice-selection"
           ><input type="checkbox" :checked="selection.has(item.id)" @change="toggleSelection(item)" />Выбрать
@@ -524,6 +588,12 @@ async function saveName() {
             </button>
           </div>
           <p v-if="item.duration_seconds" class="muted">{{ Math.ceil(item.duration_seconds / 60) }} мин</p>
+          <p
+            class="practice-difficulty"
+            title="Максимальный подтверждённый уровень всех поз. Неполная разметка не определяет уровень практики."
+          >
+            Уровень: {{ item.difficulty || 'не указан' }}
+          </p>
           <div class="practice-meta">
             <span>{{ counts(item) }}</span
             ><span v-if="item.updated_at"><CalendarDays :size="13" /> {{ formatDate(item.updated_at) }}</span>
@@ -846,6 +916,28 @@ async function saveName() {
   gap: 13px;
   align-items: center;
   margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+.practice-sort {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.view-switch {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.view-switch button[aria-pressed='true'] {
+  background: #edf5e8;
+  color: #376c28;
+  box-shadow: inset 0 0 0 1px #91b483;
+}
+.practice-difficulty {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 8px 0;
 }
 .practices-toolbar > .select {
   width: 160px;
@@ -885,6 +977,27 @@ async function saveName() {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
+}
+.practice-grid.practice-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.practice-list .practice-card {
+  display: grid;
+  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
+}
+.practice-list .practice-selection {
+  grid-column: 1 / -1;
+}
+.practice-list .practice-cover {
+  height: 100%;
+  min-height: 150px;
+}
+.practice-list .practice-content {
+  padding-top: 12px;
+}
+.practice-list .practice-title {
+  min-height: 0;
 }
 .practice-card {
   padding: 0 !important;
@@ -1152,6 +1265,13 @@ async function saveName() {
   }
 }
 @media (max-width: 680px) {
+  .practice-list .practice-card {
+    grid-template-columns: 1fr;
+  }
+  .practice-list .practice-cover {
+    height: 110px;
+    min-height: 0;
+  }
   .practice-grid {
     grid-template-columns: 1fr;
     gap: 17px;

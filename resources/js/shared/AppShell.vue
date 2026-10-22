@@ -107,7 +107,7 @@ const user = computed(
 .more-links a:hover {
   background: #eff6eb;
 }
-@media (max-width: 1120px) {
+@media (max-width: 1380px) {
   .desktop-nav {
     display: none;
   }

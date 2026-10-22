@@ -155,6 +155,7 @@ class PracticeController
         return $request->validate([
             'kind' => ['sometimes', Rule::in(['practice', 'template', 'fragment', 'row', 'transition'])],
             'q' => ['nullable', 'string', 'max:255'],
+            'sort' => ['sometimes', Rule::in(['updated_desc', 'updated_asc', 'title_asc', 'title_desc', 'created_desc', 'created_asc'])],
             'archive' => ['sometimes', Rule::in(['active', 'archived'])],
             'archived' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],

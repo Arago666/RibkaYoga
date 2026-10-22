@@ -344,6 +344,7 @@ interface SnapshotChange {
   before_image_url: string;
   after_name: string;
   after_image_url: string;
+  classification_changed?: boolean;
 }
 const snapshotChanges = ref<SnapshotChange[]>([]);
 const snapshotRevision = ref(0);
@@ -1217,7 +1218,9 @@ async function openLibraryUpdates() {
     snapshotChanges.value = result.data.changes;
     snapshotRevision.value = result.data.revision;
     if (!snapshotChanges.value.length) {
-      message('Названия и изображения уже совпадают с библиотекой. Архивные асаны остаются как были.');
+      message(
+        'Названия, изображения и закреплённая классификация совпадают с библиотекой. Архивные асаны остаются как были.',
+      );
       return;
     }
     modalKind.value = 'library-updates';
@@ -2185,8 +2188,8 @@ onBeforeUnmount(() => {
       >
       <template v-if="modalKind === 'library-updates'">
         <p class="confirm-copy">
-          Будут заменены только названия и изображения в этой практике. Подписи, стрелки, скобки и порядок
-          ячеек сохранятся. Другие практики останутся прежними.
+          В этой практике обновятся названия, рисунки и закреплённая классификация изменившихся асан. Подписи,
+          стрелки, скобки и порядок ячеек сохранятся. Другие практики и история занятий останутся прежними.
         </p>
         <div v-for="change in snapshotChanges" :key="change.snapshot_id" class="snapshot-change">
           <div>
@@ -2197,6 +2200,7 @@ onBeforeUnmount(() => {
           <ArrowRight :size="20" />
           <div>
             <img :src="change.after_image_url" :alt="change.after_name" /><span>{{ change.after_name }}</span>
+            <small v-if="change.classification_changed">Изменилась классификация</small>
           </div>
         </div>
       </template>

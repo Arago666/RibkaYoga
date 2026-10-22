@@ -9,6 +9,7 @@ use App\Modules\Catalog\PublicApi\CatalogUsage;
 use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\PublicApi\NativeImages;
+use App\Modules\Practices\PublicApi\SnapshotClassifications;
 use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -55,7 +56,18 @@ class PracticeEditor
                     ->orWhereRaw("replace(lower(coalesce(theme, '')), 'ё', 'е') LIKE ?", ['%'.$search.'%']);
             });
         }
-        $page = $query->orderByDesc('updated_at')->orderBy('id')->paginate($filters['per_page'] ?? 18);
+        $sorting = [
+            'updated_desc' => ['updated_at', 'desc'], 'updated_asc' => ['updated_at', 'asc'],
+            'title_asc' => ['title', 'asc'], 'title_desc' => ['title', 'desc'],
+            'created_desc' => ['created_at', 'desc'], 'created_asc' => ['created_at', 'asc'],
+        ];
+        [$sortColumn, $sortDirection] = $sorting[$filters['sort'] ?? 'updated_desc'] ?? $sorting['updated_desc'];
+        if ($sortColumn === 'title') {
+            $query->orderByRaw('lower(title)'.(DB::getDriverName() === 'pgsql' ? ' COLLATE ribka_ru' : '').' '.$sortDirection);
+        } else {
+            $query->orderBy($sortColumn, $sortDirection);
+        }
+        $page = $query->orderBy('id')->paginate($filters['per_page'] ?? 18);
         $documentIds = array_map(fn ($record) => $record->id, $page->items());
         if ($rows) {
             $cellGroups = DB::table('practice_row_template_cells')->whereIn('row_template_id', $documentIds)
@@ -76,6 +88,11 @@ class PracticeEditor
         }
         $previewIds = $cellGroups->flatMap(fn ($cells) => $cells->pluck('card_snapshot_id')->filter()->unique()->take(4))->unique()->values()->all();
         $snapshots = $this->snapshots($previewIds);
+        $allSnapshotIds = $cellGroups->flatMap(fn ($cells) => $cells->pluck('card_snapshot_id')->filter())->unique()->all();
+        $classificationReader = app(SnapshotClassifications::class);
+        $pinnedFacts = $this->owned('practice_card_snapshots')->whereIn('id', $allSnapshotIds)->get(['id', 'classification_snapshot'])
+            ->mapWithKeys(fn ($snapshot) => [$snapshot->id => $classificationReader->fromStored($snapshot->classification_snapshot)]);
+        $difficultyRanks = ['Начальный' => 1, 'Средний' => 2, 'Продвинутый' => 3];
         $relations = $rows ? DB::table('practice_transition_relations as relations')
             ->join('practice_row_templates as related', 'related.id', '=', 'relations.related_transition_id')
             ->whereIn('relations.transition_id', $documentIds)->where('related.workspace_id', $this->workspace())
@@ -92,6 +109,10 @@ class PracticeEditor
                 $item['folders'] = ($folderLinks[$record->id] ?? collect())->values()->all();
             }
             $item['duration_seconds'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name)->contains(fn ($cell) => ! $cell->duration_seconds) ? null : $cells->sum(fn ($cell) => (int) ($cell->duration_seconds ?? 0) * max(1, (int) ($cell->repetitions ?? 1)) * (($cell->side ?? null) === 'both' ? 2 : 1));
+            $poseRanks = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name)
+                ->map(fn ($cell) => $cell->card_snapshot_id ? ($difficultyRanks[$pinnedFacts[$cell->card_snapshot_id]['difficulty'] ?? ''] ?? null) : null);
+            $item['difficulty'] = $poseRanks->isNotEmpty() && ! $poseRanks->containsStrict(null)
+                ? array_search($poseRanks->max(), $difficultyRanks, true) : null;
             $item['cell_count'] = $item['cells_count'] = $cells->count();
             $item['filled_cell_count'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id !== null || $cell->custom_name !== null)->count();
             $item['custom_cell_count'] = $cells->whereNotNull('custom_name')->count();
@@ -378,20 +399,28 @@ class PracticeEditor
                 if ($drawing) {
                     app(NativeImages::class)->remember($imageAssetId, $drawing);
                 }
-                $image = $this->assets->get($imageAssetId);
-                $snapshotId = (string) Str::uuid();
-                DB::table('practice_card_snapshots')->insert([
-                    'id' => $snapshotId, 'workspace_id' => $this->workspace(), 'source_asana_id' => $id,
-                    'name' => $asana['name'], 'image_asset_id' => $imageAssetId, 'created_at' => now(),
-                ]);
-                $result[] = [
-                    'id' => $snapshotId, 'name' => $asana['name'], 'image_url' => $image['image_url'], 'source_asana_id' => $id,
+                $result[] = $this->createCardSnapshot($id, $asana['name'], $imageAssetId) + [
                     'illustration_variant_id' => $variantId, 'image_asset_id' => $imageAssetId,
                 ];
             }
 
             return $result;
         });
+    }
+
+    private function createCardSnapshot(string $sourceId, string $name, string $imageAssetId): array
+    {
+        $classification = app(SnapshotClassifications::class);
+        $pin = $classification->capture($sourceId, $imageAssetId);
+        $image = $this->assets->get($imageAssetId);
+        $id = (string) Str::uuid();
+        DB::table('practice_card_snapshots')->insert([
+            'id' => $id, 'workspace_id' => $this->workspace(), 'source_asana_id' => $sourceId,
+            'name' => $name, 'image_asset_id' => $imageAssetId,
+            'classification_snapshot' => $classification->encode($pin), 'created_at' => now(),
+        ]);
+
+        return ['id' => $id, 'name' => $name, 'image_url' => $image['image_url'], 'source_asana_id' => $sourceId];
     }
 
     public function refreshPreview(string $id): array
@@ -426,10 +455,11 @@ class PracticeEditor
             $replacement = [];
             foreach ($changes as $change) {
                 $source = $change['source_asana_id'];
-                if (! isset($replacement[$source])) {
-                    $replacement[$source] = $this->resolveCards([$source])[0]['id'];
+                $key = $source.'|'.$change['after_image_asset_id'];
+                if (! isset($replacement[$key])) {
+                    $replacement[$key] = $this->createCardSnapshot($source, $change['after_name'], $change['after_image_asset_id'])['id'];
                 }
-                DB::table('practice_cells')->whereIn('row_id', $rowIds)->where('card_snapshot_id', $change['snapshot_id'])->update(['card_snapshot_id' => $replacement[$source]]);
+                DB::table('practice_cells')->whereIn('row_id', $rowIds)->where('card_snapshot_id', $change['snapshot_id'])->update(['card_snapshot_id' => $replacement[$key]]);
             }
             if ($changes) {
                 DB::table('practice_documents')->where('id', $id)->update(['revision' => $document->revision + 1, 'updated_by' => $this->context->userId(), 'updated_at' => now()]);
@@ -450,14 +480,23 @@ class PracticeEditor
         $changes = [];
         foreach ($snapshots as $snapshot) {
             $card = $cards[$snapshot->source_asana_id] ?? null;
-            if (! $card || $card['archived_at'] || ($snapshot->name === $card['name'] && $snapshot->image_asset_id === $card['image_asset_id'])) {
+            if (! $card || $card['archived_at']) {
+                continue;
+            }
+            $classifications = app(SnapshotClassifications::class);
+            $current = $classifications->capture($snapshot->source_asana_id, $snapshot->image_asset_id);
+            $compatibleImage = $snapshot->image_asset_id === $card['image_asset_id'] || $current !== null;
+            $pinned = $classifications->fromStored($snapshot->classification_snapshot ?? null);
+            $factsChanged = $pinned !== null && $current !== null && ! $classifications->sameFacts($pinned, $current);
+            if ($snapshot->name === $card['name'] && $compatibleImage && ! $factsChanged) {
                 continue;
             }
             $changes[] = [
                 'snapshot_id' => $snapshot->id, 'source_asana_id' => $snapshot->source_asana_id,
                 'source_revision' => (int) $card['revision'],
                 'before_name' => $snapshot->name, 'before_image_url' => $images[$snapshot->image_asset_id]['image_url'],
-                'after_name' => $card['name'], 'after_image_url' => $card['image_url'],
+                'after_name' => $card['name'], 'after_image_url' => $compatibleImage ? $images[$snapshot->image_asset_id]['image_url'] : $card['image_url'],
+                'after_image_asset_id' => $compatibleImage ? $snapshot->image_asset_id : $card['image_asset_id'], 'classification_changed' => $factsChanged,
             ];
         }
 

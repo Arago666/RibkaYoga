@@ -10,6 +10,7 @@ use App\Modules\Media\PublicApi\PublishedImages;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\Http\Requests\DocumentRequest;
 use App\Modules\Practices\PublicApi\NativeImages;
+use App\Modules\Practices\PublicApi\SnapshotClassifications;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,7 @@ class PortablePractices
                     $source = $this->native->source($row->image_asset_id);
                     $images[$row->image_asset_id] = ['key' => $row->image_asset_id, 'image_data' => $asset['data_url'], 'sha256' => hash('sha256', $imageBytes), 'drawing_source' => $source, 'source_available' => $source !== null];
                 }
-                $cards[] = ['id' => $row->id, 'name' => $row->name, 'image_key' => $row->image_asset_id];
+                $cards[] = ['id' => $row->id, 'name' => $row->name, 'image_key' => $row->image_asset_id, 'classification_snapshot' => app(SnapshotClassifications::class)->fromStored($row->classification_snapshot ?? null)];
             }
             foreach ($document['blocks'] as &$block) {
                 foreach ($block['rows'] as &$row) {
@@ -95,7 +96,7 @@ class PortablePractices
                 foreach ($bundle['snapshots'] as $snapshot) {
                     $newId = (string) Str::uuid();
                     $snapshots[strtolower($snapshot['id'])] = $newId;
-                    DB::table('practice_card_snapshots')->insert(['id' => $newId, 'workspace_id' => $this->workspace->id(), 'source_asana_id' => null, 'name' => $snapshot['name'], 'image_asset_id' => $assetIds[$snapshot['image_key']], 'created_at' => now()]);
+                    DB::table('practice_card_snapshots')->insert(['id' => $newId, 'workspace_id' => $this->workspace->id(), 'source_asana_id' => null, 'name' => $snapshot['name'], 'image_asset_id' => $assetIds[$snapshot['image_key']], 'classification_snapshot' => app(SnapshotClassifications::class)->encode($snapshot['classification_snapshot'] ?? null), 'created_at' => now()]);
                 }
                 $tree = $bundle['document'];
                 if ($title !== null && trim($title) !== '') {
@@ -157,7 +158,7 @@ class PortablePractices
                 $contents = file_get_contents($media['path']);
                 $images[$row->image_asset_id] = ['key' => $row->image_asset_id, 'image_data' => 'data:'.$media['mime'].';base64,'.base64_encode($contents), 'sha256' => hash('sha256', $contents), 'drawing_source' => null];
             }
-            $snapshots[] = ['id' => $row->id, 'name' => $row->name, 'image_key' => $row->image_asset_id];
+            $snapshots[] = ['id' => $row->id, 'name' => $row->name, 'image_key' => $row->image_asset_id, 'classification_snapshot' => app(SnapshotClassifications::class)->fromStored($row->classification_snapshot ?? null)];
         }
         $document['title'] = mb_substr($document['title'], 0, 150).' — копия';
         foreach ($document['blocks'] as $index => &$block) {
@@ -173,7 +174,7 @@ class PortablePractices
     private function validateBundle(array $bundle): void
     {
         abort_if(strlen(json_encode($bundle, JSON_THROW_ON_ERROR)) > self::MAX_BUNDLE_BYTES, 422, 'Пакет превышает 44 МБ.');
-        Validator::make($bundle, ['format' => 'required|in:ribka-practice-bundle', 'version' => 'required|integer|in:1', 'document' => 'required|array', 'document.kind' => 'sometimes|in:practice,template,fragment', 'snapshots' => 'present|array|list|max:1000', 'snapshots.*.id' => 'required|uuid|distinct:ignore_case', 'snapshots.*.name' => 'required|string|max:160', 'snapshots.*.image_key' => 'required|string|max:100', 'images' => 'present|array|list|max:1000', 'images.*.key' => 'required|string|max:100|distinct', 'images.*.image_data' => 'required|string', 'images.*.sha256' => 'required|string|size:64', 'images.*.drawing_source' => 'sometimes|nullable|array'])->validate();
+        Validator::make($bundle, ['format' => 'required|in:ribka-practice-bundle', 'version' => 'required|integer|in:1', 'document' => 'required|array', 'document.kind' => 'sometimes|in:practice,template,fragment', 'snapshots' => 'present|array|list|max:1000', 'snapshots.*.id' => 'required|uuid|distinct:ignore_case', 'snapshots.*.name' => 'required|string|max:160', 'snapshots.*.image_key' => 'required|string|max:100', 'snapshots.*.classification_snapshot' => 'sometimes|nullable|array', 'images' => 'present|array|list|max:1000', 'images.*.key' => 'required|string|max:100|distinct', 'images.*.image_data' => 'required|string', 'images.*.sha256' => 'required|string|size:64', 'images.*.drawing_source' => 'sometimes|nullable|array'])->validate();
         $rules = (new DocumentRequest)->rules();
         unset($rules['expected_revision']);
         Validator::make($bundle['document'], $rules)->validate();
@@ -194,6 +195,7 @@ class PortablePractices
         }
         $snapshots = [];
         foreach ($bundle['snapshots'] as $snapshot) {
+            app(SnapshotClassifications::class)->validate($snapshot['classification_snapshot'] ?? null);
             abort_unless(isset($keys[$snapshot['image_key']]), 422, 'В пакете отсутствует нужное изображение.');
             $snapshots[strtolower($snapshot['id'])] = true;
         }

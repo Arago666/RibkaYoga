@@ -28,7 +28,7 @@ class ExecutionDocuments
         $snapshots = DB::table('practice_card_snapshots')->where('workspace_id', $access['document']->workspace_id)->whereIn('id', $ids)->get()->keyBy('id');
         $facts = [];
         if ($access['owner'] && class_exists(PoseFacts::class)) {
-            $pairs = $snapshots->filter(fn ($snapshot) => $snapshot->source_asana_id)->map(fn ($snapshot) => ['asana_id' => $snapshot->source_asana_id, 'image_asset_id' => $snapshot->image_asset_id])->values()->all();
+            $pairs = $snapshots->filter(fn ($snapshot) => $snapshot->source_asana_id && $snapshot->classification_snapshot === null)->map(fn ($snapshot) => ['asana_id' => $snapshot->source_asana_id, 'image_asset_id' => $snapshot->image_asset_id])->values()->all();
             $facts = app(PoseFacts::class)->forImages($pairs);
         }
 
@@ -49,7 +49,7 @@ class ExecutionDocuments
                         'left' => ['left'], 'right' => ['right'], default => [null],
                     };
                     $snapshot = $snapshots[$cell['card_snapshot_id'] ?? ''] ?? null;
-                    $fact = $snapshot ? ($facts[$snapshot->image_asset_id] ?? null) : null;
+                    $fact = $snapshot ? (app(SnapshotClassifications::class)->fromStored($snapshot->classification_snapshot ?? null) ?? ($facts[$snapshot->image_asset_id] ?? null)) : null;
                     $repetitions = (int) ($cell['repetitions'] ?? 1);
                     abort_if($repetitions < 1 || $repetitions > 1000 || count($steps) + count($sides) * $repetitions > 10000, 422, 'Слишком много повторений для одного занятия.');
                     foreach ($sides as $side) {
