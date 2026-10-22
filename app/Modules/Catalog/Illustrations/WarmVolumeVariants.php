@@ -28,7 +28,7 @@ class WarmVolumeVariants extends Command
 
     protected $description = 'Проверить и прогреть объёмные варианты точных исходников без изменения карточек и практик';
 
-    public function handle(WorkspaceContext $workspace, AssetFingerprints $fingerprints, NativeVolumeSources $sources, IllustrationStyles $styles): int
+    public function handle(WorkspaceContext $workspace, AssetFingerprints $fingerprints, AnatomicalPoseSources $sources, IllustrationStyles $styles): int
     {
         $guard = Auth::guard();
         $previous = $guard->user();
@@ -75,7 +75,7 @@ class WarmVolumeVariants extends Command
         }
     }
 
-    private function runForWorkspace(WorkspaceContext $workspace, array $characters, AssetFingerprints $fingerprints, NativeVolumeSources $sources, IllustrationStyles $styles): array
+    private function runForWorkspace(WorkspaceContext $workspace, array $characters, AssetFingerprints $fingerprints, AnatomicalPoseSources $sources, IllustrationStyles $styles): array
     {
         $query = Asana::where('workspace_id', $workspace->id())->orderBy('id');
         if (! $this->option('include-archived')) {
@@ -84,11 +84,11 @@ class WarmVolumeVariants extends Command
         $cards = $query->get(['id', 'name', 'current_image_asset_id', 'drawing_source', 'archived_at']);
         $existing = DB::table('catalog_illustration_variants')->where('workspace_id', $workspace->id())
             ->whereIn('asana_id', $cards->modelKeys())->where('style', 'volume')->whereIn('character', $characters)
-            ->where('model_revision', NativeVolumeRenderer::MODEL_REVISION)->get()->keyBy(fn ($row) => $this->key($row->asana_id, $row->source_asset_id, $row->character));
+            ->where('model_revision', AnatomicalVolumeRenderer::MODEL_REVISION)->get()->keyBy(fn ($row) => $this->key($row->asana_id, $row->source_asset_id, $row->character));
         $summary = [
             'workspace_id' => $workspace->id(), 'owner_id' => $workspace->userId(),
             'apply_requested' => (bool) $this->option('apply'), 'applied' => false, 'include_archived' => (bool) $this->option('include-archived'),
-            'model_revision' => NativeVolumeRenderer::MODEL_REVISION, 'characters' => $characters,
+            'model_revision' => AnatomicalVolumeRenderer::MODEL_REVISION, 'renderer_revision' => AnatomicalVolumeRenderer::REVISION, 'characters' => $characters,
             'cards' => $cards->count(), 'active_cards' => $cards->whereNull('archived_at')->count(),
             'archived_cards' => $cards->whereNotNull('archived_at')->count(), 'eligible_cards' => 0,
             'expected_variants' => $cards->count() * count($characters), 'existing_variants' => 0,
@@ -102,14 +102,24 @@ class WarmVolumeVariants extends Command
                 $sha = $fingerprints->forMany([$card->current_image_asset_id])[$card->current_image_asset_id];
                 $source = $sources->resolve($card->drawing_source, $sha);
                 abort_unless($source !== null, 422, 'Для точного исходного изображения нет допустимой геометрии.');
-                $result += ['source_sha256' => $sha, 'source_drawing_sha256' => $source['source_drawing_sha256'], 'provenance' => $source['provenance']];
+                $result += ['source_sha256' => $sha, 'source_drawing_sha256' => $source['source_drawing_sha256'], 'source_pose_sha256' => $source['source_pose_sha256'], 'render_options_sha256' => $this->optionsHash($source['render_options']), 'provenance' => $source['provenance']];
                 foreach ($characters as $character) {
                     $variant = $existing->get($this->key($card->id, $card->current_image_asset_id, $character));
                     if (! $variant) {
                         continue;
                     }
                     $render = json_decode($variant->render_source, true, 64, JSON_THROW_ON_ERROR);
-                    abort_unless($variant->source_sha256 === $sha && ($render['source_sha256'] ?? null) === $sha && ($render['source_drawing_sha256'] ?? null) === $source['source_drawing_sha256'] && ($render['render_options'] ?? []) === $source['render_options'] && $variant->image_asset_id !== $card->current_image_asset_id, 409, 'Сохранённый вариант не соответствует точной геометрии исходника.');
+                    abort_unless($variant->source_sha256 === $sha
+                        && ($render['format'] ?? null) === 'ribka-anatomical-volume'
+                        && ($render['model_revision'] ?? null) === AnatomicalVolumeRenderer::MODEL_REVISION
+                        && ($render['renderer_revision'] ?? null) === AnatomicalVolumeRenderer::REVISION
+                        && ($render['source_asset_id'] ?? null) === $card->current_image_asset_id
+                        && ($render['source_sha256'] ?? null) === $sha
+                        && ($render['source_drawing_sha256'] ?? null) === $source['source_drawing_sha256']
+                        && ($render['source_pose_sha256'] ?? null) === $source['source_pose_sha256']
+                        && ($render['render_options'] ?? []) === $source['render_options']
+                        && $variant->drawing_source === null
+                        && $variant->image_asset_id !== $card->current_image_asset_id, 409, 'Сохранённый вариант не соответствует точной геометрии исходника и анатомической модели.');
                     $imageSha = $fingerprints->forMany([$variant->image_asset_id])[$variant->image_asset_id];
                     $result['existing_variants'][$character] = ['variant_id' => $variant->id, 'image_asset_id' => $variant->image_asset_id, 'image_sha256' => $imageSha];
                 }
@@ -148,11 +158,16 @@ class WarmVolumeVariants extends Command
                         && ($prepared['style'] ?? null) === 'volume' && ($prepared['character'] ?? null) === $character
                         && ($prepared['asana_id'] ?? null) === $result['asana_id'] && ($prepared['source_asset_id'] ?? null) === $result['source_asset_id']
                         && ($prepared['source_sha256'] ?? null) === $result['source_sha256']
-                        && ($prepared['render_source']['format'] ?? null) === 'ribka-native-volume'
-                        && ($prepared['render_source']['model_revision'] ?? null) === NativeVolumeRenderer::MODEL_REVISION
+                        && ($prepared['render_source']['format'] ?? null) === 'ribka-anatomical-volume'
+                        && ($prepared['render_source']['model_revision'] ?? null) === AnatomicalVolumeRenderer::MODEL_REVISION
+                        && ($prepared['render_source']['renderer_revision'] ?? null) === AnatomicalVolumeRenderer::REVISION
+                        && ($prepared['render_source']['source_asset_id'] ?? null) === $result['source_asset_id']
+                        && ($prepared['render_source']['source_pose_sha256'] ?? null) === $result['source_pose_sha256']
+                        && $this->optionsHash($prepared['render_source']['render_options'] ?? []) === $result['render_options_sha256']
                         && ($prepared['render_source']['source_drawing_sha256'] ?? null) === $result['source_drawing_sha256']
                         && Str::isUuid($prepared['variant_id'] ?? '') && Str::isUuid($prepared['image_asset_id'] ?? '')
-                        && $prepared['image_asset_id'] !== $result['source_asset_id'], 500, 'Подготовка не вернула точный отдельный объёмный вариант.');
+                        && $prepared['image_asset_id'] !== $result['source_asset_id']
+                        && ($prepared['drawing_source'] ?? null) === null, 500, 'Подготовка не вернула точный отдельный объёмный вариант.');
                     $imageSha = $fingerprints->forMany([$prepared['image_asset_id']])[$prepared['image_asset_id']];
                     $result['prepared_variants'][$character] = ['variant_id' => $prepared['variant_id'], 'image_asset_id' => $prepared['image_asset_id'], 'image_sha256' => $imageSha];
                     $summary['prepared_variants']++;
@@ -177,6 +192,11 @@ class WarmVolumeVariants extends Command
         $summary['all_variants_ready'] = $summary['errors'] === 0 && $summary['prepared_variants'] === $summary['expected_variants'];
 
         return [$summary, $results];
+    }
+
+    private function optionsHash(array $options): string
+    {
+        return hash('sha256', json_encode($options, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
     }
 
     private function key(string $asanaId, string $sourceId, string $character): string

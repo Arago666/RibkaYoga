@@ -71,7 +71,7 @@ const originalUrl = computed(() => props.imageUrl || selected.value?.image_url);
 const styleNames: Record<IllustrationStyle, string> = {
   original: 'Мои рисунки',
   line: 'Линейная фигура',
-  volume: 'Объёмная фигура',
+  volume: 'Объёмная фигура человека',
 };
 async function load(): Promise<void> {
   loading.value = true;
@@ -189,8 +189,9 @@ onMounted(() => {
       </div>
       <p class="muted">
         Объёмные варианты доступны для {{ state.coverage.volume }} из {{ state.coverage.total }} активных
-        карточек, линейный манекен — для {{ state.coverage.line }}. Контуры, изгибы и опоры объёмной фигуры
-        повторяют исходный рисунок. Глубина условная; персонаж меняет толщину фигуры, сохраняя точки опоры.
+        карточек, линейный манекен — для {{ state.coverage.line }}. Голова, грудная клетка, таз, руки и ноги
+        образуют фигуру человека. Центры суставов, изгибы и точки опоры берутся из исходного рисунка. Персонаж
+        меняет пропорции частей тела в пределах этой позы; глубина условная.
       </p>
       <div class="illustration-actions">
         <button type="button" class="btn" :disabled="busy" @click="save">
@@ -225,7 +226,7 @@ onMounted(() => {
           <MannequinView :pose="pose" :style="'line'" :character="character" />
         </div>
         <div v-if="style === 'volume' && supported" class="prepared-image">
-          <h3>Объёмная фигура</h3>
+          <h3>Объёмная фигура человека</h3>
           <template v-if="prepared">
             <img :src="prepared.image_url" alt="Подготовленный объёмный вариант выбранной асаны" />
             <a :href="prepared.image_url" target="_blank" rel="noopener" class="btn">Открыть PNG</a>
@@ -263,8 +264,9 @@ onMounted(() => {
         <summary>Происхождение набора</summary>
         <p>{{ state.pack.rights }}</p>
         <p>
-          Объёмные варианты строятся по сохранённой геометрии конкретного исходного рисунка и закрепляются
-          отдельным изображением. Ревизия объёмных вариантов: {{ state.volume_source_revision }}. Изображение
+          Объёмные варианты строятся по геометрии и анатомической разметке конкретного исходного рисунка.
+          Каждый вариант сохраняется отдельным изображением; ранее подготовленные версии остаются доступны
+          там, где были выбраны. Ревизия объёмных вариантов: {{ state.volume_source_revision }}. Изображение
           связано с точной версией исходника.
         </p>
         <p>
