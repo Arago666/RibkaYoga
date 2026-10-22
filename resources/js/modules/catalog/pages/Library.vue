@@ -26,9 +26,7 @@ import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
 import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
 import ClassificationDialog from '../components/ClassificationDialog.vue';
-import CatalogExchangeDialog from '../components/CatalogExchangeDialog.vue';
-const exchangeOpen = ref(false),
-  classificationOpen = ref(false);
+const classificationOpen = ref(false);
 const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
 filters.value = filtersFromUrl(initial.searchParams);
@@ -214,10 +212,7 @@ async function taxonomyChanged() {
         <h1 class="page-title">Библиотека асан</h1>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap">
-        <button class="btn btn-secondary" @click="exchangeOpen = true">JSON / Codex</button
-        ><button class="btn btn-primary" @click="uploadOpen = true">
-          <Plus :size="19" /> Добавить асаны
-        </button>
+        <button class="btn btn-primary" @click="uploadOpen = true"><Plus :size="19" /> Добавить асаны</button>
       </div>
     </header>
     <div class="library-nav">
@@ -356,12 +351,6 @@ async function taxonomyChanged() {
       :categories="categories"
       @close="uploadOpen = false"
       @uploaded="uploaded"
-    />
-    <CatalogExchangeDialog
-      :open="exchangeOpen"
-      :selected-ids="selectedIds"
-      @close="exchangeOpen = false"
-      @imported="load"
     />
     <AsanaEditDialog :card="editing" :categories="categories" @close="editing = null" @saved="load" />
     <AsanaPreview

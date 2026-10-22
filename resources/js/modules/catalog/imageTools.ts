@@ -46,7 +46,7 @@ export function downloadJson(value: unknown, filename: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function codexImageTask(context: ImageTaskContext, instructions: string, image: string) {
+export function imageTask(context: ImageTaskContext, instructions: string, image: string) {
   return {
     format: 'ribka-image-task',
     version: 1,

@@ -21,10 +21,10 @@ async function exportJob() {
     );
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'ribka-codex-job.json';
+    link.download = 'ribka-catalog-job.json';
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
-    success.value = 'Задание сохранено. Откройте его в локальном Codex вместе с пожеланиями к картинкам.';
+    success.value = 'Задание сохранено вместе с исходными изображениями и данными карточек.';
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось экспортировать.';
   } finally {
@@ -62,7 +62,7 @@ async function importResult(event: Event) {
 }
 </script>
 <template>
-  <Modal :open="open" title="JSON для локального Codex" @close="!busy && emit('close')">
+  <Modal :open="open" title="Обмен изображениями в JSON" @close="!busy && emit('close')">
     <p>
       Экспорт включает названия, категории, связи вариантов, версии карточек и исходные картинки.
       {{
@@ -79,14 +79,11 @@ async function importResult(event: Event) {
     </div>
     <input ref="input" type="file" accept=".json,application/json" hidden @change="importResult" />
     <p class="muted">
-      Codex может подготовить PNG и results.json. Для импорта через сайт картинки включаются в поле
-      image_data. Для файлов рядом с JSON используйте команду:
+      Результат содержит PNG и results.json. Для импорта через сайт картинки включаются в поле image_data. Для
+      файлов рядом с JSON используйте команду:
     </p>
     <code>php artisan ribka:catalog-json import results.json --user=ваш_логин</code>
-    <p class="muted">
-      Если карточка изменилась после экспорта, импорт остановится и попросит новое задание. Генерация требует
-      доступного инструмента или модели в вашей задаче Codex.
-    </p>
+    <p class="muted">Если карточка изменилась после экспорта, импорт остановится и попросит новое задание.</p>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <p v-if="success" class="success-banner" role="status">{{ success }}</p>
   </Modal>

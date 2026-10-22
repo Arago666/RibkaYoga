@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { Crop, RotateCw, Download, Check, RotateCcw } from '@lucide/vue';
 import {
   canvasFile,
-  codexImageTask,
+  imageTask,
   downloadJson,
   imageFileName,
   loadCanvasImage,
@@ -173,7 +173,7 @@ async function apply() {
 function exportTask() {
   try {
     const task = {
-      ...codexImageTask(props.context, instructions.value, result().toDataURL('image/png')),
+      ...imageTask(props.context, instructions.value, result().toDataURL('image/png')),
       processing: {
         brightness: brightness.value,
         contrast: contrast.value,
@@ -300,7 +300,7 @@ onBeforeUnmount(() => {
       /></label>
       <label class="check-label"><input v-model="grayscale" type="checkbox" />Чёрно-белое</label>
       <details class="task-export">
-        <summary>Задание для локального Codex</summary>
+        <summary>Экспорт изображения в JSON</summary>
         <p class="muted help">
           JSON включает картинку, настройки и данные карточки. Полученный PNG загрузите в поле «Изображение».
         </p>
