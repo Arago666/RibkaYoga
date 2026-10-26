@@ -26,7 +26,8 @@ export const dismissMenu: ObjectDirective<HTMLElement> = {
         if (!items.length) return;
         event.preventDefault();
         const index = items.indexOf(document.activeElement as HTMLElement);
-        items[(index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+        const start = index < 0 && event.key === 'ArrowUp' ? 0 : index;
+        items[(start + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
       }
     };
     const focus = (event: FocusEvent) => {
