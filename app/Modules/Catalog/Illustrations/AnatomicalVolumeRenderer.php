@@ -11,9 +11,9 @@ use RuntimeException;
  */
 class AnatomicalVolumeRenderer
 {
-    public const MODEL_REVISION = 3;
+    public const MODEL_REVISION = 4;
 
-    public const REVISION = 'anatomical-volume-20261023-v1';
+    public const REVISION = 'anatomical-volume-20261026-v2';
 
     private const SIZE = 1024;
 

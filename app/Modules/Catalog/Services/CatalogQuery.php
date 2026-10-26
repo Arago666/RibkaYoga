@@ -22,6 +22,7 @@ class CatalogQuery
         $this->facets->ensure($this->workspace->id());
         $rules = [
             'q' => ['nullable', 'string', 'max:200'], 'category' => ['nullable', 'uuid'], 'collection' => ['nullable', 'uuid'],
+            'categories' => ['sometimes', 'array', 'list', 'max:100'], 'categories.*' => ['required', 'uuid', 'distinct:ignore_case'],
             'archive' => ['nullable', Rule::in(['active', 'archived', 'all'])],
             'image_style' => ['nullable', Rule::in(['original', 'volume'])],
             'sort' => ['nullable', Rule::in(['name_asc', 'name_desc', 'recent', 'used_recently'])],
@@ -38,6 +39,9 @@ class CatalogQuery
         $input = array_replace($input, $this->facets->validate($assignments, $this->workspace->id()));
         if (! empty($input['category']) && ! Category::where('workspace_id', $this->workspace->id())->where('id', $input['category'])->exists()) {
             throw ValidationException::withMessages(['category' => 'Категория недоступна.']);
+        }
+        if (! empty($input['categories']) && Category::where('workspace_id', $this->workspace->id())->whereIn('id', $input['categories'])->count() !== count($input['categories'])) {
+            throw ValidationException::withMessages(['categories' => 'Категории недоступны.']);
         }
         if (! empty($input['collection'])) {
             $input['_source_ids'] = $this->collections->asanaIdsForSource($input['collection']);
@@ -60,6 +64,9 @@ class CatalogQuery
         }
         if (! empty($input['category'])) {
             $query->whereHas('categories', fn ($categories) => $categories->where('catalog_categories.id', $input['category']));
+        }
+        if (! empty($input['categories'])) {
+            $query->whereHas('categories', fn ($categories) => $categories->whereIn('catalog_categories.id', $input['categories']));
         }
         foreach (Facets::DIMENSIONS as $dimension) {
             if ($dimension !== $ignoreDimension && ! empty($input[$dimension])) {

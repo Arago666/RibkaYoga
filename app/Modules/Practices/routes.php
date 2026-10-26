@@ -3,10 +3,16 @@
 use App\Modules\Practices\Http\Controllers\MesocycleController;
 use App\Modules\Practices\Http\Controllers\PracticeController;
 use App\Modules\Practices\Http\Controllers\PracticeFolderController;
+use App\Modules\Practices\Http\Controllers\ProgramFolderController;
 use App\Modules\Practices\Http\Controllers\TemplateLibraryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->prefix('api')->group(function () {
+    Route::get('program-library', [ProgramFolderController::class, 'library']);
+    Route::get('program-folders', [ProgramFolderController::class, 'index']);
+    Route::post('program-folders', [ProgramFolderController::class, 'store']);
+    Route::patch('program-folders/{id}', [ProgramFolderController::class, 'update'])->whereUuid('id');
+    Route::post('program-folders/{id}/items', [ProgramFolderController::class, 'assign'])->whereUuid('id');
     Route::get('practice-folders', [PracticeFolderController::class, 'index']);
     Route::post('practice-folders', [PracticeFolderController::class, 'store']);
     Route::patch('practice-folders/{id}', [PracticeFolderController::class, 'update'])->whereUuid('id');

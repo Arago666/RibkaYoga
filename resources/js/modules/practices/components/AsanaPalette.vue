@@ -11,11 +11,11 @@ import {
   SlidersHorizontal,
   GripVertical,
 } from '@lucide/vue';
+import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
 import { api } from '@/shared/api';
 import type { Asana, Category, Collection, Page } from '@/modules/catalog/types';
-import CategoryQuickFilters from '@/modules/catalog/components/CategoryQuickFilters.vue';
 import FacetFilters from '@/modules/catalog/components/FacetFilters.vue';
-import { emptyFilters, setFilterParams } from '@/modules/catalog/facets';
+import { dimensions, emptyFilters, setFilterParams } from '@/modules/catalog/facets';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
 const props = defineProps<{
   documentId: string;
@@ -58,6 +58,7 @@ watch(
 const pageProps = usePage();
 const sourceInputId = useId();
 const searchInput = ref<HTMLInputElement | null>(null);
+const facetControl = ref<InstanceType<typeof FacetFilters> | null>(null);
 const key = `ribka:palette:${(pageProps.props.auth as { user?: { id: number } })?.user?.id}:${props.documentId}`;
 const filters = ref(emptyFilters());
 const query = ref(''),
@@ -71,8 +72,7 @@ const cards = ref<Asana[]>([]),
 const loading = ref(true),
   error = ref(''),
   total = ref(0),
-  lastPage = ref(1),
-  moreFilters = ref(false);
+  lastPage = ref(1);
 let timer: ReturnType<typeof setTimeout>,
   serial = 0;
 let alive = true;
@@ -81,10 +81,20 @@ const title = computed(() =>
     ? 'Все асаны'
     : collections.value.find((item) => item.id === source.value)?.name || 'Подборка',
 );
+const activeFilterCount = computed(
+  () =>
+    filters.value.categories.length +
+    dimensions.reduce((count, dimension) => count + filters.value[dimension].length, 0) +
+    Number(filters.value.favorite) +
+    Number(filters.value.unclassified) +
+    Number(!!filters.value.has_bind) +
+    Number(!!filters.value.equipment),
+);
 const hasSearchFilter = computed(
   () => !!query.value || !!category.value || JSON.stringify(filters.value) !== JSON.stringify(emptyFilters()),
 );
 function remember() {
+  if (!readUiPreferences(uiPreferencesKey(pageProps.props.auth)).rememberFilters) return;
   try {
     localStorage.setItem(key, JSON.stringify({ source: source.value }));
   } catch {
@@ -138,7 +148,7 @@ onMounted(async () => {
   if (props.embedded) void nextTick(() => searchInput.value?.focus());
   try {
     let selected = new URLSearchParams(location.search).get('collection');
-    if (!selected) {
+    if (!selected && readUiPreferences(uiPreferencesKey(pageProps.props.auth)).rememberFilters) {
       try {
         selected = JSON.parse(localStorage.getItem(key) || '{}').source;
       } catch {
@@ -199,34 +209,19 @@ onBeforeUnmount(() => {
           placeholder="Найти асану"
           aria-label="Найти асану в панели"
           :disabled="disabled"
-        /><button
-          class="icon-btn"
-          aria-label="Фильтры асан"
-          :aria-expanded="moreFilters"
-          @click="moreFilters = !moreFilters"
-        >
-          <SlidersHorizontal :size="17" />
+        /><button class="icon-btn" aria-label="Категории асан" @click="facetControl?.begin()">
+          <SlidersHorizontal :size="17" /><span v-if="activeFilterCount" class="filter-count">{{
+            activeFilterCount
+          }}</span>
         </button>
       </div>
-      <div v-if="moreFilters" class="palette-extra">
-        <select class="select" v-model="category" aria-label="Категория" :disabled="disabled">
-          <option value="">Мои категории: все</option>
-          <option v-for="item in categories" :key="item.id" :value="item.id">
-            {{ item.name }}
-          </option>
-        </select>
-        <select v-model="sort" class="select" aria-label="Сортировка асан" :disabled="disabled">
-          <option value="name_asc">По алфавиту</option>
-          <option value="used_recently">Недавно использованные</option>
-          <option value="recent">Недавно добавленные</option>
-        </select>
-      </div>
       <FacetFilters
+        ref="facetControl"
+        hide-trigger
         v-model="filters"
         :context="{ q: query, category, collection: source === 'all' ? '' : source, sort, archive: 'active' }"
         compact
       />
-      <CategoryQuickFilters v-model="category" :categories="categories" :disabled="disabled" />
     </div>
     <p v-if="!embedded" class="palette-hint">
       {{ active ? 'Нажмите на асану, чтобы вставить её' : 'Выберите ячейку или перетащите асану' }}
@@ -362,6 +357,19 @@ onBeforeUnmount(() => {
 .palette-search button {
   position: absolute;
   right: 4px;
+}
+.filter-count {
+  position: absolute;
+  right: 0;
+  top: 0;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  padding: 1px 3px;
+  color: white;
+  background: #397a28;
+  font-size: 10px;
+  line-height: 13px;
 }
 .palette-extra {
   display: grid;

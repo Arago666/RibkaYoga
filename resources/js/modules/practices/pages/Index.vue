@@ -20,6 +20,8 @@ import {
   LayoutGrid,
   List,
 } from '@lucide/vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
+import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
@@ -84,6 +86,7 @@ const insertAsana = initial.searchParams.get('insert_asana');
 const insertVariant = initial.searchParams.get('insert_variant');
 const foldersOpen = ref(false);
 const importOpen = ref(false);
+const addPracticeOpen = ref(false);
 const selection = ref(new Map<string, PracticeListItem>());
 const includeCycleDocuments = ref(initial.searchParams.get('include_cycle_documents') === '1');
 const folderId = ref(initial.searchParams.get('folder') || '');
@@ -117,10 +120,6 @@ const createOpen = ref(false),
   createKind = ref<'practice' | 'template' | 'row' | 'transition'>('practice'),
   templateId = ref(''),
   createError = ref('');
-const templates = ref<PracticeListItem[]>([]),
-  templatePage = ref(0),
-  templateLastPage = ref(1),
-  templatesLoading = ref(false);
 const nameAction = ref<'rename' | 'template' | null>(null),
   namedItem = ref<PracticeListItem | null>(null),
   newName = ref(''),
@@ -281,23 +280,6 @@ function counts(item: PracticeListItem) {
     ? noun(item.cells_count ?? item.cell_count ?? 0, 'ячейка', 'ячейки', 'ячеек')
     : `${noun(item.blocks_count ?? item.block_count ?? 0, 'блок', 'блока', 'блоков')} · ${noun(item.row_count ?? 0, 'строка', 'строки', 'строк')}`;
 }
-async function loadTemplates() {
-  if (templatesLoading.value || templatePage.value >= templateLastPage.value) return;
-  templatesLoading.value = true;
-  try {
-    const response = await api<Page<PracticeListItem>>(
-      `/api/practices?kind=template&archive=active&page=${templatePage.value + 1}`,
-    );
-    for (const item of response.data)
-      if (!templates.value.some((entry) => entry.id === item.id)) templates.value.push(item);
-    templatePage.value = response.current_page;
-    templateLastPage.value = response.last_page;
-  } catch (failure) {
-    createError.value = failureText(failure);
-  } finally {
-    templatesLoading.value = false;
-  }
-}
 function openCreate(template?: PracticeListItem, asTemplate = false) {
   createOpen.value = true;
   createKind.value = asTemplate
@@ -312,10 +294,6 @@ function openCreate(template?: PracticeListItem, asTemplate = false) {
   createMode.value = template ? 'template' : 'blank';
   templateId.value = template?.id || '';
   createError.value = '';
-  templates.value = template ? [template] : [];
-  templatePage.value = 0;
-  templateLastPage.value = 1;
-  if (createKind.value === 'practice') void loadTemplates();
 }
 async function create() {
   if (busy.value || !createTitle.value.trim()) return;
@@ -352,6 +330,20 @@ async function create() {
   } finally {
     busy.value = false;
   }
+}
+function dragDocument(event: DragEvent, item: PracticeListItem) {
+  if (rowTab.value || item.archived_at) {
+    event.preventDefault();
+    return;
+  }
+  event.dataTransfer?.setData(
+    'application/ribka-document',
+    JSON.stringify({ id: item.id, revision: item.revision, type: 'practice' }),
+  );
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'link';
+}
+async function addExistingPractice(item: PracticeChoice) {
+  await duplicate(item as PracticeListItem);
 }
 async function duplicate(item: PracticeListItem) {
   if (busy.value) return;
@@ -452,6 +444,13 @@ async function saveName() {
 }
 </script>
 <template>
+  <PracticePicker
+    :external-error="error"
+    :open="addPracticeOpen"
+    :busy="busy"
+    @close="addPracticeOpen = false"
+    @choose="addExistingPractice"
+  />
   <PortableImportDialog :open="importOpen" @close="importOpen = false" />
   <Modal :open="foldersOpen" title="Категории практик" @close="foldersOpen = false">
     <PracticeFolders :documents="selectedDocuments" @changed="load" />
@@ -467,7 +466,19 @@ async function saveName() {
       <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
         <Plus :size="19" /> {{ createLabel }}
       </button>
-      <button class="btn btn-secondary" @click="importOpen = true">Импорт JSON</button>
+      <button v-if="!rowTab" class="btn btn-secondary" @click="addPracticeOpen = true">
+        <Plus :size="18" />Добавить практику
+      </button>
+      <ActionMenu label="Действия со списком практик">
+        <button @click="importOpen = true">Импорт JSON</button>
+        <button @click="includeCycleDocuments = !includeCycleDocuments">
+          {{ includeCycleDocuments ? 'Скрыть занятия внутри циклов' : 'Показывать занятия внутри циклов' }}
+        </button>
+        <button v-if="folderId" @click="folderId = ''">Все категории</button>
+        <button v-if="selection.size" @click="foldersOpen = true">
+          Категории выбранных ({{ selection.size }})
+        </button>
+      </ActionMenu>
     </header>
     <div class="practices-nav tabs">
       <Link class="tab active" href="/practices">Все практики</Link>
@@ -476,15 +487,6 @@ async function saveName() {
       <Link class="tab" href="/shared-practices">Мне дали доступ</Link>
     </div>
     <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
-    <div class="folder-tools">
-      <label class="check-label"
-        ><input v-model="includeCycleDocuments" type="checkbox" />Показывать занятия внутри циклов</label
-      >
-      <button v-if="folderId" class="btn btn-ghost" @click="folderId = ''">Все категории</button>
-      <button class="btn btn-secondary" @click="foldersOpen = true">
-        Категории выбранных ({{ selection.size }})
-      </button>
-    </div>
     <div class="practices-toolbar">
       <div class="practice-search">
         <Search :size="19" /><input
@@ -524,11 +526,41 @@ async function saveName() {
       Загружаем ваши {{ rowTab ? 'строки' : 'практики' }}…
     </div>
     <div v-else-if="result?.data.length" class="practice-grid" :class="{ 'practice-list': view === 'list' }">
-      <article v-for="item in result.data" :key="item.id" class="card practice-card">
-        <label class="practice-selection"
-          ><input type="checkbox" :checked="selection.has(item.id)" @change="toggleSelection(item)" />Выбрать
-          для категорий</label
-        >
+      <article
+        v-for="item in result.data"
+        :key="item.id"
+        class="card practice-card"
+        :class="{ 'selected-document': selection.has(item.id) }"
+        :draggable="!rowTab && !item.archived_at"
+        @dragstart="dragDocument($event, item)"
+      >
+        <div class="practice-card-menu">
+          <ActionMenu :label="`Действия: ${item.title}`">
+            <template v-if="!item.archived_at">
+              <button
+                v-if="!rowTab"
+                @click="
+                  selection = new Map([[item.id, item]]);
+                  foldersOpen = true;
+                "
+              >
+                Добавить в категорию
+              </button>
+              <Link :href="editUrl(item)">Редактировать</Link>
+              <button @click="openName(item, 'rename')">Переименовать</button>
+              <button v-if="!rowTab" :disabled="busy" @click="duplicate(item)">Дублировать</button>
+              <button v-if="!rowTab" @click="sharingItem = item">Дать доступ</button>
+              <button v-if="tab === 'practices'" @click="openName(item, 'template')">
+                Сохранить как шаблон
+              </button>
+              <button v-if="!rowTab" @click="toggleSelection(item)">
+                {{ selection.has(item.id) ? 'Снять выбор' : 'Выбрать для нескольких категорий' }}
+              </button>
+              <button :disabled="busy" @click="changeArchive(item)">Удалить в архив</button>
+            </template>
+            <button v-else :disabled="busy" @click="changeArchive(item)">Восстановить</button>
+          </ActionMenu>
+        </div>
         <Link class="practice-cover" :href="editUrl(item)" :aria-label="`Открыть: ${item.title}`"
           ><span class="cover-kind"
             ><Rows3 v-if="rowTab" :size="14" /><LayoutTemplate
@@ -611,59 +643,14 @@ async function saveName() {
                 rowTab ? (tab === 'transitions' ? 'Изменить связку' : 'Изменить строку') : 'Открыть практику'
               }}<ArrowRight :size="17"
             /></Link>
-            <div class="practice-actions">
-              <button
-                v-if="!rowTab"
-                class="icon-btn"
-                :disabled="busy"
-                title="Дать доступ преподавателю"
-                :aria-label="`Дать доступ: ${item.title}`"
-                @click="sharingItem = item"
-              >
-                <UserPlus :size="16" />
-              </button>
-              <button
-                class="icon-btn"
-                :disabled="busy"
-                :aria-label="`Переименовать: ${item.title}`"
-                title="Переименовать"
-                @click="openName(item, 'rename')"
-              >
-                <Pencil :size="16" /></button
-              ><button
-                v-if="!rowTab"
-                class="icon-btn"
-                :disabled="busy"
-                :aria-label="`Создать копию: ${item.title}`"
-                title="Создать копию"
-                @click="duplicate(item)"
-              >
-                <Copy :size="16" /></button
-              ><button
-                v-if="tab === 'practices'"
-                class="btn btn-ghost template-action"
-                :disabled="busy"
-                @click="openName(item, 'template')"
-              >
-                <LayoutTemplate :size="15" /> В шаблоны</button
-              ><Link v-if="tab === 'templates'" class="btn btn-ghost template-action" :href="editUrl(item)"
-                >Изменить шаблон</Link
-              ><button
-                class="icon-btn archive-action"
-                :disabled="busy"
-                :aria-label="`В архив: ${item.title}`"
-                title="В архив"
-                @click="changeArchive(item)"
-              >
-                <Archive :size="16" />
-              </button></div></template
-          ><button
+          </template>
+          <button
             v-else
             class="btn btn-secondary open-practice"
             :disabled="busy"
             @click="changeArchive(item)"
           >
-            <RotateCcw :size="17" /> Восстановить
+            Восстановить
           </button>
         </div>
       </article>
@@ -761,45 +748,6 @@ async function saveName() {
             :disabled="busy"
             placeholder="На чём сосредоточимся?"
           />
-        </div>
-        <fieldset v-if="createKind === 'practice'" class="create-source">
-          <legend class="label">С чего начать</legend>
-          <div class="source-options">
-            <label :class="{ chosen: createMode === 'blank' }"
-              ><input v-model="createMode" type="radio" value="blank" :disabled="busy" /><BookOpen
-                :size="21"
-              /><span
-                ><strong>Пустая практика</strong><small>5 блоков, которые можно менять</small></span
-              ></label
-            ><label :class="{ chosen: createMode === 'template' }"
-              ><input v-model="createMode" type="radio" value="template" :disabled="busy" /><LayoutTemplate
-                :size="21"
-              /><span><strong>Из шаблона</strong><small>Используйте проверенную основу</small></span></label
-            >
-          </div>
-        </fieldset>
-        <div v-if="createKind === 'practice' && createMode === 'template'" class="field">
-          <label class="label" for="practice-template">Шаблон</label
-          ><select id="practice-template" v-model="templateId" class="select" required :disabled="busy">
-            <option value="" disabled>
-              {{ templatesLoading ? 'Загружаем шаблоны…' : 'Выберите шаблон' }}
-            </option>
-            <option v-for="template in templates" :key="template.id" :value="template.id">
-              {{ template.title }}
-            </option>
-          </select>
-          <p v-if="!templatesLoading && !templates.length" class="muted">
-            Шаблонов ещё нет. Начните с пустой практики.
-          </p>
-          <button
-            v-if="templatePage < templateLastPage"
-            class="btn btn-ghost"
-            type="button"
-            :disabled="templatesLoading"
-            @click="loadTemplates"
-          >
-            {{ templatesLoading ? 'Загружаем…' : 'Загрузить ещё шаблоны' }}
-          </button>
         </div>
         <p class="muted create-hint">
           {{
@@ -1001,10 +949,23 @@ async function saveName() {
 }
 .practice-card {
   padding: 0 !important;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
   transition:
     box-shadow 0.15s,
     border-color 0.15s;
+}
+.practice-card-menu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 5;
+}
+.selected-document {
+  outline: 2px solid #7ba962;
+}
+.practice-cover {
+  border-radius: 18px 18px 0 0;
 }
 .practice-card:hover {
   border-color: #c8d9bf;

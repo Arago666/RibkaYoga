@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { renderMannequin, type Character, type MannequinPose } from '../illustrations/mannequin';
 const props = withDefaults(
   defineProps<{ pose: MannequinPose; style?: 'line' | 'volume'; character?: Character }>(),
@@ -10,7 +10,16 @@ const canvas = ref<HTMLCanvasElement | null>(null),
   pitch = ref(props.pose.camera.pitch),
   error = ref('');
 let drag: { id: number; x: number; y: number; yaw: number; pitch: number } | null = null;
+let frame = 0,
+  disposed = false;
 function paint(): void {
+  if (frame || disposed) return;
+  frame = requestAnimationFrame(() => {
+    frame = 0;
+    paintNow();
+  });
+}
+function paintNow(): void {
   if (canvas.value)
     try {
       renderMannequin(canvas.value, props.pose, props.style, props.character, yaw.value, pitch.value);
@@ -62,6 +71,11 @@ watch(
 );
 watch(() => [props.style, props.character], paint);
 onMounted(paint);
+onBeforeUnmount(() => {
+  disposed = true;
+  cancelAnimationFrame(frame);
+  drag = null;
+});
 </script>
 <template>
   <div class="mannequin-view">

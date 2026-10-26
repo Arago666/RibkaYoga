@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Check, Expand, Pencil, Archive, RotateCcw } from '@lucide/vue';
+import { Check, Expand } from '@lucide/vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import type { Asana, AsanaDisplayImage } from '../types';
 import { api } from '@/shared/api';
 import { ref } from 'vue';
@@ -41,13 +42,34 @@ defineEmits<{
   edit: [card: Asana];
   archive: [card: Asana];
   restore: [card: Asana];
+  category: [card: Asana];
+  duplicate: [card: Asana];
+  collection: [card: Asana];
 }>();
 </script>
 
 <template>
   <article class="asana-card" :class="{ selected, archived: card.archived_at }">
+    <div v-if="actions" class="card-menu">
+      <ActionMenu :label="`Действия: ${card.name}`">
+        <template v-if="!card.archived_at">
+          <button @click="$emit('category', card)">Добавить в категорию</button>
+          <button @click="$emit('collection', card)">Добавить в подборку</button>
+          <button @click="$emit('edit', card)">Редактировать</button>
+          <button @click="$emit('duplicate', card)">Дублировать</button>
+          <button :disabled="favoriteBusy" @click="favorite(card)">
+            {{ card.favorite ? 'Убрать из избранного' : 'В избранное' }}
+          </button>
+          <button v-if="selectable" @click="$emit('select', card)">
+            {{ selected ? 'Снять выбор' : 'Выбрать для нескольких действий' }}
+          </button>
+          <button @click="$emit('archive', card)">Удалить в архив</button>
+        </template>
+        <button v-else @click="$emit('restore', card)">Восстановить</button>
+      </ActionMenu>
+    </div>
     <button
-      v-if="selectable"
+      v-if="selectable && !actions"
       class="selection-toggle"
       :class="{ checked: selected }"
       type="button"
@@ -84,41 +106,6 @@ defineEmits<{
         {{ card.categories?.map((item) => item.name).join(' · ') || 'Без категории' }}
       </p>
       <p v-if="favoriteError" class="error-banner" role="alert">{{ favoriteError }}</p>
-      <div v-if="actions" class="asana-actions">
-        <button
-          type="button"
-          class="icon-btn"
-          :disabled="favoriteBusy"
-          :aria-pressed="!!card.favorite"
-          :aria-label="card.favorite ? 'Убрать из избранного' : 'В избранное'"
-          @click="favorite(card)"
-        >
-          {{ card.favorite ? '★' : '☆' }}
-        </button>
-        <button type="button" class="btn btn-ghost" @click="$emit('edit', card)">
-          <Pencil :size="14" aria-hidden="true" /> Изменить
-        </button>
-        <button
-          v-if="card.archived_at"
-          class="icon-btn"
-          type="button"
-          :aria-label="`Восстановить: ${card.name}`"
-          title="Восстановить"
-          @click="$emit('restore', card)"
-        >
-          <RotateCcw :size="17" />
-        </button>
-        <button
-          v-else
-          class="icon-btn"
-          type="button"
-          :aria-label="`В архив: ${card.name}`"
-          title="В архив"
-          @click="$emit('archive', card)"
-        >
-          <Archive :size="17" />
-        </button>
-      </div>
     </div>
   </article>
 </template>
@@ -126,7 +113,7 @@ defineEmits<{
 <style scoped>
 .asana-card {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #e2e8df;
   border-radius: 18px;
   background: #fff;
@@ -158,7 +145,14 @@ defineEmits<{
   background: #397a28;
   border-color: #397a28;
 }
+.card-menu {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+}
 .asana-image {
+  border-radius: 18px 18px 0 0;
   position: relative;
   display: block;
   width: 100%;
@@ -235,7 +229,14 @@ defineEmits<{
   width: 32px;
   height: 32px;
 }
-.archived .asana-image {
+.archived .card-menu {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+}
+.asana-image {
+  border-radius: 18px 18px 0 0;
   opacity: 0.65;
 }
 button:focus-visible {

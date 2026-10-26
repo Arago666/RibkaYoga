@@ -8,6 +8,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/practices', fn () => Inertia::render('practices/Index'))->name('practices.index');
     Route::get('/mesocycles', fn () => Inertia::render('practices/Mesocycles'))->name('mesocycles.index');
     Route::get('/mesocycles/{id}/edit', fn (string $id) => Inertia::render('practices/Mesocycle', ['mesocycleId' => $id]))->whereUuid('id');
+    Route::get('/settings', fn () => Inertia::render('access/Settings'))->name('settings');
     Route::get('/library', fn () => Inertia::render('catalog/Library'))->name('library');
     Route::get('/templates', fn () => Inertia::render('practices/Templates'))->name('templates');
     Route::get('/practice-folders', fn () => Inertia::render('practices/Folders'))->name('practice-folders');

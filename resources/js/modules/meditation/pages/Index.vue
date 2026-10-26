@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { notifyMeditationCompleted, uiPreferencesKey } from '@/shared/uiPreferences';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
@@ -17,6 +18,7 @@ import {
   type Signal,
 } from '../types';
 
+const uiKey = uiPreferencesKey(usePage().props.auth);
 const config = reactive<MeditationConfig>({ ...defaults });
 const revision = ref(1),
   ready = ref(false),
@@ -343,8 +345,10 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
         }
         if (terminal.value) {
           engine.stop();
-          if (result.data.status === 'completed')
+          if (result.data.status === 'completed') {
             engine.signal(result.data.settings.end_signal, result.data.settings.signal_volume);
+            notifyMeditationCompleted(uiKey);
+          }
           notice.value =
             result.data.status === 'completed'
               ? 'Сессия завершена. Активное время сохранено.'

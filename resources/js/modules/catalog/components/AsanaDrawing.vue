@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
 import { DialogRoot, DialogOverlay, DialogContent, DialogTitle } from 'reka-ui';
 import {
   Pencil,
@@ -491,8 +491,11 @@ function renderTo(target: HTMLCanvasElement) {
   ctx.clearRect(0, 0, 1024, 1024);
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, 1024, 1024);
-  for (const element of drawing.value.elements) drawElement(ctx, element, drawing.value.smoothing);
-  if (current.value) drawElement(ctx, current.value, drawing.value.smoothing);
+  // Rendering reads the current geometry without tracking every coordinate through Vue proxies.
+  // Gestures and history already request their own paint; exported coordinates are unchanged.
+  const source = toRaw(drawing.value);
+  for (const element of source.elements) drawElement(ctx, element, source.smoothing);
+  if (current.value) drawElement(ctx, toRaw(current.value), source.smoothing);
   const mirrored = mirroredCurrent();
   if (mirrored) drawElement(ctx, mirrored, drawing.value.smoothing);
 }

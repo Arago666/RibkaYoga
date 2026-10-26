@@ -15,7 +15,7 @@ interface Item {
   source_type: 'document' | 'row';
   subtype: string;
 }
-const props = defineProps<{ open: boolean; hasCell: boolean }>();
+const props = defineProps<{ open: boolean; hasCell: boolean; singleRow?: boolean }>();
 const emit = defineEmits<{ close: []; insert: [source: FragmentSource, placement: FragmentPlacement] }>();
 const query = ref(''),
   page = ref(1),
@@ -49,28 +49,32 @@ watch(
     if (open) {
       query.value = '';
       page.value = 1;
-      placement.value = 'rows';
+      placement.value = props.singleRow ? 'after' : 'rows';
       void load();
     } else request++;
   },
 );
 async function choose(item: Item) {
+  if (busy.value || !props.open) return;
+  const version = request;
   busy.value = true;
   error.value = '';
   try {
     if (item.source_type === 'row') {
       const result = await api<{ data: RowTemplate }>(`/api/row-templates/${item.id}`);
+      if (!props.open || version !== request) return;
       if (result.data.archived_at) throw new Error('Фрагмент находится в архиве.');
       emit('insert', { source_type: 'row', row: result.data }, placement.value);
     } else {
       const result = await api<{ data: Practice }>(`/api/practices/${item.id}`);
+      if (!props.open || version !== request) return;
       if (result.data.archived_at) throw new Error('Фрагмент находится в архиве.');
       emit('insert', { source_type: 'document', document: result.data }, placement.value);
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Не удалось открыть фрагмент.';
+    if (version === request) error.value = e instanceof Error ? e.message : 'Не удалось открыть фрагмент.';
   } finally {
-    busy.value = false;
+    if (version === request) busy.value = false;
   }
 }
 </script>
@@ -82,8 +86,8 @@ async function choose(item: Item) {
     <label class="field"
       ><span class="label">Способ вставки</span
       ><select v-model="placement" class="select">
-        <option value="rows">Добавить строками</option>
-        <option value="blocks">Добавить блоками</option>
+        <option v-if="!singleRow" value="rows">Добавить строками</option>
+        <option v-if="!singleRow" value="blocks">Добавить блоками</option>
         <option value="after" :disabled="!hasCell">Добавить после выбранной ячейки</option>
         <option value="replace" :disabled="!hasCell">Заменить позиции от выбранной ячейки</option>
       </select></label

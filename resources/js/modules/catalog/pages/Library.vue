@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import {
   Plus,
   Search,
@@ -12,6 +12,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from '@lucide/vue';
+import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
+import ActionMenu from '@/shared/ActionMenu.vue';
+import AsanaCategoryDialog from '../components/AsanaCategoryDialog.vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 import AsanaCard from '../components/AsanaCard.vue';
@@ -35,15 +38,20 @@ import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
 import ClassificationDialog from '../components/ClassificationDialog.vue';
 const classificationOpen = ref(false);
+const categoryCard = ref<Asana | null>(null);
 const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
 filters.value = filtersFromUrl(initial.searchParams);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
 const imageStyle = ref<LibraryImageStyle>(
-  initial.searchParams.get('image_style') === 'volume' ? 'volume' : 'original',
+  initial.searchParams.has('image_style')
+    ? initial.searchParams.get('image_style') === 'volume'
+      ? 'volume'
+      : 'original'
+    : readUiPreferences(uiPreferencesKey(usePage().props.auth)).libraryStyle,
 );
 const query = ref(initial.searchParams.get('q') || ''),
-  category = ref(initial.searchParams.get('category') || ''),
+  category = ref(''),
   archive = ref(initial.searchParams.get('archive') || 'active'),
   sort = ref(initial.searchParams.get('sort') || 'name_asc');
 const page = ref(Math.max(1, Number(initial.searchParams.get('page')) || 1)),
@@ -92,7 +100,7 @@ function updateUrl() {
     archive: archive.value === 'active' ? '' : archive.value,
     sort: sort.value === 'name_asc' ? '' : sort.value,
     page: page.value > 1 ? String(page.value) : '',
-    image_style: imageStyle.value === 'volume' ? 'volume' : '',
+    image_style: imageStyle.value,
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
@@ -210,6 +218,23 @@ async function archiveCard(card: Asana) {
     busy.value = false;
   }
 }
+async function duplicateCard(card: Asana) {
+  const name = window.prompt('Название копии асаны', `${card.name} — копия`);
+  if (!name?.trim() || busy.value) return;
+  busy.value = true;
+  try {
+    const result = await api<{ data: Asana }>(`/api/asanas/${card.id}/duplicate`, {
+      method: 'POST',
+      body: JSON.stringify({ name: name.trim(), expected_revision: card.revision }),
+    });
+    await load();
+    editing.value = result.data;
+  } catch (e) {
+    error.value = errorText(e);
+  } finally {
+    busy.value = false;
+  }
+}
 function collectionSaved(name: string) {
   selection.value = new Map();
   success.value = `Карточки добавлены в подборку «${name}».`;
@@ -240,9 +265,13 @@ async function taxonomyChanged() {
           <Layers3 :size="17" /> Подборки
         </button>
       </div>
-      <button class="btn btn-ghost taxonomy-button" @click="taxonomyOpen = true">
-        <SlidersHorizontal :size="17" /> Категории
-      </button>
+      <ActionMenu label="Настройки библиотеки">
+        <a href="/settings">Настройки отображения</a>
+        <button @click="taxonomyOpen = true">Управление категориями</button>
+        <button @click="selectVisible">
+          {{ visibleSelected ? 'Снять выбор с видимых' : 'Выбрать видимые' }}
+        </button>
+      </ActionMenu>
     </div>
     <div v-if="success" class="success-banner" role="status">{{ success }}</div>
     <div v-if="metadataError" class="error-banner" role="alert">
@@ -250,24 +279,6 @@ async function taxonomyChanged() {
       <button class="btn btn-ghost" @click="loadMetadata">Повторить загрузку категорий</button>
     </div>
     <template v-if="tab === 'asanas'">
-      <div class="library-image-style" role="group" aria-label="Стиль изображений в библиотеке">
-        <button
-          type="button"
-          :class="{ active: imageStyle === 'original' }"
-          :aria-pressed="imageStyle === 'original'"
-          @click="imageStyle = 'original'"
-        >
-          Мои рисунки
-        </button>
-        <button
-          type="button"
-          :class="{ active: imageStyle === 'volume' }"
-          :aria-pressed="imageStyle === 'volume'"
-          @click="imageStyle = 'volume'"
-        >
-          Объёмные фигуры
-        </button>
-      </div>
       <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
       <div class="library-tools">
         <div class="library-search">
@@ -280,12 +291,6 @@ async function taxonomyChanged() {
             <X :size="16" />
           </button>
         </div>
-        <select v-model="category" class="select category-select" aria-label="Фильтр по категории">
-          <option value="">Мои категории: все</option>
-          <option v-for="item in categories" :key="item.id" :value="item.id">
-            {{ categoryLabel(item) }}
-          </option>
-        </select>
       </div>
       <div class="library-subtools">
         <div class="library-result-count">
@@ -322,12 +327,7 @@ async function taxonomyChanged() {
       <div v-if="loading" class="catalog-loading" role="status">
         <span class="loading-dot" /> Загружаем карточки…
       </div>
-      <template v-else-if="result?.data.length"
-        ><div v-if="archive === 'active'" class="visible-selection">
-          <button class="btn btn-ghost" @click="selectVisible">
-            {{ visibleSelected ? 'Снять выбор с видимых' : 'Выбрать видимые' }}</button
-          ><span>Выбор сохраняется между страницами</span>
-        </div>
+      <template v-else-if="result?.data.length">
         <div class="asana-grid" :aria-busy="busy">
           <AsanaCard
             v-for="card in result.data"
@@ -339,6 +339,12 @@ async function taxonomyChanged() {
             @select="toggle"
             @preview="preview = $event"
             @edit="editing = $event"
+            @category="categoryCard = $event"
+            @duplicate="duplicateCard"
+            @collection="
+              selection = new Map([[$event.id, $event]]);
+              addToCollection = true;
+            "
             @archive="archiveCard"
             @restore="archiveCard"
           /></div
@@ -372,6 +378,12 @@ async function taxonomyChanged() {
       </div>
     </template>
     <CollectionsPanel v-else ref="collectionsPanel" />
+    <AsanaCategoryDialog
+      :card="categoryCard"
+      :categories="categories"
+      @close="categoryCard = null"
+      @saved="load"
+    />
     <ClassificationDialog
       :open="classificationOpen"
       :cards="[...selection.values()]"

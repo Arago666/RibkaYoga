@@ -2,12 +2,14 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Plus, X, Save, ExternalLink, Copy, RefreshCw, GripVertical } from '@lucide/vue';
+import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import AsanaPalette from '../components/AsanaPalette.vue';
 import { api, ApiError } from '@/shared/api';
-import type { Asana, Page } from '@/modules/catalog/types';
-import type { Practice, Cell } from '../types';
+import type { Asana } from '@/modules/catalog/types';
+import type { Practice } from '../types';
 import { uid } from '../types';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
 import {
@@ -46,6 +48,29 @@ const cycle = ref<Cycle | null>(null),
 const frames = new Map<string, HTMLIFrameElement>();
 const activeDocumentId = ref<string | null>(null);
 const switching = ref(false);
+const boardPage = ref(0);
+const visibleWeeks = computed(
+  () => cycle.value?.weeks.slice(boardPage.value * 5, boardPage.value * 5 + 5) || [],
+);
+async function saveMountedWeeks() {
+  for (const documentId of frames.keys()) if (!(await saveWeek(documentId))) return false;
+  return true;
+}
+async function changeBoardPage(value: number) {
+  if (switching.value) return;
+  switching.value = true;
+  try {
+    if (!(await saveMountedWeeks())) {
+      error.value = 'Сохраните открытые занятия перед сменой страницы.';
+      return;
+    }
+    pointerDrag.cancel();
+    target.value = null;
+    boardPage.value = value;
+  } finally {
+    switching.value = false;
+  }
+}
 const structureKey = ref(uid());
 const replacementKey = ref(uid());
 const previewUndo = ref<string | null>(null);
@@ -62,10 +87,11 @@ const dragTarget = ref<MesocycleTarget | null>(null);
 const weeksBoard = ref<HTMLElement | null>(null);
 let lastCloudPoint: PaletteDragPoint | null = null,
   dragScrollFrame = 0;
+const replacementPositionOpen = ref(false);
+const replacementCandidate = ref<PracticeChoice | null>(null);
 const replacement = ref<Week | null>(null),
   sources = ref<{ id: string; title: string; revision: number }[]>([]),
   sourceId = ref(''),
-  sourceKind = ref('practice'),
   replaceBusy = ref(false);
 let timer: ReturnType<typeof setTimeout> | undefined,
   alive = true,
@@ -352,7 +378,10 @@ function receive(event: MessageEvent) {
     data.sessionId !== frameSessions.get(documentId)
   )
     return;
-  if (data.type === 'ribka:meso-cell') target.value = { documentId, cellId: data.cellId, label: data.label };
+  if (data.type === 'ribka:meso-cell') {
+    activeDocumentId.value = documentId;
+    target.value = { documentId, cellId: data.cellId, label: data.label };
+  }
   if (data.type === 'ribka:meso-clear-target' && target.value?.documentId === documentId) target.value = null;
   if (data.type === 'ribka:meso-status') weekDirty.value[documentId] = data.dirty || data.pending > 0;
   if (data.type === 'ribka:meso-saved') {
@@ -391,47 +420,27 @@ async function saveAll() {
     return;
   }
   notice.value = 'Сохраняем занятия…';
-  const results = await Promise.all(cycle.value.weeks.map((week) => saveWeek(week.document_id)));
+  const results: boolean[] = [];
+  for (const week of cycle.value.weeks) results.push(await saveWeek(week.document_id));
   notice.value = results.every(Boolean)
     ? 'Тема, облако и все занятия сохранены.'
-    : 'Не удалось сохранить активное занятие. Проверьте его редактор.';
+    : 'Не удалось сохранить одно из открытых занятий. Проверьте сообщение в его редакторе.';
   allSaving.value = false;
 }
-async function loadSources() {
-  replaceBusy.value = true;
-  try {
-    sources.value = [];
-    let page = 1,
-      last = 1;
-    do {
-      const response = await api<Page<{ id: string; title: string; revision: number }>>(
-        `/api/practices?kind=${sourceKind.value}&per_page=100&page=${page}`,
-      );
-      sources.value.push(...response.data);
-      last = response.last_page;
-      page++;
-    } while (page <= last);
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Не удалось загрузить основы.';
-  } finally {
-    replaceBusy.value = false;
-  }
-}
-async function openReplace(week: Week) {
+function openReplace(week: Week) {
   replacementKey.value = uid();
   replacement.value = week;
+  replacementCandidate.value = null;
   sourceId.value = '';
-  await loadSources();
+}
+async function chooseSource(item: PracticeChoice) {
+  sourceId.value = item.id;
+  sources.value = [item];
+  replacementCandidate.value = item;
 }
 async function replaceWeek() {
   if (!cycle.value || !replacement.value || !sourceId.value || replaceBusy.value) return;
   if (!(await saveMetadata())) return;
-  if (
-    !window.confirm(
-      'Заменить неделю независимой копией выбранной последовательности? Предыдущая практика останется в разделе «Практики». Если в редакторе недели есть несохранённые изменения, сначала сохраните её.',
-    )
-  )
-    return;
   replaceBusy.value = true;
   error.value = '';
   try {
@@ -454,6 +463,7 @@ async function replaceWeek() {
       null;
     acknowledged.value = signature();
     replacement.value = null;
+    replacementCandidate.value = null;
     target.value = null;
   } catch (e) {
     if (e instanceof ApiError && e.status === 409) conflict.value = true;
@@ -462,36 +472,12 @@ async function replaceWeek() {
     replaceBusy.value = false;
   }
 }
-function previewCells(week: Week): Cell[] {
-  return week.document.blocks.flatMap((block) => block.rows.flatMap((row) => row.cells)).slice(0, 4);
-}
-async function activateWeek(week: Week) {
-  if (activeDocumentId.value === week.document_id || switching.value) return;
-  switching.value = true;
-  try {
-    if (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))) {
-      error.value = 'Сохраните активное занятие перед переключением.';
-      return;
-    }
-    if (activeDocumentId.value && cycle.value) {
-      const old = cycle.value.weeks.find((item) => item.document_id === activeDocumentId.value);
-      if (old) old.document = (await api<{ data: Practice }>(`/api/practices/${old.document_id}`)).data;
-    }
-    target.value = null;
-    activeDocumentId.value = week.document_id;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Не удалось переключить занятие.';
-  } finally {
-    switching.value = false;
-  }
-}
 async function changeStructure(
   positions: { id?: string; title?: string | null }[],
   removed: { id: string; action: 'keep' | 'archive'; expected_revision: number }[] = [],
 ) {
   if (!cycle.value || switching.value || positions.length < 1 || positions.length > 52) return;
-  if (!(await saveMetadata()) || (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))))
-    return;
+  if (!(await saveMetadata()) || !(await saveMountedWeeks())) return;
   switching.value = true;
   error.value = '';
   try {
@@ -505,6 +491,7 @@ async function changeStructure(
       }),
     });
     cycle.value = response.data;
+    boardPage.value = Math.min(boardPage.value, Math.max(0, Math.ceil(response.data.weeks.length / 5) - 1));
     acknowledged.value = signature();
     structureKey.value = uid();
     if (!response.data.weeks.some((week) => week.document_id === activeDocumentId.value))
@@ -536,7 +523,7 @@ function renamePosition(week: Week) {
 async function removePosition(week: Week) {
   if (!cycle.value || cycle.value.weeks.length <= 1) return;
   if (!window.confirm('Убрать позицию из цикла? Само занятие и изображения сохранятся отдельно.')) return;
-  if (activeDocumentId.value && !(await saveWeek(activeDocumentId.value))) return;
+  if (!(await saveMountedWeeks())) return;
   const document = (await api<{ data: Practice }>(`/api/practices/${week.document_id}`)).data;
   const action = window.confirm('Сохранить занятие в активных практиках? Отмена предложит архивирование.')
     ? 'keep'
@@ -550,12 +537,7 @@ async function removePosition(week: Week) {
     );
 }
 async function duplicateCycle(asTemplate: boolean) {
-  if (
-    !cycle.value ||
-    !(await saveMetadata()) ||
-    (activeDocumentId.value && !(await saveWeek(activeDocumentId.value)))
-  )
-    return;
+  if (!cycle.value || !(await saveMetadata()) || !(await saveMountedWeeks())) return;
   const title = window.prompt(
     asTemplate ? 'Название шаблона цикла' : 'Название новой программы',
     cycle.value.title,
@@ -720,7 +702,7 @@ onBeforeUnmount(() => {
                 : 'Нажмите на ячейку любой недели для заполнения из общего облака.'
           }}
         </p>
-        <p class="cloud-help">
+        <p v-if="target || dragPreview" class="cloud-help">
           Перетащите рисунок в любую неделю. На сенсорном экране тяните за значок ⋮⋮. Можно выбрать ячейку и
           нажать на асану; с клавиатуры используйте Tab и Enter.
         </p>
@@ -730,6 +712,13 @@ onBeforeUnmount(() => {
         Отменить вставку в превью
       </button>
       <div class="cycle-structure-tools">
+        <button
+          class="btn btn-secondary"
+          :disabled="replaceBusy || conflict || !!cycle.archived_at"
+          @click="replacementPositionOpen = true"
+        >
+          Добавить практику
+        </button>
         <span>{{ cycle.weeks.length }} занятий</span
         ><button
           class="btn btn-secondary"
@@ -739,64 +728,55 @@ onBeforeUnmount(() => {
           Добавить занятие
         </button>
       </div>
-      <div ref="weeksBoard" class="weeks-board">
+      <div
+        ref="weeksBoard"
+        class="weeks-board"
+        :style="{ '--visible-weeks': Math.min(5, visibleWeeks.length) }"
+      >
         <section
-          v-for="week in cycle.weeks"
+          v-for="week in visibleWeeks"
           :key="week.document_id"
           class="week-column"
           :class="{ 'active-week': activeDocumentId === week.document_id }"
         >
           <header>
             <h2>{{ week.title || `Занятие ${week.position + 1}` }}</h2>
-            <a
-              :href="`/practices/${week.document_id}/edit`"
-              class="icon-btn"
-              target="_blank"
-              rel="noopener"
-              title="Открыть редактор отдельным окном"
-              ><ExternalLink :size="17" /></a
-            ><button
-              class="icon-btn"
-              :disabled="replaceBusy || conflict || !!cycle.archived_at"
-              @click="openReplace(week)"
-              title="Взять другую базовую последовательность"
-            >
-              <Copy :size="17" />
-            </button>
+            <ActionMenu :label="`Действия с занятием ${week.position + 1}`">
+              <button :disabled="replaceBusy || conflict || !!cycle.archived_at" @click="openReplace(week)">
+                Добавить практику из существующих
+              </button>
+              <a :href="`/practices/${week.document_id}/edit`" target="_blank" rel="noopener"
+                >Открыть в отдельном окне</a
+              >
+              <button :disabled="replaceBusy || conflict || !!cycle.archived_at" @click="openReplace(week)">
+                Копировать другую последовательность
+              </button>
+              <button :disabled="switching || conflict || !!cycle.archived_at" @click="renamePosition(week)">
+                Переименовать
+              </button>
+              <button
+                :disabled="switching || week.position === 0 || conflict || !!cycle.archived_at"
+                @click="movePosition(week, -1)"
+              >
+                Переместить левее
+              </button>
+              <button
+                :disabled="
+                  switching || week.position === cycle.weeks.length - 1 || conflict || !!cycle.archived_at
+                "
+                @click="movePosition(week, 1)"
+              >
+                Переместить правее
+              </button>
+              <button
+                :disabled="switching || cycle.weeks.length <= 1 || conflict || !!cycle.archived_at"
+                @click="removePosition(week)"
+              >
+                Убрать из цикла
+              </button>
+            </ActionMenu>
           </header>
-          <div class="position-actions">
-            <button
-              class="btn btn-ghost"
-              :disabled="switching || conflict || !!cycle.archived_at"
-              @click="renamePosition(week)"
-            >
-              Название</button
-            ><button
-              class="btn btn-ghost"
-              :disabled="switching || week.position === 0 || conflict || !!cycle.archived_at"
-              @click="movePosition(week, -1)"
-              aria-label="Выше"
-            >
-              ↑</button
-            ><button
-              class="btn btn-ghost"
-              :disabled="
-                switching || week.position === cycle.weeks.length - 1 || conflict || !!cycle.archived_at
-              "
-              @click="movePosition(week, 1)"
-              aria-label="Ниже"
-            >
-              ↓</button
-            ><button
-              class="btn btn-ghost"
-              :disabled="switching || cycle.weeks.length <= 1 || conflict || !!cycle.archived_at"
-              @click="removePosition(week)"
-            >
-              Убрать
-            </button>
-          </div>
           <iframe
-            v-if="activeDocumentId === week.document_id"
             :ref="
               (element) => {
                 if (element) frames.set(week.document_id, element as HTMLIFrameElement);
@@ -806,45 +786,52 @@ onBeforeUnmount(() => {
             :src="frameSource(week.document_id)"
             :title="`Редактор занятия ${week.position + 1}`"
           />
-          <div v-else class="week-preview">
-            <div class="preview-poses">
-              <button
-                v-for="cell in previewCells(week)"
-                :key="cell.id"
-                type="button"
-                data-cycle-preview-cell
-                :data-document-id="week.document_id"
-                :data-cell-id="cell.id"
-                :data-label="cell.card?.name || cell.custom_name || 'Пустая ячейка'"
-                :class="{ 'preview-target': dragTarget?.cellId === cell.id || target?.cellId === cell.id }"
-                @click="
-                  target = {
-                    documentId: week.document_id,
-                    cellId: cell.id,
-                    label: cell.card?.name || cell.custom_name || 'Пустая ячейка',
-                  }
-                "
-              >
-                <img v-if="cell.card" :src="cell.card.image_url" :alt="cell.card.name" loading="lazy" /><span
-                  v-else
-                  >{{ cell.custom_name || '+' }}</span
-                >
-              </button>
-            </div>
-            <p>{{ week.document.title }}</p>
-            <button class="btn btn-primary" :disabled="switching" @click="activateWeek(week)">
-              Открыть редактор занятия</button
-            ><Link class="btn btn-ghost" :href="`/practices/${week.document_id}/preview`"
-              >Просмотр / печать</Link
-            >
-          </div>
         </section>
       </div>
+      <div v-if="cycle.weeks.length > 5" class="cycle-structure-tools">
+        <button
+          class="btn btn-secondary"
+          :disabled="boardPage <= 0 || switching"
+          @click="changeBoardPage(boardPage - 1)"
+        >
+          Предыдущие занятия</button
+        ><span>{{ boardPage + 1 }} / {{ Math.ceil(cycle.weeks.length / 5) }}</span
+        ><button
+          class="btn btn-secondary"
+          :disabled="(boardPage + 1) * 5 >= cycle.weeks.length || switching"
+          @click="changeBoardPage(boardPage + 1)"
+        >
+          Следующие занятия
+        </button>
+      </div>
       <p class="muted board-help">
-        Перед переключением активное занятие сохраняется. Одновременно открыт один редактор; другие занятия
-        показаны лёгкими превью. Стрелки, скобки и история доступны в редакторе.
+        Все пять занятий доступны для редактирования одновременно. Перед сменой страницы или структуры
+        открытые занятия сохраняются.
       </p>
     </template>
+    <Modal
+      :open="replacementPositionOpen"
+      title="Куда добавить практику"
+      @close="replacementPositionOpen = false"
+    >
+      <p class="muted">
+        Выберите занятие цикла. Создадим независимую копию выбранной далее практики; прежнее занятие
+        сохранится отдельно.
+      </p>
+      <div class="replacement-positions">
+        <button
+          v-for="week in cycle?.weeks || []"
+          :key="week.id"
+          class="btn btn-secondary"
+          @click="
+            replacementPositionOpen = false;
+            openReplace(week);
+          "
+        >
+          {{ week.title || `Занятие ${week.position + 1}` }}
+        </button>
+      </div>
+    </Modal>
     <Modal :open="cloudOpen" title="Добавить асаны в облако" @close="cloudOpen = false"
       ><p class="muted">Выберите несколько асан. Они будут доступны для каждой недели.</p>
       <AsanaPalette
@@ -861,35 +848,38 @@ onBeforeUnmount(() => {
       ></Modal
     >
     <Modal
-      :open="!!replacement"
-      title="Базовая последовательность для недели"
-      @close="!replaceBusy && (replacement = null)"
-      ><p class="muted">Создадим независимую копию. Предыдущая практика сохранится отдельно.</p>
-      <label class="field"
-        ><span class="label">Источник</span
-        ><select
-          v-model="sourceKind"
-          class="select"
-          @change="
-            sourceId = '';
-            loadSources();
-          "
-        >
-          <option value="practice">Практики</option>
-          <option value="template">Шаблоны</option>
-        </select></label
-      ><select v-model="sourceId" class="select" :disabled="replaceBusy">
-        <option value="">Выберите последовательность</option>
-        <option v-for="source in sources" :key="source.id" :value="source.id">{{ source.title }}</option>
-      </select>
-      <p v-if="error" class="error-banner">{{ error }}</p>
-      <template #footer
-        ><button class="btn btn-secondary" :disabled="replaceBusy" @click="replacement = null">Отмена</button
-        ><button class="btn btn-primary" :disabled="replaceBusy || !sourceId" @click="replaceWeek">
-          Создать копию для недели
-        </button></template
-      ></Modal
+      :open="!!replacement && !!replacementCandidate"
+      title="Добавить выбранную практику"
+      @close="!replaceBusy && (replacementCandidate = null)"
     >
+      <p>
+        Добавить «{{ replacementCandidate?.title }}» в
+        {{ replacement?.title || `занятие ${(replacement?.position ?? 0) + 1}` }}?
+      </p>
+      <p class="muted">
+        Сначала сохраним текущее занятие, затем создадим независимую копию выбранной практики. Прежняя
+        практика останется в общем списке. Скобки, стрелки и изображения копируются вместе с
+        последовательностью.
+      </p>
+      <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
+      <template #footer
+        ><button class="btn btn-secondary" :disabled="replaceBusy" @click="replacementCandidate = null">
+          Назад к выбору</button
+        ><button class="btn btn-primary" :disabled="replaceBusy" @click="replaceWeek">
+          {{ replaceBusy ? 'Добавляем…' : 'Добавить практику' }}
+        </button></template
+      >
+    </Modal>
+    <PracticePicker
+      :external-error="error"
+      :open="!!replacement && !replacementCandidate"
+      :busy="replaceBusy"
+      templates
+      title="Добавить существующую практику"
+      description="Выберите последовательность для занятия. Создадим независимую копию; прежняя практика останется в общем списке."
+      @close="replacement = null"
+      @choose="chooseSource"
+    />
   </AppShell>
   <Teleport to="body">
     <div v-if="dragPreview" data-mesocycle-drag-overlay class="cloud-drag-overlay" aria-hidden="true">
@@ -941,10 +931,31 @@ onBeforeUnmount(() => {
   outline: 2px solid #74a960;
 }
 .weeks-board {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)) !important;
+  grid-template-columns: repeat(var(--visible-weeks), minmax(0, 1fr)) !important;
+  align-items: start;
 }
-.week-column:has(iframe) {
-  grid-column: 1/-1;
+.week-column {
+  min-width: 0;
+}
+.week-column > header h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.week-column iframe {
+  width: 100%;
+  min-width: 0;
+}
+.replacement-positions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+@media (max-width: 900px) {
+  .weeks-board {
+    grid-template-columns: repeat(5, 280px) !important;
+    overflow-x: auto;
+  }
 }
 .cycle-heading {
   display: flex;
@@ -979,7 +990,7 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   z-index: 30;
-  max-height: 250px;
+  max-height: 210px;
   overflow: auto;
   background: white;
   border: 1px solid var(--border);
@@ -1019,7 +1030,7 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   padding: 8px 5px;
   width: 100%;
-  height: 108px;
+  height: 84px;
 }
 .cloud-drag-handle {
   position: absolute;
@@ -1076,8 +1087,8 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .cloud-card img {
-  width: 65px;
-  height: 65px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
 }
 .cloud-card span {
@@ -1114,7 +1125,7 @@ onBeforeUnmount(() => {
 .week-column {
   border: 1px solid var(--border);
   border-radius: 15px;
-  overflow: hidden;
+  overflow: visible;
   background: white;
 }
 .week-column > header {
@@ -1123,6 +1134,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   padding: 12px;
   background: #edf5e7;
+  border-radius: 15px 15px 0 0;
 }
 .week-column h2 {
   flex: 1;

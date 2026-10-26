@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
 import { TooltipProvider, TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
 import {
   Plus,
@@ -81,7 +82,7 @@ function closeMenu(event: MouseEvent) {
       <span class="row-caption">{{ row.cells.filter(cellFilled).length }} заполнено</span>
       <div class="row-tools">
         <span class="muted">{{ row.cells.length }} / 12 ячеек</span>
-        <details v-if="!disabled && !groupMode" class="action-menu">
+        <details v-dismiss-menu v-if="!disabled && !groupMode" class="action-menu">
           <summary class="icon-btn" aria-label="Действия со строкой"><MoreHorizontal :size="19" /></summary>
           <div class="action-popover" @click="closeMenu">
             <button @click="emit('note')"><StickyNote :size="16" />Заметка</button>

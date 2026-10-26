@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import { Link, usePage, router } from '@inertiajs/vue3';
-import { Library, LayoutGrid, LogOut, UserRound, Shield, BookOpen, Pencil, Timer, Menu } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import {
+  Library,
+  LayoutGrid,
+  LogOut,
+  UserRound,
+  Shield,
+  BookOpen,
+  Pencil,
+  Timer,
+  Menu,
+  Settings,
+} from '@lucide/vue';
+import { computed } from 'vue';
+import { dismissMenu as vDismissMenu } from './dismissMenu';
 defineProps<{
   section: 'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation';
   wide?: boolean;
 }>();
-const more = ref(false);
 const page = usePage();
 const user = computed(
   () => (page.props.auth as { user?: { name: string; email: string; is_admin?: boolean } } | undefined)?.user,
@@ -37,28 +48,24 @@ const user = computed(
         <Link href="/account" :class="['nav-link', 'desktop-nav', { active: section === 'account' }]"
           ><UserRound :size="18" />Кабинет</Link
         >
-        <div class="more-nav">
-          <button
-            class="nav-link"
-            :aria-expanded="more"
-            aria-controls="more-navigation"
-            @click="more = !more"
-          >
-            <Menu :size="18" />Ещё
-          </button>
-          <div v-if="more" id="more-navigation" class="more-links">
+        <details v-dismiss-menu class="more-nav">
+          <summary class="nav-link"><Menu :size="18" />Ещё</summary>
+          <div id="more-navigation" class="more-links">
             <Link href="/templates">Шаблоны</Link><Link href="/mesocycles">Программы и циклы</Link
             ><Link href="/practice-folders">Категории практик</Link
             ><Link href="/shared-practices">Мне дали доступ</Link><Link href="/sketchbook">Скетчбук</Link
             ><Link href="/meditation">Медитация</Link><Link href="/practice-history">История практики</Link
-            ><Link href="/account">Кабинет</Link>
+            ><Link href="/account">Кабинет</Link><Link href="/settings">Настройки</Link>
           </div>
-        </div>
+        </details>
       </nav>
       <div v-if="user" class="account">
         <Link href="/account" class="account-profile" aria-label="Открыть личный кабинет"
           ><span class="avatar">{{ user?.name?.charAt(0) || 'Р' }}</span
           ><span class="account-name">{{ user?.name }}</span></Link
+        >
+        <Link href="/settings" class="nav-link settings-link" aria-label="Настройки приложения"
+          ><Settings :size="18" /><span class="settings-label">Настройки</span></Link
         >
         <Link
           v-if="user?.is_admin"
@@ -82,6 +89,13 @@ const user = computed(
 .more-nav {
   display: none;
   position: relative;
+}
+.more-nav summary {
+  list-style: none;
+  cursor: pointer;
+}
+.more-nav summary::-webkit-details-marker {
+  display: none;
 }
 .more-links {
   position: absolute;
@@ -133,6 +147,9 @@ const user = computed(
   }
   .nav-link svg {
     width: 15px;
+  }
+  .settings-label {
+    display: none;
   }
   .account-profile .account-name {
     display: none;

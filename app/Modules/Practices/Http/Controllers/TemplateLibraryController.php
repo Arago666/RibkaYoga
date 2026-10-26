@@ -28,7 +28,11 @@ class TemplateLibraryController
         if ($type === 'cycle') {
             $query = $scoped('practice_mesocycles')->where('kind', 'template')->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'cycle' as source_type, 'cycle' as subtype");
         } elseif ($type === 'practice') {
-            $query = $scoped('practice_documents')->where('kind', 'template')->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'document' as source_type, 'practice' as subtype");
+            $documents = $scoped('practice_documents')->where('kind', 'template')
+                ->whereNotExists(fn ($weeks) => $weeks->selectRaw('1')->from('practice_mesocycle_weeks')->whereColumn('document_id', 'practice_documents.id'))
+                ->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'document' as source_type, 'practice' as subtype");
+            $cycles = $scoped('practice_mesocycles')->where('kind', 'template')->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'cycle' as source_type, 'cycle' as subtype");
+            $query = DB::query()->fromSub($documents->unionAll($cycles), 'templates');
         } else {
             $rows = $scoped('practice_row_templates')->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'row' as source_type, kind as subtype");
             $blocks = $scoped('practice_documents')->where('kind', 'fragment')->select('id', 'title', 'revision', 'updated_at', 'archived_at')->selectRaw("'document' as source_type, coalesce(fragment_kind, 'sequence') as subtype");

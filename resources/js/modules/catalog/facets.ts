@@ -16,6 +16,7 @@ export interface FacetValue extends Category {
 }
 export type FacetDictionary = Record<Dimension, FacetValue[]>;
 export interface CatalogFilters extends FacetAssignments {
+  categories: string[];
   favorite: boolean;
   unclassified: boolean;
   has_bind: '' | 'yes' | 'no' | 'unknown';
@@ -40,7 +41,14 @@ export function emptyAssignments(): FacetAssignments {
   return { effect: [], anatomy: [], position: [], difficulty: [] };
 }
 export function emptyFilters(): CatalogFilters {
-  return { ...emptyAssignments(), favorite: false, unclassified: false, has_bind: '', equipment: '' };
+  return {
+    ...emptyAssignments(),
+    categories: [],
+    favorite: false,
+    unclassified: false,
+    has_bind: '',
+    equipment: '',
+  };
 }
 export function emptyReference(): ReferenceFields {
   return {
@@ -58,6 +66,9 @@ export function emptyReference(): ReferenceFields {
 }
 export function filtersFromUrl(params: URLSearchParams): CatalogFilters {
   const result = emptyFilters();
+  result.categories = params.getAll('categories[]');
+  const legacyCategory = params.get('category');
+  if (legacyCategory && !result.categories.includes(legacyCategory)) result.categories.push(legacyCategory);
   for (const dimension of dimensions) result[dimension] = params.getAll(`${dimension}[]`);
   result.favorite = params.get('favorite') === '1';
   result.unclassified = params.get('unclassified') === '1';
@@ -67,6 +78,8 @@ export function filtersFromUrl(params: URLSearchParams): CatalogFilters {
   return result;
 }
 export function setFilterParams(params: URLSearchParams, filters: CatalogFilters): URLSearchParams {
+  params.delete('categories[]');
+  for (const id of filters.categories) params.append('categories[]', id);
   for (const dimension of dimensions) {
     params.delete(`${dimension}[]`);
     for (const id of filters[dimension]) params.append(`${dimension}[]`, id);

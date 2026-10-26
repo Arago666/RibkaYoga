@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
@@ -34,7 +35,7 @@ import CellPicker from '../components/CellPicker.vue';
 import SequenceRow from '../components/SequenceRow.vue';
 import ArrowSymbol from '../components/ArrowSymbol.vue';
 import ExecutionDialog from '../components/ExecutionDialog.vue';
-import InsertionStyleSettings from '@/modules/catalog/components/InsertionStyleSettings.vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import ApplyIllustrationsDialog from '../components/ApplyIllustrationsDialog.vue';
 import FragmentPicker, {
   type FragmentSource,
@@ -182,12 +183,23 @@ function insertDrawingQueue(id: string) {
   history.replaceState(history.state, '', url);
   notice.value = 'Рисунки вставлены. Исходный скетчбук сохранён; вставку можно отменить.';
 }
+function pickFragment() {
+  const found = pickerCellId.value ? findCell(pickerCellId.value) : null;
+  if (!found) return;
+  const blockId = found.block.id;
+  closePicker();
+  chooseFragment(blockId);
+}
 function chooseFragment(blockId: string) {
   fragmentBlockId.value = blockId;
   fragmentOpen.value = true;
 }
 function insertFragment(source: FragmentSource, placement: FragmentPlacement) {
   if (!doc.value || locked.value) return;
+  if (props.rowMode && (placement === 'rows' || placement === 'blocks')) {
+    message('В сохранённую строку можно вставлять позиции: после выбранной ячейки или вместо неё.');
+    return;
+  }
   const block = doc.value.blocks.find((item) => item.id === fragmentBlockId.value);
   if (!block) return;
   const rows = source.row ? [source.row] : source.document?.blocks.flatMap((item) => item.rows) || [];
@@ -1567,6 +1579,7 @@ onBeforeUnmount(() => {
   <FragmentPicker
     :open="fragmentOpen"
     :has-cell="!!selected"
+    :single-row="rowMode"
     @close="fragmentOpen = false"
     @insert="insertFragment"
   />
@@ -1639,14 +1652,12 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="editor-actions">
-          <button
-            v-if="!rowMode && !embedded"
-            class="btn btn-secondary"
-            :disabled="pending > 0 || locked"
-            @click="openIllustrations"
-          >
-            Изменить стиль листа
-          </button>
+          <ActionMenu v-if="!embedded" label="Настройки практики">
+            <a href="/settings">Настройки отображения</a>
+            <button v-if="!rowMode" :disabled="pending > 0 || locked" @click="openIllustrations">
+              Изменить стиль этого листа
+            </button>
+          </ActionMenu>
           <button
             v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
             class="btn btn-secondary"
@@ -1701,18 +1712,6 @@ onBeforeUnmount(() => {
         <button class="btn btn-ghost" @click="pendingDrawings = []">Отменить</button>
       </p>
       <div class="document-meta">
-        <InsertionStyleSettings
-          v-if="!rowMode && !readOnly"
-          :style="doc.illustration_style || 'original'"
-          :character="doc.illustration_character || 'neutral'"
-          :disabled="locked"
-          @change="
-            edit((document) => {
-              document.illustration_style = $event.style;
-              document.illustration_character = $event.character;
-            })
-          "
-        />
         <div class="theme-field">
           <span>Тема</span
           ><input
@@ -1989,7 +1988,7 @@ onBeforeUnmount(() => {
                 @input="edit(() => (block.title = ($event.target as HTMLInputElement).value), block.id)"
                 @blur="editor.endGroup"
               />
-              <details v-if="!rowMode && !readOnly && !annotationMode" class="block-menu">
+              <details v-dismiss-menu v-if="!rowMode && !readOnly && !annotationMode" class="block-menu">
                 <summary class="icon-btn" aria-label="Действия с блоком">
                   <MoreHorizontal :size="21" />
                 </summary>
@@ -2006,6 +2005,7 @@ onBeforeUnmount(() => {
                   >
                     <StickyNote :size="16" />Задача блока</button
                   ><button @click="duplicateBlock(block)"><Copy :size="16" />Дублировать</button
+                  ><button @click="chooseFragment(block.id)">Вставить фрагмент</button
                   ><button @click="saveBlockFragment(block)">Сохранить блок как фрагмент</button
                   ><button @click="changeBlockOrder(block.id, -1)"><ArrowUp :size="16" />Выше</button
                   ><button @click="changeBlockOrder(block.id, 1)"><ArrowDown :size="16" />Ниже</button
@@ -2049,7 +2049,7 @@ onBeforeUnmount(() => {
               <button class="btn btn-ghost" @click="addRow(block.id)">
                 <Plus :size="16" />Добавить строку</button
               ><button class="btn btn-ghost" @click="chooseFragment(block.id)">
-                <Bookmark :size="15" />Из фрагментов
+                <Bookmark :size="15" />Вставить фрагмент
               </button>
             </footer>
           </section>
@@ -2091,6 +2091,7 @@ onBeforeUnmount(() => {
       @close="closePicker"
       @select="pickAsana"
       @custom="pickCustomName"
+      @fragment="pickFragment"
     />
     <Modal :open="!!modalKind" :title="modalTitle" @close="!modalBusy && (modalKind = '')">
       <div v-if="modalError" class="error-banner">{{ modalError }}</div>
@@ -2384,12 +2385,13 @@ onBeforeUnmount(() => {
 }
 .embedded-editor .editor-actions {
   gap: 4px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .embedded-editor .editor-actions .btn {
   padding: 6px;
+  min-width: 32px;
   min-height: 32px;
-  font-size: 10px;
+  font-size: 0;
 }
 .embedded-editor .save-toolbar {
   gap: 6px;
@@ -2404,9 +2406,11 @@ onBeforeUnmount(() => {
   font-size: 9px;
 }
 .embedded-editor :deep(.sequence-cell) {
-  width: 30px;
-  flex: 0 0 30px;
-  height: 30px;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+  height: auto;
+  aspect-ratio: 1;
   padding: 2px;
   border-radius: 6px;
 }
@@ -2414,7 +2418,10 @@ onBeforeUnmount(() => {
   display: none;
 }
 .embedded-editor :deep(.cells-grid) {
-  gap: 3px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 5px;
 }
 .embedded-editor :deep(.cell-index) {
   left: 2px;
@@ -2430,9 +2437,9 @@ onBeforeUnmount(() => {
   margin-bottom: 0;
 }
 .embedded-editor :deep(.append-cell) {
-  width: 20px;
-  flex-basis: 20px;
-  height: 28px;
+  width: auto;
+  min-width: 0;
+  height: 32px;
 }
 .embedded-editor :deep(.row-header) {
   font-size: 9px;

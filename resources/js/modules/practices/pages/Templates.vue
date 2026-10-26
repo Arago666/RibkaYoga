@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import PortableImportDialog from '../components/PortableImportDialog.vue';
@@ -22,7 +23,8 @@ interface Page {
 }
 const initial = new URLSearchParams(location.search).get('type');
 const importOpen = ref(false);
-const type = ref(initial === 'fragment' || initial === 'cycle' ? initial : 'practice');
+const type = ref(initial === 'fragment' ? 'fragment' : 'practice');
+const templateKind = ref<'practice' | 'cycle'>(initial === 'cycle' ? 'cycle' : 'practice');
 const query = ref(''),
   archive = ref('active'),
   page = ref(1),
@@ -60,7 +62,8 @@ function editUrl(item: Item) {
       ? `/row-templates/${item.id}/edit`
       : `/practices/${item.id}/edit`;
 }
-function openCreate() {
+function openCreate(kind: 'practice' | 'cycle' = 'practice') {
+  templateKind.value = kind;
   name.value = '';
   count.value = 5;
   subtype.value = 'row';
@@ -75,7 +78,7 @@ async function create() {
     let endpoint = '/api/practices';
     let body: Record<string, unknown> = { title: name.value.trim(), kind: 'template' };
     let source: Item['source_type'] = 'document';
-    if (type.value === 'cycle') {
+    if (type.value === 'practice' && templateKind.value === 'cycle') {
       endpoint = '/api/mesocycles';
       body = {
         title: name.value.trim(),
@@ -112,7 +115,7 @@ async function create() {
 }
 async function use(item: Item) {
   const title = window.prompt(
-    type.value === 'cycle' ? 'Название нового цикла' : 'Название новой практики',
+    item.source_type === 'cycle' ? 'Название нового цикла' : 'Название новой практики',
     item.title,
   );
   if (!title?.trim() || busy.value) return;
@@ -180,15 +183,16 @@ const labels: Record<string, string> = {
         <h1 class="page-title">Шаблоны</h1>
         <p class="muted">Повторно используемые занятия, фрагменты и программы. Каждая вставка независима.</p>
       </div>
-      <button class="btn btn-primary" @click="openCreate">Создать шаблон</button>
-      <button class="btn btn-secondary" @click="importOpen = true">Импорт JSON</button>
+      <button class="btn btn-primary" @click="openCreate()">Создать шаблон</button>
+      <ActionMenu label="Действия с шаблонами"
+        ><button @click="importOpen = true">Импорт JSON</button></ActionMenu
+      >
     </header>
     <nav class="tabs" aria-label="Виды шаблонов">
       <button
         v-for="entry in [
-          ['practice', 'Практики'],
+          ['practice', 'Шаблоны'],
           ['fragment', 'Фрагменты'],
-          ['cycle', 'Циклы'],
         ]"
         :key="entry[0]"
         class="tab"
@@ -198,6 +202,20 @@ const labels: Record<string, string> = {
         {{ entry[1] }}
       </button>
     </nav>
+    <div v-if="type === 'practice' && archive === 'active'" class="starter-grid">
+      <article class="card template-card">
+        <small>Шаблон 1</small>
+        <h2>Пустая классическая практика</h2>
+        <p class="muted">Пять блоков. Количество строк и ячеек можно менять.</p>
+        <button class="btn btn-primary" @click="openCreate('practice')">Создать шаблон практики</button>
+      </article>
+      <article class="card template-card">
+        <small>Шаблон 2</small>
+        <h2>Мезоцикл на месяц</h2>
+        <p class="muted">Пять тренировок по умолчанию. При создании выберите нужное количество занятий.</p>
+        <button class="btn btn-primary" @click="openCreate('cycle')">Создать шаблон мезоцикла</button>
+      </article>
+    </div>
     <form
       class="template-filters"
       @submit.prevent="
@@ -217,7 +235,15 @@ const labels: Record<string, string> = {
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <div v-if="result?.data.length" class="template-grid">
       <article v-for="item in result.data" :key="`${item.source_type}:${item.id}`" class="card template-card">
-        <small>{{ labels[item.subtype] || 'Фрагмент' }}</small>
+        <div class="template-card-top">
+          <small>{{ labels[item.subtype] || 'Фрагмент' }}</small
+          ><ActionMenu :label="`Действия с шаблоном: ${item.title}`"
+            ><Link :href="editUrl(item)">Редактировать</Link
+            ><button :disabled="busy" @click="changeArchive(item)">
+              {{ item.archived_at ? 'Восстановить' : 'Удалить в архив' }}
+            </button></ActionMenu
+          >
+        </div>
         <h2>{{ item.title }}</h2>
         <Link class="btn btn-secondary" :href="editUrl(item)">Открыть</Link
         ><button
@@ -226,19 +252,16 @@ const labels: Record<string, string> = {
           :disabled="busy"
           @click="use(item)"
         >
-          Создать {{ type === 'cycle' ? 'цикл' : 'практику' }}
+          Создать {{ item.source_type === 'cycle' ? 'мезоцикл' : 'практику' }}
         </button>
         <p v-if="type === 'fragment'" class="muted">
-          Вставляется командой «Из фрагментов» в редакторе практики.
+          Вставляется командой «Вставить фрагмент» в редакторе практики.
         </p>
-        <button class="btn btn-ghost" :disabled="busy" @click="changeArchive(item)">
-          {{ item.archived_at ? 'Восстановить' : 'В архив' }}
-        </button>
       </article>
     </div>
     <div v-else class="empty-state">
       <p>Здесь пока нет шаблонов выбранного вида.</p>
-      <button class="btn btn-primary" @click="openCreate">Создать первый</button>
+      <button class="btn btn-primary" @click="openCreate()">Создать первый</button>
     </div>
     <div v-if="result && result.last_page > 1" class="template-filters">
       <button
@@ -264,9 +287,16 @@ const labels: Record<string, string> = {
     </div>
     <Modal :open="creating" title="Новый шаблон" @close="!busy && (creating = false)"
       ><form id="template-create" @submit.prevent="create">
+        <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
         <label class="field"
           ><span class="label">Название</span
           ><input v-model="name" class="input" required maxlength="160" /></label
+        ><label v-if="type === 'practice'" class="field"
+          ><span class="label">Тип шаблона</span
+          ><select v-model="templateKind" class="select">
+            <option value="practice">Классическая практика · 5 блоков</option>
+            <option value="cycle">Мезоцикл · несколько занятий</option>
+          </select></label
         ><label v-if="type === 'fragment'" class="field"
           ><span class="label">Разновидность</span
           ><select v-model="subtype" class="select">
@@ -274,7 +304,7 @@ const labels: Record<string, string> = {
             <option value="transition">Связка / переход</option>
             <option value="block">Блок с несколькими строками</option>
           </select></label
-        ><label v-if="type === 'cycle'" class="field"
+        ><label v-if="type === 'practice' && templateKind === 'cycle'" class="field"
           ><span class="label">Количество занятий</span
           ><input v-model.number="count" class="input" type="number" min="1" max="52" required
         /></label>
@@ -301,6 +331,12 @@ const labels: Record<string, string> = {
 .template-filters .select {
   max-width: 180px;
 }
+.starter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  margin: 22px 0;
+}
 .template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -311,6 +347,12 @@ const labels: Record<string, string> = {
   flex-direction: column;
   gap: 12px;
   padding: 22px;
+}
+.template-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 .template-card h2 {
   font-size: 20px;

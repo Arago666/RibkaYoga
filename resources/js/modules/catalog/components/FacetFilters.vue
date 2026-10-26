@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { SlidersHorizontal } from '@lucide/vue';
+import type { Category } from '../types';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { errorText } from '../types';
@@ -11,9 +13,12 @@ import {
   type FacetDictionary,
 } from '../facets';
 import FacetChoices from './FacetChoices.vue';
-const props = withDefaults(defineProps<{ context?: Record<string, string>; compact?: boolean }>(), {
-  context: () => ({}),
-});
+const props = withDefaults(
+  defineProps<{ context?: Record<string, string>; compact?: boolean; hideTrigger?: boolean }>(),
+  {
+    context: () => ({}),
+  },
+);
 const model = defineModel<CatalogFilters>({ required: true });
 const open = ref(false),
   draft = ref<CatalogFilters>(emptyFilters()),
@@ -22,12 +27,24 @@ const open = ref(false),
   total = ref(0);
 const dictionary = ref<FacetDictionary>({ effect: [], anatomy: [], position: [], difficulty: [] });
 const draftDictionary = ref<FacetDictionary>({ effect: [], anatomy: [], position: [], difficulty: [] });
+const categories = ref<Category[]>([]),
+  categoryError = ref('');
+async function loadCategories() {
+  categoryError.value = '';
+  try {
+    categories.value = (await api<{ data: Category[] }>('/api/categories')).data;
+  } catch (e) {
+    categoryError.value = errorText(e);
+  }
+}
+onMounted(loadCategories);
 const selected = computed(() =>
   dimensions.flatMap((d) => (dictionary.value[d] || []).filter((v) => model.value[d].includes(v.id))),
 );
 const count = computed(
   () =>
     selected.value.length +
+    model.value.categories.length +
     Number(model.value.favorite) +
     Number(model.value.unclassified) +
     Number(!!model.value.has_bind) +
@@ -62,6 +79,7 @@ function begin() {
   open.value = true;
   void load();
 }
+defineExpose({ begin });
 function apply() {
   model.value = JSON.parse(JSON.stringify(draft.value));
   dictionary.value = draftDictionary.value;
@@ -82,12 +100,10 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="catalog-facets">
-    <div class="filter-toolbar">
+    <div v-if="!hideTrigger" class="filter-toolbar">
       <button type="button" class="btn btn-secondary" @click="begin">
-        Фильтры{{ count ? ` (${count})` : '' }}
+        <SlidersHorizontal :size="17" /> Категории{{ count ? ` (${count})` : '' }}
       </button>
-      <label><input v-model="model.favorite" type="checkbox" /> Избранное</label
-      ><label><input v-model="model.unclassified" type="checkbox" /> Не размечены</label>
     </div>
     <div v-if="selected.length" class="selected-facets">
       <button
@@ -103,13 +119,24 @@ onBeforeUnmount(() => {
         {{ value.name }} ×
       </button>
     </div>
-    <div v-if="!compact" class="desktop-facets">
-      <FacetChoices v-model="model" :dictionary="dictionary" collapsible />
-    </div>
     <p v-if="error" class="error-banner" role="alert">
       {{ error }} <button class="btn btn-ghost" type="button" @click="load">Повторить</button>
     </p>
-    <Modal :open="open" title="Фильтры асан" @close="open = false">
+    <Modal :open="open" title="Категории асан" @close="open = false">
+      <p v-if="categoryError" class="error-banner" role="alert">
+        {{ categoryError }}
+        <button class="btn btn-ghost" @click="loadCategories">Повторить загрузку личных категорий</button>
+      </p>
+      <fieldset v-if="categories.length" class="personal-categories">
+        <legend>Мои категории</legend>
+        <label v-for="category in categories" :key="category.id" class="category-chip">
+          <input v-model="draft.categories" type="checkbox" :value="category.id" />{{ category.name }}
+        </label>
+      </fieldset>
+      <div class="filter-toolbar modal-quick-filters">
+        <label><input v-model="draft.favorite" type="checkbox" /> Избранное</label>
+        <label><input v-model="draft.unclassified" type="checkbox" /> Не размечены</label>
+      </div>
       <FacetChoices v-model="draft" :dictionary="draftDictionary" />
       <div class="advanced-filters">
         <label
@@ -164,6 +191,33 @@ onBeforeUnmount(() => {
 .desktop-facets :deep(.facet-choices) {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
+}
+.personal-categories {
+  border: 0;
+  padding: 0;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.personal-categories legend {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.category-chip {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  border: 1px solid #dce5d6;
+  border-radius: 24px;
+  padding: 10px 14px;
+}
+.category-chip:has(input:checked) {
+  background: #edf7e8;
+  border-color: #80a76c;
+}
+.modal-quick-filters {
+  margin-bottom: 20px;
 }
 .advanced-filters {
   display: grid;
