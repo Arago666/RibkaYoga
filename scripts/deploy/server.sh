@@ -107,10 +107,41 @@ runuser -u reibkayoga -- "${ribka_php[@]}" artisan config:cache >> "$ribka_backu
 runuser -u reibkayoga -- "${ribka_php[@]}" artisan route:cache >> "$ribka_backup/cache.log"
 runuser -u reibkayoga -- "${ribka_php[@]}" artisan view:cache >> "$ribka_backup/cache.log"
 runuser -u reibkayoga -- "${ribka_php[@]}" artisan up
-systemctl start reibkayoga-php.service
-systemctl is-active --quiet reibkayoga-php.service
+ribka_wait_for_site() {
+  local ribka_deadline=$((SECONDS + 30)) ribka_ready ribka_path ribka_remaining ribka_timeout ribka_code
+  while ((SECONDS < ribka_deadline)); do
+    ribka_ready=0
+    if systemctl is-active --quiet reibkayoga-php.service; then
+      ribka_ready=1
+      for ribka_path in up login; do
+        ribka_remaining=$((ribka_deadline - SECONDS))
+        if ((ribka_remaining <= 0)); then
+          ribka_ready=0
+          break
+        fi
+        ribka_timeout=$((ribka_remaining < 2 ? ribka_remaining : 2))
+        if ! ribka_code=$(curl --silent --show-error --connect-timeout 1 --max-time "$ribka_timeout" --output /dev/null --write-out '%{http_code}' "$ribka_url/$ribka_path" 2>> "$ribka_backup/readiness.log"); then
+          ribka_code=000
+        fi
+        printf '%s HTTP %s\n' "$ribka_path" "$ribka_code" >> "$ribka_backup/readiness.log"
+        if [[ $ribka_code != 200 ]]; then
+          ribka_ready=0
+          break
+        fi
+      done
+      if [[ $ribka_ready -eq 1 ]] && systemctl is-active --quiet reibkayoga-php.service; then
+        return 0
+      fi
+    fi
+    if ((SECONDS < ribka_deadline)); then
+      sleep 1
+    fi
+  done
+  printf 'PHP service did not become HTTP-ready within 30 seconds. Inspect %s/readiness.log\n' "$ribka_backup" >&2
+  return 1
+}
 ribka_url=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["app_url"].rstrip("/"))' "$ribka_backup/server-context.json")
-[[ $(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$ribka_url/up") == 200 ]]
-[[ $(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$ribka_url/login") == 200 ]]
+systemctl start reibkayoga-php.service
+ribka_wait_for_site
 trap - ERR
 printf '\nPublished commit %s\nAddress: %s\nPrivate backup and rollback: %s\nPrevious database is preserved.\n' "$ribka_target" "$ribka_url" "$ribka_backup"
