@@ -183,7 +183,7 @@ async function save() {
 <style scoped>
 .collection-editor {
   display: grid;
-  gap: 17px;
+  gap: var(--section-gap);
 }
 .collection-cards-heading {
   display: flex;
@@ -200,13 +200,14 @@ async function save() {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px;
-  border: 1px solid #e5ebe1;
-  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background: var(--surface-soft);
 }
 .row-number {
   font-size: 0.75rem;
-  color: #81907c;
+  color: var(--muted);
   min-width: 17px;
 }
 .collection-row > img {
@@ -223,7 +224,7 @@ async function save() {
   min-width: 0;
 }
 .collection-card-name strong {
-  font-size: 0.83rem;
+  font-size: 14px;
   font-weight: 550;
   overflow-wrap: anywhere;
 }

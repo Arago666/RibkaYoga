@@ -1,0 +1,1820 @@
+{
+  "sheet": 2,
+  "title": "2 Х/Б — Дуга позвоночника. Носки",
+  "source_size": [
+    1000,
+    1035
+  ],
+  "rows": [
+    {
+      "label": "1.1",
+      "block": 1,
+      "cells": [
+        {
+          "name": "Сукхасана",
+          "bbox": [
+            108,
+            98,
+            138,
+            144
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Удобная поза",
+            "Sukhasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-1-c01",
+          "image": "assets/1-1-01.png"
+        },
+        {
+          "name": "Боковой наклон сидя",
+          "bbox": [
+            194,
+            115,
+            250,
+            147
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-1-c02",
+          "image": "assets/1-1-02.png"
+        },
+        {
+          "name": "Дандасана",
+          "bbox": [
+            275,
+            98,
+            341,
+            145
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза посоха",
+            "Dandasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-1-c03",
+          "image": "assets/1-1-03.png"
+        },
+        {
+          "name": "Сидя со скрещёнными ногами и рукой над головой",
+          "bbox": [
+            386,
+            97,
+            435,
+            145
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-1-c04",
+          "image": "assets/1-1-04.png"
+        },
+        {
+          "name": "Вытяжение рук вверх сидя",
+          "bbox": [
+            476,
+            94,
+            523,
+            145
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Парватасана сидя"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-1-c05",
+          "image": "assets/1-1-05.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "1.2",
+      "block": 1,
+      "cells": [
+        {
+          "name": "Навасана",
+          "bbox": [
+            103,
+            163,
+            139,
+            202
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза лодки",
+            "Navasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c01",
+          "image": "assets/1-2-01.png"
+        },
+        {
+          "name": "Навасана с движением ног",
+          "bbox": [
+            190,
+            159,
+            247,
+            204
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c02",
+          "image": "assets/1-2-02.png"
+        },
+        {
+          "name": "Навасана с поднятой прямой ногой",
+          "bbox": [
+            287,
+            152,
+            322,
+            205
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c03",
+          "image": "assets/1-2-03.png"
+        },
+        {
+          "name": "Лёжа с согнутыми коленями",
+          "bbox": [
+            374,
+            172,
+            429,
+            207
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c04",
+          "image": "assets/1-2-04.png"
+        },
+        {
+          "name": "Лёжа с коленями к груди",
+          "bbox": [
+            476,
+            172,
+            520,
+            205
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Апанасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c05",
+          "image": "assets/1-2-05.png"
+        },
+        {
+          "name": "Подтягивание колена лёжа с вытянутой второй ногой",
+          "bbox": [
+            542,
+            172,
+            614,
+            207
+          ],
+          "after": "→",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c06",
+          "image": "assets/1-2-06.png"
+        },
+        {
+          "name": "Лодка с поднятой ногой",
+          "bbox": [
+            680,
+            161,
+            715,
+            206
+          ],
+          "after": "↔",
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c07",
+          "image": "assets/1-2-07.png"
+        },
+        {
+          "name": "Лодка с согнутыми коленями",
+          "bbox": [
+            772,
+            161,
+            809,
+            206
+          ],
+          "after": null,
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-2-c08",
+          "image": "assets/1-2-08.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "1.3",
+      "block": 1,
+      "cells": [
+        {
+          "name": "Сидя с опорой на руки и согнутыми ногами",
+          "bbox": [
+            99,
+            229,
+            152,
+            269
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c01",
+          "image": "assets/1-3-01.png"
+        },
+        {
+          "name": "Подъём таза сидя с согнутыми ногами",
+          "bbox": [
+            189,
+            229,
+            245,
+            270
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c02",
+          "image": "assets/1-3-02.png"
+        },
+        {
+          "name": "Движение корпуса сидя с согнутыми ногами",
+          "bbox": [
+            285,
+            230,
+            341,
+            270
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c03",
+          "image": "assets/1-3-03.png"
+        },
+        {
+          "name": "Наклон вперёд сидя",
+          "bbox": [
+            378,
+            240,
+            435,
+            269
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c04",
+          "image": "assets/1-3-04.png"
+        },
+        {
+          "name": "Наклон на коленях с округлением спины",
+          "bbox": [
+            474,
+            230,
+            514,
+            269
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c05",
+          "image": "assets/1-3-05.png"
+        },
+        {
+          "name": "Опора на руки и ноги с горизонтальным корпусом и опорой стоп",
+          "bbox": [
+            557,
+            228,
+            610,
+            270
+          ],
+          "after": "/",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c06",
+          "image": "assets/1-3-06.png"
+        },
+        {
+          "name": "Пурвоттанасана с опорой стоп",
+          "bbox": [
+            642,
+            228,
+            712,
+            270
+          ],
+          "after": "=",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Обратная планка"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c07",
+          "image": "assets/1-3-07.png"
+        },
+        {
+          "name": "Положение на четвереньках с опорой коленей",
+          "bbox": [
+            742,
+            233,
+            800,
+            270
+          ],
+          "after": null,
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-3-c08",
+          "image": "assets/1-3-08.png"
+        }
+      ],
+      "note": "Подчёркнуто: 2–4; 5"
+    },
+    {
+      "label": "1.4",
+      "block": 1,
+      "cells": [
+        {
+          "name": "Положение на четвереньках с опорой ладоней",
+          "bbox": [
+            101,
+            293,
+            151,
+            330
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c01",
+          "image": "assets/1-4-01.png"
+        },
+        {
+          "name": "Баласана с опорой головы на блок",
+          "bbox": [
+            186,
+            298,
+            243,
+            331
+          ],
+          "after": "/",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Поза ребёнка с блоком"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c02",
+          "image": "assets/1-4-02.png"
+        },
+        {
+          "name": "Адхо Мукха Шванасана с опорой головы",
+          "bbox": [
+            286,
+            296,
+            341,
+            332
+          ],
+          "after": "↔",
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c03",
+          "image": "assets/1-4-03.png"
+        },
+        {
+          "name": "Наклон стоя с опорой головы на блок",
+          "bbox": [
+            372,
+            287,
+            424,
+            332
+          ],
+          "after": "→",
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c04",
+          "image": "assets/1-4-04.png"
+        },
+        {
+          "name": "Аштанга Намаскара",
+          "bbox": [
+            462,
+            305,
+            535,
+            332
+          ],
+          "after": "↔",
+          "group": "g3",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Восемь точек опоры",
+            "Ashtanga Namaskara"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c05",
+          "image": "assets/1-4-05.png"
+        },
+        {
+          "name": "Волнообразный переход на четвереньках",
+          "bbox": [
+            551,
+            305,
+            612,
+            333
+          ],
+          "after": "→",
+          "group": "g3",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c06",
+          "image": "assets/1-4-06.png"
+        },
+        {
+          "name": "Планка",
+          "bbox": [
+            646,
+            287,
+            713,
+            333
+          ],
+          "after": "=",
+          "group": "g4",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Пхалакасана",
+            "Phalakasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c07",
+          "image": "assets/1-4-07.png"
+        },
+        {
+          "name": "Низкая планка",
+          "bbox": [
+            735,
+            300,
+            803,
+            332
+          ],
+          "after": "=",
+          "group": "g4",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Чатуранга Дандасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c08",
+          "image": "assets/1-4-08.png"
+        },
+        {
+          "name": "Бхуджангасана — низкий вариант",
+          "bbox": [
+            824,
+            302,
+            895,
+            331
+          ],
+          "after": "→",
+          "group": "g4",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Низкая кобра"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c09",
+          "image": "assets/1-4-09.png"
+        },
+        {
+          "name": "СВ",
+          "bbox": [
+            943,
+            282,
+            989,
+            332
+          ],
+          "after": null,
+          "group": null,
+          "mark": "★",
+          "needs_review": false,
+          "aliases": [],
+          "kind": "text",
+          "text": "СВ",
+          "exclude_rectangles": [],
+          "key": "s2-r1-4-c10",
+          "image": null
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "2.1",
+      "block": 2,
+      "cells": [
+        {
+          "name": "Адхо Мукха Шванасана",
+          "bbox": [
+            94,
+            386,
+            148,
+            422
+          ],
+          "after": "→",
+          "group": null,
+          "mark": "S",
+          "needs_review": false,
+          "aliases": [
+            "Собака мордой вниз",
+            "Adho Mukha Svanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              88,
+              376,
+              106,
+              399
+            ]
+          ],
+          "key": "s2-r2-1-c01",
+          "image": "assets/2-1-01.png"
+        },
+        {
+          "name": "Планка с движением корпуса",
+          "bbox": [
+            175,
+            389,
+            259,
+            424
+          ],
+          "after": "→",
+          "group": null,
+          "mark": "S",
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              195,
+              377,
+              212,
+              398
+            ]
+          ],
+          "key": "s2-r2-1-c02",
+          "image": "assets/2-1-02.png"
+        },
+        {
+          "name": "Шалабхасана",
+          "bbox": [
+            272,
+            396,
+            339,
+            425
+          ],
+          "after": "→",
+          "group": null,
+          "mark": "S",
+          "needs_review": false,
+          "aliases": [
+            "Поза саранчи",
+            "Salabhasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              296,
+              377,
+              314,
+              400
+            ]
+          ],
+          "key": "s2-r2-1-c03",
+          "image": "assets/2-1-03.png"
+        },
+        {
+          "name": "Бхуджангасана",
+          "bbox": [
+            364,
+            395,
+            433,
+            425
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза кобры",
+            "Bhujangasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-1-c04",
+          "image": "assets/2-1-04.png"
+        },
+        {
+          "name": "Шалабхасана с согнутой ногой и рукой вверх",
+          "bbox": [
+            469,
+            379,
+            537,
+            426
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              469,
+              379,
+              476,
+              406
+            ],
+            [
+              469,
+              417,
+              476,
+              426
+            ]
+          ],
+          "key": "s2-r2-1-c05",
+          "image": "assets/2-1-05.png"
+        },
+        {
+          "name": "Шалабхасана с руками вдоль тела",
+          "bbox": [
+            551,
+            397,
+            614,
+            425
+          ],
+          "after": null,
+          "group": "g1",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза саранчи"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-1-c06",
+          "image": "assets/2-1-06.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "2.2",
+      "block": 2,
+      "cells": [
+        {
+          "name": "Адхо Мукха Шванасана",
+          "bbox": [
+            93,
+            442,
+            148,
+            480
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Собака мордой вниз",
+            "Adho Mukha Svanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c01",
+          "image": "assets/2-2-01.png"
+        },
+        {
+          "name": "Переход из собаки мордой вниз в планку",
+          "bbox": [
+            181,
+            441,
+            252,
+            481
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c02",
+          "image": "assets/2-2-02.png"
+        },
+        {
+          "name": "Адхо Мукха Шванасана с поднятой ногой",
+          "bbox": [
+            281,
+            421,
+            338,
+            481
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Трёхногая собака",
+            "Эка Пада Адхо Мукха Шванасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c03",
+          "image": "assets/2-2-03.png"
+        },
+        {
+          "name": "Выпад с наклоном корпуса",
+          "bbox": [
+            375,
+            442,
+            429,
+            479
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c04",
+          "image": "assets/2-2-04.png"
+        },
+        {
+          "name": "Выпад с разворотом корпуса",
+          "bbox": [
+            453,
+            431,
+            530,
+            478
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c05",
+          "image": "assets/2-2-05.png"
+        },
+        {
+          "name": "Планка с опорой стоп",
+          "bbox": [
+            554,
+            444,
+            617,
+            478
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c06",
+          "image": "assets/2-2-06.png"
+        },
+        {
+          "name": "Подведение колена к груди в упоре",
+          "bbox": [
+            650,
+            442,
+            693,
+            478
+          ],
+          "after": null,
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-2-c07",
+          "image": "assets/2-2-07.png"
+        }
+      ],
+      "note": "Подчёркнуто: 1–5"
+    },
+    {
+      "label": "2.3",
+      "block": 2,
+      "cells": [
+        {
+          "name": "Наклон стоя с вытяжением рук",
+          "bbox": [
+            112,
+            500,
+            141,
+            544
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-3-c01",
+          "image": "assets/2-3-01.png"
+        },
+        {
+          "name": "Уттанасана",
+          "bbox": [
+            204,
+            498,
+            231,
+            544
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Наклон стоя",
+            "Uttanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-3-c02",
+          "image": "assets/2-3-02.png"
+        },
+        {
+          "name": "Наклон стоя с блоком под головой",
+          "bbox": [
+            299,
+            503,
+            345,
+            545
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-3-c03",
+          "image": "assets/2-3-03.png"
+        },
+        {
+          "name": "Наклон стоя с согнутыми коленями и блоком",
+          "bbox": [
+            370,
+            504,
+            423,
+            544
+          ],
+          "after": "→",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-3-c04",
+          "image": "assets/2-3-04.png"
+        },
+        {
+          "name": "Наклон стоя спиной к стене",
+          "bbox": [
+            477,
+            484,
+            513,
+            545
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r2-3-c05",
+          "image": "assets/2-3-05.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "3.1",
+      "block": 3,
+      "cells": [
+        {
+          "name": "Тадасана",
+          "bbox": [
+            109,
+            581,
+            135,
+            638
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза горы",
+            "Tadasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c01",
+          "image": "assets/3-1-01.png"
+        },
+        {
+          "name": "Врикшасана",
+          "bbox": [
+            201,
+            577,
+            230,
+            638
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза дерева",
+            "Vrksasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c02",
+          "image": "assets/3-1-02.png"
+        },
+        {
+          "name": "Руки за спиной стоя",
+          "bbox": [
+            289,
+            577,
+            323,
+            639
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Руки Гомукхасаны"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c03",
+          "image": "assets/3-1-03.png"
+        },
+        {
+          "name": "Удержание ноги перед собой стоя",
+          "bbox": [
+            391,
+            581,
+            424,
+            638
+          ],
+          "after": "=",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Уттхита Хаста Падангуштхасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c04",
+          "image": "assets/3-1-04.png"
+        },
+        {
+          "name": "Присед на одной ноге с наклоном корпуса",
+          "bbox": [
+            473,
+            589,
+            510,
+            639
+          ],
+          "after": "=",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c05",
+          "image": "assets/3-1-05.png"
+        },
+        {
+          "name": "Баланс сидя с одной вытянутой ногой",
+          "bbox": [
+            563,
+            589,
+            606,
+            638
+          ],
+          "after": "→",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c06",
+          "image": "assets/3-1-06.png"
+        },
+        {
+          "name": "Наклон корпуса стоя под прямым углом",
+          "bbox": [
+            644,
+            591,
+            708,
+            639
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Ардха Уттанасана с руками вперёд"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r3-1-c07",
+          "image": "assets/3-1-07.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "4.1",
+      "block": 4,
+      "cells": [
+        {
+          "name": "Отклонение назад стоя на коленях",
+          "bbox": [
+            103,
+            688,
+            146,
+            734
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-1-c01",
+          "image": "assets/4-1-01.png"
+        },
+        {
+          "name": "Уткатасана с руками вперёд",
+          "bbox": [
+            189,
+            688,
+            224,
+            733
+          ],
+          "after": "→",
+          "group": "g1",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза стула",
+            "Utkatasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-1-c02",
+          "image": "assets/4-1-02.png"
+        },
+        {
+          "name": "Отклонение корпуса назад с опорой рукой",
+          "bbox": [
+            284,
+            688,
+            334,
+            735
+          ],
+          "after": "↔",
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-1-c03",
+          "image": "assets/4-1-03.png"
+        },
+        {
+          "name": "Подъём корпуса из положения на коленях",
+          "bbox": [
+            381,
+            688,
+            418,
+            730
+          ],
+          "after": "→",
+          "group": "g2",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-1-c04",
+          "image": "assets/4-1-04.png"
+        },
+        {
+          "name": "Наклон вперёд на коленях с движением корпуса",
+          "bbox": [
+            472,
+            687,
+            533,
+            735
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-1-c05",
+          "image": "assets/4-1-05.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "4.2",
+      "block": 4,
+      "cells": [
+        {
+          "name": "Адхо Мукха Шванасана на предплечьях",
+          "bbox": [
+            96,
+            749,
+            142,
+            792
+          ],
+          "after": "/",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Поза дельфина"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-2-c01",
+          "image": "assets/4-2-01.png"
+        },
+        {
+          "name": "Бхуджангасана",
+          "bbox": [
+            190,
+            755,
+            255,
+            793
+          ],
+          "after": "=",
+          "group": "g1",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза кобры",
+            "Bhujangasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-2-c02",
+          "image": "assets/4-2-02.png"
+        },
+        {
+          "name": "Ширшасана",
+          "bbox": [
+            297,
+            729,
+            323,
+            793
+          ],
+          "after": "=",
+          "group": "g1",
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Стойка на голове",
+            "Sirsasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r4-2-c03",
+          "image": "assets/4-2-03.png"
+        },
+        {
+          "name": "Стойка на предплечьях",
+          "bbox": [
+            381,
+            727,
+            414,
+            794
+          ],
+          "after": null,
+          "group": "g1",
+          "mark": "★",
+          "needs_review": true,
+          "aliases": [
+            "Пинча Маюрасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              399,
+              727,
+              414,
+              745
+            ]
+          ],
+          "key": "s2-r4-2-c04",
+          "image": "assets/4-2-04.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "5.1",
+      "block": 5,
+      "cells": [
+        {
+          "name": "Апанасана",
+          "bbox": [
+            105,
+            852,
+            145,
+            885
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Колени к груди",
+            "Apanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c01",
+          "image": "assets/5-1-01.png"
+        },
+        {
+          "name": "Скручивание лёжа с согнутой ногой",
+          "bbox": [
+            193,
+            846,
+            244,
+            888
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c02",
+          "image": "assets/5-1-02.png"
+        },
+        {
+          "name": "Лёжа с согнутыми коленями",
+          "bbox": [
+            286,
+            847,
+            331,
+            885
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c03",
+          "image": "assets/5-1-03.png"
+        },
+        {
+          "name": "Ноги вверх лёжа",
+          "bbox": [
+            383,
+            836,
+            438,
+            885
+          ],
+          "after": "↔",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [
+            "Урдхва Прасарита Падасана"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              380,
+              879,
+              388,
+              886
+            ]
+          ],
+          "key": "s2-r5-1-c04",
+          "image": "assets/5-1-04.png"
+        },
+        {
+          "name": "Положение лёжа с ногами за головой",
+          "bbox": [
+            477,
+            852,
+            524,
+            884
+          ],
+          "after": "→",
+          "group": "g1",
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c05",
+          "image": "assets/5-1-05.png"
+        },
+        {
+          "name": "Сарвангасана",
+          "bbox": [
+            584,
+            824,
+            617,
+            885
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Стойка на плечах",
+            "Sarvangasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c06",
+          "image": "assets/5-1-06.png"
+        },
+        {
+          "name": "Халасана",
+          "bbox": [
+            662,
+            854,
+            722,
+            887
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза плуга",
+            "Halasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c07",
+          "image": "assets/5-1-07.png"
+        },
+        {
+          "name": "Скручивание лёжа с согнутыми ногами",
+          "bbox": [
+            759,
+            853,
+            813,
+            885
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-1-c08",
+          "image": "assets/5-1-08.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "5.2",
+      "block": 5,
+      "cells": [
+        {
+          "name": "Сукхасана",
+          "bbox": [
+            107,
+            903,
+            141,
+            947
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Удобная поза",
+            "Sukhasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-2-c01",
+          "image": "assets/5-2-01.png"
+        },
+        {
+          "name": "Шавасана",
+          "bbox": [
+            190,
+            916,
+            261,
+            947
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Поза расслабления",
+            "Savasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-r5-2-c02",
+          "image": "assets/5-2-02.png"
+        }
+      ],
+      "note": null
+    },
+    {
+      "label": "СВ",
+      "block": 6,
+      "cells": [
+        {
+          "name": "Положение на четвереньках",
+          "bbox": [
+            94,
+            990,
+            146,
+            1028
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Бхарманасана",
+            "Поза стола"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c01",
+          "image": "assets/sv-01.png"
+        },
+        {
+          "name": "Планка",
+          "bbox": [
+            179,
+            989,
+            242,
+            1030
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Пхалакасана",
+            "Phalakasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c02",
+          "image": "assets/sv-02.png"
+        },
+        {
+          "name": "Вытяжение из положения на четвереньках",
+          "bbox": [
+            269,
+            994,
+            337,
+            1030
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c03",
+          "image": "assets/sv-03.png"
+        },
+        {
+          "name": "Аштанга Намаскара",
+          "bbox": [
+            356,
+            998,
+            419,
+            1030
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Восемь точек опоры",
+            "Ashtanga Namaskara"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c04",
+          "image": "assets/sv-04.png"
+        },
+        {
+          "name": "Урдхва Мукха Шванасана",
+          "bbox": [
+            442,
+            982,
+            508,
+            1030
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Собака мордой вверх",
+            "Urdhva Mukha Svanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c05",
+          "image": "assets/sv-05.png"
+        },
+        {
+          "name": "Переход в планку с округлением спины",
+          "bbox": [
+            530,
+            989,
+            601,
+            1030
+          ],
+          "after": "→",
+          "group": null,
+          "mark": null,
+          "needs_review": true,
+          "aliases": [],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [
+            [
+              530,
+              995,
+              542,
+              1008
+            ]
+          ],
+          "key": "s2-rsv-c06",
+          "image": "assets/sv-06.png"
+        },
+        {
+          "name": "Адхо Мукха Шванасана",
+          "bbox": [
+            629,
+            990,
+            688,
+            1030
+          ],
+          "after": null,
+          "group": null,
+          "mark": null,
+          "needs_review": false,
+          "aliases": [
+            "Собака мордой вниз",
+            "Adho Mukha Svanasana"
+          ],
+          "kind": "asana",
+          "text": null,
+          "exclude_rectangles": [],
+          "key": "s2-rsv-c07",
+          "image": "assets/sv-07.png"
+        }
+      ],
+      "note": "Расшифровка обозначения СВ на исходном листе"
+    }
+  ],
+  "method": "Original JPG pixels, manually chosen rectangles, white margins, proportional Lanczos enlargement; no redrawing.",
+  "naming_note": "Names are visual descriptions. needs_review marks ambiguous symbolic drawings; no teacher-provided pose-name key was included."
+}

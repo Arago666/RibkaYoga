@@ -5,6 +5,7 @@ namespace App\Modules\Practices\Http\Controllers;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\Http\Requests\DocumentRequest;
 use App\Modules\Practices\Http\Requests\RowTemplateRequest;
+use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -25,7 +26,7 @@ class PracticeController
 
     public function store(Request $request): JsonResponse
     {
-        $data = $request->validate([
+        $data = $request->validate(ExecutionParameters::defaultRules() + [
             'title' => ['sometimes', 'required', 'string', 'max:160'],
             'kind' => ['sometimes', Rule::in(['practice', 'template'])],
             'theme' => ['nullable', 'string', 'max:240'],

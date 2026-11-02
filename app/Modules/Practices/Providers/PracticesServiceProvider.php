@@ -21,6 +21,6 @@ class PracticesServiceProvider extends ServiceProvider
         }
         $this->loadRoutesFrom(__DIR__.'/../routes.php');
         $this->loadRoutesFrom(__DIR__.'/../sharing-routes.php');
-        $this->loadRoutesFrom(__DIR__.'/../illustration-routes.php');
+        $this->loadRoutesFrom(__DIR__.'/../review-routes.php');
     }
 }

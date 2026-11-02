@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
@@ -146,12 +147,12 @@ async function copyLink() {
         ><input v-model="allowCopy" type="checkbox" />Разрешить независимую копию в свой кабинет</label
       ><label class="field"
         ><span class="label">Срок ссылки</span
-        ><select v-model.number="days" class="select">
+        ><AppSelect v-model.number="days" class="select">
           <option :value="0">До отзыва</option>
           <option :value="1">1 день</option>
           <option :value="7">7 дней</option>
           <option :value="30">30 дней</option>
-        </select></label
+        </AppSelect></label
       >
     </div>
     <button class="btn btn-secondary" :disabled="busy" @click="prepare">Проверить публикуемый лист</button
@@ -206,24 +207,74 @@ async function copyLink() {
 .publication-options,
 .created-link {
   display: grid;
-  gap: 14px;
-  margin: 18px 0;
+  gap: 20px;
+  margin: var(--section-gap) 0;
+  min-width: 0;
+}
+.publication-options .check-label {
+  min-height: var(--control-height);
+}
+.created-link {
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+  overflow-wrap: anywhere;
+}
+.created-link strong {
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 600;
 }
 .publication-preview {
+  display: block;
   width: 100%;
   height: 380px;
-  border: 1px solid #dce6d6;
-  background: white;
-  border-radius: 8px;
+  margin-top: var(--section-gap);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .publication-row {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+  margin: 12px 0;
+  min-width: 0;
+}
+.publication-row > span {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.publication-row > .btn {
+  flex: none;
 }
 .created-link img {
   margin: auto;
+}
+h3 {
+  font-size: 18px;
+  font-weight: 650;
+  margin-top: var(--section-gap);
+}
+@media (max-width: 440px) {
+  .publication-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .created-link .btn {
+    white-space: normal;
+  }
 }
 </style>

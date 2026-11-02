@@ -6,27 +6,23 @@ import IllustrationSettings from '../components/IllustrationSettings.vue';
 <template>
   <Head title="Стиль иллюстраций" /><AppShell section="library"
     ><div class="illustrations-page">
-      <header>
-        <h1>Стиль иллюстраций</h1>
-        <p>Собственные рисунки и проверенные представления той же позы.</p>
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Стиль иллюстраций</h1>
+          <p class="page-description">Собственные рисунки и проверенные представления той же позы.</p>
+        </div>
         <Link href="/library" class="btn">В библиотеку</Link>
       </header>
-      <IllustrationSettings /></div
+      <IllustrationSettings class="card" /></div
   ></AppShell>
 </template>
 <style scoped>
 .illustrations-page {
-  max-width: 1080px;
-  margin: auto;
+  width: 100%;
   display: grid;
-  gap: 1.5rem;
+  gap: var(--section-gap);
 }
-.illustrations-page h1 {
-  font-size: 1.6rem;
-  font-weight: 650;
-}
-.illustrations-page header {
-  display: grid;
-  gap: 0.65rem;
+.illustrations-page .page-header {
+  margin-bottom: 0;
 }
 </style>

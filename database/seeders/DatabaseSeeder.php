@@ -11,6 +11,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(ServerSnapshotSeeder::class);
+        // Account content is provisioned from the reviewed five-sheet pack on
+        // registration. Restoring a private historical snapshot is an explicit
+        // operator action, never the default seed for a clean installation.
     }
 }

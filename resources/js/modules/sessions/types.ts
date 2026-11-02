@@ -1,3 +1,5 @@
+import type { MetronomeSettings } from './metronome';
+
 export interface ExecutionStep {
   id: string;
   cell_id: string;
@@ -8,6 +10,7 @@ export interface ExecutionStep {
   repeat: number;
   advance_mode: 'manual' | 'time' | 'breaths';
   duration_seconds: number | null;
+  rest_seconds?: number;
   breath_count: number | null;
   anatomy: { key: string; name: string }[];
   classification_revision: number | null;
@@ -17,11 +20,15 @@ export interface ExecutionPlan {
   revision: number;
   title: string;
   steps: ExecutionStep[];
+  metronome?: MetronomeSettings | null;
 }
 export interface ExecutionProgress {
   step: number;
   seconds_by_step: number[];
   completed: number[];
+  phase?: 'pose' | 'rest';
+  phase_elapsed?: number;
+  rest_seconds_by_step?: number[];
 }
 export interface ExecutionSession {
   id: string;

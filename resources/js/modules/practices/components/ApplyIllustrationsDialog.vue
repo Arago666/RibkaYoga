@@ -92,13 +92,13 @@ async function apply(): Promise<void> {
     </p>
     <div class="style-fields">
       <label
-        >Представление<select v-model="style" :disabled="busy">
+        >Представление<select class="select" v-model="style" :disabled="busy">
           <option value="original">Исходные рисунки</option>
           <option value="line">Линейная фигура</option>
           <option value="volume">Объёмная фигура</option>
         </select></label
       ><label
-        >Персонаж<select v-model="character" :disabled="busy || style === 'original'">
+        >Персонаж<select class="select" v-model="character" :disabled="busy || style === 'original'">
           <option value="neutral">Нейтральный</option>
           <option value="female">Женщина</option>
           <option value="male">Мужчина</option>
@@ -106,7 +106,7 @@ async function apply(): Promise<void> {
       >
     </div>
     <p v-if="error" role="alert" class="error-banner">{{ error }}</p>
-    <button class="btn" :disabled="busy" @click="prepare">
+    <button class="btn btn-secondary" :disabled="busy" @click="prepare">
       {{ busy ? 'Подготавливаем…' : 'Показать изменения' }}</button
     ><template v-if="preview"
       ><p>
@@ -131,7 +131,7 @@ async function apply(): Promise<void> {
         </ul>
       </details></template
     ><template #footer
-      ><button class="btn" :disabled="busy" @click="emit('close')">Закрыть</button
+      ><button class="btn btn-secondary" :disabled="busy" @click="emit('close')">Закрыть</button
       ><button class="btn btn-primary" :disabled="busy || !preview || !selected.length" @click="apply">
         Применить выбранные замены
       </button></template
@@ -140,56 +140,74 @@ async function apply(): Promise<void> {
 </template>
 <style scoped>
 .style-fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin: 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: var(--section-gap) 0;
 }
 .style-fields label {
   display: grid;
-  gap: 0.3rem;
-  flex: 1;
-  min-width: 180px;
-}
-.style-fields select {
-  min-height: 44px;
-  padding: 0.5rem;
-  border: 1px solid #c5d0c0;
-  border-radius: 0.5rem;
-  background: white;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 .style-changes {
   display: grid;
-  gap: 1rem;
+  gap: 16px;
+  margin-top: var(--section-gap);
 }
 .style-changes > label {
-  padding: 0.7rem;
-  border: 1px solid #dae3d7;
-  border-radius: 0.6rem;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+}
+.style-changes > label > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--control-height);
+  overflow-wrap: anywhere;
 }
 .style-pair {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 12px;
 }
 .style-pair img {
   width: 42%;
+  min-width: 0;
   max-width: 220px;
   aspect-ratio: 1;
   object-fit: contain;
 }
 .style-changes input {
-  accent-color: #397a28;
+  accent-color: var(--accent-dark);
+  flex: none;
 }
 details {
-  margin-top: 1rem;
+  margin-top: var(--section-gap);
 }
 summary {
   cursor: pointer;
-  padding: 0.6rem;
+  min-height: var(--control-height);
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 li {
-  margin: 0.4rem 0;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+@media (max-width: 500px) {
+  .style-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>

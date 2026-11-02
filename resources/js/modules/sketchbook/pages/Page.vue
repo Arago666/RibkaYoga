@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/shared/AppShell.vue';
@@ -248,35 +249,57 @@ onBeforeUnmount(() => {
 <template>
   <AppShell section="sketchbook" wide
     ><Head :title="title || 'Скетчбук'" />
-    <div class="sketch-actions">
-      <Link href="/sketchbook">← Все листы</Link><strong role="status">{{ status }}</strong
-      ><button class="btn" :disabled="!row || saving || working" @click="copy">Сохранить копию</button
-      ><button class="btn primary" :disabled="!row || saving || working" @click="saveAll">Сохранить</button
-      ><button class="btn" :disabled="!row?.image_url || saving || working" @click="print">
-        Печать / PDF
-      </button>
-    </div>
+    <header class="page-header sketch-actions sketch-header">
+      <div class="sketch-heading">
+        <Link class="back-link" href="/sketchbook">← Все листы</Link>
+        <h1 class="page-title">{{ title || 'Скетчбук' }}</h1>
+        <strong role="status">{{ status }}</strong>
+      </div>
+      <div class="sketch-header-actions">
+        <button class="btn btn-secondary" :disabled="!row || saving || working" @click="copy">
+          Сохранить копию</button
+        ><button class="btn btn-primary" :disabled="!row || saving || working" @click="saveAll">
+          Сохранить</button
+        ><button class="btn btn-secondary" :disabled="!row?.image_url || saving || working" @click="print">
+          Печать / PDF
+        </button>
+      </div>
+    </header>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <template v-if="row"
-      ><div class="sketch-actions">
+      ><div class="sketch-actions sketch-meta card">
         <input
+          class="input"
           v-model="title"
           aria-label="Название листа"
           maxlength="160"
           :disabled="working"
           @change="schedule"
-        /><select v-model="format" aria-label="Формат печати" :disabled="working" @change="schedule">
+        /><AppSelect
+          class="select"
+          v-model="format"
+          aria-label="Формат печати"
+          :disabled="working"
+          @change="schedule"
+        >
           <option value="square">Квадратный лист</option>
           <option value="a4-portrait">A4 — книжная печать</option>
-          <option value="a4-landscape">A4 — альбомная печать</option></select
-        ><button class="btn" :disabled="!!row.archived_at || saving || working" @click="selected">
+          <option value="a4-landscape">A4 — альбомная печать</option></AppSelect
+        ><button
+          class="btn btn-secondary"
+          :disabled="!!row.archived_at || saving || working"
+          @click="selected"
+        >
           Выделенное → асана или ячейка
         </button>
       </div>
-      <p v-if="row.archived_at">Лист в архиве. Для изменения восстановите его в списке.</p>
+      <p v-if="row.archived_at" class="success-banner">
+        Лист в архиве. Для изменения восстановите его в списке.
+      </p>
       <div class="drawing-region">
         <AsanaDrawing
           ref="editor"
+          sketchbook
           :context="{ name: title, aliases: [], category_ids: [] }"
           :initial-drawing="initial"
           :draft-key="draftKey"
@@ -285,25 +308,26 @@ onBeforeUnmount(() => {
           @image="(file, drawing) => save({ file, drawing })"
         />
       </div>
-      <section v-if="queue.length" class="transfer-queue">
+      <section v-if="queue.length" class="card transfer-queue">
         <h2>Фигуры для строки</h2>
-        <p>Порядок слева направо. Стрелки и номера остаются в скетчбуке.</p>
+        <p class="page-description">Порядок слева направо. Стрелки и номера остаются в скетчбуке.</p>
         <div class="queued">
           <article v-for="(item, index) in queue" :key="item.id">
             <img :src="item.url" :alt="item.name" /><input
+              class="input"
               v-model="item.name"
               :disabled="working"
               :aria-label="`Название фигуры ${index + 1}`"
-            /><button class="btn" :disabled="working" @click="remove(index)">Убрать</button>
+            /><button class="btn btn-ghost" :disabled="working" @click="remove(index)">Убрать</button>
           </article>
         </div>
-        <label
+        <label class="target-field"
           >Вставить в практику
-          <select v-model="target" :disabled="working">
+          <AppSelect class="select" v-model="target" :disabled="working">
             <option v-for="doc in documents" :key="doc.id" :value="doc.id">{{ doc.title }}</option>
-          </select></label
+          </AppSelect></label
         ><button
-          class="btn primary"
+          class="btn btn-primary"
           :disabled="working || saving || !!row.archived_at || !target"
           @click="insert"
         >
@@ -320,10 +344,10 @@ onBeforeUnmount(() => {
         отдельно.
       </p>
       <div class="sketch-actions">
-        <button class="btn primary" :disabled="queue.length >= 12" @click="enqueue">
+        <button class="btn btn-primary" :disabled="queue.length >= 12" @click="enqueue">
           Добавить фигуру в очередь ячеек</button
         ><button
-          class="btn"
+          class="btn btn-secondary"
           @click="
             showTransfer = false;
             showCreate = true;
@@ -354,18 +378,57 @@ onBeforeUnmount(() => {
 }
 .sketch-actions strong {
   margin-right: auto;
-  color: #477538;
+  color: var(--accent-dark);
+}
+.sketch-header {
+  margin: 0 0 var(--section-gap);
+  justify-content: space-between;
+}
+.sketch-heading {
+  min-width: 0;
+}
+.sketch-heading .page-title {
+  margin: 12px 0 8px;
+  overflow-wrap: anywhere;
+}
+.sketch-heading strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.back-link {
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+.sketch-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sketch-meta {
+  padding: var(--panel-padding);
 }
 .sketch-actions input {
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
+}
+.sketch-meta .select {
+  flex: 0 1 270px;
+}
+.target-field {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 14px;
+  max-width: 560px;
+  min-width: 0;
 }
 .transfer-queue {
-  margin-top: 22px;
-  padding: 20px;
+  margin-top: var(--section-gap);
+  padding: var(--panel-padding);
   background: white;
-  border: 1px solid #dce5d6;
-  border-radius: 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .queued {
   display: flex;
@@ -384,6 +447,33 @@ onBeforeUnmount(() => {
 }
 .queued input {
   width: 100%;
+}
+.queued .btn {
+  width: 100%;
+  margin-top: 8px;
+}
+.transfer-queue h2 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+@media (max-width: 700px) {
+  .sketch-header-actions {
+    width: 100%;
+  }
+  .sketch-header-actions .btn {
+    flex: 1 1 auto;
+  }
+  .sketch-meta > .input,
+  .sketch-meta > .select,
+  .sketch-meta > .btn {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .transfer-queue > .btn,
+  .sketch-actions .btn {
+    white-space: normal;
+  }
 }
 .print-sketch {
   display: none;

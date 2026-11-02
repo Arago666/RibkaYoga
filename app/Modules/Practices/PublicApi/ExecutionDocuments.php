@@ -6,6 +6,7 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Catalog\PublicApi\PoseFacts;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\Services\DocumentSharing;
+use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Support\Facades\DB;
 
 class ExecutionDocuments
@@ -32,7 +33,7 @@ class ExecutionDocuments
             $facts = app(PoseFacts::class)->forImages($pairs);
         }
 
-        return ['document_id' => $id, 'revision' => $document['revision'], 'title' => $document['title'], 'steps' => $this->steps($document, $snapshots->all(), $facts)];
+        return ExecutionParameters::defaults($document) + ['document_id' => $id, 'revision' => $document['revision'], 'title' => $document['title'], 'steps' => $this->steps($document, $snapshots->all(), $facts)];
     }
 
     public function steps(array $document, array $snapshots = [], array $facts = []): array
@@ -44,6 +45,7 @@ class ExecutionDocuments
                     if (! $cell['card'] && ! trim($cell['custom_name'] ?? '')) {
                         continue;
                     }
+                    $parameters = ExecutionParameters::resolved($cell, $document);
                     $sides = match ($cell['side'] ?? null) {
                         'both' => ($cell['side_order'] ?? 'left_first') === 'right_first' ? ['right', 'left'] : ['left', 'right'],
                         'left' => ['left'], 'right' => ['right'], default => [null],
@@ -54,7 +56,7 @@ class ExecutionDocuments
                     abort_if($repetitions < 1 || $repetitions > 1000 || count($steps) + count($sides) * $repetitions > 10000, 422, 'Слишком много повторений для одного занятия.');
                     foreach ($sides as $side) {
                         for ($repeat = 1; $repeat <= $repetitions; $repeat++) {
-                            $steps[] = ['id' => $cell['id'].':'.($side ?? 'none').':'.$repeat, 'cell_id' => $cell['id'], 'name' => $cell['card']['name'] ?? $cell['custom_name'], 'image_url' => $cell['card']['image_url'] ?? null, 'note' => $cell['note'] ?? null, 'side' => $side, 'repeat' => $repeat, 'advance_mode' => $cell['advance_mode'] ?? 'manual', 'duration_seconds' => $cell['duration_seconds'] ?? null, 'breath_count' => $cell['breath_count'] ?? null, 'anatomy' => $fact['anatomy'] ?? [], 'classification_revision' => $fact['revision'] ?? null];
+                            $steps[] = ['id' => $cell['id'].':'.($side ?? 'none').':'.$repeat, 'cell_id' => $cell['id'], 'name' => $cell['card']['name'] ?? $cell['custom_name'], 'image_url' => $cell['card']['image_url'] ?? null, 'note' => $cell['note'] ?? null, 'side' => $side, 'repeat' => $repeat, 'advance_mode' => $parameters['advance_mode'] ?? 'manual', 'duration_seconds' => $parameters['duration_seconds'], 'rest_seconds' => $parameters['rest_seconds'], 'breath_count' => $cell['breath_count'] ?? null, 'anatomy' => $fact['anatomy'] ?? [], 'classification_revision' => $fact['revision'] ?? null];
                         }
                     }
                 }

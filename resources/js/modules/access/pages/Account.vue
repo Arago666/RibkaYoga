@@ -128,7 +128,7 @@ onMounted(load);
     <p v-if="success" class="success-banner" role="status">{{ success }}</p>
     <p v-if="loading" class="muted" role="status">Загружаем кабинет…</p>
     <div v-if="account" class="account-grid">
-      <section class="account-card">
+      <section class="card account-card">
         <h2><UserRound :size="20" />Профиль</h2>
         <form class="profile-form" @submit.prevent="save">
           <label
@@ -208,7 +208,7 @@ onMounted(load);
         </form>
       </section>
       <div class="account-column">
-        <section class="account-card">
+        <section class="card account-card">
           <h2><CreditCard :size="20" />Подписка</h2>
           <h3>{{ account.subscription.plan_name }}</h3>
           <p>{{ subscriptionStatuses[account.subscription.status] || account.subscription.status }}</p>
@@ -259,7 +259,7 @@ onMounted(load);
             </li>
           </ul>
         </section>
-        <section class="account-card">
+        <section class="card account-card">
           <h2>Изменить пароль</h2>
           <form class="profile-form" @submit.prevent="updatePassword">
             <label class="field"
@@ -308,24 +308,28 @@ onMounted(load);
 }
 .account-card {
   background: #fff;
-  border: 1px solid #dfe6db;
-  border-radius: 18px;
-  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
   min-width: 0;
+  box-shadow: var(--panel-shadow);
 }
 h2 {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.1rem;
-  margin: 0 0 22px;
+  font-size: 19px;
+  margin: 0 0 20px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 h3 {
-  font-size: 0.97rem;
+  font-size: 16px;
   margin: 20px 0 10px;
+  font-weight: 600;
 }
 p {
-  font-size: 0.86rem;
+  font-size: 14px;
   line-height: 1.6;
 }
 .profile-form {
@@ -364,9 +368,9 @@ dd {
 }
 .local-billing {
   margin: 20px 0;
-  padding: 14px;
-  border-radius: 10px;
-  background: #f6f9f3;
+  padding: 16px;
+  border-radius: var(--field-radius);
+  background: var(--surface-soft);
   font-size: 0.85rem;
 }
 .local-billing p {
@@ -383,7 +387,7 @@ dd {
 }
 @media (max-width: 480px) {
   .account-card {
-    padding: 18px;
+    padding: var(--panel-padding);
   }
 }
 </style>

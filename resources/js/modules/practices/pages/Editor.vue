@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
   ArrowLeft,
@@ -26,6 +27,7 @@ import {
   Bookmark,
   Brackets,
   UserPlus,
+  Timer,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
@@ -35,8 +37,8 @@ import CellPicker from '../components/CellPicker.vue';
 import SequenceRow from '../components/SequenceRow.vue';
 import ArrowSymbol from '../components/ArrowSymbol.vue';
 import ExecutionDialog from '../components/ExecutionDialog.vue';
+import SecondsControl from '../components/SecondsControl.vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
-import ApplyIllustrationsDialog from '../components/ApplyIllustrationsDialog.vue';
 import FragmentPicker, {
   type FragmentSource,
   type FragmentPlacement,
@@ -65,6 +67,7 @@ import {
   emptyCell,
   emptyRow,
   payload,
+  resolvedExecutionParameters,
   uid,
   type Block,
   type Cell,
@@ -107,6 +110,7 @@ const activeCell = ref<string | null>(null),
   notice = ref('');
 // Keep the action target while its temporary focus highlight has already ended.
 const highlightedCell = ref<string | null>(null);
+const heldSelection = ref(false);
 const toolbarElement = ref<HTMLElement | null>(null);
 const toolbarHeight = ref(0);
 watch(
@@ -122,16 +126,11 @@ watch(
   { flush: 'post' },
 );
 const executionOpen = ref(false);
-const illustrationsOpen = ref(false);
-async function openIllustrations() {
-  if (await editor.save()) illustrationsOpen.value = true;
-  else message('Сначала сохраните изменения практики.');
-}
+const timingMode = ref(false);
 const fragmentOpen = ref(false),
   rangeOpen = ref(false),
   fragmentBlockId = ref<string | null>(null);
 const pendingLibraryAsana = ref(new URL(window.location.href).searchParams.get('insert_asana'));
-const pendingIllustrationVariant = new URL(window.location.href).searchParams.get('insert_variant');
 const pendingDrawingIds =
   new URL(window.location.href).searchParams.get('insert_snapshots')?.split(',').filter(Boolean) || [];
 const pendingDrawings = ref<Snapshot[]>([]);
@@ -207,6 +206,7 @@ function insertFragment(source: FragmentSource, placement: FragmentPlacement) {
     const value = copyRow(row),
       groups = new Map<string, string>();
     for (const cell of value.cells) {
+      if (source.document) Object.assign(cell, resolvedExecutionParameters(cell, source.document));
       if (cell.group_key && !groups.has(cell.group_key)) groups.set(cell.group_key, uid());
       if (cell.group_key) cell.group_key = groups.get(cell.group_key)!;
     }
@@ -214,7 +214,7 @@ function insertFragment(source: FragmentSource, placement: FragmentPlacement) {
   };
   if (placement === 'blocks') {
     const copies = source.document
-      ? source.document.blocks.map(copyBlock)
+      ? source.document.blocks.map((block) => ({ ...copyBlock(block), rows: block.rows.map(freshRow) }))
       : [{ ...emptyBlock(source.row?.title || 'Фрагмент'), rows: rows.map(freshRow) }];
     if (doc.value.blocks.length + copies.length > 20) {
       message('В практике может быть до 20 блоков.');
@@ -433,7 +433,10 @@ watch(
   },
 );
 watch(activeCell, (id) => {
-  if (!id) highlightedCell.value = null;
+  if (!id) {
+    highlightedCell.value = null;
+    heldSelection.value = false;
+  }
 });
 const counts = computed(() => ({
   rows: doc.value?.blocks.reduce((n, block) => n + block.rows.length, 0) ?? 0,
@@ -550,10 +553,32 @@ function edit(action: (document: Practice) => void, group: string | null = null)
   if (groupStart.value && !findCell(groupStart.value.cellId)) resetGroupRange();
   else if (groupEnd.value && !findCell(groupEnd.value)) groupEnd.value = null;
 }
+function toggleTiming() {
+  if (locked.value || props.rowMode) return;
+  timingMode.value = !timingMode.value;
+  if (!timingMode.value) return;
+  if (doc.value?.default_duration_seconds == null)
+    edit((document) => {
+      document.default_duration_seconds = 60;
+      document.default_rest_seconds ??= 0;
+    });
+}
+function changeTimingDefault(field: 'default_duration_seconds' | 'default_rest_seconds', value: number) {
+  edit((document) => (document[field] = value));
+}
+function changeCellTiming(id: string, field: 'duration_seconds' | 'rest_seconds', value: number | null) {
+  const cell = findCell(id)?.cell;
+  if (!cell || !cellFilled(cell) || annotationMode.value) return;
+  edit(() => {
+    cell[field] = value;
+    if (field === 'duration_seconds') cell.advance_mode = value === null ? null : 'time';
+  });
+}
 function selectCell(id: string, showPicker = true) {
   if (locked.value) return;
   const found = findCell(id);
   if (!found) return;
+  heldSelection.value = false;
   if (pendingDrawings.value.length && showPicker) {
     insertDrawingQueue(id);
     return;
@@ -565,11 +590,7 @@ function selectCell(id: string, showPicker = true) {
     if (cellFilled(found.cell) && !window.confirm(`Заменить «${cellLabel(found.cell)}» выбранной асаной?`))
       return;
     const asanaId = pendingLibraryAsana.value;
-    void insertAsana(
-      asanaId,
-      id,
-      pendingIllustrationVariant === 'original' ? null : pendingIllustrationVariant || undefined,
-    ).then((inserted) => {
+    void insertAsana(asanaId, id).then((inserted) => {
       if (inserted) {
         pendingLibraryAsana.value = null;
         const url = new URL(location.href);
@@ -612,12 +633,31 @@ function selectCell(id: string, showPicker = true) {
   if (embedded) sendToMesocycle({ type: 'ribka:meso-cell', cellId: id, label: cellLabel(found.cell) });
   if (!embedded && !transferring && showPicker) openPicker(id);
 }
+function holdCell(id: string) {
+  if (locked.value || annotationMode.value || pointerDragging.value) return;
+  const found = findCell(id);
+  if (!found) return;
+  closePicker();
+  transfer.value = null;
+  mobilePalette.value = false;
+  activeCell.value = id;
+  activeBlock.value = found.block.id;
+  activeRow.value = found.row.id;
+  highlightedCell.value = id;
+  heldSelection.value = true;
+  if (embedded) sendToMesocycle({ type: 'ribka:meso-cell', cellId: id, label: cellLabel(found.cell) });
+  void nextTick(() => {
+    const toolbar = toolbarElement.value;
+    if (toolbar) toolbar.scrollTop = toolbar.scrollHeight;
+  });
+}
 function openPicker(id: string) {
   if (locked.value || annotationMode.value || !findCell(id)) return;
   pickerSession++;
   pickerCellId.value = id;
   pickerError.value = '';
   pickerOpen.value = true;
+  heldSelection.value = false;
   mobilePalette.value = false;
 }
 function closePicker() {
@@ -627,23 +667,37 @@ function closePicker() {
   pickerCellId.value = null;
   pickerError.value = '';
   highlightedCell.value = null;
+  heldSelection.value = false;
+}
+function removePickedAsana() {
+  const id = pickerCellId.value;
+  if (!id || locked.value || pendingCells.value.has(id)) return;
+  const cell = findCell(id)?.cell;
+  if (!cell || !cellFilled(cell)) return;
+  clearCell(id);
+  closePicker();
 }
 function releaseCellHighlight(event: PointerEvent | FocusEvent) {
   if (!highlightedCell.value) return;
   const target = event.type === 'focusout' ? (event as FocusEvent).relatedTarget : event.target;
+  if (heldSelection.value && target instanceof Element && target.closest('[data-cell-actions]')) return;
   const cellId =
     target instanceof Element ? target.closest<HTMLElement>('[data-editor-cell]')?.dataset.editorCell : null;
-  if (cellId !== highlightedCell.value) highlightedCell.value = null;
+  if (cellId !== highlightedCell.value) {
+    highlightedCell.value = null;
+    heldSelection.value = false;
+  }
 }
 function blurEditor() {
   highlightedCell.value = null;
+  heldSelection.value = false;
 }
 async function pickAsana(card: Asana) {
   const target = pickerCellId.value,
     session = pickerSession;
   if (!target || pendingCells.value.has(target)) return;
   pickerError.value = '';
-  const inserted = await insertAsana(card.id, target, card.illustration_variant_id);
+  const inserted = await insertAsana(card.id, target);
   if (!pickerOpen.value || session !== pickerSession) return;
   if (inserted) closePicker();
   else pickerError.value = notice.value || 'Не удалось добавить карточку. Попробуйте ещё раз.';
@@ -694,11 +748,7 @@ function moveContent(from: string, to: string, copy = false) {
     if (!copy) Object.assign(source, previous);
   });
 }
-async function insertAsana(
-  asanaId: string,
-  targetId = activeCell.value,
-  illustrationVariantId?: string | null,
-): Promise<boolean> {
+async function insertAsana(asanaId: string, targetId = activeCell.value): Promise<boolean> {
   if (!targetId || !findCell(targetId)) {
     message('Сначала выберите ячейку в последовательности.');
     return false;
@@ -713,13 +763,6 @@ async function insertAsana(
       method: 'POST',
       body: JSON.stringify({
         asana_ids: [asanaId],
-        illustration: {
-          style: doc.value?.illustration_style || 'original',
-          character: doc.value?.illustration_character || 'neutral',
-        },
-        ...(illustrationVariantId !== undefined
-          ? { illustration_variants: [{ asana_id: asanaId, variant_id: illustrationVariantId }] }
-          : {}),
       }),
       signal: AbortSignal.timeout(30000),
     });
@@ -1130,7 +1173,7 @@ function saveRow(row: Row) {
         theme: doc.value?.theme,
         note: current.note,
         cells: copyRow(current).cells.map((cell) => ({
-          ...executionParameters(cell),
+          ...resolvedExecutionParameters(cell, doc.value),
           id: cell.id,
           card_snapshot_id: cell.card_snapshot_id,
           custom_name: cell.custom_name || null,
@@ -1161,7 +1204,7 @@ function saveSelectedTransition() {
         theme: doc.value?.theme,
         note: null,
         cells: cells.map((cell) => ({
-          ...executionParameters(cell),
+          ...resolvedExecutionParameters(cell, doc.value),
           id: uid(),
           card_snapshot_id: cell.card_snapshot_id,
           custom_name: cell.custom_name,
@@ -1565,17 +1608,6 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <ApplyIllustrationsDialog
-    v-if="doc"
-    :open="illustrationsOpen"
-    :document-id="doc.id"
-    :revision="doc.revision"
-    @close="illustrationsOpen = false"
-    @updated="
-      editor.acceptSaved($event);
-      illustrationsOpen = false;
-    "
-  />
   <FragmentPicker
     :open="fragmentOpen"
     :has-cell="!!selected"
@@ -1587,6 +1619,7 @@ onBeforeUnmount(() => {
     :open="rangeOpen"
     :row="selected?.row || null"
     :theme="doc?.theme"
+    :defaults="doc"
     @close="rangeOpen = false"
     @saved="
       rangeOpen = false;
@@ -1654,9 +1687,6 @@ onBeforeUnmount(() => {
         <div class="editor-actions">
           <ActionMenu v-if="!embedded" label="Настройки практики">
             <a href="/settings">Настройки отображения</a>
-            <button v-if="!rowMode" :disabled="pending > 0 || locked" @click="openIllustrations">
-              Изменить стиль этого листа
-            </button>
           </ActionMenu>
           <button
             v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
@@ -1716,6 +1746,7 @@ onBeforeUnmount(() => {
           <span>Тема</span
           ><input
             :value="doc.theme"
+            class="input"
             placeholder="Например, мобильность плеч"
             maxlength="240"
             :disabled="locked"
@@ -1807,6 +1838,15 @@ onBeforeUnmount(() => {
             @click="removeSelectedGroup"
           >
             <X :size="16" />Снять скобки
+          </button>
+          <button
+            v-if="!rowMode && !readOnly"
+            class="btn btn-secondary"
+            :disabled="locked || annotationMode"
+            :aria-pressed="timingMode"
+            @click="toggleTiming"
+          >
+            <Timer :size="17" />{{ timingMode ? 'Скрыть время' : 'Настроить время' }}
           </button>
           <button
             v-if="!readOnly"
@@ -1910,7 +1950,20 @@ onBeforeUnmount(() => {
           }}</span
           ><button class="btn btn-ghost" @click="transfer = null">Отмена</button>
         </div>
-        <div v-if="selected && !readOnly && !annotationMode" class="cell-toolbar">
+        <div
+          v-if="selected && !readOnly && !annotationMode"
+          class="cell-toolbar"
+          data-cell-actions
+          role="toolbar"
+          aria-label="Действия с выбранной ячейкой"
+        >
+          <span class="selected-label">{{ cellLabel(selected.cell) }}</span>
+          <button class="btn btn-ghost" @click="openPicker(selected.cell.id)">
+            <Library :size="15" />{{ cellFilled(selected.cell) ? 'Изменить' : 'Заполнить ячейку' }}
+          </button>
+          <button v-if="cellFilled(selected.cell)" class="btn btn-ghost" @click="clearCell(selected.cell.id)">
+            <Trash2 :size="15" />{{ selected.cell.card ? 'Удалить асану' : 'Удалить название' }}
+          </button>
           <button
             v-if="selected.cell.card?.source_asana_id"
             class="btn btn-ghost"
@@ -1919,11 +1972,8 @@ onBeforeUnmount(() => {
           >
             <RefreshCw :size="15" />Варианты
           </button>
-          <span class="selected-label">{{ cellLabel(selected.cell) }}</span
-          ><button class="btn btn-ghost" @click="rangeOpen = true">Сохранить позиции</button
-          ><button class="btn btn-ghost" @click="openPicker(selected.cell.id)">
-            <Library :size="15" />{{ cellFilled(selected.cell) ? 'Изменить' : 'Заполнить ячейку' }}</button
-          ><button
+          <button class="btn btn-ghost" @click="rangeOpen = true">Сохранить позиции</button>
+          <button
             v-if="pendingCells.has(selected.cell.id)"
             class="btn btn-ghost"
             :disabled="locked"
@@ -1941,8 +1991,7 @@ onBeforeUnmount(() => {
               title="Скопировать в…"
               @click="transfer = { mode: 'copy', source: activeCell! }"
             >
-              <Copy :size="16" /></button
-            ><button class="btn btn-ghost" @click="clearCell(activeCell!)">Очистить</button></template
+              <Copy :size="16" /></button></template
           ><button class="icon-btn" aria-label="Удалить ячейку" title="Удалить ячейку" @click="removeCell">
             <Trash2 :size="16" /></button
           ><button
@@ -1951,12 +2000,45 @@ onBeforeUnmount(() => {
             @click="
               activeCell = null;
               highlightedCell = null;
+              heldSelection = false;
             "
           >
             <X :size="16" />
           </button>
         </div>
       </div>
+      <section
+        v-if="timingMode && !rowMode"
+        class="card timing-defaults"
+        aria-label="Время выполнения практики"
+      >
+        <div class="timing-intro">
+          <h2>Время практики</h2>
+          <p>
+            Общие значения для всех асан. Под отдельной асаной можно задать своё время; оно сохранится при
+            изменении общих настроек.
+          </p>
+        </div>
+        <div class="timing-default-controls">
+          <SecondsControl
+            label="Асана по умолчанию"
+            :value="doc.default_duration_seconds ?? 60"
+            :min="1"
+            :disabled="locked"
+            @change="changeTimingDefault('default_duration_seconds', $event)"
+          />
+          <SecondsControl
+            label="Отдых между асанами"
+            :value="doc.default_rest_seconds ?? 0"
+            :disabled="locked"
+            @change="changeTimingDefault('default_rest_seconds', $event)"
+          />
+        </div>
+        <p class="timing-footnote">
+          Кнопки меняют время на 15 секунд. После последней асаны отдыха нет. «Скрыть время» убирает поля и
+          сохраняет настройки.
+        </p>
+      </section>
       <div class="editor-layout" :style="{ '--editor-toolbar-height': `${toolbarHeight}px` }">
         <div class="practice-canvas" :data-mesocycle-drop-enabled="canReceiveCloud">
           <section
@@ -2029,11 +2111,15 @@ onBeforeUnmount(() => {
                 :group-mode="annotationMode"
                 :group-range="groupPreviewCells"
                 :group-invalid="!!groupRangeError"
+                :timing-mode="timingMode && !rowMode"
+                :default-duration="doc.default_duration_seconds ?? 60"
+                :default-rest="doc.default_rest_seconds ?? 0"
                 :pointer-cell="
                   mesocycleHoverCell || (pointerTarget?.kind === 'cell' ? pointerTarget.id : null)
                 "
                 :pointer-row="pointerTarget?.kind === 'row' ? pointerTarget.id : null"
                 @select="selectCell"
+                @hold="holdCell"
                 @drop-cell="dropCell"
                 @drop-row="dropRow($event, row, block)"
                 @count="resizeRow(row.id, $event)"
@@ -2043,6 +2129,7 @@ onBeforeUnmount(() => {
                 @relocate="relocateRow(row.id)"
                 @save-row="saveRow(row)"
                 @note="rowNote(row)"
+                @timing="changeCellTiming"
               />
             </div>
             <footer v-if="!rowMode && !readOnly && !annotationMode" class="block-footer">
@@ -2064,8 +2151,8 @@ onBeforeUnmount(() => {
             <Plus :size="19" />Добавить блок
           </button>
           <p class="canvas-help">
-            Нажмите на ячейку, чтобы выбрать картинку или ввести своё название. Асаны справа можно
-            перетаскивать в последовательность.
+            Нажмите на ячейку, чтобы выбрать картинку или ввести своё название. Удерживайте её 1 секунду,
+            чтобы выделить без открытия окна. Асаны справа можно перетаскивать в последовательность.
           </p>
         </div>
         <AsanaPalette
@@ -2092,6 +2179,7 @@ onBeforeUnmount(() => {
       @select="pickAsana"
       @custom="pickCustomName"
       @fragment="pickFragment"
+      @remove="removePickedAsana"
     />
     <Modal :open="!!modalKind" :title="modalTitle" @close="!modalBusy && (modalKind = '')">
       <div v-if="modalError" class="error-banner">{{ modalError }}</div>
@@ -2177,7 +2265,7 @@ onBeforeUnmount(() => {
       >
       <label v-if="modalKind === 'relocate'" class="field"
         ><span class="label">В конец блока</span
-        ><select class="select" v-model="destinationBlock">
+        ><AppSelect class="select" v-model="destinationBlock">
           <option
             v-for="block in doc?.blocks.filter((item) => item.id !== relocation?.block)"
             :key="block.id"
@@ -2185,7 +2273,7 @@ onBeforeUnmount(() => {
           >
             {{ block.title }}
           </option>
-        </select></label
+        </AppSelect></label
       >
       <template v-if="modalKind === 'library-updates'">
         <p class="confirm-copy">
@@ -2251,20 +2339,20 @@ onBeforeUnmount(() => {
         </div>
         <label class="field"
           ><span class="label">Вид варианта</span
-          ><select v-model="transitionRelationKind" class="select">
+          ><AppSelect v-model="transitionRelationKind" class="select">
             <option value="simpler">Упрощение</option>
             <option value="harder">Усложнение</option>
             <option value="preparation">Подводящее упражнение</option>
-          </select></label
+          </AppSelect></label
         >
         <label class="field"
           ><span class="label">Связка</span
-          ><select v-model="transitionRelationId" class="select">
+          ><AppSelect v-model="transitionRelationId" class="select">
             <option value="">Выберите готовую связку</option>
             <option v-for="option in transitionOptions" :key="option.id" :value="option.id">
               {{ option.title }}
             </option>
-          </select></label
+          </AppSelect></label
         >
         <button
           class="btn btn-secondary"
@@ -2321,6 +2409,45 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.timing-defaults {
+  display: grid;
+  gap: 18px;
+  margin-bottom: var(--section-gap);
+}
+.timing-intro h2 {
+  font-size: var(--panel-title-size);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.timing-intro p,
+.timing-footnote {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.timing-intro p {
+  margin-top: 8px;
+  max-width: 75ch;
+}
+.timing-default-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 20px;
+}
+.embedded-editor :deep(.cells-grid.timing-grid) {
+  display: flex;
+  width: max-content;
+  gap: 12px;
+}
+.embedded-editor :deep(.timing-column .sequence-cell) {
+  width: 72px;
+  height: 72px;
+}
+@media (max-width: 520px) {
+  .timing-default-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .saved-transition-variants {
   display: flex;
   flex-wrap: wrap;
@@ -2372,6 +2499,10 @@ onBeforeUnmount(() => {
 }
 .embedded-editor .editor-toolbar {
   max-height: 45vh;
+  padding: 8px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  box-shadow: none;
 }
 .embedded-editor .block-header {
   padding: 10px;
@@ -2445,8 +2576,17 @@ onBeforeUnmount(() => {
   font-size: 9px;
   gap: 4px;
 }
+.embedded-editor :deep(.row-heading) {
+  min-height: 28px;
+  gap: 4px;
+}
+.embedded-editor :deep(.row-tools .icon-btn) {
+  width: 28px;
+  height: 28px;
+}
 .embedded-editor .block-title {
   font-size: 12px;
+  min-height: 30px;
 }
 .embedded-editor .block-number {
   width: 20px;
@@ -2470,11 +2610,12 @@ onBeforeUnmount(() => {
   max-height: 50vh;
   max-height: 50dvh;
   overflow-y: auto;
-  margin-bottom: 18px;
-  padding: 0 0 10px;
-  background: #f7f9f6;
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 6px 14px #283f2008;
+  margin-bottom: var(--section-gap);
+  padding: 18px var(--panel-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .editor-toolbar > :last-child {
   margin-bottom: 0;
@@ -2503,16 +2644,16 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   padding: 16px;
   margin-bottom: 18px;
-  border: 1px solid #cbdcbe;
-  border-radius: 14px;
-  background: #f4f9ef;
-  box-shadow: 0 4px 14px #2531270a;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-soft);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 4%, transparent);
 }
 .group-instruction {
   flex: 1;
-  min-width: 240px;
+  min-width: min(100%, 240px);
   font-size: 14px;
-  color: #466335;
+  color: var(--text);
 }
 .group-instruction p {
   margin: 5px 0 0;
@@ -2530,120 +2671,131 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 .practice-block.pointer-block-target {
-  outline: 3px solid #7daa65;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 :deep(.pointer-row-target) {
-  outline: 2px solid #7daa65;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 10px;
-  background: #f3faed;
+  background: var(--accent-soft);
 }
 :deep(.pointer-cell-target) {
-  outline: 3px solid #397a28;
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
-  background: #edf7e8 !important;
+  background: var(--accent-soft) !important;
 }
 .editor-breadcrumb {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 13px;
-  color: #909c88;
-  margin-bottom: 20px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 .editor-breadcrumb button {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #6f7e64;
+  color: var(--muted);
   background: none;
   border: 0;
   padding: 0;
+  min-height: var(--control-height);
 }
 .editor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 14px;
+  margin-bottom: var(--section-gap);
+  flex-wrap: wrap;
 }
 .editor-title-area {
-  flex: 1;
+  flex: 1 1 320px;
   min-width: 0;
 }
 .document-title {
-  font-size: 29px;
-  font-weight: 750;
-  letter-spacing: -0.7px;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.045em;
   background: none;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--field-radius);
   padding: 4px 0;
   max-width: 100%;
   width: 100%;
-  color: #253127;
-  line-height: 1.3;
+  color: var(--text);
+  line-height: 1.1;
+  text-overflow: ellipsis;
 }
 .document-title:hover,
 .block-title:hover {
-  border-color: #d8e2d1;
+  border-color: var(--line);
 }
 .editor-subtitle {
   display: flex;
   align-items: center;
   gap: 9px;
   font-size: 13px;
-  color: #8a967e;
+  color: var(--muted);
   margin-top: 5px;
 }
 .divider-dot {
-  color: #b9c3b1;
+  color: var(--muted);
 }
 .editor-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
+  max-width: 100%;
   gap: 9px;
+}
+.editor-actions > .icon-btn {
+  flex-shrink: 0;
 }
 .document-meta {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 10px 0 20px;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 0;
+  margin-bottom: var(--section-gap);
   flex-wrap: wrap;
 }
 .theme-field {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  min-width: 230px;
+  display: grid;
+  gap: 8px;
+  min-width: min(100%, 230px);
   flex: 1;
 }
 .theme-field > span {
   font-size: 13px;
-  color: #839078;
+  color: var(--muted);
 }
 .theme-field input {
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--field-radius);
   font-size: 14px;
   flex: 1;
-  min-width: 120px;
-  color: #617754;
-  padding: 7px 0;
+  min-width: 0;
+  color: var(--text);
+  padding: 10px 12px;
+  min-height: var(--control-height);
 }
 .document-meta .btn {
   font-size: 13px;
-  min-height: 34px;
-  padding: 7px 8px;
+  min-height: var(--control-height);
+  padding: 10px 16px;
 }
 .save-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 15px;
-  border-top: 1px solid var(--border);
-  padding: 10px 0 18px;
+  gap: 10px;
+  padding: 0;
 }
 .history-buttons {
   display: flex;
@@ -2656,7 +2808,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #829576;
+  color: var(--muted);
 }
 .save-status.warning {
   color: #a15b32;
@@ -2664,7 +2816,7 @@ onBeforeUnmount(() => {
 .editor-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 26px;
+  gap: var(--section-gap);
   align-items: start;
 }
 .practice-canvas {
@@ -2673,27 +2825,27 @@ onBeforeUnmount(() => {
 .practice-block {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 17px;
-  margin-bottom: 19px;
-  box-shadow: 0 3px 8px #22331d02;
+  border-radius: var(--panel-radius);
+  margin-bottom: var(--section-gap);
+  box-shadow: var(--panel-shadow);
 }
 .block-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 19px 20px 15px;
-  border-bottom: 1px solid #edf1e9;
+  padding: 18px var(--panel-padding);
+  border-bottom: 1px solid var(--line);
 }
 .block-handle {
   display: flex;
-  color: #b6c2ac;
+  color: var(--muted);
   cursor: grab;
 }
 .block-number {
   width: 27px;
   height: 27px;
-  background: #edf5e7;
-  color: #62854d;
+  background: var(--surface-soft);
+  color: var(--accent-dark);
   font-size: 13px;
   border-radius: 8px;
   display: grid;
@@ -2703,14 +2855,15 @@ onBeforeUnmount(() => {
 }
 .block-title {
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--field-radius);
   min-width: 0;
+  min-height: var(--control-height);
   background: transparent;
   padding: 3px 5px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 650;
   flex: 1;
-  color: #3d4e32;
+  color: var(--text);
 }
 .block-menu {
   position: relative;
@@ -2725,13 +2878,14 @@ onBeforeUnmount(() => {
 .block-popover {
   position: absolute;
   right: 0;
-  top: 38px;
-  padding: 6px;
-  background: #fff;
+  top: calc(100% + 8px);
+  padding: 7px;
+  background: var(--popup-surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--popup-radius);
   z-index: 15;
-  box-shadow: 0 8px 30px #22332215;
+  box-shadow: var(--popup-shadow);
+  backdrop-filter: blur(20px);
   min-width: 195px;
 }
 .block-popover button {
@@ -2742,35 +2896,36 @@ onBeforeUnmount(() => {
   background: transparent;
   border: 0;
   text-align: left;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  min-height: 44px;
+  border-radius: 12px;
   font-size: 13px;
 }
 .block-popover button:hover {
-  background: #f2f7ee;
+  background: var(--accent-soft);
 }
 .danger-text {
   color: #a8442a;
 }
 .block-rows {
-  padding: 0 22px;
+  padding: 0 var(--panel-padding);
 }
 .block-purpose {
-  padding: 14px 22px 0;
+  padding: 16px var(--panel-padding) 0;
   font-size: 14px;
   line-height: 1.6;
-  color: #7b8d6c;
+  color: var(--muted);
 }
 .block-footer {
-  padding: 3px 18px 13px;
+  padding: 8px var(--panel-padding) 16px;
   display: flex;
   gap: 12px;
 }
 .block-footer .btn {
-  font-size: 12px;
-  color: #78906a;
-  min-height: 33px;
-  padding: 7px;
+  font-size: 13px;
+  color: var(--muted);
+  min-height: var(--control-height);
+  padding: 10px 12px;
 }
 .add-block {
   display: flex;
@@ -2779,20 +2934,20 @@ onBeforeUnmount(() => {
   gap: 9px;
   width: 100%;
   padding: 20px;
-  background: transparent;
-  border: 1.5px dashed #cfdcc6;
-  border-radius: 15px;
+  background: var(--surface);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--panel-radius);
   font-size: 14px;
-  color: #789269;
+  color: var(--muted);
   font-weight: 600;
 }
 .add-block:hover {
-  background: #edf5e7;
+  background: var(--accent-soft);
 }
 .canvas-help {
   text-align: center;
   font-size: 12px;
-  color: #96a18c;
+  color: var(--muted);
   line-height: 1.7;
   margin: 22px 12px;
 }
@@ -2803,9 +2958,9 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   margin: 0 0 20px;
   padding: 9px 12px;
-  border: 1px solid #d9e8ce;
-  background: #f1f8ec;
-  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 18px;
 }
 .selected-label {
   font-weight: 600;
@@ -2817,17 +2972,17 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .cell-toolbar .btn {
-  font-size: 12px;
-  min-height: 32px;
-  padding: 7px 9px;
+  font-size: 13px;
+  min-height: var(--control-height);
+  padding: 10px 12px;
 }
 .notice {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #edf5e7;
-  border: 1px solid #dce9d1;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
   padding: 10px 15px;
   border-radius: 12px;
   margin-bottom: 18px;
@@ -2847,7 +3002,7 @@ onBeforeUnmount(() => {
 }
 .conflict-banner > div {
   flex: 1;
-  min-width: 240px;
+  min-width: min(100%, 240px);
 }
 .conflict-banner p {
   font-size: 14px;
@@ -2860,8 +3015,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 17px;
-  background: #e9f5e0;
-  border: 1px solid #b9d4a6;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
   border-radius: 12px;
   margin-bottom: 16px;
   font-size: 14px;
@@ -2891,7 +3046,7 @@ onBeforeUnmount(() => {
   text-align: left;
 }
 .saved-row-option:hover {
-  background: #f4f9ef;
+  background: var(--accent-soft);
 }
 .saved-row-option span {
   flex: 1;
@@ -2916,7 +3071,7 @@ onBeforeUnmount(() => {
 @media (min-width: 1550px) {
   .editor-layout {
     grid-template-columns: minmax(0, 1fr) 330px;
-    gap: 32px;
+    gap: var(--section-gap);
   }
 }
 @media (max-width: 1000px) {
@@ -2925,9 +3080,6 @@ onBeforeUnmount(() => {
   }
   .mobile-picker {
     display: inline-flex;
-  }
-  .document-title {
-    font-size: 26px;
   }
   .editor-header {
     gap: 14px;
@@ -2939,7 +3091,7 @@ onBeforeUnmount(() => {
     gap: 6px;
   }
   .block-rows {
-    padding: 0 17px;
+    padding: 0 var(--panel-padding);
   }
 }
 @media (max-width: 600px) {
@@ -2952,9 +3104,11 @@ onBeforeUnmount(() => {
   }
   .editor-actions {
     width: 100%;
+    justify-content: flex-start;
   }
   .editor-actions .btn {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 44px;
   }
   .editor-subtitle {
     font-size: 12px;
@@ -2972,7 +3126,7 @@ onBeforeUnmount(() => {
   .mobile-picker {
     font-size: 12px;
     padding: 8px 11px;
-    min-height: 36px;
+    min-height: var(--control-height);
   }
   .history-buttons {
     padding-right: 6px;
@@ -2981,14 +3135,14 @@ onBeforeUnmount(() => {
     width: 30px;
   }
   .block-header {
-    padding: 15px 12px;
+    padding: 16px var(--panel-padding);
   }
   .block-rows {
-    padding: 0 13px;
+    padding: 0 var(--panel-padding);
   }
   .block-footer {
     gap: 2px;
-    padding: 3px 9px 12px;
+    padding: 8px var(--panel-padding) 16px;
     flex-wrap: wrap;
   }
   .block-title {

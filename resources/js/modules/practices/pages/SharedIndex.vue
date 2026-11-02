@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, ArrowRight, MessageSquare, Eye, RefreshCw, ChevronLeft, ChevronRight } from '@lucide/vue';
+import { ArrowRight, MessageSquare, Eye, RefreshCw, ChevronLeft, ChevronRight } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import PracticeNavigation from '../components/PracticeNavigation.vue';
 import { api } from '@/shared/api';
 import type { SharedPracticeItem } from '../sharing-types';
 import type { Page } from '@/modules/catalog/types';
@@ -37,13 +38,16 @@ function go(next: number) {
 <template>
   <Head title="Мне дали доступ" />
   <AppShell section="practices">
-    <Link href="/practices" class="btn btn-ghost"><ArrowLeft :size="16" />Мои практики</Link>
     <header class="page-header">
-      <h1 class="page-title">Мне дали доступ</h1>
+      <div>
+        <h1 class="page-title">Мне дали доступ</h1>
+        <p class="page-description">Практики, которыми с вами поделились.</p>
+      </div>
       <button class="btn btn-secondary" :disabled="loading" @click="load">
         <RefreshCw :size="16" />Обновить
       </button>
     </header>
+    <PracticeNavigation active="shared" />
     <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
     <p v-if="loading" class="muted" role="status">Загружаем практики…</p>
     <div v-else-if="documents.length" class="shared-grid">
@@ -56,7 +60,7 @@ function go(next: number) {
             document.permission === 'comment' ? 'Просмотр и комментарии' : 'Только просмотр'
           }}</span
         >
-        <Link :href="`/shared-practices/${document.id}`" class="btn btn-primary"
+        <Link :href="`/shared-practices/${document.id}`" class="btn btn-secondary"
           >Открыть лист<ArrowRight :size="17"
         /></Link>
       </article>
@@ -80,35 +84,41 @@ function go(next: number) {
 .shared-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: var(--section-gap);
 }
 .shared-pagination {
   display: flex;
   gap: 18px;
   align-items: center;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: var(--section-gap);
   font-size: 0.85rem;
 }
 .shared-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  padding: var(--panel-padding);
+  min-width: 0;
 }
 .shared-card h2 {
-  font-size: 1.14rem;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
   margin: 0;
 }
 .shared-card p {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 14px;
+  line-height: 1.6;
 }
 .shared-permission {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
-  color: #687960;
+  color: var(--muted);
   margin-top: auto;
 }
 .shared-card .btn {

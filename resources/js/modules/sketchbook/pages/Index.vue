@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppShell from '@/shared/AppShell.vue';
@@ -62,26 +63,37 @@ onMounted(load);
 <template>
   <AppShell section="sketchbook"
     ><Head title="Скетчбук" />
-    <h1>Скетчбук</h1>
-    <p>Рисуйте свои асаны и целые строки на свободном листе. Исходники остаются редактируемыми.</p>
-    <form class="toolbar" @submit.prevent="create">
-      <input v-model="title" placeholder="Название нового листа" required maxlength="160" /><select
-        v-model="format"
-        aria-label="Формат"
-      >
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Скетчбук</h1>
+        <p class="page-description">
+          Рисуйте свои асаны и целые строки на свободном листе. Исходники остаются редактируемыми.
+        </p>
+      </div>
+    </header>
+    <form class="toolbar sketch-create card" @submit.prevent="create">
+      <input
+        class="input"
+        v-model="title"
+        placeholder="Название нового листа"
+        aria-label="Название нового листа"
+        required
+        maxlength="160"
+      /><AppSelect class="select" v-model="format" aria-label="Формат">
         <option value="square">Свободный квадратный лист</option>
         <option value="a4-portrait">A4 — книжная печать</option>
-        <option value="a4-landscape">A4 — альбомная печать</option></select
-      ><button class="btn primary" :disabled="busy">Создать лист</button>
+        <option value="a4-landscape">A4 — альбомная печать</option></AppSelect
+      ><button class="btn btn-primary" :disabled="busy">Создать лист</button>
     </form>
     <form
-      class="toolbar"
+      class="toolbar sketch-search"
       @submit.prevent="
         page = 1;
         load();
       "
     >
-      <input v-model="q" placeholder="Поиск листов" /><select
+      <input class="input" v-model="q" placeholder="Поиск листов" aria-label="Поиск листов" /><AppSelect
+        class="select"
         v-model="archive"
         aria-label="Архив"
         @change="
@@ -90,29 +102,29 @@ onMounted(load);
         "
       >
         <option value="active">Активные</option>
-        <option value="archived">В архиве</option></select
-      ><button class="btn">Найти</button>
+        <option value="archived">В архиве</option></AppSelect
+      ><button class="btn btn-secondary">Найти</button>
     </form>
-    <p v-if="error" role="alert">{{ error }}</p>
+    <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <div class="sketch-grid">
-      <article v-for="row in rows" :key="row.id">
+      <article v-for="row in rows" :key="row.id" class="card">
         <Link :href="`/sketchbook/${row.id}`"
           ><img v-if="row.image_url" :src="row.image_url" :alt="row.title" />
           <div v-else class="blank">Пустой лист</div>
           <h2>{{ row.title }}</h2></Link
         >
         <div class="toolbar">
-          <button class="btn" @click="act(row, 'copy')">Копия</button
-          ><button class="btn" @click="act(row, 'archive')">
+          <button class="btn btn-secondary" @click="act(row, 'copy')">Копия</button
+          ><button class="btn btn-ghost" @click="act(row, 'archive')">
             {{ row.archived_at ? 'Восстановить' : 'В архив' }}
           </button>
         </div>
       </article>
     </div>
-    <p v-if="!rows.length">Листов пока нет. Создайте первый или измените поиск.</p>
-    <div class="toolbar">
+    <p v-if="!rows.length" class="empty-state card">Листов пока нет. Создайте первый или измените поиск.</p>
+    <div class="toolbar sketch-pagination">
       <button
-        class="btn"
+        class="btn btn-secondary"
         :disabled="page <= 1"
         @click="
           page--;
@@ -122,7 +134,7 @@ onMounted(load);
         Назад</button
       ><span>{{ page }} / {{ last }}</span
       ><button
-        class="btn"
+        class="btn btn-secondary"
         :disabled="page >= last"
         @click="
           page++;
@@ -144,18 +156,39 @@ onMounted(load);
 }
 .toolbar input {
   flex: 1;
-  min-width: 180px;
+  min-width: 0;
+}
+.sketch-create,
+.sketch-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px) auto;
+  gap: 12px;
+}
+.sketch-create {
+  padding: var(--panel-padding);
+  margin-bottom: 24px;
+}
+.sketch-search {
+  grid-template-columns: minmax(0, 1fr) 180px auto;
+  margin-bottom: 24px;
+}
+.sketch-pagination {
+  justify-content: center;
+  color: var(--muted);
+  margin-top: 28px;
 }
 .sketch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--section-gap);
 }
 .sketch-grid article {
   background: white;
-  padding: 16px;
-  border: 1px solid #e2e8dd;
-  border-radius: 18px;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  min-width: 0;
+  box-shadow: var(--panel-shadow);
 }
 .sketch-grid img,
 .blank {
@@ -167,13 +200,33 @@ onMounted(load);
 .blank {
   display: grid;
   place-items: center;
-  color: #788371;
+  color: var(--muted);
 }
 .sketch-grid a {
   color: inherit;
   text-decoration: none;
 }
 .sketch-grid h2 {
-  font-size: 1.1rem;
+  font-size: 19px;
+  margin-top: 16px;
+  overflow-wrap: anywhere;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.sketch-grid .toolbar {
+  margin-bottom: 0;
+}
+@media (max-width: 700px) {
+  .sketch-create,
+  .sketch-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sketch-create {
+    padding: var(--panel-padding);
+  }
+  .sketch-create > .btn,
+  .sketch-search > .btn {
+    width: 100%;
+  }
 }
 </style>

@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, CalendarDays, Plus, BookOpen } from '@lucide/vue';
+import { CalendarDays, Plus, BookOpen } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import Modal from '@/shared/Modal.vue';
 import PracticeFolders, { type ProgramItem } from '../components/PracticeFolders.vue';
+import PracticeNavigation from '../components/PracticeNavigation.vue';
 import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
 import { api } from '@/shared/api';
 import type { Page } from '@/modules/catalog/types';
@@ -51,7 +53,14 @@ async function load() {
   history.replaceState(history.state, '', url);
   try {
     const value = await api<Page<Item>>(`/api/program-library?${filters}`);
-    if (version === serial) result.value = value;
+    if (version === serial) {
+      if (page.value > value.last_page) {
+        page.value = Math.max(1, value.last_page);
+        await load();
+        return;
+      }
+      result.value = value;
+    }
   } catch (e) {
     if (version === serial) error.value = failure(e);
   } finally {
@@ -192,25 +201,32 @@ onMounted(load);
 <template>
   <Head title="Программы и циклы" />
   <AppShell section="practices">
-    <Link class="btn btn-ghost" href="/practices"><ArrowLeft :size="16" />Все практики</Link>
     <header class="page-header">
       <div>
         <h1 class="page-title">Программы и циклы</h1>
-        <p class="muted">Собирайте последовательности и мезоциклы в свои папки.</p>
+        <p class="page-description">Собирайте последовательности и мезоциклы в свои папки.</p>
       </div>
-      <button class="btn btn-primary" @click="openCreate"><Plus :size="18" />Создать мезоцикл</button
-      ><button class="btn btn-secondary" @click="addOpen = true">Добавить практику</button>
+      <div class="program-header-actions">
+        <button class="btn btn-primary" @click="openCreate"><Plus :size="18" />Создать мезоцикл</button
+        ><button class="btn btn-secondary" @click="addOpen = true">Добавить практику</button>
+      </div>
     </header>
+    <PracticeNavigation active="programs" />
     <PracticeFolders
       ref="folders"
       mode="program"
+      :compact="!!folderId"
       :selected-folder="folderId"
       @select="folderId = $event"
       @changed="load"
     />
-    <button v-if="folderId" class="btn btn-ghost" @click="folderId = ''">← Все документы программ</button>
+    <div class="folder-context">
+      <button v-if="folderId" class="btn btn-ghost" @click="folderId = ''">← Документы без папки</button>
+      <h2>{{ folderId ? 'Документы папки' : 'Документы без папки' }}</h2>
+      <p v-if="!folderId" class="muted">После добавления в папку документ остаётся доступен внутри неё.</p>
+    </div>
     <form
-      class="cycle-filters"
+      class="card cycle-filters"
       @submit.prevent="
         page = 1;
         load();
@@ -221,18 +237,18 @@ onMounted(load);
         class="input"
         placeholder="Название или тема"
         aria-label="Поиск программ"
-      /><select v-model="type" class="select" aria-label="Вид документа">
+      /><AppSelect v-model="type" class="select" aria-label="Вид документа">
         <option value="all">Все документы</option>
         <option value="cycle">Мезоциклы</option>
-        <option value="practice">Последовательности</option></select
-      ><select v-model="archive" class="select" aria-label="Архив программ">
+        <option value="practice">Последовательности</option></AppSelect
+      ><AppSelect v-model="archive" class="select" aria-label="Архив программ">
         <option value="active">Активные</option>
-        <option value="archived">В архиве</option></select
+        <option value="archived">В архиве</option></AppSelect
       ><button class="btn btn-secondary">Найти</button>
     </form>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <p v-if="loading" class="muted" role="status">Загружаем документы…</p>
-    <div v-else-if="result?.data.length" class="cycle-grid">
+    <div v-else-if="result?.data.length" class="cycle-grid" :class="{ 'in-folder': !!folderId }">
       <article
         v-for="item in result.data"
         :key="`${item.type}:${item.id}`"
@@ -341,16 +357,27 @@ onMounted(load);
   </AppShell>
 </template>
 <style scoped>
+.program-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.page-header > div:first-child {
+  flex: 1 1 300px;
+  min-width: 0;
+}
 .cycle-filters {
   display: flex;
   gap: 12px;
-  margin: 20px 0;
+  margin: var(--section-gap) 0;
   align-items: center;
   flex-wrap: wrap;
 }
 .cycle-filters .input {
   flex: 1;
-  min-width: 200px;
+  min-width: min(100%, 200px);
 }
 .cycle-filters .select {
   width: auto;
@@ -358,25 +385,99 @@ onMounted(load);
 .cycle-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 16px;
+  gap: var(--section-gap);
 }
 .cycle-card {
-  padding: 22px;
+  padding: var(--panel-padding);
   display: grid;
-  gap: 14px;
+  gap: 16px;
   align-content: start;
+  min-width: 0;
 }
 .cycle-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #61864d;
+  color: var(--accent-dark);
 }
 .cycle-card h2 {
   font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
   overflow-wrap: anywhere;
 }
 .cycle-card small {
   color: var(--muted);
+}
+.cycle-card > p {
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.folder-context {
+  margin-top: var(--section-gap);
+}
+.folder-context h2 {
+  font-size: 19px;
+  font-weight: 650;
+}
+.folder-context p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.folder-context > .btn {
+  margin: 0 0 12px -14px;
+}
+.cycle-grid.in-folder {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+}
+.in-folder .cycle-card {
+  padding: 16px;
+  gap: 8px;
+  border-radius: var(--panel-radius);
+  min-width: 0;
+}
+.in-folder .cycle-card-top > svg {
+  width: 22px;
+  height: 22px;
+}
+.in-folder .cycle-card h2 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.in-folder .cycle-card small,
+.in-folder .cycle-card > p {
+  font-size: 12px;
+}
+.in-folder .cycle-card > .btn {
+  font-size: 13px;
+  padding: 8px 10px;
+  white-space: normal;
+  margin-top: 4px;
+}
+@media (max-width: 600px) {
+  .program-header-actions {
+    width: 100%;
+  }
+  .program-header-actions > .btn {
+    flex: 1;
+    white-space: normal;
+  }
+  .cycle-filters > .input {
+    flex-basis: 100%;
+  }
+  .cycle-filters > .select {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+  .cycle-grid.in-folder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .in-folder .cycle-card {
+    padding: 12px;
+  }
 }
 </style>

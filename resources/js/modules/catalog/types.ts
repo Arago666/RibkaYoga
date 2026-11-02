@@ -16,6 +16,9 @@ export interface Asana {
   illustration_variant_id?: string | null;
   id: string;
   name: string;
+  alternate_name?: string | null;
+  information_description?: string | null;
+  benefits?: string[];
   aliases: string[];
   description: string | null;
   categories: Category[];

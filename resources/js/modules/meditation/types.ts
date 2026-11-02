@@ -73,7 +73,7 @@ export const defaults: MeditationConfig = {
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
   duration_seconds: 600,
   preparation_seconds: 10,
-  start_signal: 'bowl',
+  start_signal: 'gong',
   end_signal: 'gong',
   interval_signal: 'none',
   interval_seconds: 0,

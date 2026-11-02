@@ -94,6 +94,9 @@ defineEmits<{
     </button>
     <div class="asana-info">
       <h3 :title="card.name">{{ card.name }}</h3>
+      <p v-if="card.alternate_name" class="asana-category" :title="card.alternate_name">
+        {{ card.alternate_name }}
+      </p>
       <p v-if="displayImage && !displayImage.available" class="style-fallback">Нет объёмного варианта</p>
       <p v-if="card.sanskrit_cyrillic || card.sanskrit_latin" class="asana-category">
         {{ card.sanskrit_cyrillic || card.sanskrit_latin }}
@@ -114,16 +117,21 @@ defineEmits<{
 .asana-card {
   position: relative;
   overflow: visible;
-  border: 1px solid #e2e8df;
-  border-radius: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
   background: #fff;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
+  box-shadow: var(--panel-shadow);
+}
+.asana-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--text) 5%, transparent);
 }
 .asana-card.selected {
-  border-color: #397a28;
-  box-shadow: 0 0 0 2px #397a2820;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 13%, transparent);
 }
 .selection-toggle {
   position: absolute;
@@ -135,15 +143,16 @@ defineEmits<{
   width: 27px;
   height: 27px;
   padding: 0;
-  border: 2px solid #d9e2d5;
+  border: 2px solid var(--line);
   border-radius: 9px;
   background: #fff;
   color: #fff;
   cursor: pointer;
 }
 .selection-toggle.checked {
-  background: #397a28;
-  border-color: #397a28;
+  color: var(--text);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .card-menu {
   position: absolute;
@@ -152,14 +161,14 @@ defineEmits<{
   z-index: 3;
 }
 .asana-image {
-  border-radius: 18px 18px 0 0;
+  border-radius: var(--panel-radius) var(--panel-radius) 0 0;
   position: relative;
   display: block;
   width: 100%;
-  height: 158px;
+  height: 200px;
   border: 0;
-  background: #fbfcfa;
-  padding: 24px;
+  background: var(--surface);
+  padding: var(--panel-padding);
   cursor: zoom-in;
 }
 .asana-image img {
@@ -173,11 +182,11 @@ defineEmits<{
   right: 10px;
   display: grid;
   place-items: center;
-  width: 27px;
-  height: 27px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
   background: #fff;
-  color: #687568;
+  color: var(--muted);
   opacity: 0;
 }
 .asana-image:hover .enlarge,
@@ -185,33 +194,36 @@ defineEmits<{
   opacity: 1;
 }
 .asana-info {
-  padding: 15px;
+  padding: var(--panel-padding);
+  padding-top: 16px;
 }
 .asana-info h3 {
-  font-size: 0.93rem;
+  font-size: 19px;
   font-weight: 650;
-  line-height: 1.4;
+  line-height: 1.35;
   margin: 0 0 6px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 2.6em;
+  min-height: 2.7em;
+  letter-spacing: -0.025em;
 }
 .asana-category {
-  font-size: 0.76rem;
-  color: #687568;
+  font-size: 13px;
+  color: var(--muted);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   margin: 0;
   min-height: 1.2em;
+  line-height: 1.5;
 }
 .style-fallback {
   margin: 0 0 7px;
   font-size: 0.73rem;
   line-height: 1.4;
-  color: #687568;
+  color: var(--muted);
 }
 .asana-actions {
   display: flex;
@@ -235,12 +247,19 @@ defineEmits<{
   right: 7px;
   z-index: 3;
 }
-.asana-image {
-  border-radius: 18px 18px 0 0;
+.archived .asana-image {
   opacity: 0.65;
 }
 button:focus-visible {
-  outline: 3px solid #397a2880;
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
   outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .asana-image {
+    height: 164px;
+  }
+  .asana-info h3 {
+    font-size: 18px;
+  }
 }
 </style>

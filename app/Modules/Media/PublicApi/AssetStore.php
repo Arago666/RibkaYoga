@@ -19,5 +19,8 @@ interface AssetStore
     /** Authorizes a concrete practice and asset, including a granted viewer. */
     public function forDocument(string $id, string $documentId): array;
 
+    /** Authorizes a private analysis and its pinned source image. */
+    public function forReview(string $id, string $reviewId): array;
+
     public function discardUnattached(string $id): void;
 }

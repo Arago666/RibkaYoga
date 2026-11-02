@@ -46,19 +46,23 @@ const quick = computed(() =>
   margin: 12px 0;
 }
 .quick-categories button {
+  min-height: var(--control-height);
+  min-width: 44px;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 7px;
-  background: #fff;
-  border: 1px solid #dce6d6;
+  background: var(--glass);
+  border: 1px solid var(--line);
   padding: 8px 13px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 13px;
+  box-shadow: inset 0 1px 0 #fff;
 }
 .quick-categories button.active {
-  background: #edf7e8;
-  border-color: #397a28;
-  color: #2e6a22;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-dark);
   font-weight: 650;
 }
 .quick-categories span {

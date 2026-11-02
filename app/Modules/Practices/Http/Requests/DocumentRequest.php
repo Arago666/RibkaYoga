@@ -16,7 +16,7 @@ class DocumentRequest extends FormRequest
 
     public function rules(): array
     {
-        return ExecutionParameters::rules('blocks.*.rows.*.cells.*.') + [
+        return ExecutionParameters::defaultRules() + ExecutionParameters::rules('blocks.*.rows.*.cells.*.') + [
             'expected_revision' => [$this->isMethod('PUT') ? 'required' : 'sometimes', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:160'],
             'fragment_kind' => ['sometimes', 'nullable', 'in:block,sequence'],

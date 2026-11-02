@@ -22,7 +22,7 @@ class SeedTaxonomy extends Command
             }
             Asana::with('aliases')->chunkById(200, function ($cards) {
                 foreach ($cards as $card) {
-                    Asana::where('id', $card->id)->where('revision', $card->revision)->toBase()->update(['normalized_name' => Names::normalize($card->name), 'normalized_search_text' => Names::normalize(implode(' ', [$card->name, $card->sanskrit_cyrillic ?? '', $card->sanskrit_latin ?? '', ...$card->aliases->pluck('name')->all()]))]);
+                    Asana::where('id', $card->id)->where('revision', $card->revision)->toBase()->update(['normalized_name' => Names::normalize($card->name), 'normalized_search_text' => Names::normalize(implode(' ', [$card->name, $card->alternate_name ?? '', $card->sanskrit_cyrillic ?? '', $card->sanskrit_latin ?? '', ...$card->aliases->pluck('name')->all()]))]);
                 }
             });
         }

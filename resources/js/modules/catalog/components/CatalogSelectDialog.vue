@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
   position: absolute;
   left: 14px;
   top: 14px;
-  color: #687568;
+  color: var(--muted);
 }
 .picker-search .input {
   padding-left: 42px;
@@ -183,29 +183,31 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  border: 1px solid #e2e8df;
+  border: 1px solid var(--line);
   background: #fff;
-  border-radius: 13px;
-  padding: 12px;
+  border-radius: var(--panel-radius);
+  padding: 16px;
   cursor: pointer;
   text-align: center;
   font: inherit;
   align-items: center;
   min-width: 0;
+  box-shadow: var(--panel-shadow);
 }
 .picker-card img {
   width: 100%;
-  height: 84px;
+  height: 112px;
   object-fit: contain;
 }
 .picker-card > span:not(.picker-check) {
-  font-size: 0.78rem;
+  font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
+  font-weight: 550;
 }
 .picker-card.selected {
-  border-color: #397a28;
-  background: #f3f9ef;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .picker-card.existing {
   opacity: 0.55;
@@ -213,7 +215,7 @@ onBeforeUnmount(() => {
 }
 .picker-card small {
   font-size: 0.67rem;
-  color: #687568;
+  color: var(--muted);
 }
 .picker-check {
   position: absolute;
@@ -224,7 +226,7 @@ onBeforeUnmount(() => {
   width: 21px;
   height: 21px;
   border-radius: 7px;
-  background: #397a28;
+  background: var(--accent-dark);
   color: white;
 }
 .picker-pagination {
@@ -234,7 +236,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   margin-top: 16px;
   font-size: 0.82rem;
-  color: #687568;
+  color: var(--muted);
 }
 .picker-count {
   margin-right: auto;

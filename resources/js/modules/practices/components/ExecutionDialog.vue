@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { executionParameters, type Cell, type ExecutionParameters } from '../types';
@@ -18,6 +19,7 @@ function save() {
   const values = {
     ...form.value,
     duration_seconds: number(form.value.duration_seconds),
+    rest_seconds: number(form.value.rest_seconds),
     breath_count: number(form.value.breath_count),
     repetitions: number(form.value.repetitions),
   };
@@ -29,17 +31,17 @@ function save() {
   <Modal :open="open" title="Параметры выполнения" @close="emit('close')">
     <form id="execution-parameters" class="execution-fields" @submit.prevent="save">
       <p class="muted">
-        Время и дыхания относятся к одному повторению на одной стороне. Пустые значения означают ручной
-        переход.
+        Время и дыхания относятся к одному повторению на одной стороне. Пустое время использует общую
+        настройку практики, если она задана.
       </p>
       <label class="field"
         ><span class="label">Переход</span
-        ><select v-model="form.advance_mode" class="select">
+        ><AppSelect v-model="form.advance_mode" class="select">
           <option :value="null">Не задан</option>
           <option value="manual">Вручную</option>
           <option value="time">По времени</option>
           <option value="breaths">По дыханиям</option>
-        </select></label
+        </AppSelect></label
       >
       <label class="field"
         ><span class="label">Удержание, секунд</span
@@ -50,6 +52,16 @@ function save() {
           min="1"
           max="86400"
           :required="form.advance_mode === 'time'"
+      /></label>
+      <label class="field"
+        ><span class="label">Отдых после асаны, секунд</span
+        ><input
+          v-model="form.rest_seconds"
+          class="input"
+          type="number"
+          min="0"
+          max="86400"
+          placeholder="Общее значение практики"
       /></label>
       <label class="field"
         ><span class="label">Дыхательных циклов</span
@@ -67,20 +79,20 @@ function save() {
       /></label>
       <label class="field"
         ><span class="label">Сторона</span
-        ><select v-model="form.side" class="select">
+        ><AppSelect v-model="form.side" class="select">
           <option :value="null">Не задана</option>
           <option value="left">Левая</option>
           <option value="right">Правая</option>
           <option value="both">Обе</option>
-        </select></label
+        </AppSelect></label
       >
       <label v-if="form.side === 'both'" class="field"
         ><span class="label">Порядок сторон</span
-        ><select v-model="form.side_order" class="select">
+        ><AppSelect v-model="form.side_order" class="select">
           <option :value="null">Сначала левая</option>
           <option value="left_first">Сначала левая</option>
           <option value="right_first">Сначала правая</option>
-        </select></label
+        </AppSelect></label
       >
     </form>
     <template #footer
@@ -92,6 +104,7 @@ function save() {
 <style scoped>
 .execution-fields {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
+  min-width: 0;
 }
 </style>

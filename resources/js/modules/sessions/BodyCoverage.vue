@@ -109,24 +109,25 @@ const fill = (pattern: RegExp) =>
   gap: 6px;
   width: 100%;
   text-align: left;
-  padding: 10px;
-  border: 1px solid #e0e7dc;
-  border-radius: 10px;
-  background: white;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background: var(--surface-soft);
   margin: 6px 0;
+  min-height: var(--control-height);
 }
 .zone[aria-pressed='true'] {
-  border-color: #427f2c;
+  border-color: var(--accent);
 }
 .zone progress {
   grid-column: 1/-1;
   width: 100%;
   height: 7px;
-  accent-color: #5b953e;
+  accent-color: var(--accent);
 }
 .muted {
   font-size: 0.85rem;
-  color: #66725f;
+  color: var(--muted);
 }
 @media (max-width: 600px) {
   .coverage {

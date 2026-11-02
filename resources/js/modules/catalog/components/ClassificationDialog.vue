@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import Modal from '@/shared/Modal.vue';
@@ -106,15 +107,15 @@ async function apply() {
     <p>Выбрано: {{ cards.length }}. Изображения, имена и прежние листы сохранятся.</p>
     <div class="classification-controls">
       <label
-        >Как менять<select v-model="mode" class="select" :disabled="busy">
+        >Как менять<AppSelect v-model="mode" class="select" :disabled="busy">
           <option value="append">Добавить к имеющимся признакам</option>
           <option value="replace">Заменить выбранные группы</option>
-        </select></label
+        </AppSelect></label
       ><label
-        >Проверка<select v-model="status" class="select" :disabled="busy">
+        >Проверка<AppSelect v-model="status" class="select" :disabled="busy">
           <option value="partial">Частичная разметка</option>
           <option value="reviewed">Все четыре группы проверены</option>
-        </select></label
+        </AppSelect></label
       >
     </div>
     <fieldset class="included">
@@ -183,8 +184,8 @@ async function apply() {
 }
 .included {
   padding: 12px;
-  border: 1px solid #dce5d6;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
 }
 .included label {
   display: flex;
@@ -196,7 +197,7 @@ async function apply() {
   margin-top: 20px;
 }
 .classification-preview article {
-  border-bottom: 1px solid #e5eadd;
+  border-bottom: 1px solid var(--line);
   padding: 10px 0;
 }
 .classification-preview small {

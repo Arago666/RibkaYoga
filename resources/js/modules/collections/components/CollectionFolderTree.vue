@@ -122,7 +122,7 @@ function toggle(id: string) {
 </template>
 <style scoped>
 .folder-tree {
-  padding: 12px !important;
+  padding: var(--panel-padding) !important;
   align-self: start;
   min-width: 0;
 }
@@ -133,31 +133,34 @@ function toggle(id: string) {
   margin-bottom: 8px;
 }
 .folder-heading strong {
-  font-size: 0.92rem;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .folder-link {
   border: 0;
   background: transparent;
-  color: #566352;
+  color: var(--muted);
   display: flex;
   align-items: center;
   gap: 7px;
   width: 100%;
   text-align: left;
-  border-radius: 8px;
-  padding: 9px 7px;
+  border-radius: var(--field-radius);
+  padding: 10px 8px;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 14px;
   cursor: pointer;
   min-width: 0;
+  min-height: var(--control-height);
 }
 .folder-link.active {
-  background: #edf5e7;
-  color: #347621;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   font-weight: 650;
 }
 .folder-link:hover {
-  background: #f2f6ef;
+  background: var(--accent-soft);
 }
 .folder-link svg {
   flex: none;
@@ -168,7 +171,7 @@ function toggle(id: string) {
 }
 .folder-link small {
   margin-left: auto;
-  color: #7d8c76;
+  color: var(--muted);
 }
 .folder-row {
   display: flex;
@@ -183,15 +186,15 @@ function toggle(id: string) {
   flex: none;
 }
 .folder-tools > .icon-btn {
-  height: 25px;
-  width: 23px;
-  padding: 3px;
+  height: 36px;
+  width: 30px;
+  padding: 6px;
 }
 .collapse-folder {
   border: 0;
   padding: 0;
   background: none;
-  color: #73816c;
+  color: var(--muted);
   cursor: pointer;
 }
 .collapse-folder,

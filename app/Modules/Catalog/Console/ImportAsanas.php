@@ -5,7 +5,10 @@ namespace App\Modules\Catalog\Console;
 use App\Models\User;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Catalog\Models\Asana;
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Services\Facets;
 use App\Modules\Catalog\Services\Names;
+use App\Modules\Collections\PublicApi\CollectionMembership;
 use App\Modules\Media\PublicApi\AssetStore;
 use Illuminate\Console\Command;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -13,6 +16,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ImportAsanas extends Command
@@ -25,7 +29,7 @@ class ImportAsanas extends Command
 
     protected $description = 'Добавить асаны из локальных файлов; уже импортированные карточки не изменяются';
 
-    public function handle(WorkspaceContext $workspace, AssetStore $assets): int
+    public function handle(WorkspaceContext $workspace, AssetStore $assets, CollectionMembership $collections, Facets $facets): int
     {
         $options = Validator::make([
             'workspace' => $this->option('workspace'), 'owner' => $this->option('owner'),
@@ -50,7 +54,7 @@ class ImportAsanas extends Command
             }
             [$manifest, $directory] = $this->readManifest();
 
-            return $this->import($manifest, $directory, $workspace, $assets);
+            return $this->import($manifest, $directory, $workspace, $assets, $collections, $facets);
         } finally {
             $previousUser ? $guard->setUser($previousUser) : $guard->forgetUser();
         }
@@ -70,23 +74,64 @@ class ImportAsanas extends Command
         if (! is_array($manifest)) {
             throw ValidationException::withMessages(['manifest' => 'Манифест должен содержать объект source и items.']);
         }
+        $facetKeys = [];
+        foreach (Facets::VALUES as $dimension => $values) {
+            foreach (array_keys($values) as $key) {
+                $facetKeys[] = $dimension.'.'.$key;
+            }
+        }
         $data = Validator::make($manifest, [
             'source' => ['required', 'string', 'max:255'],
             'items' => ['required', 'array', 'list', 'min:1', 'max:500'],
-            'items.*' => ['required', 'array:source_key,name,description,aliases,image'],
+            'items.*' => ['required', 'array:source_key,name,description,aliases,image,alternate_name,information_description,teacher_cues,benefits,equipment,precautions,editorial,sanskrit_cyrillic,sanskrit_latin,classification_status,facet_keys'],
             'items.*.source_key' => ['required', 'string', 'max:190', 'distinct:strict', 'regex:~^[A-Za-z0-9][A-Za-z0-9_.:/-]*$~'],
             'items.*.name' => ['required', 'string', 'max:160'],
             'items.*.description' => ['nullable', 'string', 'max:4000'],
             'items.*.aliases' => ['sometimes', 'array', 'list', 'max:20'],
             'items.*.aliases.*' => ['required', 'string', 'max:160'],
             'items.*.image' => ['required', 'string', 'max:500'],
+            'items.*.alternate_name' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'items.*.information_description' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'items.*.sanskrit_cyrillic' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'items.*.sanskrit_latin' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'items.*.teacher_cues' => ['sometimes', 'array', 'list', 'max:30'],
+            'items.*.teacher_cues.*' => ['required', 'string', 'max:1000'],
+            'items.*.benefits' => ['sometimes', 'array', 'list', 'max:30'],
+            'items.*.benefits.*' => ['required', 'string', 'max:2000', 'regex:/\\S/u'],
+            'items.*.equipment' => ['sometimes', 'array', 'list', 'max:20'],
+            'items.*.equipment.*' => ['required', 'string', 'max:80'],
+            'items.*.precautions' => ['sometimes', 'array', 'list', 'max:30'],
+            'items.*.precautions.*' => ['required', 'string', 'max:2000'],
+            'items.*.editorial' => ['sometimes', 'array:author,source,reviewed,review_note'],
+            'items.*.editorial.author' => ['nullable', 'string', 'max:160'],
+            'items.*.editorial.source' => ['nullable', 'string', 'max:2000'],
+            'items.*.editorial.reviewed' => ['sometimes', 'boolean'],
+            'items.*.editorial.review_note' => ['nullable', 'string', 'max:2000'],
+            'items.*.classification_status' => ['sometimes', Rule::in(['unreviewed', 'partial', 'reviewed'])],
+            'items.*.facet_keys' => ['sometimes', 'array', 'list', 'max:'.count($facetKeys)],
+            'items.*.facet_keys.*' => ['required', 'string', Rule::in($facetKeys)],
         ])->validate();
         if (trim($data['source']) === '') {
             throw ValidationException::withMessages(['source' => 'Укажите название источника карточек.']);
         }
         foreach ($data['items'] as $index => $item) {
+            // A double wildcard distinct rule would compare every card in the pack.
+            // Scope uniqueness to this card while source_key remains unique across the pack.
+            $itemValidator = Validator::make($item, [
+                'equipment.*' => ['distinct'], 'facet_keys.*' => ['distinct:strict'],
+            ]);
+            if ($itemValidator->fails()) {
+                $messages = [];
+                foreach ($itemValidator->errors()->messages() as $field => $errors) {
+                    $messages['items.'.$index.'.'.$field] = $errors;
+                }
+                throw ValidationException::withMessages($messages);
+            }
             if (trim($item['name']) === '') {
                 throw ValidationException::withMessages(['items.'.$index.'.name' => 'Название карточки не может быть пустым.']);
+            }
+            if (count(array_filter($item['facet_keys'] ?? [], fn ($key) => str_starts_with($key, 'difficulty.'))) > 1) {
+                throw ValidationException::withMessages(['items.'.$index.'.facet_keys' => 'Выберите не больше одного уровня сложности.']);
             }
         }
 
@@ -112,7 +157,7 @@ class ImportAsanas extends Command
         return $path;
     }
 
-    private function import(array $manifest, string $directory, WorkspaceContext $workspace, AssetStore $assets): int
+    private function import(array $manifest, string $directory, WorkspaceContext $workspace, AssetStore $assets, CollectionMembership $collections, Facets $facets): int
     {
         $created = $skipped = $failed = $ready = 0;
         foreach ($manifest['items'] as $item) {
@@ -132,7 +177,12 @@ class ImportAsanas extends Command
                 // Local files are explicitly allowed only for this administrative
                 // command; Media still validates actual MIME, GD decode and limits.
                 $asset = $assets->store(new UploadedFile($path, basename($path), null, UPLOAD_ERR_OK, true));
-                DB::transaction(function () use ($item, $manifest, $workspace, $asset) {
+                DB::transaction(function () use ($item, $manifest, $workspace, $asset, $collections, $facets) {
+                    // Collection locks precede card creation, matching interactive uploads.
+                    $collections->lockWorkspace();
+                    $collectionId = $collections->starterCollection();
+                    $facets->ensure($workspace->id());
+                    $assignments = $this->facetAssignments($item['facet_keys'] ?? [], $workspace->id(), $facets);
                     $name = trim($item['name']);
                     $aliases = array_values(array_unique(array_filter(array_map('trim', $item['aliases'] ?? []))));
                     $description = trim((string) ($item['description'] ?? ''));
@@ -140,15 +190,21 @@ class ImportAsanas extends Command
                     $asana = Asana::create([
                         'workspace_id' => $workspace->id(), 'name' => $name,
                         'normalized_name' => Names::normalize($name),
-                        'normalized_search_text' => Names::normalize(implode(' ', [$name, ...$aliases])),
+                        'normalized_search_text' => Names::normalize(implode(' ', [$name, $item['alternate_name'] ?? '', $item['sanskrit_cyrillic'] ?? '', $item['sanskrit_latin'] ?? '', ...$aliases])),
                         'description' => $description === '' ? $sourceNote : $description."\n\n".$sourceNote,
                         'current_image_asset_id' => $asset['id'], 'revision' => 1,
                         'created_by' => $workspace->userId(), 'updated_by' => $workspace->userId(),
                         'import_key' => $item['source_key'], 'import_source' => trim($manifest['source']),
+                        ...array_intersect_key($item, array_flip(['alternate_name', 'information_description', 'teacher_cues', 'benefits', 'equipment', 'precautions', 'editorial', 'sanskrit_cyrillic', 'sanskrit_latin', 'classification_status'])),
                     ]);
                     $asana->aliases()->createMany(array_map(fn ($alias) => [
                         'name' => $alias, 'normalized_name' => Names::normalize($alias),
                     ], $aliases));
+                    $facets->sync($asana, $assignments);
+                    if ($asana->classification_status === 'reviewed' && count(array_filter($assignments)) !== count(Facets::DIMENSIONS)) {
+                        $asana->forceFill(['classification_status' => 'partial'])->save();
+                    }
+                    $collections->addAsana($asana->id, [$collectionId]);
                 });
                 $created++;
                 $this->line('Добавлено: '.$item['name']);
@@ -175,6 +231,23 @@ class ImportAsanas extends Command
         }
 
         return $failed === 0 ? self::SUCCESS : self::FAILURE;
+    }
+
+    /** Manifest keys resolve only within the catalog's system dictionary in this workspace. */
+    private function facetAssignments(array $keys, string $workspaceId, Facets $facets): array
+    {
+        $assignments = array_fill_keys(Facets::DIMENSIONS, []);
+        if ($keys) {
+            $values = Category::where('workspace_id', $workspaceId)->whereIn('system_key', $keys)->orderBy('id')->sharedLock()->get(['id', 'dimension', 'system_key']);
+            if ($values->count() !== count($keys)) {
+                throw ValidationException::withMessages(['facet_keys' => 'Один из системных признаков недоступен.']);
+            }
+            foreach ($values as $value) {
+                $assignments[$value->dimension][] = $value->id;
+            }
+        }
+
+        return $facets->validate($assignments, $workspaceId, true);
     }
 
     private function alreadyImported(string $workspaceId, string $sourceKey): bool

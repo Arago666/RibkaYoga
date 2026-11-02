@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref } from 'vue';
 import CatalogSelectDialog from './CatalogSelectDialog.vue';
 import { relationLabels, type RelationKind, type AsanaRelation, type Asana } from '../types';
@@ -31,8 +32,8 @@ function add(cards: Asana[]) {
       </button>
     </div>
     <div class="relations-add">
-      <select v-model="kind" class="select" aria-label="Тип связанного варианта" :disabled="disabled">
-        <option v-for="(label, key) in relationLabels" :key="key" :value="key">{{ label }}</option></select
+      <AppSelect v-model="kind" class="select" aria-label="Тип связанного варианта" :disabled="disabled">
+        <option v-for="(label, key) in relationLabels" :key="key" :value="key">{{ label }}</option></AppSelect
       ><button type="button" class="btn btn-secondary" :disabled="disabled" @click="open = true">
         Выбрать карточку
       </button>

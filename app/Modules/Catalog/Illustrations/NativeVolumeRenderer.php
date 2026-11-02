@@ -28,6 +28,9 @@ class NativeVolumeRenderer
         if (($drawing['format'] ?? null) !== 'ribka-drawing' || ! in_array($drawing['version'] ?? null, [1, 2], true) || ($drawing['width'] ?? null) !== self::SIZE || ($drawing['height'] ?? null) !== self::SIZE || empty($drawing['elements'])) {
             throw new InvalidArgumentException('Для объёмного представления нужен исходник RibkaYoga 1024 × 1024.');
         }
+        if (array_filter($drawing['elements'] ?? [], fn ($element) => ($element['kind'] ?? null) === 'image')) {
+            throw new InvalidArgumentException('Для рисунка с фотографией доступен исходный вид без объёмной подмены.');
+        }
         if (! in_array($character, ['neutral', 'female', 'male'], true) || ($sourceSha256 !== null && preg_match('/^[a-f0-9]{64}$/D', $sourceSha256) !== 1)) {
             throw new InvalidArgumentException('Некорректный вариант фигуры или SHA исходного изображения.');
         }

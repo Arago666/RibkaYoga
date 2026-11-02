@@ -1,5 +1,5 @@
 export interface UiPreferences {
-  libraryStyle: 'original' | 'volume';
+  libraryStyle: 'original';
   rememberFilters: boolean;
   meditationNotifications: boolean;
 }
@@ -15,7 +15,6 @@ export function readUiPreferences(key: string): UiPreferences {
   };
   try {
     const saved = JSON.parse(localStorage.getItem(key) || '{}');
-    if (saved.libraryStyle === 'volume') result.libraryStyle = 'volume';
     if (typeof saved.rememberFilters === 'boolean') result.rememberFilters = saved.rememberFilters;
     if (typeof saved.meditationNotifications === 'boolean')
       result.meditationNotifications = saved.meditationNotifications;

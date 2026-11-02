@@ -84,8 +84,8 @@ async function save() {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid #dce5d6;
-  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
 }
 </style>

@@ -11,11 +11,12 @@ import {
   Timer,
   Menu,
   Settings,
+  ScanText,
 } from '@lucide/vue';
 import { computed } from 'vue';
 import { dismissMenu as vDismissMenu } from './dismissMenu';
 defineProps<{
-  section: 'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation';
+  section: 'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews';
   wide?: boolean;
 }>();
 const page = usePage();
@@ -24,38 +25,66 @@ const user = computed(
 );
 </script>
 <template>
-  <div class="app-shell">
-    <header class="app-header">
+  <div :class="['app-shell', { 'app-shell-wide': wide }]">
+    <header :class="['app-header', { 'with-admin': user?.is_admin }]">
       <Link href="/practices" class="brand" aria-label="RibkaYoga — практики"
         ><img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span></Link
       >
       <nav v-if="user" class="main-nav" aria-label="Основная навигация">
-        <Link href="/practices" :class="['nav-link', { active: section === 'practices' }]"
-          ><LayoutGrid :size="18" />Практики</Link
+        <Link
+          href="/practices"
+          :class="['nav-link', { active: section === 'practices' }]"
+          :aria-current="section === 'practices' ? 'page' : undefined"
+          ><LayoutGrid :size="18" /><span>Практики</span></Link
         >
-        <Link href="/library" :class="['nav-link', { active: section === 'library' }]"
-          ><Library :size="18" />Библиотека</Link
+        <Link
+          href="/library"
+          :class="['nav-link', { active: section === 'library' }]"
+          :aria-current="section === 'library' ? 'page' : undefined"
+          ><Library :size="18" /><span>Библиотека</span></Link
         >
-        <Link href="/templates" :class="['nav-link', 'desktop-nav', { active: section === 'templates' }]"
-          ><BookOpen :size="18" />Шаблоны</Link
+        <Link
+          href="/templates"
+          :class="['nav-link', 'desktop-nav', { active: section === 'templates' }]"
+          :aria-current="section === 'templates' ? 'page' : undefined"
+          ><BookOpen :size="18" /><span>Шаблоны</span></Link
         >
-        <Link href="/sketchbook" :class="['nav-link', 'desktop-nav', { active: section === 'sketchbook' }]"
-          ><Pencil :size="18" />Скетчбук</Link
+        <Link
+          href="/meditation"
+          :class="['nav-link', { active: section === 'meditation' }]"
+          :aria-current="section === 'meditation' ? 'page' : undefined"
+          ><Timer :size="18" /><span>Медитация</span></Link
         >
-        <Link href="/meditation" :class="['nav-link', 'desktop-nav', { active: section === 'meditation' }]"
-          ><Timer :size="18" />Медитация</Link
+        <Link
+          href="/sketchbook"
+          :class="['nav-link', 'desktop-nav', 'mobile-nav', { active: section === 'sketchbook' }]"
+          :aria-current="section === 'sketchbook' ? 'page' : undefined"
+          ><Pencil :size="18" /><span>Скетчбук</span></Link
         >
-        <Link href="/account" :class="['nav-link', 'desktop-nav', { active: section === 'account' }]"
-          ><UserRound :size="18" />Кабинет</Link
+        <Link
+          href="/practice-reviews"
+          :class="['nav-link', 'desktop-nav', 'review-nav', { active: section === 'reviews' }]"
+          :aria-current="section === 'reviews' ? 'page' : undefined"
+          ><ScanText :size="18" /><span>Разбор</span></Link
         >
-        <details v-dismiss-menu class="more-nav">
-          <summary class="nav-link"><Menu :size="18" />Ещё</summary>
+        <details
+          v-dismiss-menu
+          :class="['more-nav', { 'contains-active': section === 'templates' || section === 'reviews' }]"
+        >
+          <summary :class="['nav-link', { active: section === 'account' }]">
+            <Menu :size="18" /><span>Ещё</span>
+          </summary>
           <div id="more-navigation" class="more-links">
-            <Link href="/templates">Шаблоны</Link><Link href="/mesocycles">Программы и циклы</Link
-            ><Link href="/practice-folders">Категории практик</Link
-            ><Link href="/shared-practices">Мне дали доступ</Link><Link href="/sketchbook">Скетчбук</Link
-            ><Link href="/meditation">Медитация</Link><Link href="/practice-history">История практики</Link
-            ><Link href="/account">Кабинет</Link><Link href="/settings">Настройки</Link>
+            <Link href="/templates"><BookOpen :size="17" />Шаблоны</Link>
+            <Link href="/practice-reviews"><ScanText :size="17" />Разбор практики</Link>
+            <Link href="/mesocycles">Программы и циклы</Link>
+            <Link href="/practice-folders">Категории практик</Link>
+            <Link href="/shared-practices">Мне дали доступ</Link>
+            <Link href="/sketchbook"><Pencil :size="17" />Скетчбук</Link>
+            <Link href="/practice-history">История практики</Link>
+            <Link href="/account"><UserRound :size="17" />Кабинет</Link>
+            <Link href="/settings"><Settings :size="17" />Настройки</Link>
+            <Link v-if="user?.is_admin" href="/admin"><Shield :size="17" />Администрирование</Link>
           </div>
         </details>
       </nav>
@@ -64,13 +93,13 @@ const user = computed(
           ><span class="avatar">{{ user?.name?.charAt(0) || 'Р' }}</span
           ><span class="account-name">{{ user?.name }}</span></Link
         >
-        <Link href="/settings" class="nav-link settings-link" aria-label="Настройки приложения"
-          ><Settings :size="18" /><span class="settings-label">Настройки</span></Link
-        >
+        <Link href="/settings" class="icon-btn settings-link" aria-label="Настройки приложения"
+          ><Settings :size="18"
+        /></Link>
         <Link
           v-if="user?.is_admin"
           href="/admin"
-          class="icon-btn"
+          class="icon-btn admin-link"
           title="Администрирование"
           aria-label="Администрирование"
           ><Shield :size="18"
@@ -87,7 +116,6 @@ const user = computed(
 </template>
 <style scoped>
 .more-nav {
-  display: none;
   position: relative;
 }
 .more-nav summary {
@@ -100,58 +128,81 @@ const user = computed(
 .more-links {
   position: absolute;
   right: 0;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   display: grid;
-  gap: 4px;
-  min-width: 230px;
-  padding: 10px;
-  background: white;
-  border: 1px solid #dce5d6;
-  border-radius: 14px;
-  box-shadow: 0 8px 32px #153a1320;
-  z-index: 50;
+  gap: 3px;
+  min-width: 245px;
+  max-height: min(560px, 75dvh);
+  overflow-y: auto;
+  padding: 9px;
+  background: var(--popup-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--popup-radius);
+  box-shadow: var(--popup-shadow);
+  backdrop-filter: blur(20px);
+  z-index: 75;
 }
 .more-links a {
-  padding: 9px 12px;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  min-height: 44px;
+  border-radius: 12px;
   white-space: nowrap;
   text-decoration: none;
-  color: #31442a;
+  color: var(--text);
+  font-size: 14px;
 }
 .more-links a:hover {
-  background: #eff6eb;
-}
-@media (max-width: 1380px) {
-  .desktop-nav {
-    display: none;
-  }
-  .more-nav {
-    display: block;
-  }
+  background: var(--accent-soft);
 }
 .account-profile {
   display: flex;
   align-items: center;
   gap: 9px;
+  padding: 4px;
+  border-radius: 999px;
   color: inherit;
   text-decoration: none;
 }
-@media (max-width: 650px) {
-  .main-nav {
-    gap: 2px;
+@media (min-width: 1121px) {
+  .main-nav .nav-link {
+    padding-inline: 8px;
   }
-  .nav-link {
-    font-size: 0.75rem;
-    padding: 0 7px;
+  .with-admin .main-nav .nav-link {
+    padding-inline: 6px;
     gap: 5px;
+    font-size: 12px;
   }
-  .nav-link svg {
-    width: 15px;
+}
+@media (max-width: 1120px) {
+  .contains-active summary {
+    color: var(--accent-dark);
+    border-color: #d1eed9;
+    background: var(--accent-soft);
+    box-shadow: inset 0 1px 0 #fff;
   }
-  .settings-label {
+}
+@media (max-width: 760px) {
+  .admin-link {
     display: none;
   }
+  .more-links {
+    top: auto;
+    bottom: calc(100% + 16px);
+    right: -4px;
+    max-height: calc(100dvh - 170px);
+  }
+  .more-nav {
+    min-width: 0;
+  }
   .account-profile .account-name {
+    display: none;
+  }
+}
+@media (max-width: 350px) {
+  .settings-link {
     display: none;
   }
 }

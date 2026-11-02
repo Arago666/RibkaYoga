@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed } from 'vue';
 import { folderOptions, type CollectionFolder } from '../types';
 const props = withDefaults(
@@ -16,7 +17,7 @@ defineEmits<{ 'update:modelValue': [value: string] }>();
 const options = computed(() => folderOptions(props.folders, props.omitSubtreeOf));
 </script>
 <template>
-  <select
+  <AppSelect
     :id="id"
     class="select"
     :value="modelValue"
@@ -27,5 +28,5 @@ const options = computed(() => folderOptions(props.folders, props.omitSubtreeOf)
     <option v-for="folder in options" :key="folder.id" :value="folder.id">
       {{ '— '.repeat(folder.depth) }}{{ folder.name }}
     </option>
-  </select>
+  </AppSelect>
 </template>

@@ -6,9 +6,11 @@ use App\Models\User;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\PublicApi\AsanaReader;
+use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\Http\Requests\DocumentRequest;
 use Illuminate\Console\Command;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -26,7 +28,7 @@ class ImportPracticeSheet extends Command
 
     protected $description = 'Создать локальную практику из листа, сохраняя группы и независимые снимки карточек';
 
-    public function handle(WorkspaceContext $workspace, AsanaReader $asanas, PracticeEditor $editor, Entitlements $limits): int
+    public function handle(WorkspaceContext $workspace, AsanaReader $asanas, PracticeEditor $editor, Entitlements $limits, AssetStore $assets): int
     {
         $options = Validator::make([
             'workspace' => $this->option('workspace'), 'owner' => $this->option('owner'), 'result' => $this->option('result'),
@@ -39,13 +41,20 @@ class ImportPracticeSheet extends Command
         $resultPath = null;
         $createdLedger = false;
         $committed = false;
+        $pendingAssets = [];
         try {
             $access = $workspace->details();
             if ($access['role'] !== 'owner' || $access['id'] !== strtolower($options['workspace'])) {
                 throw ValidationException::withMessages(['owner' => 'Аккаунт должен владеть указанным рабочим пространством.']);
             }
-            [$input, $ids] = $this->readManifest($workspace);
-            $fingerprint = hash('sha256', json_encode($input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+            [$input, $ids, $sourceImages] = $this->readManifest($workspace);
+            // Legacy manifests retain their existing journal hash. New local files
+            // are pinned by content, so replacing one cannot silently replay a sheet.
+            $fingerprintInput = $sourceImages ? [
+                'manifest' => $input,
+                'source_image_hashes' => array_map(fn ($image) => $image['sha256'], $sourceImages),
+            ] : $input;
+            $fingerprint = hash('sha256', json_encode($fingerprintInput, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
             [$ledger, $resultPath, $createdLedger] = $this->openLedger($options['result']);
             if (! $createdLedger) {
                 $existing = $this->readLedger($ledger, $workspace, $input['title'], $fingerprint);
@@ -56,7 +65,7 @@ class ImportPracticeSheet extends Command
                 return self::SUCCESS;
             }
             $dryRun = (bool) $this->option('dry-run');
-            $result = DB::transaction(function () use ($input, $ids, $workspace, $asanas, $editor, $limits, $dryRun, $ledger, $fingerprint) {
+            $result = DB::transaction(function () use ($input, $ids, $sourceImages, $workspace, $asanas, $editor, $limits, $assets, $dryRun, $ledger, $fingerprint, &$pendingAssets) {
                 if (! $dryRun) {
                     $limits->lock($workspace->id());
                 }
@@ -71,12 +80,46 @@ class ImportPracticeSheet extends Command
                 $document = null;
                 if (! $dryRun) {
                     $snapshots = [];
-                    foreach (array_chunk($ids, 100) as $chunk) {
+                    $canonicalIds = [];
+                    foreach ($input['blocks'] as $block) {
+                        foreach ($block['rows'] as $row) {
+                            foreach ($row['cells'] as $cell) {
+                                if ($cell['asana_id'] && ! isset($sourceImages[$cell['id']])) {
+                                    $canonicalIds[$cell['asana_id']] = $cell['asana_id'];
+                                }
+                            }
+                        }
+                    }
+                    foreach (array_chunk(array_values($canonicalIds), 100) as $chunk) {
                         foreach ($editor->resolveCards($chunk) as $snapshot) {
                             $snapshots[$snapshot['source_asana_id']] = $snapshot['id'];
                         }
                     }
-                    $tree = $this->documentTree($input, $snapshots);
+                    $sourceSnapshots = [];
+                    $imageAssets = [];
+                    $importedSnapshots = [];
+                    foreach ($input['blocks'] as $block) {
+                        foreach ($block['rows'] as $row) {
+                            foreach ($row['cells'] as $cell) {
+                                $source = $sourceImages[$cell['id']] ?? null;
+                                if (! $source) {
+                                    continue;
+                                }
+                                $hash = $source['sha256'];
+                                if (! isset($imageAssets[$hash])) {
+                                    $asset = $this->storeSourceImage($source, $assets);
+                                    $pendingAssets[] = $asset['id'];
+                                    $imageAssets[$hash] = $asset['id'];
+                                }
+                                $key = $cell['asana_id'].':'.$hash;
+                                if (! isset($importedSnapshots[$key])) {
+                                    $importedSnapshots[$key] = $editor->resolveImportedOriginal($cell['asana_id'], $imageAssets[$hash])['id'];
+                                }
+                                $sourceSnapshots[$cell['id']] = $importedSnapshots[$key];
+                            }
+                        }
+                    }
+                    $tree = $this->documentTree($input, $snapshots, $sourceSnapshots);
                     $document = $editor->copyLocal($tree);
                 }
                 $result = [
@@ -104,6 +147,17 @@ class ImportPracticeSheet extends Command
             $this->line('Результат: '.$resultPath);
 
             return self::SUCCESS;
+        } catch (\Throwable $error) {
+            if (! $committed) {
+                foreach ($pendingAssets as $assetId) {
+                    try {
+                        $assets->discardUnattached($assetId);
+                    } catch (\Throwable $cleanupError) {
+                        report($cleanupError);
+                    }
+                }
+            }
+            throw $error;
         } finally {
             if (is_resource($ledger)) {
                 if ($createdLedger && ! $committed && $resultPath) {
@@ -137,9 +191,10 @@ class ImportPracticeSheet extends Command
             'blocks.*.rows.*.id' => ['required', 'uuid', 'distinct:ignore_case'],
             'blocks.*.rows.*.note' => ['nullable', 'string', 'max:1000'],
             'blocks.*.rows.*.cells' => ['required', 'array', 'list', 'min:1', 'max:'.config('sequence.max_cells_per_row')],
-            'blocks.*.rows.*.cells.*' => ['required', 'array:id,asana_id,custom_name,note,group_key,arrow_direction'],
+            'blocks.*.rows.*.cells.*' => ['required', 'array:id,asana_id,custom_name,note,group_key,arrow_direction,source_image'],
             'blocks.*.rows.*.cells.*.id' => ['required', 'uuid', 'distinct:ignore_case'],
             'blocks.*.rows.*.cells.*.asana_id' => ['present', 'nullable', 'uuid'],
+            'blocks.*.rows.*.cells.*.source_image' => ['sometimes', 'nullable', 'string', 'max:500'],
             'blocks.*.rows.*.cells.*.custom_name' => ['nullable', 'string', 'max:160'],
             'blocks.*.rows.*.cells.*.note' => ['nullable', 'string', 'max:160'],
             'blocks.*.rows.*.cells.*.group_key' => ['nullable', 'uuid'],
@@ -151,6 +206,7 @@ class ImportPracticeSheet extends Command
         }
         $entityIds = [];
         $asanaIds = [];
+        $sourceImages = [];
         foreach ($input['blocks'] as &$block) {
             $block['id'] = strtolower($block['id']);
             $block['title'] = trim($block['title']);
@@ -181,6 +237,14 @@ class ImportPracticeSheet extends Command
                     if ($cell['asana_id']) {
                         $asanaIds[] = $cell['asana_id'];
                     }
+                    if (isset($cell['source_image'])) {
+                        if (! $cell['asana_id']) {
+                            throw ValidationException::withMessages(['cells.source_image' => 'Локальный оригинал можно указать только вместе с asana_id.']);
+                        }
+                        $cell['source_image'] = str_replace('\\', '/', $cell['source_image']);
+                        $source = $this->sourceImage(dirname($path), $cell['source_image']);
+                        $sourceImages[$cell['id']] = $source;
+                    }
                     if ($cell['group_key']) {
                         $groups[$cell['group_key']][] = $position;
                     }
@@ -206,17 +270,75 @@ class ImportPracticeSheet extends Command
         $request->setMethod('POST');
         Validator::make($this->documentTree($input, array_combine($asanaIds, $asanaIds) ?: []), $request->rules())->validate();
 
-        return [$input, array_values(array_unique($asanaIds))];
+        return [$input, array_values(array_unique($asanaIds)), $sourceImages];
     }
 
-    private function documentTree(array $input, array $snapshots): array
+    private function sourceImage(string $directory, string $relative): array
+    {
+        $parts = explode('/', $relative);
+        if ($relative === '' || str_contains($relative, "\0") || str_starts_with($relative, '/')
+            || in_array('..', $parts, true) || preg_match('~^[A-Za-z][A-Za-z0-9+.-]*:~', $relative)) {
+            throw ValidationException::withMessages(['cells.source_image' => 'Изображение должно иметь относительный локальный путь без переходов в родительские каталоги.']);
+        }
+        $candidate = $directory;
+        foreach ($parts as $part) {
+            if ($part === '.' || $part === '') {
+                continue;
+            }
+            $candidate .= DIRECTORY_SEPARATOR.$part;
+            if (is_link($candidate)) {
+                throw ValidationException::withMessages(['cells.source_image' => 'Символические ссылки в пути изображения не поддерживаются.']);
+            }
+        }
+        $path = realpath($candidate);
+        $prefix = rtrim($directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        $inside = $path && (DIRECTORY_SEPARATOR === '\\'
+            ? str_starts_with(strtolower($path), strtolower($prefix))
+            : str_starts_with($path, $prefix));
+        if (! $inside || ! is_file($path) || ! is_readable($path)) {
+            throw ValidationException::withMessages(['cells.source_image' => 'Изображение не найдено либо находится вне каталога манифеста.']);
+        }
+        $size = filesize($path);
+        $hash = @hash_file('sha256', $path);
+        if ($size === false || $size <= 0 || $size > (int) config('ribka.upload_max_kb', 10240) * 1024 || ! is_string($hash)) {
+            throw ValidationException::withMessages(['cells.source_image' => 'Нужно читаемое изображение размером не больше 10 МБ.']);
+        }
+
+        return ['relative' => $relative, 'path' => $path, 'sha256' => $hash];
+    }
+
+    private function storeSourceImage(array $source, AssetStore $assets): array
+    {
+        $limit = (int) config('ribka.upload_max_kb', 10240) * 1024;
+        $contents = @file_get_contents($source['path'], false, null, 0, $limit + 1);
+        if (! is_string($contents) || strlen($contents) > $limit || ! hash_equals($source['sha256'], hash('sha256', $contents))) {
+            throw ValidationException::withMessages(['cells.source_image' => 'Исходное изображение изменилось после чтения манифеста. Повторите импорт.']);
+        }
+        $temporary = tmpfile();
+        if (! is_resource($temporary)) {
+            throw new \RuntimeException('Не удалось подготовить локальное изображение для импорта.');
+        }
+        try {
+            // Store exactly the bytes whose digest is recorded in the journal,
+            // rather than reopening a potentially changed source during GD decode.
+            if (fwrite($temporary, $contents) !== strlen($contents) || ! fflush($temporary)) {
+                throw new \RuntimeException('Не удалось подготовить локальное изображение для импорта.');
+            }
+
+            return $assets->store(new UploadedFile(stream_get_meta_data($temporary)['uri'], basename($source['relative']), null, UPLOAD_ERR_OK, true));
+        } finally {
+            fclose($temporary);
+        }
+    }
+
+    private function documentTree(array $input, array $snapshots, array $sourceSnapshots = []): array
     {
         $tree = ['title' => $input['title'], 'theme' => $input['theme'] ?? null, 'blocks' => $input['blocks']];
         foreach ($tree['blocks'] as &$block) {
             foreach ($block['rows'] as &$row) {
                 foreach ($row['cells'] as &$cell) {
-                    $cell['card_snapshot_id'] = $cell['asana_id'] ? $snapshots[$cell['asana_id']] : null;
-                    unset($cell['asana_id']);
+                    $cell['card_snapshot_id'] = $cell['asana_id'] ? ($sourceSnapshots[$cell['id']] ?? $snapshots[$cell['asana_id']]) : null;
+                    unset($cell['asana_id'], $cell['source_image']);
                 }
                 unset($cell);
             }

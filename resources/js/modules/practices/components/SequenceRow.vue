@@ -15,6 +15,8 @@ import {
 } from '@lucide/vue';
 import { arrowLabels, cellFilled, cellGroupEdges, cellLabel, type Row, type Cell } from '../types';
 import CellArrow from './CellArrow.vue';
+import SecondsControl from './SecondsControl.vue';
+import { useCellLongPress } from '../composables/useCellLongPress';
 const props = defineProps<{
   row: Row;
   number: string;
@@ -27,9 +29,13 @@ const props = defineProps<{
   groupMode?: boolean;
   groupRange?: Set<string>;
   groupInvalid?: boolean;
+  timingMode?: boolean;
+  defaultDuration?: number;
+  defaultRest?: number;
 }>();
 const emit = defineEmits<{
   select: [id: string];
+  hold: [id: string];
   dropCell: [event: DragEvent, id: string];
   count: [count: number];
   duplicate: [];
@@ -39,8 +45,14 @@ const emit = defineEmits<{
   note: [];
   relocate: [];
   dropRow: [event: DragEvent];
+  timing: [id: string, field: 'duration_seconds' | 'rest_seconds', value: number | null];
 }>();
+const cellHold = useCellLongPress({
+  enabled: () => !props.disabled && !props.groupMode,
+  hold: (id) => emit('hold', id),
+});
 function dragCell(event: DragEvent, cell: Cell) {
+  if (!cellHold.allowNativeDrag(event)) return;
   if (!cellFilled(cell) || props.disabled || props.groupMode) {
     event.preventDefault();
     return;
@@ -102,77 +114,109 @@ function closeMenu(event: MouseEvent) {
     </div>
     <TooltipProvider :delay-duration="300" ignore-non-keyboard-focus>
       <div class="cells-scroll">
-        <div class="cells-grid">
-          <TooltipRoot
+        <div :class="['cells-grid', { 'timing-grid': timingMode }]">
+          <div
             v-for="(cell, index) in row.cells"
             :key="cell.id"
-            :disabled="!cellFilled(cell) || pending.has(cell.id)"
+            :class="['cell-column', { 'timing-column': timingMode }]"
           >
-            <TooltipTrigger as-child>
-              <button
-                :class="[
-                  'sequence-cell',
-                  {
-                    selected: active === cell.id,
-                    filled: cellFilled(cell),
-                    'has-image': !!cell.card && !pending.has(cell.id),
-                    pending: pending.has(cell.id),
-                    'pointer-cell-target': pointerCell === cell.id,
-                    grouped: !!cell.group_key,
-                    'group-range': groupMode && groupRange?.has(cell.id),
-                    'group-range-invalid': groupMode && groupInvalid && groupRange?.has(cell.id),
-                  },
-                ]"
-                :aria-label="`${number}, ячейка ${index + 1}: ${cellLabel(cell) || 'пустая'}${cell.arrow_direction ? ', стрелка ' + arrowLabels[cell.arrow_direction].toLowerCase() : ''}${cell.group_key ? ', в группе со скобками' : ''}${groupMode && groupRange?.has(cell.id) ? ', выбрана для объединения' : ''}`"
-                :aria-pressed="groupMode ? !!groupRange?.has(cell.id) : active === cell.id"
-                :aria-disabled="disabled"
-                :data-editor-cell="cell.id"
-                :draggable="cellFilled(cell) && !disabled && !groupMode"
-                @dragstart="dragCell($event, cell)"
-                @dragover.prevent.stop
-                @drop.prevent.stop="!disabled && !groupMode && emit('dropCell', $event, cell.id)"
-                @click="!disabled && emit('select', cell.id)"
-              >
-                <span
-                  v-if="cellGroupEdges(row, index).start"
-                  class="group-edge group-edge-start"
-                  aria-hidden="true"
-                />
-                <span
-                  v-if="cellGroupEdges(row, index).end"
-                  class="group-edge group-edge-end"
-                  aria-hidden="true"
-                />
-                <span class="cell-index">{{ index + 1 }}</span>
-                <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
-                <span v-if="pending.has(cell.id)" class="cell-pending">Добавляем…</span>
-                <img
-                  v-else-if="cell.card"
-                  :src="cell.card.image_url"
-                  :alt="cell.card.name"
-                  draggable="false"
-                />
-                <span v-else-if="cell.custom_name" class="custom-name">{{ cell.custom_name }}</span>
-                <template v-else
-                  ><Plus :size="23" class="cell-plus" /><span class="cell-empty-text">Асана</span></template
+            <TooltipRoot :disabled="!cellFilled(cell) || pending.has(cell.id)">
+              <TooltipTrigger as-child>
+                <button
+                  :class="[
+                    'sequence-cell',
+                    {
+                      selected: active === cell.id,
+                      filled: cellFilled(cell),
+                      'has-image': !!cell.card && !pending.has(cell.id),
+                      pending: pending.has(cell.id),
+                      'pointer-cell-target': pointerCell === cell.id,
+                      grouped: !!cell.group_key,
+                      'group-range': groupMode && groupRange?.has(cell.id),
+                      'group-range-invalid': groupMode && groupInvalid && groupRange?.has(cell.id),
+                    },
+                  ]"
+                  :aria-label="`${number}, ячейка ${index + 1}: ${cellLabel(cell) || 'пустая'}${cell.arrow_direction ? ', стрелка ' + arrowLabels[cell.arrow_direction].toLowerCase() : ''}${cell.group_key ? ', в группе со скобками' : ''}${groupMode && groupRange?.has(cell.id) ? ', выбрана для объединения' : ''}`"
+                  :aria-pressed="groupMode ? !!groupRange?.has(cell.id) : active === cell.id"
+                  :aria-disabled="disabled"
+                  :data-editor-cell="cell.id"
+                  aria-keyshortcuts="Shift+Enter Shift+Space"
+                  :draggable="cellFilled(cell) && !disabled && !groupMode"
+                  @pointerdown="cellHold.start($event, cell.id)"
+                  @keydown="cellHold.keyboard($event, cell.id)"
+                  @contextmenu="cellHold.contextMenu"
+                  @dragstart="dragCell($event, cell)"
+                  @dragover.prevent.stop
+                  @drop.prevent.stop="!disabled && !groupMode && emit('dropCell', $event, cell.id)"
+                  @click="!disabled && emit('select', cell.id)"
                 >
-                <span v-if="cell.note" class="note-indicator"><StickyNote :size="11" /></span>
-              </button>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent
-                class="sequence-cell-tooltip"
-                side="top"
-                :side-offset="8"
-                :collision-padding="8"
-                hide-when-detached
-                position-strategy="fixed"
-              >
-                {{ cellLabel(cell) }}
-                <span v-if="cell.note" class="cell-tooltip-note">{{ cell.note }}</span>
-              </TooltipContent>
-            </TooltipPortal>
-          </TooltipRoot>
+                  <span
+                    v-if="cellGroupEdges(row, index).start"
+                    class="group-edge group-edge-start"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-if="cellGroupEdges(row, index).end"
+                    class="group-edge group-edge-end"
+                    aria-hidden="true"
+                  />
+                  <span class="cell-index">{{ index + 1 }}</span>
+                  <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
+                  <span v-if="pending.has(cell.id)" class="cell-pending">Добавляем…</span>
+                  <img
+                    v-else-if="cell.card"
+                    :src="cell.card.image_url"
+                    :alt="cell.card.name"
+                    draggable="false"
+                  />
+                  <span v-else-if="cell.custom_name" class="custom-name">{{ cell.custom_name }}</span>
+                  <template v-else
+                    ><Plus :size="23" class="cell-plus" /><span class="cell-empty-text">Асана</span></template
+                  >
+                  <span v-if="cell.note" class="note-indicator"><StickyNote :size="11" /></span>
+                </button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent
+                  class="sequence-cell-tooltip"
+                  side="top"
+                  :side-offset="8"
+                  :collision-padding="8"
+                  hide-when-detached
+                  position-strategy="fixed"
+                >
+                  {{ cellLabel(cell) }}
+                  <span v-if="cell.note" class="cell-tooltip-note">{{ cell.note }}</span>
+                </TooltipContent>
+              </TooltipPortal>
+            </TooltipRoot>
+            <div v-if="timingMode && cellFilled(cell) && !pending.has(cell.id)" class="cell-timing">
+              <SecondsControl
+                label="Асана"
+                :context="`${number}, ячейка ${index + 1}`"
+                :value="cell.duration_seconds ?? defaultDuration ?? 60"
+                :min="1"
+                :disabled="disabled || groupMode"
+                resettable
+                :overridden="cell.duration_seconds != null"
+                @change="emit('timing', cell.id, 'duration_seconds', $event)"
+                @reset="emit('timing', cell.id, 'duration_seconds', null)"
+              />
+              <SecondsControl
+                label="Отдых после"
+                :context="`${number}, ячейка ${index + 1}`"
+                :value="cell.rest_seconds ?? defaultRest ?? 0"
+                :disabled="disabled || groupMode"
+                resettable
+                :overridden="cell.rest_seconds != null"
+                @change="emit('timing', cell.id, 'rest_seconds', $event)"
+                @reset="emit('timing', cell.id, 'rest_seconds', null)"
+              />
+              <p v-if="cell.advance_mode === 'breaths'" class="timing-hint">
+                Сейчас переход по дыханиям. Изменение времени включит таймер.
+              </p>
+            </div>
+          </div>
           <button
             v-if="!disabled && !groupMode && row.cells.length < 12"
             class="append-cell"
@@ -191,7 +235,7 @@ function closeMenu(event: MouseEvent) {
 <style scoped>
 .sequence-row {
   padding: 8px 0 10px;
-  border-bottom: 1px solid #edf0eb;
+  border-bottom: 1px solid var(--line);
 }
 .sequence-row:last-of-type {
   border-bottom: 0;
@@ -201,25 +245,25 @@ function closeMenu(event: MouseEvent) {
   align-items: center;
   gap: 12px;
   margin-bottom: 6px;
-  min-height: 28px;
+  min-height: var(--control-height);
 }
 .row-label {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 14px;
-  font-weight: 700;
-  color: #63725c;
+  font-weight: 650;
+  color: var(--muted);
   min-width: 47px;
 }
 .drag-handle {
   cursor: grab;
-  color: #b2beac;
+  color: var(--muted);
   display: flex;
 }
 .row-caption {
   font-size: 12px;
-  color: #99a291;
+  color: var(--muted);
 }
 .row-tools {
   display: flex;
@@ -232,8 +276,8 @@ function closeMenu(event: MouseEvent) {
   margin-right: 6px;
 }
 .row-tools .icon-btn {
-  width: 29px;
-  height: 29px;
+  width: var(--control-height);
+  height: var(--control-height);
 }
 .cells-scroll {
   overflow-x: auto;
@@ -245,7 +289,37 @@ function closeMenu(event: MouseEvent) {
   gap: 6px;
   align-items: flex-start;
 }
+.cell-column {
+  display: contents;
+}
+.timing-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 156px;
+  width: 156px;
+  min-width: 0;
+}
+.timing-column .sequence-cell {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  margin-inline: auto;
+}
+.cell-timing {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.timing-hint {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
 .sequence-cell {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -256,33 +330,33 @@ function closeMenu(event: MouseEvent) {
   aspect-ratio: 1;
   min-width: 0;
   overflow: hidden;
-  background: #fbfcfa;
-  border: 1.5px dashed #d9e1d3;
-  border-radius: 10px;
+  background: var(--surface-soft);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--field-radius);
   padding: 12px 4px 4px;
-  color: #9ba993;
+  color: var(--muted);
   text-align: center;
   transition:
     background 0.12s,
     border-color 0.12s;
 }
 .sequence-cell:hover {
-  background: #f1f7ed;
-  border-color: #9bbb8c;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .sequence-cell.selected {
-  border: 2px solid #6da555;
-  background: #f1f9ec;
-  box-shadow: 0 0 0 2px #e4f1db;
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--line);
 }
 .sequence-cell.filled {
   border-style: solid;
-  border-color: #e1e7dc;
+  border-color: var(--line);
   background: white;
 }
 .sequence-cell.filled.selected {
-  border-color: #6da555;
-  background: #f6fbf2;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .sequence-cell.grouped {
   border-style: solid;
@@ -315,9 +389,9 @@ function closeMenu(event: MouseEvent) {
 }
 .sequence-cell.group-range,
 .sequence-cell.grouped.group-range {
-  background: #e7f2dd;
-  border: 2px solid #67934f;
-  box-shadow: 0 0 0 2px #dceccf;
+  background: var(--accent-soft);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 2px var(--line);
 }
 .sequence-cell.group-range-invalid,
 .sequence-cell.grouped.group-range-invalid {
@@ -330,10 +404,10 @@ function closeMenu(event: MouseEvent) {
   left: 8px;
   top: 5px;
   font-size: 10px;
-  color: #a7b19f;
+  color: var(--muted);
 }
 .cell-plus {
-  color: #b2c3a7;
+  color: var(--muted);
   margin-bottom: 5px;
 }
 .cell-empty-text {
@@ -362,11 +436,11 @@ function closeMenu(event: MouseEvent) {
   z-index: 60;
   max-width: min(320px, calc(100vw - 16px));
   padding: 9px 12px;
-  border: 1px solid #dce5d6;
+  border: 1px solid var(--line);
   border-radius: 10px;
   background: #fff;
-  color: #253127;
-  box-shadow: 0 4px 16px #2233221a;
+  color: var(--text);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--text) 10%, transparent);
   font-size: 13px;
   line-height: 1.45;
   overflow-wrap: anywhere;
@@ -374,13 +448,13 @@ function closeMenu(event: MouseEvent) {
 .cell-tooltip-note {
   display: block;
   margin-top: 4px;
-  color: #687568;
+  color: var(--muted);
   white-space: pre-wrap;
 }
 .custom-name {
   font-size: 12px;
   line-height: 1.25;
-  color: #48643c;
+  color: var(--text);
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -391,7 +465,7 @@ function closeMenu(event: MouseEvent) {
   position: absolute;
   right: 4px;
   top: 3px;
-  color: #67934f;
+  color: var(--accent-dark);
 }
 .append-cell {
   align-self: center;
@@ -402,22 +476,22 @@ function closeMenu(event: MouseEvent) {
   height: 36px;
   border: 0;
   border-radius: 9px;
-  color: #608a4a;
-  background: #f0f6eb;
+  color: var(--accent-dark);
+  background: var(--surface-soft);
 }
 .append-cell:hover {
-  background: #e2efd8;
+  background: var(--accent-soft);
 }
 .cell-pending {
   font-size: 12px;
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .row-note {
   display: flex;
   align-items: flex-start;
   gap: 7px;
   font-size: 13px;
-  color: #7e8878;
+  color: var(--muted);
   padding-top: 8px;
   white-space: pre-wrap;
 }
@@ -433,13 +507,14 @@ function closeMenu(event: MouseEvent) {
 .action-popover {
   position: absolute;
   right: 0;
-  top: 34px;
+  top: calc(100% + 8px);
   z-index: 15;
-  background: white;
-  border: 1px solid #e2e8df;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px #22332214;
-  padding: 6px;
+  background: var(--popup-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--popup-radius);
+  box-shadow: var(--popup-shadow);
+  backdrop-filter: blur(20px);
+  padding: 7px;
   min-width: 205px;
 }
 .action-popover button {
@@ -447,15 +522,16 @@ function closeMenu(event: MouseEvent) {
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
+  min-height: 44px;
   border: 0;
   background: transparent;
-  border-radius: 7px;
+  border-radius: 12px;
   text-align: left;
   font-size: 13px;
 }
 .action-popover button:hover {
-  background: #f2f7ee;
+  background: var(--accent-soft);
 }
 .danger-text {
   color: #a8442a;
@@ -464,7 +540,7 @@ function closeMenu(event: MouseEvent) {
   outline-offset: 1px;
 }
 .sequence-cell.pending:not(.grouped) {
-  background: #eef7e8;
+  background: var(--surface-soft);
 }
 @media (max-width: 600px) {
   .row-caption {

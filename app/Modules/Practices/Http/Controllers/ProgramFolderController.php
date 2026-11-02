@@ -100,9 +100,19 @@ class ProgramFolderController
             if ($search = trim($input['q'] ?? '')) {
                 $query->whereRaw("replace(lower(title), 'ё', 'е') like ?", ['%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], mb_strtolower(str_replace('ё', 'е', $search))).'%']);
             }
+            $type = $kind === 'cycle' ? 'cycle' : 'document';
             if (! empty($input['folder_id'])) {
-                $type = $kind === 'cycle' ? 'cycle' : 'document';
                 $query->whereIn('id', DB::table('practice_program_folder_'.$type.'s')->where('folder_id', $input['folder_id'])->select($type.'_id'));
+            } else {
+                $query->whereNotExists(function ($membership) use ($table, $type) {
+                    $membership->selectRaw('1')
+                        ->from('practice_program_folder_'.$type.'s as membership')
+                        ->join('practice_program_folders as folders', 'folders.id', '=', 'membership.folder_id')
+                        ->whereColumn('membership.'.$type.'_id', $table.'.id')
+                        ->where('folders.workspace_id', $this->workspace->id())
+                        ->where('folders.user_id', $this->workspace->userId())
+                        ->whereNull('folders.archived_at');
+                });
             }
 
             return $query->select('id', 'title', 'theme', 'revision', 'archived_at', 'updated_at')->selectRaw("'".$kind."' as type");

@@ -45,8 +45,7 @@ const scopedDraftKey = computed(() => {
 });
 const taskContext = computed(() => ({
   name: name.value,
-  aliases: aliases.value
-    .split('\n')
+  aliases: [reference.value.alternate_name, ...aliases.value.split('\n')]
     .map((value) => value.trim())
     .filter(Boolean),
   category_ids: categoryIds.value,
@@ -122,6 +121,16 @@ function chooseImage(event: Event) {
         v-model="name"
         class="input"
         required
+        maxlength="160"
+        :disabled="disabled"
+      />
+    </div>
+    <div class="field">
+      <label class="label" :for="`${prefix}-alternate-name`">Альтернативное название</label>
+      <input
+        :id="`${prefix}-alternate-name`"
+        v-model="reference.alternate_name"
+        class="input"
         maxlength="160"
         :disabled="disabled"
       />
@@ -219,7 +228,7 @@ function chooseImage(event: Event) {
 <style scoped>
 .asana-fields {
   display: grid;
-  gap: 18px;
+  gap: var(--section-gap);
   min-width: 0;
 }
 .choice-group {
@@ -240,21 +249,22 @@ function chooseImage(event: Event) {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 10px;
-  background: #f7f9f6;
-  border-radius: 9px;
+  padding: 10px 12px;
+  background: var(--surface-soft);
+  border-radius: var(--field-radius);
   font-size: 0.85rem;
+  min-height: var(--control-height);
 }
 .choices input {
-  accent-color: #397a28;
+  accent-color: var(--accent);
 }
 .image-field {
   display: flex;
   gap: 16px;
   align-items: center;
-  padding: 14px;
-  background: #f7f9f6;
-  border-radius: 14px;
+  padding: 20px;
+  background: var(--surface-soft);
+  border-radius: var(--field-radius);
 }
 .image-field img {
   width: 80px;

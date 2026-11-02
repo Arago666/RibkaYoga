@@ -6,6 +6,7 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Media\Models\Asset;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\PublicApi\DocumentMediaAccess;
+use App\Modules\Practices\PublicApi\ReviewMediaAccess;
 use App\Modules\Sketchbook\PublicApi\SketchImages;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
@@ -136,6 +137,16 @@ class PrivateAssetStore implements AssetStore
         abort_unless(Str::isUuid($id) && Str::isUuid($documentId), 404);
         app(DocumentMediaAccess::class)->authorize($documentId, $id);
         $asset = Asset::findOrFail($id);
+        $disk = Storage::disk($asset->disk);
+        abort_unless($disk->exists($asset->original_path), 404);
+
+        return ['path' => $disk->path($asset->original_path), 'mime' => $asset->mime];
+    }
+
+    public function forReview(string $id, string $reviewId): array
+    {
+        app(ReviewMediaAccess::class)->authorize($reviewId, $id);
+        $asset = Asset::findOrFail(strtolower($id));
         $disk = Storage::disk($asset->disk);
         abort_unless($disk->exists($asset->original_path), 404);
 

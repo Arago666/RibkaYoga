@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '@/shared/AppShell.vue';
@@ -40,34 +41,37 @@ onMounted(load);
 <template>
   <AppShell section="practices"
     ><Head title="Моя история практики" />
-    <div class="top">
-      <h1>Моя история практики</h1>
-      <Link class="btn" href="/practices">К практикам</Link
-      ><a class="btn" href="/api/executions/export">Скачать CSV</a>
-    </div>
-    <label
+    <header class="page-header history-heading">
+      <h1 class="page-title">Моя история практики</h1>
+      <div class="history-actions">
+        <Link class="btn btn-secondary" href="/practices">К практикам</Link
+        ><a class="btn btn-secondary" href="/api/executions/export">Скачать CSV</a>
+      </div>
+    </header>
+    <label class="period-field"
       >Период
-      <select v-model="days" @change="load">
+      <AppSelect class="select" v-model="days" @change="load">
         <option value="1">День</option>
         <option value="7">Неделя</option>
         <option value="30">Месяц</option>
         <option value="">Всё время</option>
-      </select></label
+      </AppSelect></label
     >
-    <p v-if="error" role="alert">{{ error }}</p>
-    <p v-if="loading">Загружаем…</p>
+    <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
+    <p v-if="loading" class="muted" role="status">Загружаем…</p>
     <template v-if="summary"
-      ><div class="numbers">
+      ><div class="card numbers">
         <strong>{{ Math.round(summary.seconds / 60) }} минут</strong
         ><span>{{ summary.sessions }} сессий · {{ summary.completed }} завершено</span
         ><span>Часовой пояс: {{ timezone }}</span>
       </div>
       <BodyCoverage
+        class="card"
         :zones="summary.anatomy"
         :total="summary.seconds"
         :unclassified="summary.unclassified_seconds"
       />
-      <section>
+      <section class="card history-section">
         <h2>Регулярность</h2>
         <div class="calendar">
           <div v-for="(seconds, date) in summary.calendar" :key="date">
@@ -77,7 +81,7 @@ onMounted(load);
           <p v-if="!Object.keys(summary.calendar).length">История появится после первой практики.</p>
         </div>
       </section>
-      <section>
+      <section class="card history-section">
         <h2>Сессии</h2>
         <article v-for="row in rows" :key="row.id">
           <div>
@@ -114,43 +118,83 @@ onMounted(load);
   >
 </template>
 <style scoped>
-.top,
+.history-actions,
 .numbers {
   display: flex;
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  box-shadow: var(--panel-shadow);
+  margin: var(--section-gap) 0;
 }
-.top h1 {
-  margin-right: auto;
+.history-heading .page-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.history-actions {
+  flex: none;
+  gap: 10px;
+}
+.period-field {
+  display: grid;
+  gap: 8px;
+  max-width: 260px;
+  font-size: 14px;
+  font-weight: 600;
 }
 .numbers {
   background: white;
-  border: 1px solid #e0e7dc;
-  padding: 20px;
-  border-radius: 15px;
-  margin: 20px 0;
+  border: 1px solid var(--line);
+  padding: var(--panel-padding);
+  border-radius: var(--panel-radius);
+  margin: var(--section-gap) 0;
+  box-shadow: var(--panel-shadow);
 }
 .numbers strong {
-  font-size: 1.6rem;
-  color: #396e28;
+  font-size: 32px;
+  color: var(--accent-dark);
+  font-weight: 500;
+  letter-spacing: -0.04em;
 }
 section {
-  margin-top: 28px;
+  margin-top: var(--section-gap);
+}
+section h2 {
+  font-size: 19px;
+  margin-bottom: 16px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 article {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: center;
-  background: white;
-  border-bottom: 1px solid #e0e7dc;
-  padding: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+article > div {
+  min-width: 0;
+}
+article > span {
+  flex: none;
+  font-size: 14px;
+}
+article p {
+  margin-top: 7px;
+  line-height: 1.6;
 }
 article p,
 .muted {
   font-size: 0.85rem;
-  color: #68725f;
+  color: var(--muted);
 }
 .calendar {
   display: flex;
@@ -160,16 +204,38 @@ article p,
 .calendar > div {
   display: grid;
   gap: 6px;
-  background: #edf5e8;
+  background: var(--surface-soft);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: var(--field-radius);
+  border: 1px solid var(--line);
 }
 .calendar time {
   font-size: 0.8rem;
 }
 @media (max-width: 550px) {
+  .history-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .history-actions,
+  .period-field {
+    width: 100%;
+    max-width: none;
+  }
+  .history-actions .btn {
+    flex: 1;
+  }
   article {
     display: block;
+  }
+  article > span {
+    display: block;
+    margin-top: 12px;
+  }
+  .numbers {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 }
 </style>

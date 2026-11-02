@@ -1,13 +1,29 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Activity } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import BodyCoverage from '../BodyCoverage.vue';
+import MetronomeDialog from '../components/MetronomeSettings.vue';
+import {
+  defaultMetronome,
+  normalizeMetronome,
+  metronomeBeatLabels,
+  metronomeClock,
+  type MetronomeSettings,
+} from '../metronome';
+import { MetronomeEngine, type MetronomeState } from '../metronomeEngine';
 import type { ExecutionPlan, ExecutionProgress, ExecutionSession } from '../types';
 const props = defineProps<{ documentId?: string; publicToken?: string }>();
 const page = usePage();
+const metronome = ref<MetronomeSettings>(defaultMetronome());
+const metronomeOpen = ref(false);
+const metronomeState = ref<MetronomeState | null>(null);
+const metronomeEngine = new MetronomeEngine((state) => (metronomeState.value = state));
+const metronomeStarted = ref(false);
 const plan = ref<ExecutionPlan | null>(null),
   session = ref<ExecutionSession | null>(null),
   loading = ref(true),
@@ -18,7 +34,14 @@ const plan = ref<ExecutionPlan | null>(null),
 const mode = ref<'teach' | 'practice'>(
   new URLSearchParams(location.search).get('mode') === 'teach' ? 'teach' : 'practice',
 );
-const progress = ref<ExecutionProgress>({ step: 0, seconds_by_step: [], completed: [] });
+const progress = ref<ExecutionProgress>({
+  step: 0,
+  seconds_by_step: [],
+  rest_seconds_by_step: [],
+  completed: [],
+  phase: 'pose',
+  phase_elapsed: 0,
+});
 const active = ref(0),
   running = ref(false),
   started = ref(false),
@@ -35,9 +58,27 @@ const preparationSeconds = ref(0),
 let prepDeadline = 0,
   prepSatisfied = false;
 const teacherTargets = ref<Record<number, number>>({});
+const restTargets = ref<Record<number, number>>({});
 const current = computed(() => plan.value?.steps[progress.value.step]);
 const next = computed(() => plan.value?.steps[progress.value.step + 1]);
 const stepSeconds = computed(() => progress.value.seconds_by_step[progress.value.step] || 0);
+const resting = computed(() => progress.value.phase === 'rest');
+const phaseSeconds = computed(
+  () =>
+    progress.value.phase_elapsed ??
+    (resting.value ? progress.value.rest_seconds_by_step?.[progress.value.step] || 0 : stepSeconds.value),
+);
+const restDuration = computed(() => (next.value ? current.value?.rest_seconds || 0 : 0));
+const stagePose = computed(() => (resting.value ? next.value : current.value));
+const metronomeTrackerValue = computed(() => {
+  const tracker = metronome.value.tracker;
+  const state = metronomeStarted.value ? metronomeState.value : null;
+  if (tracker.mode === 'bars') {
+    const bars = state?.bar ?? (tracker.start_from_one && !tracker.countdown ? 1 : 0);
+    return `${tracker.countdown ? Math.max(0, tracker.bars - bars) : bars} тактов`;
+  }
+  return metronomeClock(state ? (state.remaining ?? state.elapsed) : tracker.countdown ? tracker.seconds : 0);
+});
 const baseTarget = computed(() =>
   current.value?.advance_mode === 'time'
     ? current.value.duration_seconds
@@ -45,9 +86,13 @@ const baseTarget = computed(() =>
       ? (current.value.breath_count || 0) * breathSeconds.value
       : null,
 );
-const target = computed(() => teacherTargets.value[progress.value.step] ?? baseTarget.value);
+const target = computed(() =>
+  resting.value
+    ? (restTargets.value[progress.value.step] ?? restDuration.value)
+    : (teacherTargets.value[progress.value.step] ?? baseTarget.value),
+);
 const remaining = computed(() =>
-  target.value ? Math.max(0, Math.ceil(target.value - stepSeconds.value)) : null,
+  target.value !== null ? Math.max(0, Math.ceil(target.value - phaseSeconds.value)) : null,
 );
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 const auth = page.props.auth as { user?: { id: number }; workspace?: { id: string } } | undefined;
@@ -67,6 +112,8 @@ interface StoredDraft {
   preparationSeconds?: number;
   breathSeconds?: number;
   teacherTargets?: Record<number, number>;
+  restTargets?: Record<number, number>;
+  metronome?: MetronomeSettings;
 }
 let pendingStartId: string | null = null,
   ticker: ReturnType<typeof setInterval> | undefined,
@@ -89,7 +136,10 @@ const planned = computed(() => {
     unknownTimeCount = 0,
     total = 0,
     unclassified = 0;
-  for (const step of plan.value?.steps ?? []) {
+  let rest = 0;
+  const steps = plan.value?.steps ?? [];
+  for (const [index, step] of steps.entries()) {
+    if (index < steps.length - 1) rest += step.rest_seconds || 0;
     const seconds =
       step.advance_mode === 'time'
         ? step.duration_seconds
@@ -113,7 +163,8 @@ const planned = computed(() => {
     zones: [...zones.values()],
     unknownCount,
     unknownTimeCount,
-    total: unknownTimeCount ? null : total,
+    total: unknownTimeCount ? null : total + rest,
+    rest,
     unclassified,
   };
 });
@@ -160,6 +211,8 @@ function draft(force = false) {
         preparationSeconds: preparationSeconds.value,
         breathSeconds: breathSeconds.value,
         teacherTargets: teacherTargets.value,
+        restTargets: restTargets.value,
+        metronome: metronome.value,
       }),
     );
   } catch {
@@ -179,10 +232,13 @@ function localState(): StoredDraft {
 function adopt(remote: ExecutionSession, local?: StoredDraft) {
   session.value = remote;
   plan.value = remote.plan;
+  metronome.value = normalizeMetronome(remote.plan.metronome);
   mode.value = remote.mode;
   pendingStartId = remote.id;
   active.value = remote.active_seconds;
   progress.value = JSON.parse(JSON.stringify(remote.progress));
+  progress.value.phase ??= 'pose';
+  progress.value.rest_seconds_by_step ??= [];
   const ended = ['completed', 'interrupted'].includes(remote.status);
   const samePlan =
     local?.plan?.steps.length === remote.plan.steps.length &&
@@ -197,6 +253,9 @@ function adopt(remote: ExecutionSession, local?: StoredDraft) {
     localTime - remote.active_seconds <= 60 &&
     remote.progress.seconds_by_step.every(
       (seconds, index) => Number(candidate.seconds_by_step[index] ?? 0) >= seconds,
+    ) &&
+    (remote.progress.rest_seconds_by_step ?? []).every(
+      (seconds, index) => Number(candidate.rest_seconds_by_step?.[index] ?? 0) >= seconds,
     );
   if (!ended && dominates && candidate) {
     const count = remote.plan.steps.length;
@@ -205,17 +264,46 @@ function adopt(remote: ExecutionSession, local?: StoredDraft) {
       (_, index) =>
         Math.max(Number(candidate.seconds_by_step[index] ?? 0), remote.progress.seconds_by_step[index] ?? 0),
     );
-    if (merged.length <= count && merged.every((value) => Number.isFinite(value) && value >= 0)) {
+    const mergedRest = Array.from(
+      {
+        length: Math.max(
+          candidate.rest_seconds_by_step?.length ?? 0,
+          remote.progress.rest_seconds_by_step?.length ?? 0,
+        ),
+      },
+      (_, index) =>
+        Math.max(
+          Number(candidate.rest_seconds_by_step?.[index] ?? 0),
+          remote.progress.rest_seconds_by_step?.[index] ?? 0,
+        ),
+    );
+    if (
+      merged.length <= count &&
+      mergedRest.length <= count &&
+      [...merged, ...mergedRest].every((value) => Number.isFinite(value) && value >= 0)
+    ) {
       progress.value = {
         step: Math.max(0, Math.min(count - 1, Number(candidate.step) || 0)),
         seconds_by_step: merged,
+        rest_seconds_by_step: mergedRest,
+        phase: candidate.phase === 'rest' ? 'rest' : 'pose',
+        phase_elapsed: Math.max(
+          0,
+          Math.min(
+            86400,
+            Number(
+              candidate.phase_elapsed ??
+                (candidate.phase === 'rest' ? mergedRest[candidate.step] : merged[candidate.step]),
+            ) || 0,
+          ),
+        ),
         completed: [...new Set([...remote.progress.completed, ...candidate.completed])].filter(
           (index) => Number.isInteger(index) && index >= 0 && index < count,
         ),
       };
       active.value = Math.max(
         localTime,
-        merged.reduce((sum, value) => sum + value, 0),
+        [...merged, ...mergedRest].reduce((sum, value) => sum + value, 0),
       );
     }
   }
@@ -250,6 +338,12 @@ async function persist(status = 'paused') {
                 seconds_by_step: Array.from({ length: progress.value.seconds_by_step.length }, (_, i) =>
                   Math.floor(progress.value.seconds_by_step[i] || 0),
                 ),
+                rest_seconds_by_step: Array.from(
+                  { length: progress.value.rest_seconds_by_step?.length ?? 0 },
+                  (_, index) => Math.floor(progress.value.rest_seconds_by_step?.[index] || 0),
+                ),
+                phase: resting.value ? 'rest' : 'pose',
+                phase_elapsed: Math.floor(phaseSeconds.value),
               },
             }),
             keepalive: nextStatus === 'paused',
@@ -302,6 +396,7 @@ async function begin() {
             expected_revision: plan.value.revision,
             mode: mode.value,
             timezone,
+            metronome: metronome.value,
           }),
         })
       ).data;
@@ -309,6 +404,24 @@ async function begin() {
       if (finished.value) return;
     }
     if (disposed) return;
+    if (document.hidden || !navigator.onLine) {
+      notice.value = 'Практика готова. Вернитесь на страницу и нажмите «Продолжить».';
+      await persist('paused');
+      return;
+    }
+    if (metronome.value.enabled) {
+      try {
+        await metronomeEngine.start(metronome.value, metronomeStarted.value);
+        metronomeStarted.value = true;
+      } catch {
+        notice.value = 'Метроном недоступен. Таймер практики продолжит работать.';
+      }
+    }
+    if (disposed || document.hidden || !navigator.onLine) {
+      metronomeEngine.stop();
+      if (!disposed) await persist('paused');
+      return;
+    }
     preparing.value = false;
     started.value = true;
     finished.value = false;
@@ -332,7 +445,14 @@ async function begin() {
 }
 async function start() {
   if (starting.value || closing || running.value || !plan.value?.steps.length) return;
-  await unlockSound();
+  await Promise.all([
+    unlockSound(),
+    metronome.value.enabled
+      ? metronomeEngine.unlock().catch(() => {
+          notice.value = 'Не удалось включить звук метронома. Практика остаётся доступной.';
+        })
+      : Promise.resolve(),
+  ]);
   if (preparing.value && prepPaused.value) {
     prepDeadline = performance.now() + prepLeft.value * 1000;
     prepPaused.value = false;
@@ -357,8 +477,15 @@ function accrue(now = performance.now()): boolean {
   last = now;
   if (delta > 3) return false;
   active.value += delta;
-  progress.value.seconds_by_step[progress.value.step] =
-    (progress.value.seconds_by_step[progress.value.step] || 0) + delta;
+  progress.value.phase_elapsed = phaseSeconds.value + delta;
+  if (resting.value) {
+    progress.value.rest_seconds_by_step ??= [];
+    progress.value.rest_seconds_by_step[progress.value.step] =
+      (progress.value.rest_seconds_by_step[progress.value.step] || 0) + delta;
+  } else {
+    progress.value.seconds_by_step[progress.value.step] =
+      (progress.value.seconds_by_step[progress.value.step] || 0) + delta;
+  }
   return true;
 }
 function pause() {
@@ -369,6 +496,7 @@ function pause() {
   }
   accrue();
   running.value = false;
+  metronomeEngine.stop();
   void wake?.release();
   wake = null;
   void audio?.suspend();
@@ -376,20 +504,51 @@ function pause() {
 }
 function extend() {
   if (mode.value !== 'teach' || !started.value) return;
-  teacherTargets.value[progress.value.step] = Math.max(target.value ?? 0, stepSeconds.value) + 30;
+  const targets = resting.value ? restTargets : teacherTargets;
+  targets.value[progress.value.step] = Math.max(target.value ?? 0, phaseSeconds.value) + 30;
+  draft(true);
+}
+function adjustTime(seconds: number) {
+  if (!started.value || preparing.value || finished.value) return;
+  const targets = resting.value ? restTargets : teacherTargets;
+  targets.value[progress.value.step] = Math.min(
+    86400,
+    Math.max(resting.value ? 0 : 1, (target.value ?? 60) + seconds),
+  );
   draft(true);
 }
 function move(delta: number, complete = false) {
   if (!plan.value || !started.value || starting.value || preparing.value || finished.value) return;
   accrue();
-  if (complete && !progress.value.completed.includes(progress.value.step))
-    progress.value.completed.push(progress.value.step);
+  if (delta < 0 && resting.value) {
+    progress.value.phase = 'pose';
+    progress.value.phase_elapsed = 0;
+    bell();
+    draft(true);
+    void persist(running.value ? 'running' : 'paused');
+    return;
+  }
+  if (complete && !resting.value) {
+    if (!progress.value.completed.includes(progress.value.step))
+      progress.value.completed.push(progress.value.step);
+    if (restDuration.value > 0) {
+      progress.value.phase = 'rest';
+      progress.value.phase_elapsed = 0;
+      last = performance.now();
+      bell();
+      draft(true);
+      void persist(running.value ? 'running' : 'paused');
+      return;
+    }
+  }
   const index = progress.value.step + delta;
   if (index >= plan.value.steps.length) {
     void finish(true);
     return;
   }
   progress.value.step = Math.max(0, index);
+  progress.value.phase = 'pose';
+  progress.value.phase_elapsed = 0;
   last = performance.now();
   bell();
   draft(true);
@@ -400,6 +559,7 @@ async function finish(complete: boolean) {
   closing = true;
   accrue();
   running.value = false;
+  metronomeEngine.stop();
   void wake?.release();
   wake = null;
   bell();
@@ -429,11 +589,11 @@ function tick() {
     running.value &&
     mode.value === 'practice' &&
     auto.value &&
-    target.value &&
-    stepSeconds.value >= target.value
+    target.value !== null &&
+    phaseSeconds.value >= target.value
   )
-    move(1, true);
-  if (++syncCounter >= 20) {
+    move(1, !resting.value);
+  if (++syncCounter >= 100) {
     syncCounter = 0;
     if (started.value && !finished.value) void persist(running.value ? 'running' : 'paused');
   }
@@ -479,8 +639,18 @@ async function restart() {
   pendingStartId = null;
   prepSatisfied = false;
   active.value = 0;
-  progress.value = { step: 0, seconds_by_step: [], completed: [] };
+  progress.value = {
+    step: 0,
+    seconds_by_step: [],
+    rest_seconds_by_step: [],
+    completed: [],
+    phase: 'pose',
+    phase_elapsed: 0,
+  };
   teacherTargets.value = {};
+  restTargets.value = {};
+  metronomeEngine.stop(true);
+  metronomeStarted.value = false;
   try {
     plan.value = (
       await api<{ data: ExecutionPlan }>(
@@ -539,6 +709,8 @@ onMounted(async () => {
     preparationSeconds.value = Math.max(0, Math.min(120, stored?.preparationSeconds ?? 0));
     breathSeconds.value = Math.max(0, Math.min(60, stored?.breathSeconds ?? 0));
     teacherTargets.value = stored?.teacherTargets ?? {};
+    restTargets.value = stored?.restTargets ?? {};
+    if (!session.value) metronome.value = normalizeMetronome(stored?.metronome ?? plan.value?.metronome);
   } catch (failure) {
     error.value =
       failure instanceof Error
@@ -547,7 +719,7 @@ onMounted(async () => {
   } finally {
     loading.value = false;
     last = performance.now();
-    ticker = setInterval(tick, 500);
+    ticker = setInterval(tick, 100);
     document.addEventListener('visibilitychange', visibility);
     window.addEventListener('keydown', keydown);
     window.addEventListener('offline', offline);
@@ -565,34 +737,48 @@ onBeforeUnmount(() => {
   draft(true);
   void wake?.release();
   void audio?.close();
+  metronomeEngine.dispose();
 });
+watch(running, (value) => {
+  if (!value) metronomeEngine.stop();
+});
+watch(metronome, () => draft(true), { deep: true });
 </script>
 <template>
   <AppShell section="practices"
     ><Head :title="plan?.title || 'Выполнение практики'" />
-    <div class="player-heading">
-      <Link :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`">← К листу</Link>
-      <h1>{{ plan?.title || 'Практика' }}</h1>
-      <Link v-if="!publicToken" href="/practice-history">История</Link>
-    </div>
-    <p v-if="loading">Загружаем план…</p>
+    <header class="page-header player-heading">
+      <div>
+        <h1 class="page-title">{{ plan?.title || 'Практика' }}</h1>
+      </div>
+      <div class="player-header-actions">
+        <Link
+          class="btn btn-secondary"
+          :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
+          >← К листу</Link
+        >
+        <Link class="btn btn-secondary" v-if="!publicToken" href="/practice-history">История</Link>
+      </div>
+    </header>
+    <p v-if="loading" class="muted" role="status">Загружаем план…</p>
     <p v-if="error" class="alert" role="alert">{{ error }}</p>
     <p v-if="notice" class="player-notice" role="status">{{ notice }}</p>
     <template v-if="plan && !loading">
       <div class="player-settings">
-        <label
+        <label class="player-field"
           >Режим
-          <select v-model="mode" :disabled="started || starting || preparing">
+          <AppSelect class="select" v-model="mode" :disabled="started || starting || preparing">
             <option value="teach">Вести занятие</option>
             <option value="practice">Практиковать</option>
-          </select></label
-        ><label><input v-model="sound" type="checkbox" /> Сигнал</label
-        ><label><input v-model="showNames" type="checkbox" /> Названия</label
-        ><label v-if="mode === 'practice'"
+          </AppSelect></label
+        ><label class="check-label"><input v-model="sound" type="checkbox" /> Сигнал</label
+        ><label class="check-label"><input v-model="showNames" type="checkbox" /> Названия</label
+        ><label class="check-label" v-if="mode === 'practice'"
           ><input v-model="auto" type="checkbox" /> Переход по параметрам</label
-        ><button class="btn" @click="fullscreen">Полный экран</button>
-        <label
+        ><button class="btn btn-secondary" @click="fullscreen">Полный экран</button>
+        <label class="player-field preparation-field"
           >Подготовка перед стартом, секунд<input
+            class="input"
             v-model.number="preparationSeconds"
             type="number"
             min="0"
@@ -601,42 +787,53 @@ onBeforeUnmount(() => {
         /></label>
       </div>
       <div v-if="userId" class="player-settings">
-        <Link href="/practices" class="btn">Создать мою практику</Link
-        ><Link :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`" class="btn"
+        <Link href="/practices" class="btn btn-secondary">Создать мою практику</Link
+        ><Link
+          :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
+          class="btn btn-secondary"
           >Лист и разрешённое копирование</Link
         ><span class="muted">Копия создаётся в вашем пространстве только при разрешении автора.</span>
       </div>
-      <details v-if="!started" class="planned-coverage">
-        <summary>Плановые зоны и длительность</summary>
-        <p>
-          Шагов: {{ plan.steps.length }}.
-          {{
-            planned.total === null
-              ? 'Общая длительность не задана для всех шагов.'
-              : `По заданным параметрам: ${clock(planned.total)}.`
-          }}
-        </p>
-        <BodyCoverage
-          :zones="planned.zones"
-          :total="planned.total"
-          :unclassified="planned.unclassified"
-          planned
-          :total-steps="plan.steps.length"
-          :unknown-count="planned.unknownCount"
-          :unknown-time-count="planned.unknownTimeCount"
-        />
+      <details v-if="!started" class="planned-coverage disclosure">
+        <summary>
+          <span class="disclosure-icon"><Activity aria-hidden="true" /></span>
+          <span class="disclosure-copy"><strong>Плановые зоны и длительность</strong></span>
+        </summary>
+        <div class="coverage-body disclosure-body">
+          <p>
+            Шагов: {{ plan.steps.length }}.
+            {{
+              planned.total === null
+                ? 'Общая длительность не задана для всех шагов.'
+                : `По заданным параметрам: ${clock(planned.total)}.`
+            }}
+          </p>
+          <p v-if="planned.rest">В том числе отдых между асанами: {{ clock(planned.rest) }}.</p>
+          <BodyCoverage
+            :zones="planned.zones"
+            :total="planned.total"
+            :unclassified="planned.unclassified"
+            planned
+            :total-steps="plan.steps.length"
+            :unknown-count="planned.unknownCount"
+            :unknown-time-count="planned.unknownTimeCount"
+          />
+        </div>
       </details>
       <p v-if="publicToken" class="muted">Прогресс этой публикации хранится только на устройстве.</p>
       <div v-if="current && !finished" class="pose-stage">
         <p>
           Шаг {{ progress.step + 1 }} из {{ plan.steps.length }}
+          <span v-if="resting"> · Отдых</span>
           <span v-if="current.side">· {{ current.side === 'left' ? 'Левая сторона' : 'Правая сторона' }}</span
           ><span v-if="current.repeat > 1"> · Повтор {{ current.repeat }}</span>
         </p>
-        <img v-if="current.image_url" :src="current.image_url" :alt="current.name" />
-        <div v-else class="text-pose">{{ current.name }}</div>
-        <h2 v-if="showNames">{{ current.name }}</h2>
-        <p v-if="mode === 'teach' && current.note">{{ current.note }}</p>
+        <img v-if="stagePose?.image_url" :src="stagePose.image_url" :alt="stagePose.name" />
+        <div v-else class="text-pose">{{ stagePose?.name }}</div>
+        <h2 v-if="resting">Отдых</h2>
+        <h2 v-else-if="showNames">{{ current.name }}</h2>
+        <p v-if="resting && showNames">Далее — {{ next?.name }}</p>
+        <p v-if="!resting && mode === 'teach' && current.note">{{ current.note }}</p>
         <div v-if="preparing" class="timer" role="timer">{{ clock(Math.ceil(prepLeft)) }}</div>
         <p v-if="preparing">
           {{
@@ -644,41 +841,98 @@ onBeforeUnmount(() => {
           }}
         </p>
         <div v-else class="timer" aria-live="off">
-          {{ remaining === null ? clock(stepSeconds) : clock(remaining) }}
+          {{ remaining === null ? clock(phaseSeconds) : clock(remaining) }}
         </div>
-        <p v-if="current.advance_mode === 'manual' || !target">Ручной переход</p>
-        <label v-if="current.advance_mode === 'breaths'"
+        <p v-if="!preparing && target !== null" class="phase-duration">
+          {{ resting ? 'Отдых' : 'Асана' }} · {{ clock(target) }}
+        </p>
+        <p v-if="!resting && (current.advance_mode === 'manual' || target === null)">Ручной переход</p>
+        <label class="breath-setting" v-if="!resting && current.advance_mode === 'breaths'"
           >Секунд на дыхательный цикл
-          <input v-model.number="breathSeconds" type="number" min="0" max="60" /> ·
+          <input class="input" v-model.number="breathSeconds" type="number" min="0" max="60" /> ·
           {{ current.breath_count }} циклов
           <span v-if="running && breathSeconds > 0">{{
             stepSeconds % breathSeconds < breathSeconds / 2 ? 'Вдох' : 'Выдох'
           }}</span></label
         >
-        <p v-if="current.advance_mode === 'breaths' && breathSeconds <= 0" class="muted">
+        <p v-if="!resting && current.advance_mode === 'breaths' && breathSeconds <= 0" class="muted">
           Темп дыхания не выбран. Переход ручной; секунды не угадываются.
         </p>
+        <div v-if="metronome.enabled" class="practice-metronome" aria-label="Метроном практики">
+          <div class="metronome-dots" aria-hidden="true">
+            <span
+              v-for="(beat, index) in metronome.pattern"
+              :key="index"
+              :class="[
+                'metronome-dot',
+                beat,
+                { current: running && metronomeState?.running && metronomeState.beat === index },
+              ]"
+              :title="metronomeBeatLabels[beat]"
+              >{{ beat === 'strong' ? '›' : beat === 'accent' ? '·' : '' }}</span
+            >
+          </div>
+          <p>
+            <strong>{{ metronomeStarted && metronomeState ? metronomeState.bpm : metronome.bpm }} BPM</strong>
+            · {{ metronome.beats }}/{{ metronome.beat_unit }}
+            <span v-if="metronomeState?.countingIn"> · Предварительный отсчёт</span>
+          </p>
+          <p v-if="metronome.tracker.mode !== 'off'">Метроном · {{ metronomeTrackerValue }}</p>
+          <p v-if="metronomeState?.reason === 'limit'" class="muted">
+            Метроном завершил отсчёт. Практика продолжается.
+          </p>
+        </div>
         <div class="player-controls">
-          <button class="btn" :disabled="progress.step === 0" @click="move(-1)">← Назад</button
-          ><button
+          <button
+            class="btn btn-secondary"
+            :disabled="!started || (progress.step === 0 && !resting)"
+            @click="move(-1)"
+          >
+            ← Назад
+          </button>
+          <button
+            v-if="started && !preparing"
+            class="btn btn-secondary adjust-time"
+            @click="adjustTime(-15)"
+            aria-label="Уменьшить текущее время на 15 секунд"
+          >
+            −15 с
+          </button>
+          <button
             v-if="!running && (!preparing || prepPaused)"
-            class="btn primary"
+            class="btn btn-primary"
             :disabled="starting || closing"
             @click="start"
           >
             {{ starting ? 'Запускаем…' : started || preparing ? 'Продолжить' : 'Начать' }}</button
-          ><button v-else class="btn primary" @click="pause">Пауза</button
-          ><button
-            class="btn"
+          ><button v-else class="btn btn-primary" @click="pause">Пауза</button>
+          <button
+            v-if="started && !preparing"
+            class="btn btn-secondary adjust-time"
+            @click="adjustTime(15)"
+            aria-label="Добавить 15 секунд к текущему времени"
+          >
+            +15 с
+          </button>
+          <button
+            class="btn btn-secondary"
             :disabled="!started || starting || closing || preparing"
             @click="move(1, true)"
           >
-            {{ progress.step === plan.steps.length - 1 ? 'Завершить' : 'Далее →' }}
+            {{
+              resting
+                ? 'Пропустить отдых →'
+                : progress.step === plan.steps.length - 1
+                  ? 'Завершить'
+                  : 'Далее →'
+            }}
           </button>
-          <button v-if="mode === 'teach' && started" class="btn" @click="extend">+30 секунд к таймеру</button>
+          <button v-if="mode === 'teach' && started" class="btn btn-secondary" @click="extend">
+            +30 секунд к таймеру
+          </button>
           <button
             v-if="preparing"
-            class="btn"
+            class="btn btn-secondary"
             @click="
               preparing = false;
               prepPaused = false;
@@ -687,6 +941,14 @@ onBeforeUnmount(() => {
             Отменить подготовку
           </button>
         </div>
+        <button
+          v-if="!started && !preparing"
+          class="btn btn-secondary metronome-trigger"
+          :disabled="starting"
+          @click="metronomeOpen = true"
+        >
+          {{ metronome.enabled ? 'Настроить метроном' : '+ Добавить метроном' }}
+        </button>
         <div v-if="next" class="next-pose">
           <img
             v-if="next.image_url"
@@ -697,13 +959,17 @@ onBeforeUnmount(() => {
         <p>
           Активное время: {{ clock(active) }} <span class="muted">{{ saving ? '· сохраняется…' : '' }}</span>
         </p>
-        <button v-if="started" class="btn" @click="finish(false)">Закончить досрочно</button>
+        <button v-if="started" class="btn btn-ghost" @click="finish(false)">Закончить досрочно</button>
       </div>
       <section v-else-if="finished" class="pose-stage">
         <h2>Сессия сохранена</h2>
         <p>Активное время {{ clock(active) }}. Выполнено {{ progress.completed.length }} шагов.</p>
-        <Link v-if="!publicToken" class="btn primary" href="/practice-history">Посмотреть сводку зон</Link>
-        <button class="btn" :disabled="starting" @click="restart">Подготовить новый запуск</button>
+        <Link v-if="!publicToken" class="btn btn-primary" href="/practice-history"
+          >Посмотреть сводку зон</Link
+        >
+        <button class="btn btn-secondary" :disabled="starting" @click="restart">
+          Подготовить новый запуск
+        </button>
       </section>
       <p v-else>В этой практике нет заполненных шагов. Добавьте асаны или текст в редакторе.</p>
       <p class="muted">
@@ -711,6 +977,12 @@ onBeforeUnmount(() => {
         движения или дыхание.
       </p>
     </template>
+    <MetronomeDialog
+      :open="metronomeOpen"
+      v-model="metronome"
+      :authenticated="Boolean(userId)"
+      @close="metronomeOpen = false"
+    />
   </AppShell>
 </template>
 <style scoped>
@@ -722,31 +994,117 @@ onBeforeUnmount(() => {
   align-items: center;
   flex-wrap: wrap;
 }
+.phase-duration {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 14px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 13px;
+}
+.practice-metronome {
+  margin: 20px auto;
+  max-width: 520px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-soft);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.metronome-dots {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.metronome-dot {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #d5ecdd;
+  border: 1px solid #c0dfca;
+  font-size: 25px;
+  line-height: 1;
+  color: var(--accent-dark);
+}
+.metronome-dot.mute {
+  background: transparent;
+  border-style: dashed;
+}
+.metronome-dot.accent,
+.metronome-dot.strong {
+  border: 2px solid var(--accent-dark);
+}
+.metronome-dot.current {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgb(42 196 90 / 14%);
+}
+.metronome-trigger {
+  margin: -4px 0 16px;
+}
 .player-heading {
   justify-content: space-between;
 }
 .player-heading h1 {
-  font-size: 1.4rem;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .player-settings {
   background: white;
-  padding: 14px;
-  border-radius: 16px;
-  margin: 18px 0;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  margin: var(--section-gap) 0;
+  box-shadow: var(--panel-shadow);
 }
 .player-settings label {
   display: flex;
   align-items: center;
   gap: 7px;
+  min-height: 44px;
+  min-width: 0;
+  font-size: 14px;
+}
+.player-settings .player-field {
+  display: grid;
+  flex: 0 1 220px;
+}
+.player-settings .preparation-field {
+  flex-basis: 270px;
+}
+.player-settings input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-dark);
 }
 .pose-stage {
   text-align: center;
   background: white;
-  border: 1px solid #e2e8dd;
-  border-radius: 22px;
-  padding: 24px;
-  max-width: 820px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  max-width: none;
   margin: auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  box-shadow: var(--panel-shadow);
+  width: 100%;
+}
+.pose-stage > p {
+  margin: 12px 0;
+  line-height: 1.6;
+}
+.pose-stage h2 {
+  font-size: 19px;
+  margin: 16px 0;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .pose-stage img {
   display: block;
@@ -760,9 +1118,11 @@ onBeforeUnmount(() => {
   padding: 80px 10px;
 }
 .timer {
-  font-size: 3rem;
+  font-size: clamp(54px, 6.4vw, 78px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
   font-variant-numeric: tabular-nums;
-  color: #356927;
+  color: var(--text);
 }
 .player-controls {
   justify-content: center;
@@ -770,31 +1130,29 @@ onBeforeUnmount(() => {
 }
 .muted {
   font-size: 0.85rem;
-  color: #687160;
+  color: var(--muted);
 }
 .alert {
   color: #992c28;
   background: #fff0ee;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: var(--field-radius);
 }
 .player-notice {
-  background: #eef7e9;
+  background: var(--accent-soft);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: var(--field-radius);
   margin: 10px 0;
 }
 .planned-coverage {
-  padding: 14px;
-  border: 1px solid #dce5d7;
-  background: white;
-  border-radius: 12px;
-  margin: 15px 0;
+  margin: var(--section-gap) 0;
 }
-.planned-coverage summary {
-  cursor: pointer;
-  font-weight: 600;
-  padding: 0.5rem 0;
+.coverage-body {
+  display: grid;
+  gap: 16px;
+}
+.coverage-body > p {
+  line-height: 1.6;
 }
 .next-pose {
   display: flex;
@@ -802,7 +1160,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 12px;
   margin: 12px 0;
-  color: #687160;
+  color: var(--muted);
 }
 .pose-stage .next-pose img {
   width: 76px;
@@ -811,18 +1169,39 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 .pose-stage input[type='number'] {
-  width: 65px;
+  width: 80px;
+}
+.breath-setting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
 }
 @media (max-width: 500px) {
   .pose-stage {
-    padding: 14px;
+    padding: var(--panel-padding);
   }
   .pose-stage img {
     height: 260px;
   }
   .player-heading h1 {
     width: 100%;
+    flex-basis: 100%;
     order: 3;
+  }
+  .player-settings {
+    padding: var(--panel-padding);
+    gap: 10px 16px;
+  }
+  .player-settings .player-field,
+  .player-settings > .btn {
+    flex: 1 1 100%;
+  }
+  .player-settings .btn,
+  .player-controls .btn {
+    white-space: normal;
   }
   .player-controls {
     gap: 7px;
@@ -830,5 +1209,14 @@ onBeforeUnmount(() => {
   .player-controls .btn {
     flex: 1;
   }
+}
+.player-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.player-heading > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 </style>

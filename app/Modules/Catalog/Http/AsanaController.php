@@ -6,7 +6,6 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\Models\Asana;
 use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Catalog\Services\CatalogQuery;
 use App\Modules\Catalog\Services\CatalogReader;
 use App\Modules\Catalog\Services\Classification;
@@ -152,7 +151,7 @@ class AsanaController
                 $card = $source->replicate(['id', 'import_key', 'import_source', 'created_at', 'updated_at', 'archived_at']);
                 $card->setRelations([]);
                 $card->forceFill(['name' => trim($input['name']), 'normalized_name' => Names::normalize($input['name']),
-                    'normalized_search_text' => Names::normalize(implode(' ', [$input['name'], $source->sanskrit_cyrillic ?? '', $source->sanskrit_latin ?? '', ...$source->aliases->pluck('name')->all()])),
+                    'normalized_search_text' => Names::normalize(implode(' ', [$input['name'], $source->alternate_name ?? '', $source->sanskrit_cyrillic ?? '', $source->sanskrit_latin ?? '', ...$source->aliases->pluck('name')->all()])),
                     'current_image_asset_id' => $asset['id'], 'revision' => 1, 'created_by' => $this->workspace->userId(), 'updated_by' => $this->workspace->userId()])->save();
                 $card->aliases()->createMany($source->aliases->map->only(['name', 'normalized_name'])->all());
                 $card->categories()->sync($source->categories->pluck('id')->all());
@@ -231,7 +230,7 @@ class AsanaController
             }
             $request->merge(['drawing_source' => $source]);
         }
-        foreach (['aliases', 'category_ids', 'collection_ids', 'relations', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations'] as $field) {
+        foreach (['aliases', 'category_ids', 'collection_ids', 'relations', 'steps', 'teacher_cues', 'benefits', 'equipment', 'precautions', 'adaptations'] as $field) {
             if (is_string($request->input($field))) {
                 $decoded = json_decode($request->input($field), true);
                 if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded) || ! array_is_list($decoded)) {
@@ -254,6 +253,9 @@ class AsanaController
             }
         }
         $data = $request->validate([
+            'alternate_name' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'information_description' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'benefits' => ['sometimes', 'array', 'list', 'max:30'], 'benefits.*' => ['required', 'string', 'max:2000', 'regex:/\\S/u'],
             'sanskrit_cyrillic' => ['sometimes', 'nullable', 'string', 'max:160'],
             'sanskrit_latin' => ['sometimes', 'nullable', 'string', 'max:160'],
             'steps' => ['sometimes', 'array', 'list', 'max:50'], 'steps.*' => ['required', 'string', 'max:2000'],
@@ -305,14 +307,14 @@ class AsanaController
         if (array_key_exists('description', $data)) {
             $asana->description = $data['description'];
         }
-        foreach (['sanskrit_cyrillic', 'sanskrit_latin', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations', 'editorial', 'has_bind', 'classification_status'] as $field) {
+        foreach (['alternate_name', 'information_description', 'benefits', 'sanskrit_cyrillic', 'sanskrit_latin', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations', 'editorial', 'has_bind', 'classification_status'] as $field) {
             if (array_key_exists($field, $data)) {
                 $asana->{$field} = $data[$field];
             }
         }
         $aliases = $data['aliases'] ?? ($asana->exists ? $asana->aliases->pluck('name')->all() : []);
         $asana->normalized_name = Names::normalize($asana->name);
-        $asana->normalized_search_text = Names::normalize(implode(' ', [$asana->name, $asana->sanskrit_cyrillic ?? '', $asana->sanskrit_latin ?? '', ...$aliases]));
+        $asana->normalized_search_text = Names::normalize(implode(' ', [$asana->name, $asana->alternate_name ?? '', $asana->sanskrit_cyrillic ?? '', $asana->sanskrit_latin ?? '', ...$aliases]));
         $asana->updated_by = $this->workspace->userId();
         $asana->save();
         if (! empty($data['drawing_source'])) {
@@ -375,9 +377,6 @@ class AsanaController
     private function response(Asana $asana, int $status = 200, string $imageStyle = 'original'): JsonResponse
     {
         $cards = $this->reader->serialize(new Collection([$asana]), true);
-        if ($imageStyle === 'volume') {
-            $cards[$asana->id]['display_image'] = app(IllustrationStyles::class)->displayImagesForLibrary($cards)[$asana->id];
-        }
 
         return response()->json(['data' => $cards[$asana->id]], $status);
     }

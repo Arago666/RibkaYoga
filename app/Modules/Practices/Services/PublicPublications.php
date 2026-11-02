@@ -32,7 +32,7 @@ class PublicPublications
             $assetIds = array_values(array_unique(array_map(fn ($row) => $row->image_asset_id, $snapshots)));
             $plan = $this->execution->plan($document['id']);
             $notes = (bool) ($input['include_notes'] ?? false);
-            $public = ['id' => $id, 'kind' => 'practice', 'title' => $document['title'], 'theme' => $notes ? $document['theme'] : null, 'note' => null, 'practice_date' => null, 'illustration_style' => $document['illustration_style'] ?? null, 'illustration_character' => $document['illustration_character'] ?? null, 'revision' => $document['revision'], 'blocks' => []];
+            $public = ExecutionParameters::defaults($document) + ['id' => $id, 'kind' => 'practice', 'title' => $document['title'], 'theme' => $notes ? $document['theme'] : null, 'note' => null, 'practice_date' => null, 'illustration_style' => $document['illustration_style'] ?? null, 'illustration_character' => $document['illustration_character'] ?? null, 'revision' => $document['revision'], 'blocks' => []];
             foreach ($document['blocks'] as $block) {
                 $publicBlock = ['id' => $block['id'], 'title' => $notes ? $block['title'] : '', 'purpose' => $notes ? $block['purpose'] : null, 'rows' => []];
                 foreach ($block['rows'] as $row) {

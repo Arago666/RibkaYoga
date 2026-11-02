@@ -34,10 +34,11 @@ summary::-webkit-details-marker {
   min-width: 210px;
   max-width: min(300px, 85vw);
   padding: 7px;
-  background: white;
-  border: 1px solid #dce5d6;
-  border-radius: 12px;
-  box-shadow: 0 8px 28px #153a1320;
+  background: var(--popup-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--popup-radius);
+  box-shadow: var(--popup-shadow);
+  backdrop-filter: blur(20px);
   display: grid;
   gap: 3px;
 }
@@ -49,11 +50,11 @@ summary::-webkit-details-marker {
   width: 100%;
   text-align: left;
   border: 0;
-  border-radius: 7px;
+  border-radius: 12px;
   padding: 10px 12px;
-  min-height: 39px;
+  min-height: 44px;
   background: transparent;
-  color: #31442a;
+  color: var(--text);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -62,7 +63,7 @@ summary::-webkit-details-marker {
 }
 .action-options :deep(button:hover),
 .action-options :deep(a:hover) {
-  background: #eff6eb;
+  background: var(--accent-soft);
 }
 .action-options :deep(button:disabled) {
   opacity: 0.5;

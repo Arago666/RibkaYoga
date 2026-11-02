@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import AppSelect from '@/shared/AppSelect.vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { Info, ListOrdered, Package, FileCheck } from '@lucide/vue';
 import { api } from '@/shared/api';
 import { errorText } from '../types';
 import { type FacetAssignments, type FacetDictionary, type ReferenceFields } from '../facets';
@@ -18,17 +20,32 @@ async function load() {
   }
 }
 onMounted(load);
-function setLines(
-  field: 'steps' | 'teacher_cues' | 'equipment' | 'precautions' | 'adaptations',
-  event: Event,
-) {
-  reference.value = {
-    ...reference.value,
-    [field]: (event.target as HTMLTextAreaElement).value
-      .split('\n')
-      .map((v) => v.trim())
-      .filter(Boolean),
-  };
+const lineFields = ['steps', 'teacher_cues', 'benefits', 'equipment', 'precautions', 'adaptations'] as const;
+type LineField = (typeof lineFields)[number];
+const lineDrafts = reactive<Record<LineField, string>>({
+  steps: '',
+  teacher_cues: '',
+  benefits: '',
+  equipment: '',
+  precautions: '',
+  adaptations: '',
+});
+watch(
+  reference,
+  (value) => {
+    for (const field of lineFields) lineDrafts[field] = value[field].join('\n');
+  },
+  { immediate: true },
+);
+function setLines(field: LineField, event: Event) {
+  const raw = (event.target as HTMLTextAreaElement).value;
+  // Preserve the raw draft, including a trailing newline, while updating save data immediately.
+  // Updating the shared field follows the same path as scalar v-model bindings.
+  lineDrafts[field] = raw;
+  reference.value[field] = raw
+    .split(/\r?\n/)
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 </script>
 <template>
@@ -57,50 +74,104 @@ function setLines(
       {{ error }} <button type="button" class="btn btn-ghost" @click="load">Повторить</button>
     </p>
     <label
-      >Разметка<select v-model="reference.classification_status" class="select" :disabled="disabled">
+      >Разметка<AppSelect v-model="reference.classification_status" class="select" :disabled="disabled">
         <option value="unreviewed">Требует проверки</option>
         <option value="partial">Частичная разметка</option>
         <option value="reviewed">Четыре группы проверены</option>
-      </select></label
+      </AppSelect></label
     >
-    <details>
-      <summary>Выполнение и подсказки</summary>
-      <div class="section-fields">
-        <label :for="`${prefix}-steps`"
-          >Шаги выполнения — каждый с новой строки<textarea
-            :id="`${prefix}-steps`"
+    <details class="disclosure" open>
+      <summary>
+        <span class="disclosure-icon"><Info aria-hidden="true" /></span>
+        <span class="disclosure-copy"><strong>Информация</strong></span>
+      </summary>
+      <div class="section-fields disclosure-body">
+        <label :for="`${prefix}-information-description`"
+          >Описание
+          <textarea
+            :id="`${prefix}-information-description`"
+            v-model="reference.information_description"
             class="textarea"
             rows="4"
+            maxlength="5000"
             :disabled="disabled"
-            :value="reference.steps.join('\n')"
-            @change="setLines('steps', $event)"
+            placeholder="Описание асаны обычным текстом"
           />
         </label>
-        <label
-          >Подсказки преподавателю — каждая с новой строки<textarea
+        <label :for="`${prefix}-teacher-cues`"
+          >Подсказки преподавателю
+          <textarea
+            :id="`${prefix}-teacher-cues`"
             class="textarea"
             rows="3"
             :disabled="disabled"
-            :value="reference.teacher_cues.join('\n')"
-            @change="setLines('teacher_cues', $event)"
+            :value="lineDrafts.teacher_cues"
+            placeholder="Каждый пункт — с новой строки"
+            @input="setLines('teacher_cues', $event)"
+          />
+        </label>
+        <label :for="`${prefix}-benefits`"
+          >Польза
+          <textarea
+            :id="`${prefix}-benefits`"
+            class="textarea"
+            rows="3"
+            :disabled="disabled"
+            :value="lineDrafts.benefits"
+            placeholder="Каждый пункт — с новой строки"
+            @input="setLines('benefits', $event)"
+          />
+        </label>
+        <label :for="`${prefix}-precautions`"
+          >Предосторожности
+          <textarea
+            :id="`${prefix}-precautions`"
+            class="textarea"
+            rows="3"
+            :disabled="disabled"
+            :value="lineDrafts.precautions"
+            placeholder="Каждый пункт — с новой строки"
+            @input="setLines('precautions', $event)"
           />
         </label>
       </div>
     </details>
-    <details>
-      <summary>Оборудование и адаптации</summary>
-      <div class="section-fields">
+    <details class="disclosure">
+      <summary>
+        <span class="disclosure-icon"><ListOrdered aria-hidden="true" /></span>
+        <span class="disclosure-copy"><strong>Шаги выполнения</strong></span>
+      </summary>
+      <div class="section-fields disclosure-body">
+        <label :for="`${prefix}-steps`"
+          >Шаги выполнения — каждый с новой строки
+          <textarea
+            :id="`${prefix}-steps`"
+            class="textarea"
+            rows="4"
+            :disabled="disabled"
+            :value="lineDrafts.steps"
+            @input="setLines('steps', $event)"
+          />
+        </label>
+      </div>
+    </details>
+    <details class="disclosure">
+      <summary>
+        <span class="disclosure-icon"><Package aria-hidden="true" /></span>
+        <span class="disclosure-copy"><strong>Оборудование и адаптации</strong></span>
+      </summary>
+      <div class="section-fields disclosure-body">
         <label
           >Оборудование — каждый предмет с новой строки<textarea
             class="textarea"
             :disabled="disabled"
-            :value="reference.equipment.join('\n')"
+            :value="lineDrafts.equipment"
             placeholder="блок&#10;ремень&#10;стена"
-            @change="setLines('equipment', $event)"
+            @input="setLines('equipment', $event)"
           />
         </label>
         <label
-          >Замок / связанное положение рук<select
+          >Замок / связанное положение рук<AppSelect
             class="select"
             :disabled="disabled"
             :value="reference.has_bind === null ? '' : reference.has_bind ? 'yes' : 'no'"
@@ -114,29 +185,24 @@ function setLines(
             <option value="">Не указано</option>
             <option value="yes">Да</option>
             <option value="no">Нет</option>
-          </select></label
+          </AppSelect></label
         >
-        <label
-          >Предосторожности — только проверенные автором<textarea
-            class="textarea"
-            :disabled="disabled"
-            :value="reference.precautions.join('\n')"
-            @change="setLines('precautions', $event)"
-          />
-        </label>
         <label
           >Допустимые адаптации<textarea
             class="textarea"
             :disabled="disabled"
-            :value="reference.adaptations.join('\n')"
-            @change="setLines('adaptations', $event)"
+            :value="lineDrafts.adaptations"
+            @input="setLines('adaptations', $event)"
           />
         </label>
       </div>
     </details>
-    <details>
-      <summary>Редакторский источник и проверка</summary>
-      <div class="section-fields">
+    <details class="disclosure">
+      <summary>
+        <span class="disclosure-icon"><FileCheck aria-hidden="true" /></span>
+        <span class="disclosure-copy"><strong>Редакторский источник и проверка</strong></span>
+      </summary>
+      <div class="section-fields disclosure-body">
         <label
           >Автор справки<input
             v-model="reference.editorial.author"
@@ -168,7 +234,7 @@ function setLines(
 <style scoped>
 .reference-fields {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
   min-width: 0;
 }
 .reference-fields h3,
@@ -187,22 +253,11 @@ function setLines(
 .language-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.reference-fields details {
-  border: 1px solid #e3e9df;
-  border-radius: 10px;
-  padding: 12px;
-}
-.reference-fields summary {
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.87rem;
+  gap: 16px;
 }
 .section-fields {
   display: grid;
-  gap: 14px;
-  margin-top: 14px;
+  gap: 16px;
 }
 .reference-fields .check {
   display: flex;

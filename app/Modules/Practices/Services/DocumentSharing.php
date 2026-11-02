@@ -137,6 +137,7 @@ class DocumentSharing
 
             return [
                 'document' => [
+                    ...ExecutionParameters::defaults($document),
                     'id' => $document->id, 'title' => $document->title, 'theme' => $document->theme, 'kind' => $document->kind,
                     'revision' => (int) $document->revision, 'note' => null, 'practice_date' => null,
                     'fragment_kind' => $document->fragment_kind, 'illustration_style' => $document->illustration_style, 'illustration_character' => $document->illustration_character,

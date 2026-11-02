@@ -6,9 +6,7 @@ use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\Entitlements;
 use App\Modules\Catalog\PublicApi\AsanaReader;
 use App\Modules\Catalog\PublicApi\CatalogUsage;
-use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Media\PublicApi\AssetStore;
-use App\Modules\Practices\PublicApi\NativeImages;
 use App\Modules\Practices\PublicApi\SnapshotClassifications;
 use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Database\Query\Builder;
@@ -108,7 +106,21 @@ class PracticeEditor
                 $item['cycles'] = ($cycleLinks[$record->id] ?? collect())->values()->all();
                 $item['folders'] = ($folderLinks[$record->id] ?? collect())->values()->all();
             }
-            $item['duration_seconds'] = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name)->contains(fn ($cell) => ! $cell->duration_seconds) ? null : $cells->sum(fn ($cell) => (int) ($cell->duration_seconds ?? 0) * max(1, (int) ($cell->repetitions ?? 1)) * (($cell->side ?? null) === 'both' ? 2 : 1));
+            $filled = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name);
+            $plannedSeconds = 0;
+            $lastRest = 0;
+            foreach ($filled as $cell) {
+                $parameters = ExecutionParameters::resolved((array) $cell, (array) $record);
+                // Breath pacing is selected only when starting a session; manual steps have no target.
+                if ($parameters['advance_mode'] !== 'time' || $parameters['duration_seconds'] === null) {
+                    $plannedSeconds = null;
+                    break;
+                }
+                $repeats = max(1, (int) ($parameters['repetitions'] ?? 1)) * ($parameters['side'] === 'both' ? 2 : 1);
+                $lastRest = $parameters['rest_seconds'];
+                $plannedSeconds += ($parameters['duration_seconds'] + $lastRest) * $repeats;
+            }
+            $item['duration_seconds'] = $plannedSeconds === null ? null : max(0, $plannedSeconds - $lastRest);
             $poseRanks = $cells->filter(fn ($cell) => $cell->card_snapshot_id || $cell->custom_name)
                 ->map(fn ($cell) => $cell->card_snapshot_id ? ($difficultyRanks[$pinnedFacts[$cell->card_snapshot_id]['difficulty'] ?? ''] ?? null) : null);
             $item['difficulty'] = $poseRanks->isNotEmpty() && ! $poseRanks->containsStrict(null)
@@ -156,14 +168,14 @@ class PracticeEditor
                 $tree['theme'] = $input['theme'] ?? $source->theme;
                 $tree['practice_date'] = $input['practice_date'] ?? null;
             } else {
-                $preferred = app(IllustrationStyles::class)->preferred();
                 $tree = [
-                    'illustration_style' => $input['illustration_style'] ?? $preferred['style'],
-                    'illustration_character' => $input['illustration_character'] ?? $preferred['character'],
+                    'illustration_style' => 'original',
+                    'illustration_character' => 'neutral',
                     'title' => $input['title'] ?? 'Новая практика',
                     'theme' => $input['theme'] ?? null,
                     'note' => $input['note'] ?? null,
                     'practice_date' => $input['practice_date'] ?? null,
+                    ...ExecutionParameters::defaults($input),
                     'blocks' => $this->defaultBlocks(),
                 ];
             }
@@ -180,7 +192,7 @@ class PracticeEditor
             $record = $this->find('practice_documents', $id, true);
             $this->assertRevision($record, $input['expected_revision']);
             $this->assertEditable($record);
-            foreach (['fragment_kind', 'illustration_style', 'illustration_character'] as $field) {
+            foreach (['fragment_kind', 'illustration_style', 'illustration_character', ...array_keys(ExecutionParameters::defaultRules())] as $field) {
                 if (! array_key_exists($field, $input)) {
                     $input[$field] = $record->$field ?? null;
                 }
@@ -372,11 +384,11 @@ class PracticeEditor
         return array_map(fn ($id) => $snapshots[$id], $ids);
     }
 
+    /** Legacy representation arguments remain accepted; new snapshots always use the canonical image. */
     public function resolveCards(array $asanaIds, array $variantIds = [], array $illustration = ['style' => 'original', 'character' => 'neutral']): array
     {
-        return DB::transaction(function () use ($asanaIds, $variantIds, $illustration) {
+        return DB::transaction(function () use ($asanaIds) {
             $asanas = $this->asanas->findMany($asanaIds);
-            $styles = app(IllustrationStyles::class);
             $result = [];
             foreach ($asanaIds as $id) {
                 $asana = $asanas[$id] ?? null;
@@ -384,27 +396,29 @@ class PracticeEditor
                     throw ValidationException::withMessages(['asana_ids' => 'Одна из асан недоступна или находится в архиве. Обновите библиотеку.']);
                 }
                 $imageAssetId = $asana['image_asset_id'];
-                $variantId = $variantIds[$id] ?? null;
-                $drawing = null;
-                if (array_key_exists($id, $variantIds)) {
-                    $resolved = $styles->resolve($id, $imageAssetId, $variantId);
-                    $imageAssetId = $resolved['image_asset_id'];
-                    $drawing = $resolved['drawing_source'];
-                } elseif ($illustration['style'] !== 'original') {
-                    $prepared = $styles->prepare($id, $imageAssetId, $illustration['style'], $illustration['character']);
-                    $imageAssetId = $prepared['image_asset_id'];
-                    $variantId = $prepared['variant_id'] ?? null;
-                    $drawing = $prepared['drawing_source'] ?? null;
-                }
-                if ($drawing) {
-                    app(NativeImages::class)->remember($imageAssetId, $drawing);
-                }
                 $result[] = $this->createCardSnapshot($id, $asana['name'], $imageAssetId) + [
-                    'illustration_variant_id' => $variantId, 'image_asset_id' => $imageAssetId,
+                    'illustration_variant_id' => null, 'image_asset_id' => $imageAssetId,
                 ];
             }
 
             return $result;
+        });
+    }
+
+    /** Pin an explicitly imported original without replacing the catalog image. */
+    public function resolveImportedOriginal(string $asanaId, string $imageAssetId): array
+    {
+        return DB::transaction(function () use ($asanaId, $imageAssetId) {
+            $asana = $this->asanas->findMany([$asanaId])[$asanaId] ?? null;
+            if (! $asana || ! empty($asana['archived_at'])) {
+                throw ValidationException::withMessages(['asana_id' => 'Асана недоступна или находится в архиве. Обновите библиотеку.']);
+            }
+            // Authorize the concrete uploaded image in the current workspace.
+            $this->assets->get($imageAssetId);
+
+            return $this->createCardSnapshot($asanaId, $asana['name'], $imageAssetId) + [
+                'illustration_variant_id' => null, 'image_asset_id' => $imageAssetId,
+            ];
         });
     }
 
@@ -547,7 +561,7 @@ class PracticeEditor
 
     private function metadata(array $input): array
     {
-        return [
+        return ExecutionParameters::defaults($input) + [
             'title' => $input['title'], 'theme' => $input['theme'] ?? null,
             'note' => $input['note'] ?? null, 'practice_date' => $input['practice_date'] ?? null,
             'fragment_kind' => $input['fragment_kind'] ?? null,

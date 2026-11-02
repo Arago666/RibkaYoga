@@ -10,7 +10,7 @@ class Settings
     {
         return [
             'kind' => 'meditation', 'timezone' => 'UTC', 'duration_seconds' => 600, 'preparation_seconds' => 10,
-            'start_signal' => 'bowl', 'end_signal' => 'gong', 'interval_signal' => 'none', 'interval_seconds' => 0,
+            'start_signal' => 'gong', 'end_signal' => 'gong', 'interval_signal' => 'none', 'interval_seconds' => 0,
             'signal_volume' => 0.5, 'ambience' => 'none', 'ambience_volume' => 0.35,
             'audio_asset_id' => null, 'audio_volume' => 0.5, 'audio_repeat' => false, 'audio_end' => 'continue',
             'breathing_enabled' => false, 'breathing_signal' => 'none', 'inhale_seconds' => 4, 'exhale_seconds' => 6,

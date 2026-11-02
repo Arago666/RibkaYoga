@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { SlidersHorizontal } from '@lucide/vue';
 import type { Category } from '../types';
@@ -140,12 +141,12 @@ onBeforeUnmount(() => {
       <FacetChoices v-model="draft" :dictionary="draftDictionary" />
       <div class="advanced-filters">
         <label
-          >Замок / связанное положение рук<select v-model="draft.has_bind" class="select">
+          >Замок / связанное положение рук<AppSelect v-model="draft.has_bind" class="select">
             <option value="">Любое</option>
             <option value="yes">С замком</option>
             <option value="no">Без замка</option>
             <option value="unknown">Не указано</option>
-          </select></label
+          </AppSelect></label
         ><label
           >Оборудование<input v-model="draft.equipment" class="input" placeholder="Например: блок"
         /></label>
@@ -182,8 +183,8 @@ onBeforeUnmount(() => {
   margin-top: 8px;
 }
 .selected-facets .btn {
-  font-size: 0.75rem;
-  min-height: 30px;
+  font-size: 13px;
+  min-height: 44px;
 }
 .desktop-facets {
   margin-top: 12px;
@@ -205,16 +206,18 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 .category-chip {
+  min-height: var(--control-height);
   display: inline-flex;
   gap: 7px;
   align-items: center;
-  border: 1px solid #dce5d6;
-  border-radius: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
   padding: 10px 14px;
+  background: var(--glass);
 }
 .category-chip:has(input:checked) {
-  background: #edf7e8;
-  border-color: #80a76c;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .modal-quick-filters {
   margin-bottom: 20px;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
@@ -153,12 +154,12 @@ async function save() {
       ></template>
       <template v-else
         ><label class="label" for="existing-collection">Подборка</label
-        ><select id="existing-collection" v-model="collectionId" class="select" required :disabled="busy">
+        ><AppSelect id="existing-collection" v-model="collectionId" class="select" required :disabled="busy">
           <option value="" disabled>Выберите подборку</option>
           <option v-for="collection in collections" :key="collection.id" :value="collection.id">
             {{ collection.folder_path ? `${collection.folder_path} / ` : '' }}{{ collection.name }}
           </option>
-        </select>
+        </AppSelect>
         <p v-if="!loading && !collections.length" class="muted">Подборок пока нет. Создайте новую.</p>
         <button
           v-if="page < lastPage"

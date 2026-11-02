@@ -127,7 +127,13 @@ async function apply() {
 <style scoped>
 .import-summary {
   display: grid;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: var(--section-gap);
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+  min-width: 0;
 }
 </style>

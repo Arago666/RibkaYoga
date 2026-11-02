@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
   Plus,
   Search,
@@ -12,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from '@lucide/vue';
-import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import AsanaCategoryDialog from '../components/AsanaCategoryDialog.vue';
 import AppShell from '@/shared/AppShell.vue';
@@ -24,15 +24,7 @@ import UploadDialog from '../components/UploadDialog.vue';
 import TaxonomyDialog from '../components/TaxonomyDialog.vue';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
 import CollectionsPanel from '../../collections/components/CollectionsPanel.vue';
-import {
-  cardCount,
-  categoryLabel,
-  errorText,
-  type Asana,
-  type Category,
-  type LibraryImageStyle,
-  type Page,
-} from '../types';
+import { cardCount, categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
 import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
 import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
@@ -43,13 +35,6 @@ const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
 filters.value = filtersFromUrl(initial.searchParams);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
-const imageStyle = ref<LibraryImageStyle>(
-  initial.searchParams.has('image_style')
-    ? initial.searchParams.get('image_style') === 'volume'
-      ? 'volume'
-      : 'original'
-    : readUiPreferences(uiPreferencesKey(usePage().props.auth)).libraryStyle,
-);
 const query = ref(initial.searchParams.get('q') || ''),
   category = ref(''),
   archive = ref(initial.searchParams.get('archive') || 'active'),
@@ -93,6 +78,7 @@ const visibleSelected = computed(
 function updateUrl() {
   const url = new URL(window.location.href);
   url.searchParams.delete('tag');
+  url.searchParams.delete('image_style');
   const values: Record<string, string> = {
     tab: tab.value === 'collections' ? 'collections' : '',
     q: query.value,
@@ -100,7 +86,6 @@ function updateUrl() {
     archive: archive.value === 'active' ? '' : archive.value,
     sort: sort.value === 'name_asc' ? '' : sort.value,
     page: page.value > 1 ? String(page.value) : '',
-    image_style: imageStyle.value,
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
@@ -114,7 +99,7 @@ async function load() {
   updateUrl();
   try {
     const response = await api<Page<Asana>>(
-      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value), image_style: imageStyle.value }), filters.value)}`,
+      `/api/asanas?${setFilterParams(new URLSearchParams({ q: query.value, category: category.value, archive: archive.value, sort: sort.value, page: String(page.value) }), filters.value)}`,
     );
     if (request === sequence) {
       if (page.value > response.last_page) {
@@ -157,10 +142,6 @@ watch(
   { deep: true },
 );
 watch(tab, updateUrl);
-watch(imageStyle, () => {
-  result.value = null;
-  void load();
-});
 onMounted(() => {
   void load();
   void loadMetadata();
@@ -252,7 +233,7 @@ async function taxonomyChanged() {
         <p class="eyebrow">КОЛЛЕКЦИЯ АСАН</p>
         <h1 class="page-title">Библиотека асан</h1>
       </div>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+      <div class="library-actions">
         <button class="btn btn-primary" @click="uploadOpen = true"><Plus :size="19" /> Добавить асаны</button>
       </div>
     </header>
@@ -279,38 +260,40 @@ async function taxonomyChanged() {
       <button class="btn btn-ghost" @click="loadMetadata">Повторить загрузку категорий</button>
     </div>
     <template v-if="tab === 'asanas'">
-      <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
-      <div class="library-tools">
-        <div class="library-search">
-          <Search :size="19" /><input
-            v-model="query"
-            class="input"
-            placeholder="Название асаны или другое название"
-            aria-label="Поиск асан"
-          /><button v-if="query" class="search-clear" aria-label="Очистить поиск" @click="query = ''">
-            <X :size="16" />
-          </button>
+      <section class="card catalog-controls" aria-label="Поиск и фильтры асан">
+        <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
+        <div class="library-tools">
+          <div class="library-search">
+            <Search :size="19" /><input
+              v-model="query"
+              class="input"
+              placeholder="Название асаны или другое название"
+              aria-label="Поиск асан"
+            /><button v-if="query" class="search-clear" aria-label="Очистить поиск" @click="query = ''">
+              <X :size="16" />
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="library-subtools">
-        <div class="library-result-count">
-          <span v-if="result">{{ cardCount(result.total) }}</span
-          ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
-            Сбросить фильтры <X :size="14" />
-          </button>
+        <div class="library-subtools">
+          <div class="library-result-count">
+            <span v-if="result">{{ cardCount(result.total) }}</span
+            ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
+              Сбросить фильтры <X :size="14" />
+            </button>
+          </div>
+          <div class="sort-controls">
+            <AppSelect v-model="archive" class="select small-select" aria-label="Активные или архивные асаны">
+              <option value="active">Активные</option>
+              <option value="archived">В архиве</option></AppSelect
+            ><AppSelect v-model="sort" class="select small-select" aria-label="Сортировка асан">
+              <option value="name_asc">По алфавиту: А–Я</option>
+              <option value="name_desc">По алфавиту: Я–А</option>
+              <option value="recent">Недавно добавленные</option>
+              <option value="used_recently">Недавно использованные</option>
+            </AppSelect>
+          </div>
         </div>
-        <div class="sort-controls">
-          <select v-model="archive" class="select small-select" aria-label="Активные или архивные асаны">
-            <option value="active">Активные</option>
-            <option value="archived">В архиве</option></select
-          ><select v-model="sort" class="select small-select" aria-label="Сортировка асан">
-            <option value="name_asc">По алфавиту: А–Я</option>
-            <option value="name_desc">По алфавиту: Я–А</option>
-            <option value="recent">Недавно добавленные</option>
-            <option value="used_recently">Недавно использованные</option>
-          </select>
-        </div>
-      </div>
+      </section>
       <div v-if="selection.size" class="selection-bar">
         <div>
           <span class="selected-count"><Check :size="17" /> Выбрано {{ selection.size }}</span
@@ -333,7 +316,6 @@ async function taxonomyChanged() {
             v-for="card in result.data"
             :key="card.id"
             :card="card"
-            :display-image="imageStyle === 'volume' ? card.display_image : undefined"
             :selected="selection.has(card.id)"
             :selectable="!card.archived_at"
             @select="toggle"
@@ -349,7 +331,7 @@ async function taxonomyChanged() {
             @restore="archiveCard"
           /></div
       ></template>
-      <div v-else-if="!error" class="empty-state library-empty">
+      <div v-else-if="!error" class="card empty-state library-empty">
         <div class="empty-icon"><Images :size="38" :stroke-width="1.5" /></div>
         <h2>{{ hasFilters ? 'Подходящих карточек пока нет' : 'Здесь начинается ваша практика' }}</h2>
         <p>
@@ -402,18 +384,13 @@ async function taxonomyChanged() {
     <AsanaEditDialog :card="editing" :categories="categories" @close="editing = null" @saved="load" />
     <AsanaPreview
       :card="preview"
-      :image-style="imageStyle"
       @close="preview = null"
       @related="preview = $event"
       @created="
         editing = $event;
         load();
       "
-      @insert="
-        router.visit(
-          `/practices?insert_asana=${$event.id}${'illustration_variant_id' in $event ? `&insert_variant=${encodeURIComponent($event.illustration_variant_id ?? 'original')}` : ''}`,
-        )
-      "
+      @insert="router.visit(`/practices?insert_asana=${$event.id}`)"
     />
     <TaxonomyDialog
       :open="taxonomyOpen"
@@ -431,7 +408,12 @@ async function taxonomyChanged() {
 </template>
 <style scoped>
 .library-heading {
-  margin-bottom: 30px;
+  margin-bottom: var(--section-gap);
+}
+.library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .library-heading > .btn {
   flex: none;
@@ -441,10 +423,11 @@ async function taxonomyChanged() {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid #e5ebe1;
-  margin-bottom: 26px;
+  border-bottom: 0;
+  margin-bottom: var(--section-gap);
 }
 .library-nav .tabs {
+  min-width: 0;
   margin-bottom: 0;
   border-bottom: 0;
 }
@@ -455,7 +438,7 @@ async function taxonomyChanged() {
 }
 .tab-count {
   border-radius: 7px;
-  background: #edf3e8;
+  background: var(--surface-soft);
   padding: 2px 6px;
   font-size: 0.7rem;
 }
@@ -469,29 +452,29 @@ async function taxonomyChanged() {
   width: fit-content;
   padding: 4px;
   margin: 0 0 20px;
-  border: 1px solid #dfe7da;
-  border-radius: 14px;
-  background: #f5f8f2;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
 }
 .library-image-style button {
-  min-height: 40px;
+  min-height: var(--control-height);
   padding: 9px 15px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 999px;
   background: transparent;
-  color: #687568;
+  color: var(--muted);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
 }
 .library-image-style button.active {
-  border-color: #caddc0;
+  border-color: var(--line);
   background: #fff;
-  color: #2f6f20;
+  color: var(--accent-dark);
   font-weight: 650;
 }
 .library-image-style button:focus-visible {
-  outline: 3px solid #397a2880;
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
   outline-offset: 2px;
 }
 .library-tools {
@@ -508,7 +491,7 @@ async function taxonomyChanged() {
   position: absolute;
   left: 15px;
   top: 15px;
-  color: #81907b;
+  color: var(--muted);
 }
 .library-search .input {
   width: 100%;
@@ -521,7 +504,7 @@ async function taxonomyChanged() {
   top: 13px;
   border: 0;
   background: transparent;
-  color: #687568;
+  color: var(--muted);
   cursor: pointer;
 }
 .category-select {
@@ -532,14 +515,14 @@ async function taxonomyChanged() {
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  margin: 15px 0 20px;
+  margin: 20px 0 0;
 }
 .library-result-count {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.8rem;
-  color: #687568;
+  font-size: 14px;
+  color: var(--muted);
 }
 .library-result-count .btn {
   font-size: 0.73rem;
@@ -551,12 +534,12 @@ async function taxonomyChanged() {
   gap: 10px;
 }
 .small-select {
-  min-height: 35px !important;
-  font-size: 0.77rem !important;
-  padding-top: 7px !important;
-  padding-bottom: 7px !important;
-  border-color: transparent !important;
-  background-color: transparent !important;
+  min-height: var(--control-height) !important;
+  font-size: 13px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  border-color: var(--line) !important;
+  background-color: white !important;
 }
 .selection-bar {
   position: sticky;
@@ -566,12 +549,12 @@ async function taxonomyChanged() {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 17px;
-  margin-bottom: 16px;
-  background: #edf7e8;
-  border: 1px solid #d6e7cc;
-  border-radius: 15px;
-  box-shadow: 0 5px 18px #2531270a;
+  padding: 20px;
+  margin-bottom: var(--section-gap);
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .selection-bar > div {
   display: flex;
@@ -582,7 +565,7 @@ async function taxonomyChanged() {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #2f6f20;
+  color: var(--accent-dark);
   font-size: 0.9rem;
   font-weight: 650;
 }
@@ -594,7 +577,7 @@ async function taxonomyChanged() {
   justify-content: space-between;
   align-items: center;
   margin: 0 0 8px;
-  color: #899482;
+  color: var(--muted);
   font-size: 0.73rem;
 }
 .visible-selection .btn {
@@ -604,8 +587,8 @@ async function taxonomyChanged() {
 }
 .asana-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 17px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--section-gap);
 }
 .catalog-loading {
   display: flex;
@@ -613,13 +596,13 @@ async function taxonomyChanged() {
   align-items: center;
   gap: 10px;
   padding: 100px 20px;
-  color: #687568;
+  color: var(--muted);
 }
 .loading-dot {
   height: 10px;
   width: 10px;
   border-radius: 50%;
-  background: #88ad78;
+  background: var(--accent);
   animation: pulse 1s ease-in-out infinite;
 }
 .library-empty {
@@ -630,15 +613,16 @@ async function taxonomyChanged() {
   height: 78px;
   display: grid;
   place-items: center;
-  background: #edf5e7;
-  color: #679455;
+  background: var(--surface-soft);
+  color: var(--accent-dark);
   border-radius: 23px;
   margin: 0 auto 24px;
 }
 .library-empty h2 {
-  font-size: 1.35rem;
+  font-size: 19px;
   letter-spacing: -0.025em;
   margin: 0;
+  font-weight: 650;
 }
 .library-empty p {
   max-width: 400px;
@@ -652,7 +636,7 @@ async function taxonomyChanged() {
   align-items: center;
   gap: 20px;
   margin: 30px 0 5px;
-  color: #687568;
+  color: var(--muted);
   font-size: 0.82rem;
 }
 @keyframes pulse {
@@ -683,10 +667,24 @@ async function taxonomyChanged() {
 }
 @media (max-width: 700px) {
   .library-nav {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-bottom: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .library-nav .tabs {
+    flex: 1;
+  }
+  .library-nav .tab {
+    flex: 1;
+    padding-inline: 8px;
+    gap: 5px;
+    font-size: 12px;
+  }
+  .library-actions {
+    width: 100%;
+  }
+  .library-actions .btn {
+    width: 100%;
   }
   .library-tools {
     flex-wrap: wrap;
@@ -730,6 +728,48 @@ async function taxonomyChanged() {
   }
   .library-nav .tab {
     font-size: 0.78rem;
+  }
+}
+.catalog-controls {
+  display: grid;
+  grid-template-columns: fit-content(280px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  margin-bottom: var(--section-gap);
+}
+.catalog-controls :deep(.catalog-facets) {
+  min-width: 0;
+  margin: 0;
+}
+.catalog-controls .library-tools {
+  min-width: 0;
+}
+.catalog-controls .library-subtools {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .catalog-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .sort-controls {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+  .sort-controls .select {
+    flex: 1;
+    min-width: 0;
+  }
+  .asana-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+@media (min-width: 701px) and (max-width: 950px) {
+  .asana-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>

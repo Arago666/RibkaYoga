@@ -279,7 +279,7 @@ onMounted(() => {
 <style scoped>
 .illustration-settings {
   display: grid;
-  gap: 1rem;
+  gap: var(--section-gap);
 }
 .illustration-choices {
   display: grid;
@@ -293,7 +293,7 @@ onMounted(() => {
 .illustration-settings select,
 .illustration-settings input {
   min-height: 44px;
-  border: 1px solid #c5d0c0;
+  border: 1px solid var(--line);
   border-radius: 0.5rem;
   padding: 0.5rem;
   width: 100%;
@@ -329,7 +329,7 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 .muted {
-  color: #61705c;
+  color: var(--muted);
   font-size: 0.85rem;
 }
 .illustration-error {
@@ -340,12 +340,14 @@ onMounted(() => {
 }
 .illustration-notice {
   padding: 0.8rem;
-  background: #eef7e9;
+  background: var(--accent-soft);
   border-radius: 0.7rem;
 }
 .illustration-settings h3 {
-  font-weight: 600;
+  font-weight: 650;
   margin-bottom: 0.5rem;
+  font-size: 19px;
+  letter-spacing: -0.025em;
 }
 .illustration-settings summary {
   cursor: pointer;
@@ -356,5 +358,14 @@ onMounted(() => {
 }
 .compact .illustration-preview img {
   max-height: 260px;
+}
+.illustration-settings select,
+.illustration-settings input {
+  min-height: var(--control-height);
+  border-radius: var(--field-radius);
+  padding: 10px 12px;
+}
+.illustration-settings .illustration-preview {
+  gap: var(--section-gap);
 }
 </style>

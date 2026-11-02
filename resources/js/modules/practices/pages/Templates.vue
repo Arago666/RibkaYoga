@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import ActionMenu from '@/shared/ActionMenu.vue';
@@ -181,12 +182,16 @@ const labels: Record<string, string> = {
     <header class="page-header">
       <div>
         <h1 class="page-title">Шаблоны</h1>
-        <p class="muted">Повторно используемые занятия, фрагменты и программы. Каждая вставка независима.</p>
+        <p class="page-description">
+          Повторно используемые занятия, фрагменты и программы. Каждая вставка независима.
+        </p>
       </div>
-      <button class="btn btn-primary" @click="openCreate()">Создать шаблон</button>
-      <ActionMenu label="Действия с шаблонами"
-        ><button @click="importOpen = true">Импорт JSON</button></ActionMenu
-      >
+      <div class="template-header-actions">
+        <button class="btn btn-primary" @click="openCreate()">Создать шаблон</button>
+        <ActionMenu label="Действия с шаблонами"
+          ><button @click="importOpen = true">Импорт JSON</button></ActionMenu
+        >
+      </div>
     </header>
     <nav class="tabs" aria-label="Виды шаблонов">
       <button
@@ -207,29 +212,29 @@ const labels: Record<string, string> = {
         <small>Шаблон 1</small>
         <h2>Пустая классическая практика</h2>
         <p class="muted">Пять блоков. Количество строк и ячеек можно менять.</p>
-        <button class="btn btn-primary" @click="openCreate('practice')">Создать шаблон практики</button>
+        <button class="btn btn-secondary" @click="openCreate('practice')">Создать шаблон практики</button>
       </article>
       <article class="card template-card">
         <small>Шаблон 2</small>
         <h2>Мезоцикл на месяц</h2>
         <p class="muted">Пять тренировок по умолчанию. При создании выберите нужное количество занятий.</p>
-        <button class="btn btn-primary" @click="openCreate('cycle')">Создать шаблон мезоцикла</button>
+        <button class="btn btn-secondary" @click="openCreate('cycle')">Создать шаблон мезоцикла</button>
       </article>
     </div>
     <form
-      class="template-filters"
+      class="card template-filters"
       @submit.prevent="
         page = 1;
         load();
       "
     >
-      <input v-model="query" class="input" placeholder="Найти шаблон" aria-label="Поиск шаблонов" /><select
+      <input v-model="query" class="input" placeholder="Найти шаблон" aria-label="Поиск шаблонов" /><AppSelect
         v-model="archive"
         class="select"
         aria-label="Архив"
       >
         <option value="active">Активные</option>
-        <option value="archived">В архиве</option></select
+        <option value="archived">В архиве</option></AppSelect
       ><button class="btn btn-secondary">Найти</button>
     </form>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
@@ -248,7 +253,7 @@ const labels: Record<string, string> = {
         <Link class="btn btn-secondary" :href="editUrl(item)">Открыть</Link
         ><button
           v-if="type !== 'fragment' && !item.archived_at"
-          class="btn btn-primary"
+          class="btn btn-secondary"
           :disabled="busy"
           @click="use(item)"
         >
@@ -293,17 +298,17 @@ const labels: Record<string, string> = {
           ><input v-model="name" class="input" required maxlength="160" /></label
         ><label v-if="type === 'practice'" class="field"
           ><span class="label">Тип шаблона</span
-          ><select v-model="templateKind" class="select">
+          ><AppSelect v-model="templateKind" class="select">
             <option value="practice">Классическая практика · 5 блоков</option>
             <option value="cycle">Мезоцикл · несколько занятий</option>
-          </select></label
+          </AppSelect></label
         ><label v-if="type === 'fragment'" class="field"
           ><span class="label">Разновидность</span
-          ><select v-model="subtype" class="select">
+          ><AppSelect v-model="subtype" class="select">
             <option value="row">Строка</option>
             <option value="transition">Связка / переход</option>
             <option value="block">Блок с несколькими строками</option>
-          </select></label
+          </AppSelect></label
         ><label v-if="type === 'practice' && templateKind === 'cycle'" class="field"
           ><span class="label">Количество занятий</span
           ><input v-model.number="count" class="input" type="number" min="1" max="52" required
@@ -319,34 +324,48 @@ const labels: Record<string, string> = {
   </AppShell>
 </template>
 <style scoped>
+.template-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.page-header > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
 .template-filters {
   display: flex;
+  align-items: flex-end;
   gap: 12px;
-  margin: 20px 0;
+  margin: var(--section-gap) 0;
   flex-wrap: wrap;
 }
 .template-filters .input {
-  max-width: 500px;
+  flex: 1 1 240px;
+  min-width: 0;
 }
 .template-filters .select {
-  max-width: 180px;
+  width: 180px;
+  flex: none;
 }
 .starter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: 16px;
-  margin: 22px 0;
+  gap: var(--section-gap);
+  margin: var(--section-gap) 0;
 }
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--section-gap);
 }
 .template-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 22px;
+  gap: 16px;
+  padding: var(--panel-padding);
+  min-width: 0;
 }
 .template-card-top {
   display: flex;
@@ -355,9 +374,39 @@ const labels: Record<string, string> = {
   gap: 10px;
 }
 .template-card h2 {
-  font-size: 20px;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.template-card p {
+  font-size: 14px;
+  line-height: 1.6;
 }
 .template-card small {
   color: var(--muted);
+  font-size: 12px;
+}
+.template-card > .btn {
+  white-space: normal;
+}
+.starter-grid .template-card > .btn {
+  margin-top: auto;
+}
+@media (max-width: 650px) {
+  .template-header-actions {
+    width: 100%;
+  }
+  .template-header-actions > .btn {
+    flex: 1;
+  }
+  .template-filters .input {
+    flex-basis: 100%;
+  }
+  .template-filters .select {
+    flex: 1;
+    width: auto;
+  }
 }
 </style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
@@ -77,7 +78,7 @@ watch(
         placeholder="Название практики"
         aria-label="Поиск существующих практик"
       />
-      <select
+      <AppSelect
         v-if="templates"
         v-model="kind"
         class="select"
@@ -89,7 +90,7 @@ watch(
       >
         <option value="practice">Практики</option>
         <option value="template">Шаблоны</option>
-      </select>
+      </AppSelect>
       <button class="btn btn-secondary" :disabled="loading || busy">Найти</button>
     </form>
     <p v-if="externalError" class="error-banner" role="alert">{{ externalError }}</p>
@@ -97,13 +98,14 @@ watch(
     <p v-if="loading" role="status">Загружаем практики…</p>
     <div v-else class="practice-options">
       <button v-for="item in items" :key="item.id" :disabled="busy" @click="emit('choose', item)">
-        {{ item.title }}<span>Добавить →</span>
+        <span class="practice-option-title">{{ item.title }}</span
+        ><span class="practice-option-action">Добавить →</span>
       </button>
       <p v-if="!items.length" class="muted">Практик по этому запросу нет.</p>
     </div>
     <div v-if="lastPage > 1" class="practice-search">
       <button
-        class="btn"
+        class="btn btn-secondary"
         :disabled="page <= 1 || loading"
         @click="
           page--;
@@ -113,7 +115,7 @@ watch(
         Назад</button
       ><span>{{ page }} / {{ lastPage }}</span
       ><button
-        class="btn"
+        class="btn btn-secondary"
         :disabled="page >= lastPage || loading"
         @click="
           page++;
@@ -131,41 +133,71 @@ watch(
 <style scoped>
 .practice-search {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  margin: 18px 0;
+  margin: var(--section-gap) 0;
   flex-wrap: wrap;
 }
 .practice-search .input {
   flex: 1;
-  min-width: 180px;
+  min-width: min(100%, 180px);
 }
 .practice-search .select {
   width: auto;
+  max-width: 100%;
 }
 .practice-options {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 .practice-options button {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   width: 100%;
-  background: white;
-  border: 1px solid #dce6d6;
-  border-radius: 12px;
-  padding: 15px;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  padding: var(--panel-padding);
   text-align: left;
+  color: var(--text);
   font: inherit;
   cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
-.practice-options button:hover {
-  background: #f2f8ee;
+.practice-options button:hover:not(:disabled) {
+  border-color: var(--accent-dark);
+  background: var(--accent-soft);
 }
-.practice-options span {
-  font-size: 12px;
-  color: #547746;
+.practice-option-title {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.practice-option-action {
+  font-size: 13px;
+  color: var(--accent-dark);
   flex: none;
+}
+@media (max-width: 440px) {
+  .practice-search .input {
+    flex-basis: 100%;
+  }
+  .practice-search .select,
+  .practice-search > .btn {
+    flex: 1;
+  }
+  .practice-options button {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 </style>

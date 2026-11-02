@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
+import { ListOrdered, Package, SlidersHorizontal } from '@lucide/vue';
 import Modal from '@/shared/Modal.vue';
 import { relationLabels, errorText, type Asana, type LibraryImageStyle } from '../types';
 import { api } from '@/shared/api';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
-import IllustrationSettings, { type PreparedIllustration } from './IllustrationSettings.vue';
 const props = withDefaults(defineProps<{ card: Asana | null; imageStyle?: LibraryImageStyle }>(), {
   imageStyle: 'original',
 });
@@ -17,32 +17,28 @@ const emit = defineEmits<{
 const detail = ref<Asana | null>(null),
   error = ref(''),
   loading = ref(false),
+  informationReady = ref(false),
   busy = ref(false),
   collectionOpen = ref(false);
-const styleOpen = ref(false),
-  preparedStyle = ref<PreparedIllustration | null>(null);
 let sequence = 0;
-const previewImageUrl = computed(() =>
-  props.imageStyle === 'volume' && detail.value?.display_image
-    ? detail.value.display_image.image_url
-    : detail.value?.image_url,
-);
 function detailUrl(id: string): string {
-  return `/api/asanas/${id}${props.imageStyle === 'volume' ? '?image_style=volume' : ''}`;
+  return `/api/asanas/${id}`;
 }
 watch(
   () => [props.card, props.imageStyle] as const,
   async ([card]) => {
     const version = ++sequence;
     detail.value = card;
-    styleOpen.value = false;
-    preparedStyle.value = null;
+    informationReady.value = false;
     error.value = '';
     if (!card) return;
     loading.value = true;
     try {
       const value = (await api<{ data: Asana }>(detailUrl(card.id))).data;
-      if (version === sequence) detail.value = value;
+      if (version === sequence) {
+        detail.value = value;
+        informationReady.value = true;
+      }
     } catch (failure) {
       if (version === sequence) error.value = errorText(failure);
     } finally {
@@ -63,12 +59,7 @@ async function related(id: string) {
 }
 function insert() {
   if (!detail.value) return;
-  emit(
-    'insert',
-    preparedStyle.value
-      ? { ...detail.value, illustration_variant_id: preparedStyle.value.variant_id ?? null }
-      : detail.value,
-  );
+  emit('insert', detail.value);
 }
 async function favorite() {
   const card = detail.value;
@@ -110,13 +101,11 @@ async function duplicate() {
 <template>
   <Modal :open="Boolean(card)" :title="detail?.name || 'Карточка асаны'" @close="!busy && emit('close')">
     <template v-if="detail">
-      <img class="preview-image" :src="previewImageUrl" :alt="detail.name" />
-      <p v-if="imageStyle === 'volume' && detail.display_image?.available === false" class="muted">
-        Для этой асаны нет готовой объёмной фигуры. Показан исходный рисунок.
-      </p>
+      <img class="preview-image" :src="detail.image_url" :alt="detail.name" />
       <p v-if="detail.sanskrit_cyrillic || detail.sanskrit_latin" class="sanskrit">
         {{ [detail.sanskrit_cyrillic, detail.sanskrit_latin].filter(Boolean).join(' · ') }}
       </p>
+      <p v-if="detail.alternate_name" class="alternate-name">{{ detail.alternate_name }}</p>
       <p v-if="detail.aliases?.length" class="muted">{{ detail.aliases.join(' · ') }}</p>
       <div class="preview-actions">
         <button
@@ -128,7 +117,7 @@ async function duplicate() {
         >
           {{ detail.favorite ? '★ В избранном' : '☆ В избранное' }}</button
         ><button v-if="!detail.archived_at" type="button" class="btn btn-primary" @click="insert">
-          {{ preparedStyle ? 'Добавить выбранное представление в практику' : 'Добавить в практику' }}</button
+          Добавить в практику</button
         ><button
           v-if="!detail.archived_at"
           type="button"
@@ -139,25 +128,7 @@ async function duplicate() {
         ><button type="button" class="btn btn-secondary" :disabled="busy || loading" @click="duplicate">
           Создать свой вариант
         </button>
-        <button
-          v-if="!detail.archived_at"
-          type="button"
-          class="btn btn-secondary"
-          :aria-expanded="styleOpen"
-          @click="styleOpen = !styleOpen"
-        >
-          Стиль и персонаж
-        </button>
       </div>
-      <IllustrationSettings
-        v-if="styleOpen"
-        :asana-id="detail.id"
-        :source-asset-id="detail.image_asset_id"
-        :image-url="detail.image_url"
-        compact
-        @select="preparedStyle = $event"
-        @reset="preparedStyle = null"
-      />
       <p v-if="loading" class="muted" role="status">Загружаем справку…</p>
       <div v-if="detail.categories.length || detail.facet_values?.length" class="preview-categories">
         <span
@@ -170,35 +141,73 @@ async function duplicate() {
       <p v-if="detail.classification_status !== 'reviewed'" class="muted">
         Разметка: {{ detail.classification_status === 'partial' ? 'частичная' : 'требует проверки' }}
       </p>
-      <details v-if="detail.steps?.length">
-        <summary>Шаги выполнения</summary>
-        <ol>
-          <li v-for="(step, index) in detail.steps" :key="index">{{ step }}</li>
-        </ol>
+      <section v-if="informationReady" class="asana-information" aria-labelledby="asana-information-title">
+        <h3 id="asana-information-title">Информация</h3>
+        <div class="information-part">
+          <h4>Описание</h4>
+          <p v-if="detail.information_description" class="information-description">
+            {{ detail.information_description }}
+          </p>
+          <p v-else class="information-empty muted">Пока не заполнено.</p>
+        </div>
+        <div class="information-part">
+          <h4>Подсказки преподавателю</h4>
+          <ul v-if="detail.teacher_cues?.length">
+            <li v-for="(cue, index) in detail.teacher_cues" :key="index">{{ cue }}</li>
+          </ul>
+          <p v-else class="information-empty muted">Пока не заполнено.</p>
+        </div>
+        <div class="information-part">
+          <h4>Польза</h4>
+          <ul v-if="detail.benefits?.length">
+            <li v-for="(benefit, index) in detail.benefits" :key="index">{{ benefit }}</li>
+          </ul>
+          <p v-else class="information-empty muted">Пока не заполнено.</p>
+        </div>
+        <div class="information-part">
+          <h4>Предосторожности</h4>
+          <ul v-if="detail.precautions?.length">
+            <li v-for="(precaution, index) in detail.precautions" :key="index">{{ precaution }}</li>
+          </ul>
+          <p v-else class="information-empty muted">Пока не заполнено.</p>
+        </div>
+      </section>
+      <details v-if="detail.steps?.length" class="disclosure">
+        <summary>
+          <span class="disclosure-icon"><ListOrdered aria-hidden="true" /></span>
+          <span class="disclosure-copy"><strong>Шаги выполнения</strong></span>
+        </summary>
+        <div class="disclosure-body">
+          <ol>
+            <li v-for="(step, index) in detail.steps" :key="index">{{ step }}</li>
+          </ol>
+        </div>
       </details>
-      <details v-if="detail.teacher_cues?.length">
-        <summary>Подсказки преподавателю</summary>
-        <ul>
-          <li v-for="(cue, index) in detail.teacher_cues" :key="index">{{ cue }}</li>
-        </ul>
+      <details
+        v-if="detail.equipment?.length || (detail.has_bind !== null && detail.has_bind !== undefined)"
+        class="disclosure"
+      >
+        <summary>
+          <span class="disclosure-icon"><Package aria-hidden="true" /></span>
+          <span class="disclosure-copy"><strong>Оборудование и положение рук</strong></span>
+        </summary>
+        <div class="disclosure-body">
+          <p v-if="detail.equipment?.length">{{ detail.equipment.join(' · ') }}</p>
+          <p v-if="detail.has_bind !== null && detail.has_bind !== undefined">
+            Замок / связанное положение рук: {{ detail.has_bind ? 'да' : 'нет' }}
+          </p>
+        </div>
       </details>
-      <details v-if="detail.equipment?.length || (detail.has_bind !== null && detail.has_bind !== undefined)">
-        <summary>Оборудование и положение рук</summary>
-        <p v-if="detail.equipment?.length">{{ detail.equipment.join(' · ') }}</p>
-        <p v-if="detail.has_bind !== null && detail.has_bind !== undefined">
-          Замок / связанное положение рук: {{ detail.has_bind ? 'да' : 'нет' }}
-        </p>
-      </details>
-      <details v-if="detail.precautions?.length || detail.adaptations?.length">
-        <summary>Предосторожности и адаптации</summary>
-        <h4 v-if="detail.precautions?.length">Предосторожности</h4>
-        <ul>
-          <li v-for="(text, index) in detail.precautions" :key="index">{{ text }}</li>
-        </ul>
-        <h4 v-if="detail.adaptations?.length">Адаптации</h4>
-        <ul>
-          <li v-for="(text, index) in detail.adaptations" :key="index">{{ text }}</li>
-        </ul>
+      <details v-if="detail.adaptations?.length" class="disclosure">
+        <summary>
+          <span class="disclosure-icon"><SlidersHorizontal aria-hidden="true" /></span>
+          <span class="disclosure-copy"><strong>Адаптации</strong></span>
+        </summary>
+        <div class="disclosure-body">
+          <ul>
+            <li v-for="(text, index) in detail.adaptations" :key="index">{{ text }}</li>
+          </ul>
+        </div>
       </details>
       <section v-if="detail.relations?.length" class="related-options">
         <h3>Связанные варианты</h3>
@@ -231,9 +240,9 @@ async function duplicate() {
   width: 100%;
   height: min(45vh, 360px);
   object-fit: contain;
-  padding: 20px;
-  background: #f8faf6;
-  border-radius: 16px;
+  padding: var(--panel-padding);
+  background: var(--surface-soft);
+  border-radius: var(--panel-radius);
 }
 .preview-categories,
 .preview-actions {
@@ -243,23 +252,55 @@ async function duplicate() {
   margin: 16px 0;
 }
 .sanskrit {
-  color: #596650;
+  color: var(--muted);
   font-size: 0.9rem;
+}
+.alternate-name {
+  margin: 14px 0 4px;
+  font-size: 16px;
+  font-weight: 550;
+}
+.asana-information {
+  display: grid;
+  gap: var(--section-gap);
+  margin-top: var(--section-gap);
+  padding-top: var(--section-gap);
+  border-top: 1px solid var(--line);
+}
+.asana-information h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.information-part h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.information-part p,
+.information-part ul {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.information-part ul {
+  padding-left: 22px;
+}
+.information-description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.information-part .information-empty {
+  font-size: 13px;
 }
 .related-options {
   display: grid;
-  gap: 8px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: var(--section-gap);
 }
 details {
-  border: 1px solid #e4eadf;
-  border-radius: 12px;
-  padding: 12px;
   margin-top: 12px;
-}
-summary {
-  font-weight: 600;
-  cursor: pointer;
 }
 li {
   margin: 8px 0;

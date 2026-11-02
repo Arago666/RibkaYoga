@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 class CatalogReader implements AsanaReader
 {
     /** Summary readers never fetch the potentially large editable drawing JSON. */
-    public const SUMMARY_COLUMNS = ['id', 'workspace_id', 'name', 'description', 'current_image_asset_id', 'revision', 'archived_at', 'created_at', 'updated_at', 'sanskrit_cyrillic', 'sanskrit_latin', 'has_bind', 'classification_status'];
+    public const SUMMARY_COLUMNS = ['id', 'workspace_id', 'name', 'alternate_name', 'description', 'current_image_asset_id', 'revision', 'archived_at', 'created_at', 'updated_at', 'sanskrit_cyrillic', 'sanskrit_latin', 'has_bind', 'classification_status'];
 
     public function __construct(private WorkspaceContext $workspace, private AssetStore $assets) {}
 
@@ -59,8 +59,8 @@ class CatalogReader implements AsanaReader
         $preferences = DB::table('catalog_asana_preferences')->where('workspace_id', $this->workspace->id())->where('user_id', $this->workspace->userId())->whereIn('asana_id', $asanas->modelKeys())->get()->keyBy('asana_id');
 
         return $asanas->mapWithKeys(fn (Asana $asana) => [$asana->id => [
-            'id' => $asana->id, 'name' => $asana->name, 'description' => $asana->description,
-            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source, 'steps' => $asana->steps ?? [], 'teacher_cues' => $asana->teacher_cues ?? [], 'equipment' => $asana->equipment ?? [], 'precautions' => $asana->precautions ?? [], 'adaptations' => $asana->adaptations ?? [], 'editorial' => $asana->editorial ?? []] : []),
+            'id' => $asana->id, 'name' => $asana->name, 'alternate_name' => $asana->alternate_name, 'description' => $asana->description,
+            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source, 'information_description' => $asana->information_description, 'benefits' => $asana->benefits ?? [], 'steps' => $asana->steps ?? [], 'teacher_cues' => $asana->teacher_cues ?? [], 'equipment' => $asana->equipment ?? [], 'precautions' => $asana->precautions ?? [], 'adaptations' => $asana->adaptations ?? [], 'editorial' => $asana->editorial ?? []] : []),
             'sanskrit_cyrillic' => $asana->sanskrit_cyrillic, 'sanskrit_latin' => $asana->sanskrit_latin,
             'has_bind' => $asana->has_bind, 'classification_status' => $asana->classification_status,
             'favorite' => (bool) ($preferences[$asana->id]->favorite ?? false),

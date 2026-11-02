@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
@@ -28,6 +29,7 @@ import { api } from '@/shared/api';
 import { emptyRow, uid, type Cell } from '../types';
 import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
 import PracticeFolders from '../components/PracticeFolders.vue';
+import PracticeNavigation from '../components/PracticeNavigation.vue';
 import PortableImportDialog from '../components/PortableImportDialog.vue';
 const sharingItem = ref<PracticeListItem | null>(null);
 type Tab = 'practices' | 'templates' | 'rows' | 'transitions';
@@ -462,32 +464,30 @@ async function saveName() {
       <div>
         <p class="eyebrow">ПРОСТРАНСТВО ДЛЯ ВАШЕЙ ПРАКТИКИ</p>
         <h1 class="page-title">{{ heading }}</h1>
+        <p class="page-description">Сохраняйте занятия и собирайте свои последовательности.</p>
       </div>
-      <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
-        <Plus :size="19" /> {{ createLabel }}
-      </button>
-      <button v-if="!rowTab" class="btn btn-secondary" @click="addPracticeOpen = true">
-        <Plus :size="18" />Добавить практику
-      </button>
-      <ActionMenu label="Действия со списком практик">
-        <button @click="importOpen = true">Импорт JSON</button>
-        <button @click="includeCycleDocuments = !includeCycleDocuments">
-          {{ includeCycleDocuments ? 'Скрыть занятия внутри циклов' : 'Показывать занятия внутри циклов' }}
+      <div class="practice-header-actions">
+        <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
+          <Plus :size="19" /> {{ createLabel }}
         </button>
-        <button v-if="folderId" @click="folderId = ''">Все категории</button>
-        <button v-if="selection.size" @click="foldersOpen = true">
-          Категории выбранных ({{ selection.size }})
+        <button v-if="!rowTab" class="btn btn-secondary" @click="addPracticeOpen = true">
+          <Plus :size="18" />Добавить практику
         </button>
-      </ActionMenu>
+        <ActionMenu label="Действия со списком практик">
+          <button @click="importOpen = true">Импорт JSON</button>
+          <button @click="includeCycleDocuments = !includeCycleDocuments">
+            {{ includeCycleDocuments ? 'Скрыть занятия внутри циклов' : 'Показывать занятия внутри циклов' }}
+          </button>
+          <button v-if="folderId" @click="folderId = ''">Все категории</button>
+          <button v-if="selection.size" @click="foldersOpen = true">
+            Категории выбранных ({{ selection.size }})
+          </button>
+        </ActionMenu>
+      </div>
     </header>
-    <div class="practices-nav tabs">
-      <Link class="tab active" href="/practices">Все практики</Link>
-      <Link class="tab" href="/mesocycles">Программы и циклы</Link>
-      <Link class="tab" href="/practice-folders">Категории</Link>
-      <Link class="tab" href="/shared-practices">Мне дали доступ</Link>
-    </div>
+    <PracticeNavigation :active="folderId ? 'categories' : 'all'" />
     <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
-    <div class="practices-toolbar">
+    <div class="card practices-toolbar">
       <div class="practice-search">
         <Search :size="19" /><input
           v-model="query"
@@ -496,17 +496,17 @@ async function saveName() {
           aria-label="Поиск документов"
         /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
       </div>
-      <select v-model="archive" class="select" aria-label="Состояние документов">
+      <AppSelect v-model="archive" class="select" aria-label="Состояние документов">
         <option value="active">Активные</option>
         <option value="archived">В архиве</option>
-      </select>
+      </AppSelect>
       <label class="practice-sort"
         ><span>Сортировка</span>
-        <select v-model="sort" class="select">
+        <AppSelect v-model="sort" class="select">
           <option v-for="option in sortOptions" :key="option.value" :value="option.value">
             {{ option.label }}
           </option>
-        </select>
+        </AppSelect>
       </label>
       <div class="view-switch" role="group" aria-label="Вид практик">
         <button class="btn btn-ghost" :aria-pressed="view === 'grid'" @click="view = 'grid'">
@@ -846,30 +846,39 @@ async function saveName() {
   color: var(--muted);
 }
 .practices-heading {
-  margin-bottom: 31px;
+  margin-bottom: var(--section-gap);
 }
-.practices-heading > .btn {
-  flex: none;
-}
-.practices-nav {
-  margin-bottom: 25px;
-}
-.practices-nav .tab {
+.practice-header-actions {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 460px;
+}
+.practices-heading > div:first-child {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+.practices-heading .page-description {
+  max-width: 480px;
+}
+.practice-header-actions > .btn {
+  flex: none;
 }
 .practices-toolbar {
   display: flex;
-  gap: 13px;
-  align-items: center;
-  margin-bottom: 25px;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: var(--section-gap);
+  padding: var(--panel-padding);
   flex-wrap: wrap;
 }
 .practice-sort {
   display: grid;
-  gap: 4px;
-  font-size: 12px;
+  gap: 8px;
+  min-width: 180px;
+  font-size: 13px;
   color: var(--muted);
 }
 .view-switch {
@@ -878,9 +887,9 @@ async function saveName() {
   flex-wrap: wrap;
 }
 .view-switch button[aria-pressed='true'] {
-  background: #edf5e8;
-  color: #376c28;
-  box-shadow: inset 0 0 0 1px #91b483;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .practice-difficulty {
   color: var(--muted);
@@ -894,13 +903,14 @@ async function saveName() {
 .practice-search {
   position: relative;
   flex: 1;
-  max-width: 530px;
+  max-width: none;
+  min-width: min(100%, 220px);
 }
 .practice-search > svg {
   position: absolute;
   left: 15px;
   top: 15px;
-  color: #7b8975;
+  color: var(--muted);
 }
 .practice-search .input {
   width: 100%;
@@ -913,18 +923,18 @@ async function saveName() {
   top: 14px;
   background: none;
   border: 0;
-  color: #687568;
+  color: var(--muted);
   cursor: pointer;
 }
 .document-count {
   margin-left: auto;
-  color: #86907e;
+  color: var(--muted);
   font-size: 0.78rem;
 }
 .practice-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  gap: var(--section-gap);
 }
 .practice-grid.practice-list {
   grid-template-columns: minmax(0, 1fr);
@@ -962,24 +972,25 @@ async function saveName() {
   z-index: 5;
 }
 .selected-document {
-  outline: 2px solid #7ba962;
+  outline: 2px solid var(--accent);
 }
 .practice-cover {
-  border-radius: 18px 18px 0 0;
+  border-radius: var(--panel-radius) var(--panel-radius) 0 0;
 }
 .practice-card:hover {
-  border-color: #c8d9bf;
-  box-shadow: 0 6px 22px #23351c07;
+  border-color: var(--line);
+  box-shadow: var(--panel-shadow);
 }
 .practice-cover {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 166px;
-  background: #f7faf4;
-  padding: 20px 21px 23px;
+  height: 156px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 20px var(--panel-padding);
   text-decoration: none;
-  color: #819574;
+  color: var(--muted);
   overflow: hidden;
 }
 .cover-kind {
@@ -1023,7 +1034,7 @@ async function saveName() {
   -webkit-line-clamp: 3;
   overflow: hidden;
   overflow-wrap: anywhere;
-  color: #4c683e;
+  color: var(--text);
   font-size: 12px;
   line-height: 1.35;
   text-align: center;
@@ -1039,20 +1050,20 @@ async function saveName() {
 .cover-empty span {
   width: 43px;
   height: 48px;
-  border: 1.5px dashed #d9e4d3;
+  border: 1.5px dashed var(--line);
   border-radius: 8px;
   background: #ffffff50;
 }
 .cover-line {
   position: absolute;
-  left: 21px;
-  right: 21px;
+  left: var(--panel-padding);
+  right: var(--panel-padding);
   bottom: 20px;
   height: 1px;
-  background: #e3ebdc;
+  background: var(--line);
 }
 .practice-content {
-  padding: 22px 21px 13px;
+  padding: var(--panel-padding);
 }
 .practice-theme {
   display: inline-block;
@@ -1062,22 +1073,22 @@ async function saveName() {
   white-space: nowrap;
   font-size: 0.7rem;
   font-weight: 550;
-  color: #487539;
-  background: #eff6e9;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
   padding: 5px 8px;
-  border-radius: 7px;
-  margin-bottom: 10px;
+  border-radius: 999px;
+  margin-bottom: 12px;
 }
 .practice-theme.neutral {
   background: transparent;
-  color: #7d8a74;
+  color: var(--muted);
   padding-left: 0;
   font-weight: 400;
 }
 .practice-title {
   display: block;
-  color: #253127;
-  font-size: 1.14rem;
+  color: var(--text);
+  font-size: 19px;
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.35;
@@ -1089,14 +1100,14 @@ async function saveName() {
   -webkit-box-orient: vertical;
 }
 .practice-title:hover {
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .practice-meta {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   font-size: 0.73rem;
-  color: #7e8a77;
+  color: var(--muted);
   margin: 14px 0 20px;
 }
 .practice-meta span:last-child {
@@ -1135,8 +1146,8 @@ async function saveName() {
   place-items: center;
   width: 82px;
   height: 82px;
-  background: #eef5e8;
-  color: #79a068;
+  background: var(--surface-soft);
+  color: var(--muted);
   border-radius: 25px;
   margin: 0 auto 24px;
 }
@@ -1154,7 +1165,7 @@ async function saveName() {
 .practices-loading {
   padding: 100px 20px;
   text-align: center;
-  color: #687568;
+  color: var(--muted);
 }
 .practice-pagination {
   display: flex;
@@ -1162,7 +1173,7 @@ async function saveName() {
   align-items: center;
   gap: 20px;
   margin-top: 30px;
-  color: #687568;
+  color: var(--muted);
   font-size: 0.82rem;
 }
 .practice-form {
@@ -1184,19 +1195,19 @@ async function saveName() {
   gap: 13px;
   align-items: center;
   padding: 15px;
-  border: 1px solid #e2e8df;
-  border-radius: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
   cursor: pointer;
 }
 .source-options label.chosen {
-  background: #f3f9ee;
-  border-color: #82ab70;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .source-options input {
-  accent-color: #397a28;
+  accent-color: var(--accent);
 }
 .source-options svg {
-  color: #68865c;
+  color: var(--muted);
   flex: none;
 }
 .source-options span {
@@ -1210,7 +1221,7 @@ async function saveName() {
 }
 .source-options small {
   font-size: 0.77rem;
-  color: #7a8774;
+  color: var(--muted);
 }
 .create-hint {
   font-size: 0.8rem;
@@ -1226,6 +1237,52 @@ async function saveName() {
   }
 }
 @media (max-width: 680px) {
+  .practices-heading {
+    display: block;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .practice-header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--control-height);
+    max-width: none;
+    width: 100%;
+    margin-top: 20px;
+  }
+  .practice-header-actions > .btn-primary {
+    grid-column: 1 / -1;
+  }
+  .practice-header-actions > .btn {
+    width: 100%;
+    white-space: normal;
+  }
+  .practices-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+  .practices-toolbar .practice-search {
+    grid-column: 1 / -1;
+  }
+  .practices-toolbar > .select {
+    width: 100%;
+    align-self: end;
+  }
+  .practice-sort .select {
+    min-width: 0;
+    width: 100%;
+  }
+  .practice-sort {
+    min-width: 0;
+  }
+  .view-switch {
+    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+  }
+  .view-switch .btn {
+    padding-inline: 10px;
+    font-size: 12px;
+  }
   .practice-list .practice-card {
     grid-template-columns: 1fr;
   }
@@ -1235,7 +1292,7 @@ async function saveName() {
   }
   .practice-grid {
     grid-template-columns: 1fr;
-    gap: 17px;
+    gap: var(--section-gap);
   }
   .practices-toolbar {
     flex-wrap: wrap;
@@ -1246,24 +1303,13 @@ async function saveName() {
   }
   .document-count {
     font-size: 0.73rem;
-  }
-  .practices-nav .tab {
-    font-size: 0.76rem;
-    gap: 5px;
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-  .practices-nav .tab > svg {
-    display: none;
+    grid-column: 1 / -1;
   }
   .practice-cover {
     height: 150px;
   }
   .practice-title {
     min-height: auto;
-  }
-  .practices-heading > .btn {
-    margin-top: 5px;
   }
   .practices-empty {
     padding: 50px 10px;

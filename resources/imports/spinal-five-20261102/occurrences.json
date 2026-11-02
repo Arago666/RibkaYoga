@@ -1,0 +1,1875 @@
+{
+  "mapping": {
+    "s1-r1-1-c01": "spinal-five-v1:s4-r1-1-c01",
+    "s1-r1-1-c02": "spinal-five-v1:s3-r1-1-c02",
+    "s1-r1-1-c03": "spinal-five-v1:s1-r1-1-c03",
+    "s1-r1-1-c04": "spinal-five-v1:s1-r1-1-c04",
+    "s1-r1-2-c01": "spinal-five-v1:s1-r1-2-c01",
+    "s1-r1-2-c02": "spinal-five-v1:s1-r1-2-c02",
+    "s1-r1-2-c03": "spinal-five-v1:s1-r1-2-c03",
+    "s1-r1-2-c04": "spinal-five-v1:s1-r1-2-c04",
+    "s1-r1-2-c05": "spinal-five-v1:s1-r1-2-c05",
+    "s1-r1-2-c06": "spinal-five-v1:s1-r1-2-c01",
+    "s1-r1-3-c01": "spinal-five-v1:s1-r1-3-c01",
+    "s1-r1-3-c02": "spinal-five-v1:s1-r1-3-c02",
+    "s1-r1-3-c03": "spinal-five-v1:s1-r1-3-c03",
+    "s1-r1-3-c04": "spinal-five-v1:s1-r1-3-c04",
+    "s1-r1-3-c05": "spinal-five-v1:s1-r1-3-c04",
+    "s1-r1-3-c06": "spinal-five-v1:s1-r1-3-c06",
+    "s1-r1-3-c07": "spinal-five-v1:s4-r1-3-c06",
+    "s1-r1-3-c08": "spinal-five-v1:s1-r1-4-c01",
+    "s1-r1-4-c01": "spinal-five-v1:s1-r1-4-c01",
+    "s1-r1-4-c02": "spinal-five-v1:s1-r1-4-c02",
+    "s1-r1-4-c03": "spinal-five-v1:s1-r1-4-c02",
+    "s1-r1-4-c04": "spinal-five-v1:s1-r1-4-c04",
+    "s1-r1-4-c05": "spinal-five-v1:s1-r1-4-c02",
+    "s1-r1-4-c06": "spinal-five-v1:s1-r1-4-c06",
+    "s1-r1-4-c07": "spinal-five-v1:s1-r1-4-c06",
+    "s1-r1-4-c08": "spinal-five-v1:s1-r1-5-c03",
+    "s1-r1-5-c01": "spinal-five-v1:s1-r1-5-c01",
+    "s1-r1-5-c02": "spinal-five-v1:s1-r1-5-c02",
+    "s1-r1-5-c03": "spinal-five-v1:s1-r1-5-c03",
+    "s1-r1-5-c04": "spinal-five-v1:s1-r1-5-c04",
+    "s1-r1-5-c05": "spinal-five-v1:s1-r1-5-c05",
+    "s1-r1-5-c06": "spinal-five-v1:s1-r1-5-c06",
+    "s1-r1-5-c07": "spinal-five-v1:s2-r2-1-c01",
+    "s1-r2-1-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s1-r2-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s1-r2-1-c03": "spinal-five-v1:s1-r2-1-c03",
+    "s1-r2-1-c04": "spinal-five-v1:s5-r4-2-c02",
+    "s1-r2-1-c05": "spinal-five-v1:s1-r2-1-c05",
+    "s1-r2-1-c06": "spinal-five-v1:s1-r1-2-c03",
+    "s1-r2-2-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s1-r2-2-c02": "spinal-five-v1:s1-r1-5-c06",
+    "s1-r2-2-c03": "spinal-five-v1:s2-r2-2-c03",
+    "s1-r2-2-c04": "spinal-five-v1:s1-r2-2-c04",
+    "s1-r2-2-c05": "spinal-five-v1:s1-r2-2-c05",
+    "s1-r2-2-c06": "spinal-five-v1:s1-r2-2-c06",
+    "s1-r2-2-c07": "spinal-five-v1:s1-r2-2-c07",
+    "s1-r2-2-c08": "spinal-five-v1:s3-r1-3-c06",
+    "s1-r2-3-c01": "spinal-five-v1:s2-r2-3-c01",
+    "s1-r3-1-c01": "spinal-five-v1:s4-r3-1-c01",
+    "s1-r3-1-c02": "spinal-five-v1:s3-r3-1-c02",
+    "s1-r3-1-c03": "spinal-five-v1:s2-r3-1-c03",
+    "s1-r3-1-c04": "spinal-five-v1:s2-r3-1-c03",
+    "s1-r3-1-c05": "spinal-five-v1:s1-r3-1-c05",
+    "s1-r3-2-c01": "spinal-five-v1:s1-r3-2-c01",
+    "s1-r3-2-c02": "spinal-five-v1:s1-r3-2-c02",
+    "s1-r3-2-c03": "spinal-five-v1:s1-r3-2-c02",
+    "s1-r3-2-c04": "spinal-five-v1:s1-r3-2-c04",
+    "s1-r4-1-c01": "spinal-five-v1:s1-r4-1-c01",
+    "s1-r4-1-c02": "spinal-five-v1:s4-r4-1-c03",
+    "s1-r4-1-c03": "spinal-five-v1:s1-r4-1-c03",
+    "s1-r4-1-c04": "spinal-five-v1:s1-r4-1-c04",
+    "s1-r4-1-c05": "spinal-five-v1:s1-r4-1-c04",
+    "s1-r4-2-c01": "spinal-five-v1:s1-r4-2-c01",
+    "s1-r4-2-c02": "spinal-five-v1:s1-r4-2-c02",
+    "s1-r5-1-c01": "spinal-five-v1:s4-r5-1-c01",
+    "s1-r5-1-c02": "spinal-five-v1:s1-r5-1-c02",
+    "s1-r5-1-c03": "spinal-five-v1:s1-r5-1-c03",
+    "s1-r5-1-c04": "spinal-five-v1:s1-r5-1-c04",
+    "s1-r5-1-c05": "spinal-five-v1:s4-r1-1-c01",
+    "s1-r5-1-c06": "spinal-five-v1:s1-r5-1-c06",
+    "s2-r1-1-c01": "spinal-five-v1:s4-r1-1-c01",
+    "s2-r1-1-c02": "spinal-five-v1:s3-r1-1-c02",
+    "s2-r1-1-c03": "spinal-five-v1:s1-r1-1-c03",
+    "s2-r1-1-c04": "spinal-five-v1:s3-r1-1-c02",
+    "s2-r1-1-c05": "spinal-five-v1:s1-r1-1-c04",
+    "s2-r1-2-c01": "spinal-five-v1:s1-r1-2-c01",
+    "s2-r1-2-c02": "spinal-five-v1:s1-r1-2-c02",
+    "s2-r1-2-c03": "spinal-five-v1:s1-r1-2-c05",
+    "s2-r1-2-c04": "spinal-five-v1:s1-r1-2-c04",
+    "s2-r1-2-c05": "spinal-five-v1:s5-r1-2-c05",
+    "s2-r1-2-c06": "spinal-five-v1:s2-r1-2-c06",
+    "s2-r1-2-c07": "spinal-five-v1:s1-r1-2-c05",
+    "s2-r1-2-c08": "spinal-five-v1:s1-r1-2-c01",
+    "s2-r1-3-c01": "spinal-five-v1:s1-r1-3-c01",
+    "s2-r1-3-c02": "spinal-five-v1:s1-r1-3-c01",
+    "s2-r1-3-c03": "spinal-five-v1:s1-r1-3-c02",
+    "s2-r1-3-c04": "spinal-five-v1:s2-r1-3-c04",
+    "s2-r1-3-c05": "spinal-five-v1:s4-r1-3-c06",
+    "s2-r1-3-c06": "spinal-five-v1:s2-r1-3-c06",
+    "s2-r1-3-c07": "spinal-five-v1:s2-r1-3-c07",
+    "s2-r1-3-c08": "spinal-five-v1:s2-r1-3-c08",
+    "s2-r1-4-c01": "spinal-five-v1:s2-r1-4-c01",
+    "s2-r1-4-c02": "spinal-five-v1:s4-r1-4-c02",
+    "s2-r1-4-c03": "spinal-five-v1:s2-r1-4-c03",
+    "s2-r1-4-c04": "spinal-five-v1:s2-r2-3-c03",
+    "s2-r1-4-c05": "spinal-five-v1:s1-r1-5-c03",
+    "s2-r1-4-c06": "spinal-five-v1:s3-r1-4-c04",
+    "s2-r1-4-c07": "spinal-five-v1:s1-r1-5-c01",
+    "s2-r1-4-c08": "spinal-five-v1:s1-r1-5-c02",
+    "s2-r1-4-c09": "spinal-five-v1:s2-r1-4-c09",
+    "s2-r2-1-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s2-r2-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s2-r2-1-c03": "spinal-five-v1:s1-r2-1-c03",
+    "s2-r2-1-c04": "spinal-five-v1:s5-r4-2-c02",
+    "s2-r2-1-c05": "spinal-five-v1:s2-r2-1-c05",
+    "s2-r2-1-c06": "spinal-five-v1:s1-r1-2-c03",
+    "s2-r2-2-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s2-r2-2-c02": "spinal-five-v1:s1-r1-5-c06",
+    "s2-r2-2-c03": "spinal-five-v1:s2-r2-2-c03",
+    "s2-r2-2-c04": "spinal-five-v1:s4-r2-2-c02",
+    "s2-r2-2-c05": "spinal-five-v1:s1-r2-2-c05",
+    "s2-r2-2-c06": "spinal-five-v1:s2-r2-2-c06",
+    "s2-r2-2-c07": "spinal-five-v1:s5-r2-2-c04",
+    "s2-r2-3-c01": "spinal-five-v1:s2-r2-3-c01",
+    "s2-r2-3-c02": "spinal-five-v1:s2-r2-3-c01",
+    "s2-r2-3-c03": "spinal-five-v1:s2-r2-3-c03",
+    "s2-r2-3-c04": "spinal-five-v1:s2-r2-3-c04",
+    "s2-r2-3-c05": "spinal-five-v1:s2-r2-3-c05",
+    "s2-r3-1-c01": "spinal-five-v1:s4-r3-1-c01",
+    "s2-r3-1-c02": "spinal-five-v1:s3-r3-1-c02",
+    "s2-r3-1-c03": "spinal-five-v1:s2-r3-1-c03",
+    "s2-r3-1-c04": "spinal-five-v1:s1-r3-2-c01",
+    "s2-r3-1-c05": "spinal-five-v1:s2-r3-1-c05",
+    "s2-r3-1-c06": "spinal-five-v1:s2-r3-1-c06",
+    "s2-r3-1-c07": "spinal-five-v1:s1-r3-2-c04",
+    "s2-r4-1-c01": "spinal-five-v1:s4-r4-1-c03",
+    "s2-r4-1-c02": "spinal-five-v1:s1-r4-1-c01",
+    "s2-r4-1-c03": "spinal-five-v1:s2-r4-1-c04",
+    "s2-r4-1-c04": "spinal-five-v1:s2-r4-1-c04",
+    "s2-r4-1-c05": "spinal-five-v1:s1-r4-1-c04",
+    "s2-r4-2-c01": "spinal-five-v1:s2-r4-2-c01",
+    "s2-r4-2-c02": "spinal-five-v1:s5-r4-2-c02",
+    "s2-r4-2-c03": "spinal-five-v1:s2-r4-2-c03",
+    "s2-r4-2-c04": "spinal-five-v1:s2-r4-2-c04",
+    "s2-r5-1-c01": "spinal-five-v1:s4-r5-1-c01",
+    "s2-r5-1-c02": "spinal-five-v1:s2-r5-1-c02",
+    "s2-r5-1-c03": "spinal-five-v1:s2-r5-1-c03",
+    "s2-r5-1-c04": "spinal-five-v1:s2-r5-1-c04",
+    "s2-r5-1-c05": "spinal-five-v1:s1-r5-1-c02",
+    "s2-r5-1-c06": "spinal-five-v1:s1-r5-1-c03",
+    "s2-r5-1-c07": "spinal-five-v1:s1-r5-1-c04",
+    "s2-r5-1-c08": "spinal-five-v1:s3-r5-1-c07",
+    "s2-r5-2-c01": "spinal-five-v1:s2-r5-2-c01",
+    "s2-r5-2-c02": "spinal-five-v1:s1-r5-1-c06",
+    "s2-rsv-c01": "spinal-five-v1:s1-r1-4-c02",
+    "s2-rsv-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s2-rsv-c03": "spinal-five-v1:s1-r1-4-c06",
+    "s2-rsv-c04": "spinal-five-v1:s1-r1-5-c03",
+    "s2-rsv-c05": "spinal-five-v1:s1-r1-5-c05",
+    "s2-rsv-c06": "spinal-five-v1:s1-r1-5-c06",
+    "s2-rsv-c07": "spinal-five-v1:s2-r2-1-c01",
+    "s3-r1-1-c01": "spinal-five-v1:s4-r1-1-c01",
+    "s3-r1-1-c02": "spinal-five-v1:s3-r1-1-c02",
+    "s3-r1-1-c03": "spinal-five-v1:s1-r1-1-c03",
+    "s3-r1-1-c04": "spinal-five-v1:s1-r1-1-c04",
+    "s3-r1-2-c01": "spinal-five-v1:s1-r1-2-c01",
+    "s3-r1-2-c02": "spinal-five-v1:s1-r1-2-c02",
+    "s3-r1-2-c03": "spinal-five-v1:s3-r1-2-c03",
+    "s3-r1-2-c04": "spinal-five-v1:s1-r1-2-c04",
+    "s3-r1-2-c05": "spinal-five-v1:s3-r1-2-c05",
+    "s3-r1-2-c06": "spinal-five-v1:s5-r1-2-c07",
+    "s3-r1-2-c07": "spinal-five-v1:s5-r1-2-c08",
+    "s3-r1-2-c08": "spinal-five-v1:s3-r1-2-c08",
+    "s3-r1-2-c09": "spinal-five-v1:s3-r1-2-c09",
+    "s3-r1-2-c10": "spinal-five-v1:s1-r1-2-c05",
+    "s3-r1-2-c11": "spinal-five-v1:s1-r1-2-c01",
+    "s3-r1-3-c01": "spinal-five-v1:s1-r1-3-c01",
+    "s3-r1-3-c02": "spinal-five-v1:s4-r1-3-c02",
+    "s3-r1-3-c03": "spinal-five-v1:s3-r1-3-c06",
+    "s3-r1-3-c04": "spinal-five-v1:s1-r1-4-c01",
+    "s3-r1-3-c05": "spinal-five-v1:s3-r1-3-c05",
+    "s3-r1-3-c06": "spinal-five-v1:s3-r1-3-c06",
+    "s3-r1-3-c07": "spinal-five-v1:s3-r1-3-c06",
+    "s3-r1-3-c08": "spinal-five-v1:s4-r1-3-c06",
+    "s3-r1-3-c09": "spinal-five-v1:s3-r1-3-c06",
+    "s3-r1-3-c10": "spinal-five-v1:s1-r1-4-c01",
+    "s3-r1-3-c11": "spinal-five-v1:s5-r1-3-c09",
+    "s3-r1-4-c01": "spinal-five-v1:s4-r1-4-c03",
+    "s3-r1-4-c02": "spinal-five-v1:s4-r1-4-c04",
+    "s3-r1-4-c03": "spinal-five-v1:s1-r1-5-c03",
+    "s3-r1-4-c04": "spinal-five-v1:s3-r1-4-c04",
+    "s3-r1-4-c05": "spinal-five-v1:s3-r1-4-c05",
+    "s3-r1-4-c06": "spinal-five-v1:s4-r1-4-c04",
+    "s3-r1-4-c07": "spinal-five-v1:s1-r1-5-c03",
+    "s3-r1-4-c08": "spinal-five-v1:s1-r1-5-c01",
+    "s3-r1-4-c09": "spinal-five-v1:s1-r1-5-c01",
+    "s3-r1-4-c10": "spinal-five-v1:s4-r1-4-c10",
+    "s3-r2-1-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s3-r2-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s3-r2-1-c03": "spinal-five-v1:s1-r2-1-c03",
+    "s3-r2-1-c04": "spinal-five-v1:s5-r4-2-c02",
+    "s3-r2-1-c05": "spinal-five-v1:s1-r2-1-c05",
+    "s3-r2-1-c06": "spinal-five-v1:s1-r2-1-c05",
+    "s3-r2-1-c07": "spinal-five-v1:s2-r2-1-c01",
+    "s3-r2-1-c08": "spinal-five-v1:s2-r4-2-c01",
+    "s3-r2-1-c09": "spinal-five-v1:s1-r1-5-c01",
+    "s3-r2-2-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s3-r2-2-c02": "spinal-five-v1:s4-r2-2-c02",
+    "s3-r2-2-c03": "spinal-five-v1:s1-r2-2-c05",
+    "s3-r2-2-c05": "spinal-five-v1:s3-r2-2-c05",
+    "s3-r2-2-c06": "spinal-five-v1:s3-r2-2-c05",
+    "s3-r2-2-c07": "spinal-five-v1:s3-r2-2-c05",
+    "s3-r2-2-c08": "spinal-five-v1:s3-r2-2-c05",
+    "s3-r2-3-c01": "spinal-five-v1:s3-r2-3-c01",
+    "s3-r2-3-c02": "spinal-five-v1:s3-r2-3-c02",
+    "s3-r2-3-c03": "spinal-five-v1:s3-r2-3-c02",
+    "s3-r3-1-c01": "spinal-five-v1:s4-r3-1-c01",
+    "s3-r3-1-c02": "spinal-five-v1:s3-r3-1-c02",
+    "s3-r3-1-c03": "spinal-five-v1:s2-r3-1-c03",
+    "s3-r3-1-c04": "spinal-five-v1:s2-r3-1-c03",
+    "s3-r3-1-c05": "spinal-five-v1:s3-r3-1-c05",
+    "s3-r3-1-c06": "spinal-five-v1:s3-r3-1-c06",
+    "s3-r3-1-c07": "spinal-five-v1:s1-r3-2-c04",
+    "s3-r4-1-c01": "spinal-five-v1:s1-r4-1-c01",
+    "s3-r4-1-c02": "spinal-five-v1:s4-r4-1-c03",
+    "s3-r4-1-c03": "spinal-five-v1:s4-r4-1-c04",
+    "s3-r4-1-c04": "spinal-five-v1:s2-r4-1-c04",
+    "s3-r4-1-c05": "spinal-five-v1:s4-r4-1-c05",
+    "s3-r4-1-c06": "spinal-five-v1:s4-r4-1-c06",
+    "s3-r4-1-c07": "spinal-five-v1:s4-r4-1-c08",
+    "s3-r4-1-c08": "spinal-five-v1:s3-r4-1-c08",
+    "s3-r4-1-c09": "spinal-five-v1:s4-r4-1-c08",
+    "s3-r4-2-c01": "spinal-five-v1:s1-r4-2-c01",
+    "s3-r4-2-c02": "spinal-five-v1:s3-r4-2-c02",
+    "s3-r5-1-c01": "spinal-five-v1:s4-r5-1-c01",
+    "s3-r5-1-c02": "spinal-five-v1:s4-r5-1-c02",
+    "s3-r5-1-c03": "spinal-five-v1:s2-r5-1-c04",
+    "s3-r5-1-c04": "spinal-five-v1:s1-r5-1-c02",
+    "s3-r5-1-c05": "spinal-five-v1:s1-r5-1-c03",
+    "s3-r5-1-c06": "spinal-five-v1:s1-r5-1-c04",
+    "s3-r5-1-c07": "spinal-five-v1:s3-r5-1-c07",
+    "s3-r5-1-c08": "spinal-five-v1:s4-r5-1-c08",
+    "s3-r5-2-c01": "spinal-five-v1:s2-r5-2-c01",
+    "s3-r5-2-c02": "spinal-five-v1:s1-r5-1-c06",
+    "s3-r6-1-c01": "spinal-five-v1:s4-r1-4-c03",
+    "s3-r6-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s3-r6-1-c03": "spinal-five-v1:s1-r1-4-c06",
+    "s3-r6-1-c04": "spinal-five-v1:s1-r1-5-c03",
+    "s3-r6-1-c05": "spinal-five-v1:s1-r1-5-c05",
+    "s3-r6-1-c06": "spinal-five-v1:s1-r1-5-c06",
+    "s3-r6-1-c07": "spinal-five-v1:s2-r2-1-c01",
+    "s4-r1-1-c01": "spinal-five-v1:s4-r1-1-c01",
+    "s4-r1-1-c02": "spinal-five-v1:s3-r1-1-c02",
+    "s4-r1-1-c03": "spinal-five-v1:s1-r1-1-c03",
+    "s4-r1-1-c04": "spinal-five-v1:s1-r1-1-c04",
+    "s4-r1-2-c01": "spinal-five-v1:s4-r1-2-c01",
+    "s4-r1-2-c02": "spinal-five-v1:s1-r1-2-c01",
+    "s4-r1-2-c04": "spinal-five-v1:s4-r1-2-c06",
+    "s4-r1-2-c05": "spinal-five-v1:s1-r1-2-c04",
+    "s4-r1-2-c06": "spinal-five-v1:s4-r1-2-c06",
+    "s4-r1-2-c07": "spinal-five-v1:s4-r1-2-c07",
+    "s4-r1-3-c01": "spinal-five-v1:s1-r1-3-c01",
+    "s4-r1-3-c02": "spinal-five-v1:s4-r1-3-c02",
+    "s4-r1-3-c03": "spinal-five-v1:s4-r1-3-c03",
+    "s4-r1-3-c04": "spinal-five-v1:s4-r1-3-c04",
+    "s4-r1-3-c05": "spinal-five-v1:s1-r1-3-c01",
+    "s4-r1-3-c06": "spinal-five-v1:s4-r1-3-c06",
+    "s4-r1-3-c07": "spinal-five-v1:s1-r1-4-c01",
+    "s4-r1-3-c08": "spinal-five-v1:s4-r1-3-c08",
+    "s4-r1-4-c01": "spinal-five-v1:s4-r1-4-c01",
+    "s4-r1-4-c02": "spinal-five-v1:s4-r1-4-c02",
+    "s4-r1-4-c03": "spinal-five-v1:s4-r1-4-c03",
+    "s4-r1-4-c04": "spinal-five-v1:s4-r1-4-c04",
+    "s4-r1-4-c05": "spinal-five-v1:s1-r1-5-c01",
+    "s4-r1-4-c06": "spinal-five-v1:s4-r1-4-c06",
+    "s4-r1-4-c07": "spinal-five-v1:s4-r1-4-c07",
+    "s4-r1-4-c08": "spinal-five-v1:s4-r1-4-c08",
+    "s4-r1-4-c09": "spinal-five-v1:s4-r1-4-c10",
+    "s4-r1-4-c10": "spinal-five-v1:s4-r1-4-c10",
+    "s4-r2-1-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s4-r2-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s4-r2-1-c03": "spinal-five-v1:s1-r2-1-c03",
+    "s4-r2-1-c04": "spinal-five-v1:s5-r4-2-c02",
+    "s4-r2-1-c05": "spinal-five-v1:s1-r2-1-c05",
+    "s4-r2-1-c06": "spinal-five-v1:s1-r1-2-c03",
+    "s4-r2-1-c07": "spinal-five-v1:s1-r1-5-c05",
+    "s4-r2-1-c08": "spinal-five-v1:s4-r2-1-c08",
+    "s4-r2-2-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s4-r2-2-c02": "spinal-five-v1:s4-r2-2-c02",
+    "s4-r2-2-c03": "spinal-five-v1:s4-r2-2-c03",
+    "s4-r2-2-c04": "spinal-five-v1:s4-r2-2-c04",
+    "s4-r2-3-c01": "spinal-five-v1:s4-r2-3-c01",
+    "s4-r2-3-c02": "spinal-five-v1:s3-r2-3-c01",
+    "s4-r2-3-c04": "spinal-five-v1:s4-r2-3-c04",
+    "s4-r2-3-c05": "spinal-five-v1:s5-r2-3-c06",
+    "s4-r3-1-c01": "spinal-five-v1:s4-r3-1-c01",
+    "s4-r3-1-c02": "spinal-five-v1:s3-r3-1-c02",
+    "s4-r3-1-c03": "spinal-five-v1:s2-r3-1-c03",
+    "s4-r3-1-c04": "spinal-five-v1:s2-r3-1-c03",
+    "s4-r3-1-c05": "spinal-five-v1:s4-r3-1-c05",
+    "s4-r3-1-c06": "spinal-five-v1:s4-r3-1-c06",
+    "s4-r3-1-c07": "spinal-five-v1:s4-r3-1-c07",
+    "s4-r4-1-c01": "spinal-five-v1:s4-r4-1-c01",
+    "s4-r4-1-c02": "spinal-five-v1:s1-r4-1-c01",
+    "s4-r4-1-c03": "spinal-five-v1:s4-r4-1-c03",
+    "s4-r4-1-c04": "spinal-five-v1:s4-r4-1-c04",
+    "s4-r4-1-c05": "spinal-five-v1:s4-r4-1-c05",
+    "s4-r4-1-c06": "spinal-five-v1:s4-r4-1-c06",
+    "s4-r4-1-c07": "spinal-five-v1:s4-r4-1-c08",
+    "s4-r4-1-c08": "spinal-five-v1:s4-r4-1-c08",
+    "s4-r4-1-c09": "spinal-five-v1:s4-r4-1-c09",
+    "s4-r4-2-c01": "spinal-five-v1:s3-r4-1-c08",
+    "s4-r5-1-c01": "spinal-five-v1:s4-r5-1-c01",
+    "s4-r5-1-c02": "spinal-five-v1:s4-r5-1-c02",
+    "s4-r5-1-c03": "spinal-five-v1:s1-r5-1-c02",
+    "s4-r5-1-c04": "spinal-five-v1:s4-r5-1-c04",
+    "s4-r5-1-c05": "spinal-five-v1:s1-r5-1-c03",
+    "s4-r5-1-c06": "spinal-five-v1:s1-r5-1-c04",
+    "s4-r5-1-c07": "spinal-five-v1:s3-r5-1-c07",
+    "s4-r5-1-c08": "spinal-five-v1:s4-r5-1-c08",
+    "s4-r5-2-c01": "spinal-five-v1:s2-r5-2-c01",
+    "s4-r5-2-c02": "spinal-five-v1:s1-r5-1-c06",
+    "s5-r1-1-c01": "spinal-five-v1:s4-r1-1-c01",
+    "s5-r1-1-c02": "spinal-five-v1:s3-r1-1-c02",
+    "s5-r1-1-c03": "spinal-five-v1:s1-r1-1-c03",
+    "s5-r1-1-c04": "spinal-five-v1:s1-r1-1-c04",
+    "s5-r1-1-c05": "spinal-five-v1:s3-r1-1-c02",
+    "s5-r1-2-c01": "spinal-five-v1:s4-r1-2-c01",
+    "s5-r1-2-c02": "spinal-five-v1:s1-r1-2-c01",
+    "s5-r1-2-c03": "spinal-five-v1:s1-r1-2-c05",
+    "s5-r1-2-c04": "spinal-five-v1:s5-r1-2-c04",
+    "s5-r1-2-c05": "spinal-five-v1:s5-r1-2-c05",
+    "s5-r1-2-c06": "spinal-five-v1:s5-r1-2-c06",
+    "s5-r1-2-c07": "spinal-five-v1:s5-r1-2-c07",
+    "s5-r1-2-c08": "spinal-five-v1:s5-r1-2-c08",
+    "s5-r1-2-c09": "spinal-five-v1:s5-r1-2-c09",
+    "s5-r1-2-c10": "spinal-five-v1:s4-r1-2-c07",
+    "s5-r1-2-c11": "spinal-five-v1:s5-r1-2-c11",
+    "s5-r1-2-c12": "spinal-five-v1:s5-r1-2-c12",
+    "s5-r1-2-c13": "spinal-five-v1:s3-r1-2-c08",
+    "s5-r1-2-c14": "spinal-five-v1:s3-r1-2-c09",
+    "s5-r1-3-c01": "spinal-five-v1:s1-r1-3-c01",
+    "s5-r1-3-c02": "spinal-five-v1:s4-r1-3-c02",
+    "s5-r1-3-c03": "spinal-five-v1:s5-r1-3-c03",
+    "s5-r1-3-c04": "spinal-five-v1:s5-r1-3-c04",
+    "s5-r1-3-c05": "spinal-five-v1:s5-r1-3-c05",
+    "s5-r1-3-c06": "spinal-five-v1:s5-r1-3-c06",
+    "s5-r1-3-c07": "spinal-five-v1:s1-r1-4-c01",
+    "s5-r1-3-c08": "spinal-five-v1:s5-r1-3-c08",
+    "s5-r1-3-c09": "spinal-five-v1:s5-r1-3-c09",
+    "s5-r1-4-c01": "spinal-five-v1:s4-r1-4-c03",
+    "s5-r1-4-c02": "spinal-five-v1:s4-r1-4-c03",
+    "s5-r1-4-c03": "spinal-five-v1:s4-r1-4-c04",
+    "s5-r1-4-c04": "spinal-five-v1:s1-r1-5-c01",
+    "s5-r1-4-c05": "spinal-five-v1:s5-r1-4-c05",
+    "s5-r1-4-c06": "spinal-five-v1:s5-r1-4-c06",
+    "s5-r1-4-c07": "spinal-five-v1:s5-r1-4-c07",
+    "s5-r1-4-c08": "spinal-five-v1:s5-r1-4-c07",
+    "s5-r1-4-c09": "spinal-five-v1:s5-r1-4-c09",
+    "s5-r2-1-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s5-r2-1-c02": "spinal-five-v1:s1-r1-5-c01",
+    "s5-r2-1-c03": "spinal-five-v1:s1-r2-1-c03",
+    "s5-r2-1-c04": "spinal-five-v1:s5-r4-2-c02",
+    "s5-r2-1-c05": "spinal-five-v1:s1-r2-1-c05",
+    "s5-r2-1-c06": "spinal-five-v1:s1-r2-1-c03",
+    "s5-r2-1-c07": "spinal-five-v1:s1-r2-1-c05",
+    "s5-r2-1-c08": "spinal-five-v1:s1-r1-2-c03",
+    "s5-r2-2-c01": "spinal-five-v1:s2-r2-1-c01",
+    "s5-r2-2-c02": "spinal-five-v1:s4-r2-2-c02",
+    "s5-r2-2-c03": "spinal-five-v1:s4-r2-2-c03",
+    "s5-r2-2-c04": "spinal-five-v1:s5-r2-2-c04",
+    "s5-r2-2-c05": "spinal-five-v1:s5-r2-2-c05",
+    "s5-r2-2-c06": "spinal-five-v1:s4-r3-1-c07",
+    "s5-r2-2-c07": "spinal-five-v1:s5-r2-2-c07",
+    "s5-r2-3-c01": "spinal-five-v1:s3-r2-3-c01",
+    "s5-r2-3-c02": "spinal-five-v1:s2-r2-3-c01",
+    "s5-r2-3-c04": "spinal-five-v1:s5-r2-3-c04",
+    "s5-r2-3-c05": "spinal-five-v1:s5-r2-3-c04",
+    "s5-r2-3-c06": "spinal-five-v1:s5-r2-3-c06",
+    "s5-r2-3-c07": "spinal-five-v1:s5-r2-3-c07",
+    "s5-r2-3-c08": "spinal-five-v1:s5-r2-3-c07",
+    "s5-r3-1-c01": "spinal-five-v1:s4-r3-1-c01",
+    "s5-r3-1-c02": "spinal-five-v1:s5-r3-1-c02",
+    "s5-r3-1-c03": "spinal-five-v1:s2-r3-1-c03",
+    "s5-r3-1-c04": "spinal-five-v1:s1-r3-2-c01",
+    "s5-r3-1-c05": "spinal-five-v1:s4-r3-1-c07",
+    "s5-r3-1-c06": "spinal-five-v1:s5-r3-1-c06",
+    "s5-r3-1-c07": "spinal-five-v1:s5-r3-1-c07",
+    "s5-r3-1-c08": "spinal-five-v1:s1-r3-2-c01",
+    "s5-r4-1-c01": "spinal-five-v1:s4-r4-1-c05",
+    "s5-r4-1-c02": "spinal-five-v1:s1-r4-1-c01",
+    "s5-r4-1-c03": "spinal-five-v1:s4-r4-1-c03",
+    "s5-r4-1-c04": "spinal-five-v1:s4-r4-1-c04",
+    "s5-r4-1-c05": "spinal-five-v1:s4-r4-1-c05",
+    "s5-r4-1-c06": "spinal-five-v1:s4-r4-1-c06",
+    "s5-r4-1-c07": "spinal-five-v1:s4-r4-1-c08",
+    "s5-r4-1-c08": "spinal-five-v1:s1-r1-5-c01",
+    "s5-r4-1-c09": "spinal-five-v1:s5-r4-1-c09",
+    "s5-r4-1-c10": "spinal-five-v1:s5-r2-2-c04",
+    "s5-r4-2-c01": "spinal-five-v1:s1-r1-5-c01",
+    "s5-r4-2-c02": "spinal-five-v1:s5-r4-2-c02",
+    "s5-r4-2-c03": "spinal-five-v1:s2-r4-2-c03",
+    "s5-r5-1-c01": "spinal-five-v1:s4-r5-1-c01",
+    "s5-r5-1-c02": "spinal-five-v1:s4-r5-1-c02",
+    "s5-r5-1-c03": "spinal-five-v1:s1-r5-1-c02",
+    "s5-r5-1-c04": "spinal-five-v1:s4-r5-1-c04",
+    "s5-r5-1-c05": "spinal-five-v1:s1-r1-2-c01",
+    "s5-r5-2-c01": "spinal-five-v1:s2-r5-2-c01",
+    "s5-r5-2-c02": "spinal-five-v1:s1-r5-1-c06"
+  },
+  "provenance": [
+    {
+      "source_key": "spinal-five-v1:s2-r2-1-c01",
+      "name": "Адхо Мукха Шванасана",
+      "selected": "s2-r2-1-c01",
+      "occurrences": [
+        "s1-r1-5-c07",
+        "s1-r2-1-c01",
+        "s1-r2-2-c01",
+        "s2-r2-1-c01",
+        "s2-r2-2-c01",
+        "s2-rsv-c07",
+        "s3-r2-1-c01",
+        "s3-r2-1-c07",
+        "s3-r2-2-c01",
+        "s3-r6-1-c07",
+        "s4-r2-1-c01",
+        "s4-r2-2-c01",
+        "s5-r2-1-c01",
+        "s5-r2-2-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r4-2-c01",
+      "name": "Адхо Мукха Шванасана на предплечьях (уточнить)",
+      "selected": "s2-r4-2-c01",
+      "occurrences": [
+        "s2-r4-2-c01",
+        "s3-r2-1-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-4-c03",
+      "name": "Адхо Мукха Шванасана с блоком под головой (уточнить)",
+      "selected": "s2-r1-4-c03",
+      "occurrences": [
+        "s2-r1-4-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-2-c03",
+      "name": "Адхо Мукха Шванасана с поднятой ногой",
+      "selected": "s2-r2-2-c03",
+      "occurrences": [
+        "s1-r2-2-c03",
+        "s2-r2-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r5-1-c01",
+      "name": "Апанасана",
+      "selected": "s4-r5-1-c01",
+      "occurrences": [
+        "s1-r5-1-c01",
+        "s2-r5-1-c01",
+        "s3-r5-1-c01",
+        "s4-r5-1-c01",
+        "s5-r5-1-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-2-c03",
+      "name": "Ардха Навасана",
+      "selected": "s1-r1-2-c03",
+      "occurrences": [
+        "s1-r1-2-c03",
+        "s4-r2-1-c06",
+        "s5-r2-1-c08",
+        "s1-r2-1-c06",
+        "s2-r2-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-2-c03",
+      "name": "Ардха Навасана с поднятой ногой и рукой",
+      "selected": "s3-r1-2-c03",
+      "occurrences": [
+        "s3-r1-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c06",
+      "name": "Ардха Навасана с согнутой ногой",
+      "selected": "s5-r1-2-c06",
+      "occurrences": [
+        "s5-r1-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-4-c01",
+      "name": "Ардха Пурвоттанасана — обратный стол (уточнить)",
+      "selected": "s1-r1-4-c01",
+      "occurrences": [
+        "s1-r1-4-c01",
+        "s1-r1-3-c08",
+        "s3-r1-3-c04",
+        "s3-r1-3-c10",
+        "s4-r1-3-c07",
+        "s5-r1-3-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c03",
+      "name": "Аштанга Намаскара",
+      "selected": "s1-r1-5-c03",
+      "occurrences": [
+        "s1-r1-4-c08",
+        "s1-r1-5-c03",
+        "s2-r1-4-c05",
+        "s2-rsv-c04",
+        "s3-r1-4-c03",
+        "s3-r1-4-c07",
+        "s3-r6-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-2-c03",
+      "name": "Баланс на одной ноге с рукой над головой (уточнить)",
+      "selected": "s4-r2-2-c03",
+      "occurrences": [
+        "s4-r2-2-c03",
+        "s5-r2-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-2-c05",
+      "name": "Баланс на руках с одной вытянутой ногой (уточнить)",
+      "selected": "s5-r2-2-c05",
+      "occurrences": [
+        "s5-r2-2-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c09",
+      "name": "Баланс на руках с опущенной стопой (уточнить)",
+      "selected": "s4-r4-1-c09",
+      "occurrences": [
+        "s4-r4-1-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c08",
+      "name": "Баланс на руках с согнутыми коленями (уточнить)",
+      "selected": "s4-r4-1-c08",
+      "occurrences": [
+        "s3-r4-1-c07",
+        "s3-r4-1-c09",
+        "s4-r4-1-c07",
+        "s4-r4-1-c08",
+        "s5-r4-1-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r3-1-c02",
+      "name": "Баланс стоя с поднятым коленом и рукой над головой (уточнить)",
+      "selected": "s5-r3-1-c02",
+      "occurrences": [
+        "s5-r3-1-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-3-c06",
+      "name": "Баласана",
+      "selected": "s3-r1-3-c06",
+      "occurrences": [
+        "s1-r2-2-c08",
+        "s3-r1-3-c06",
+        "s3-r1-3-c09",
+        "s3-r1-3-c07",
+        "s3-r1-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-4-c04",
+      "name": "Баласана с вытянутыми руками",
+      "selected": "s1-r1-4-c04",
+      "occurrences": [
+        "s1-r1-4-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c02",
+      "name": "Баласана с опорой головы на блок",
+      "selected": "s4-r1-4-c02",
+      "occurrences": [
+        "s2-r1-4-c02",
+        "s4-r1-4-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-1-c02",
+      "name": "Боковой наклон сидя",
+      "selected": "s3-r1-1-c02",
+      "occurrences": [
+        "s1-r1-1-c02",
+        "s2-r1-1-c02",
+        "s3-r1-1-c02",
+        "s4-r1-1-c02",
+        "s5-r1-1-c02",
+        "s5-r1-1-c05",
+        "s2-r1-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-2-c06",
+      "name": "Боковой упор с рукой вверх (уточнить)",
+      "selected": "s1-r2-2-c06",
+      "occurrences": [
+        "s1-r2-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-2-c07",
+      "name": "Вирабхадрасана I (уточнить)",
+      "selected": "s1-r2-2-c07",
+      "occurrences": [
+        "s1-r2-2-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-4-c04",
+      "name": "Волнообразное вытяжение в упоре с опущенной головой (уточнить)",
+      "selected": "s3-r1-4-c04",
+      "occurrences": [
+        "s3-r1-4-c04",
+        "s2-r1-4-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r3-1-c02",
+      "name": "Врикшасана",
+      "selected": "s3-r3-1-c02",
+      "occurrences": [
+        "s1-r3-1-c02",
+        "s2-r3-1-c02",
+        "s3-r3-1-c02",
+        "s4-r3-1-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-4-c06",
+      "name": "Вытяжение в упоре на колени и руки (уточнить)",
+      "selected": "s1-r1-4-c06",
+      "occurrences": [
+        "s3-r6-1-c03",
+        "s1-r1-4-c06",
+        "s1-r1-4-c07",
+        "s2-rsv-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-1-c04",
+      "name": "Вытяжение рук вверх сидя (уточнить)",
+      "selected": "s1-r1-1-c04",
+      "occurrences": [
+        "s1-r1-1-c04",
+        "s2-r1-1-c05",
+        "s3-r1-1-c04",
+        "s4-r1-1-c04",
+        "s5-r1-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c01",
+      "name": "Вытяжение руки в наклоне (уточнить)",
+      "selected": "s4-r1-4-c01",
+      "occurrences": [
+        "s4-r1-4-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c08",
+      "name": "Вытяжение с опорой на колени и поднятым блоком",
+      "selected": "s4-r1-4-c08",
+      "occurrences": [
+        "s4-r1-4-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c05",
+      "name": "Глубокий присед",
+      "selected": "s4-r4-1-c05",
+      "occurrences": [
+        "s3-r4-1-c05",
+        "s4-r4-1-c05",
+        "s5-r4-1-c01",
+        "s5-r4-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c01",
+      "name": "Глубокий присед с раскрытием плеч (уточнить)",
+      "selected": "s4-r4-1-c01",
+      "occurrences": [
+        "s4-r4-1-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-4-c05",
+      "name": "Движение корпуса на четвереньках (уточнить)",
+      "selected": "s5-r1-4-c05",
+      "occurrences": [
+        "s5-r1-4-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r5-1-c02",
+      "name": "Движение согнутых ног лёжа на спине (уточнить)",
+      "selected": "s4-r5-1-c02",
+      "occurrences": [
+        "s3-r5-1-c02",
+        "s4-r5-1-c02",
+        "s5-r5-1-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c03",
+      "name": "Круговое движение корпуса сидя (уточнить)",
+      "selected": "s5-r1-3-c03",
+      "occurrences": [
+        "s5-r1-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-2-c05",
+      "name": "Лёжа на спине с ногами на полу (уточнить)",
+      "selected": "s3-r1-2-c05",
+      "occurrences": [
+        "s3-r1-2-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r5-1-c08",
+      "name": "Лёжа на спине с одной согнутой ногой (уточнить)",
+      "selected": "s4-r5-1-c08",
+      "occurrences": [
+        "s3-r5-1-c08",
+        "s4-r5-1-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c07",
+      "name": "Лёжа на спине с согнутыми и разведёнными ногами (уточнить)",
+      "selected": "s5-r1-2-c07",
+      "occurrences": [
+        "s3-r1-2-c06",
+        "s5-r1-2-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r5-1-c03",
+      "name": "Лёжа на спине с согнутыми ногами и поднятой рукой (уточнить)",
+      "selected": "s2-r5-1-c03",
+      "occurrences": [
+        "s2-r5-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-2-c04",
+      "name": "Лёжа на спине с согнутыми ногами и согнутой рукой (уточнить)",
+      "selected": "s1-r1-2-c04",
+      "occurrences": [
+        "s1-r1-2-c04",
+        "s2-r1-2-c04",
+        "s3-r1-2-c04",
+        "s4-r1-2-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c04",
+      "name": "Лёжа с поднятыми согнутыми ногами",
+      "selected": "s5-r1-2-c04",
+      "occurrences": [
+        "s5-r1-2-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-2-c01",
+      "name": "Навасана",
+      "selected": "s1-r1-2-c01",
+      "occurrences": [
+        "s1-r1-2-c06",
+        "s2-r1-2-c08",
+        "s1-r1-2-c01",
+        "s2-r1-2-c01",
+        "s3-r1-2-c01",
+        "s3-r1-2-c11",
+        "s4-r1-2-c02",
+        "s5-r1-2-c02",
+        "s5-r5-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-2-c07",
+      "name": "Навасана с блоком на стопе",
+      "selected": "s4-r1-2-c07",
+      "occurrences": [
+        "s4-r1-2-c07",
+        "s5-r1-2-c10"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c12",
+      "name": "Навасана с блоком перед корпусом",
+      "selected": "s5-r1-2-c12",
+      "occurrences": [
+        "s5-r1-2-c12"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-2-c02",
+      "name": "Навасана с согнутыми ногами (уточнить)",
+      "selected": "s1-r1-2-c02",
+      "occurrences": [
+        "s2-r1-2-c02",
+        "s1-r1-2-c02",
+        "s3-r1-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c09",
+      "name": "Наклон в приседе с опорой рук у ног (уточнить)",
+      "selected": "s5-r1-3-c09",
+      "occurrences": [
+        "s3-r1-3-c11",
+        "s5-r1-3-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-3-c06",
+      "name": "Наклон в приседе с руками за спиной (уточнить)",
+      "selected": "s4-r1-3-c06",
+      "occurrences": [
+        "s3-r1-3-c08",
+        "s4-r1-3-c06",
+        "s1-r1-3-c07",
+        "s2-r1-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c04",
+      "name": "Наклон вперёд сидя на пятках (уточнить)",
+      "selected": "s5-r1-3-c04",
+      "occurrences": [
+        "s5-r1-3-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-3-c03",
+      "name": "Наклон вперёд сидя с согнутыми ногами (уточнить)",
+      "selected": "s1-r1-3-c03",
+      "occurrences": [
+        "s1-r1-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r3-1-c06",
+      "name": "Наклон к бедру на одной ноге (уточнить)",
+      "selected": "s4-r3-1-c06",
+      "occurrences": [
+        "s4-r3-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c05",
+      "name": "Наклон к стене с опорой на блок (уточнить)",
+      "selected": "s5-r1-3-c05",
+      "occurrences": [
+        "s5-r1-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c06",
+      "name": "Наклон к стене с опорой на блок и согнутыми ногами (уточнить)",
+      "selected": "s5-r1-3-c06",
+      "occurrences": [
+        "s5-r1-3-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-3-c04",
+      "name": "Наклон корпуса вперёд с вытянутой ногой (уточнить)",
+      "selected": "s2-r1-3-c04",
+      "occurrences": [
+        "s2-r1-3-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r4-1-c04",
+      "name": "Наклон корпуса вперёд с руками за спиной (уточнить)",
+      "selected": "s1-r4-1-c04",
+      "occurrences": [
+        "s1-r4-1-c04",
+        "s2-r4-1-c05",
+        "s1-r4-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-2-c04",
+      "name": "Наклон корпуса с опорой на предплечье (уточнить)",
+      "selected": "s1-r2-2-c04",
+      "occurrences": [
+        "s1-r2-2-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-2-c02",
+      "name": "Наклон корпуса с опорой на руку и согнутой ногой (уточнить)",
+      "selected": "s4-r2-2-c02",
+      "occurrences": [
+        "s3-r2-2-c02",
+        "s4-r2-2-c02",
+        "s5-r2-2-c02",
+        "s2-r2-2-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-3-c04",
+      "name": "Наклон корпуса сидя с согнутыми ногами (уточнить)",
+      "selected": "s4-r1-3-c04",
+      "occurrences": [
+        "s4-r1-3-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r3-2-c04",
+      "name": "Наклон корпуса стоя под прямым углом (уточнить)",
+      "selected": "s1-r3-2-c04",
+      "occurrences": [
+        "s1-r3-2-c04",
+        "s2-r3-1-c07",
+        "s3-r3-1-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r3-1-c05",
+      "name": "Наклон корпуса стоя с руками за головой (уточнить)",
+      "selected": "s4-r3-1-c05",
+      "occurrences": [
+        "s4-r3-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c04",
+      "name": "Наклон на коленях с поднятым тазом",
+      "selected": "s4-r1-4-c04",
+      "occurrences": [
+        "s3-r1-4-c02",
+        "s3-r1-4-c06",
+        "s4-r1-4-c04",
+        "s5-r1-4-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-3-c04",
+      "name": "Наклон на коленях с руками за головой (уточнить)",
+      "selected": "s1-r1-3-c04",
+      "occurrences": [
+        "s1-r1-3-c04",
+        "s1-r1-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-1-c08",
+      "name": "Наклон стоя с опорой стопы на блок",
+      "selected": "s4-r2-1-c08",
+      "occurrences": [
+        "s4-r2-1-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-3-c04",
+      "name": "Наклон стоя с согнутыми коленями и блоком (уточнить)",
+      "selected": "s2-r2-3-c04",
+      "occurrences": [
+        "s2-r2-3-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-3-c05",
+      "name": "Наклон стоя спиной к стене (уточнить)",
+      "selected": "s2-r2-3-c05",
+      "occurrences": [
+        "s2-r2-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c02",
+      "name": "Низкая планка (уточнить)",
+      "selected": "s1-r1-5-c02",
+      "occurrences": [
+        "s1-r1-5-c02",
+        "s2-r1-4-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c10",
+      "name": "Низкая планка с поднятой ногой (уточнить)",
+      "selected": "s4-r1-4-c10",
+      "occurrences": [
+        "s3-r1-4-c10",
+        "s4-r1-4-c10",
+        "s4-r1-4-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r4-2-c02",
+      "name": "Низкий прогиб с опорой на предплечья",
+      "selected": "s5-r4-2-c02",
+      "occurrences": [
+        "s1-r2-1-c04",
+        "s2-r2-1-c04",
+        "s2-r4-2-c02",
+        "s3-r2-1-c04",
+        "s4-r2-1-c04",
+        "s5-r2-1-c04",
+        "s5-r4-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-4-c09",
+      "name": "Низкий прогиб с опорой на согнутые руки (уточнить)",
+      "selected": "s2-r1-4-c09",
+      "occurrences": [
+        "s2-r1-4-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c06",
+      "name": "Низкий упор на колени с блоком перед головой",
+      "selected": "s4-r1-4-c06",
+      "occurrences": [
+        "s4-r1-4-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-4-c09",
+      "name": "Низкий упор с блоком под опорой рук",
+      "selected": "s5-r1-4-c09",
+      "occurrences": [
+        "s5-r1-4-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r5-1-c04",
+      "name": "Ноги вверх лёжа (уточнить)",
+      "selected": "s2-r5-1-c04",
+      "occurrences": [
+        "s3-r5-1-c03",
+        "s2-r5-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-2-c08",
+      "name": "Ноги у стены лёжа",
+      "selected": "s3-r1-2-c08",
+      "occurrences": [
+        "s3-r1-2-c08",
+        "s5-r1-2-c13"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-3-c08",
+      "name": "Обратная опора с низким положением таза (уточнить)",
+      "selected": "s4-r1-3-c08",
+      "occurrences": [
+        "s4-r1-3-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-3-c08",
+      "name": "Обратная опора с согнутыми ногами (уточнить)",
+      "selected": "s5-r1-3-c08",
+      "occurrences": [
+        "s5-r1-3-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-3-c06",
+      "name": "Обратный стол с дополнительной опорой стоп (уточнить)",
+      "selected": "s2-r1-3-c06",
+      "occurrences": [
+        "s2-r1-3-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-2-c05",
+      "name": "Опора на руку и ноги с рукой за спиной (уточнить)",
+      "selected": "s1-r2-2-c05",
+      "occurrences": [
+        "s3-r2-2-c03",
+        "s1-r2-2-c05",
+        "s2-r2-2-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c04",
+      "name": "Отклонение корпуса назад на коленях (уточнить)",
+      "selected": "s4-r4-1-c04",
+      "occurrences": [
+        "s3-r4-1-c03",
+        "s4-r4-1-c04",
+        "s5-r4-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r4-1-c04",
+      "name": "Отклонение корпуса назад с опорой рукой (уточнить)",
+      "selected": "s2-r4-1-c04",
+      "occurrences": [
+        "s3-r4-1-c04",
+        "s2-r4-1-c03",
+        "s2-r4-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r4-1-c03",
+      "name": "Отклонение назад с опорой на одно колено (уточнить)",
+      "selected": "s1-r4-1-c03",
+      "occurrences": [
+        "s1-r4-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r4-1-c09",
+      "name": "Перевёрнутая опора с одной ногой вверх (уточнить)",
+      "selected": "s5-r4-1-c09",
+      "occurrences": [
+        "s5-r4-1-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-3-c04",
+      "name": "Перевёрнутая опора у стены с одной ногой вверх (уточнить)",
+      "selected": "s4-r2-3-c04",
+      "occurrences": [
+        "s4-r2-3-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r4-2-c02",
+      "name": "Перевёрнутая опора у стены с опущенной ногой (уточнить)",
+      "selected": "s3-r4-2-c02",
+      "occurrences": [
+        "s3-r4-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-3-c06",
+      "name": "Перевёрнутая опора у стены с прямыми ногами (уточнить)",
+      "selected": "s5-r2-3-c06",
+      "occurrences": [
+        "s4-r2-3-c05",
+        "s5-r2-3-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r2-3-c02",
+      "name": "Перевёрнутая опора у стены с согнутыми ногами (уточнить)",
+      "selected": "s3-r2-3-c02",
+      "occurrences": [
+        "s3-r2-3-c02",
+        "s3-r2-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-3-c07",
+      "name": "Перевёрнутое положение у стены с блоком (уточнить)",
+      "selected": "s5-r2-3-c07",
+      "occurrences": [
+        "s5-r2-3-c07",
+        "s5-r2-3-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r5-1-c04",
+      "name": "Переход в плуг с поднятой ногой (уточнить)",
+      "selected": "s4-r5-1-c04",
+      "occurrences": [
+        "s4-r5-1-c04",
+        "s5-r5-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c01",
+      "name": "Планка",
+      "selected": "s1-r1-5-c01",
+      "occurrences": [
+        "s1-r1-5-c01",
+        "s1-r2-1-c02",
+        "s2-r1-4-c07",
+        "s2-rsv-c02",
+        "s3-r1-4-c08",
+        "s3-r2-1-c02",
+        "s3-r2-1-c09",
+        "s3-r6-1-c02",
+        "s4-r1-4-c05",
+        "s4-r2-1-c02",
+        "s5-r1-4-c04",
+        "s5-r2-1-c02",
+        "s5-r4-1-c08",
+        "s5-r4-2-c01",
+        "s2-r2-1-c02",
+        "s3-r1-4-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-2-c06",
+      "name": "Планка с дополнительной опорой стоп (уточнить)",
+      "selected": "s2-r2-2-c06",
+      "occurrences": [
+        "s2-r2-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c06",
+      "name": "Планка с округлением спины (уточнить)",
+      "selected": "s1-r1-5-c06",
+      "occurrences": [
+        "s3-r6-1-c06",
+        "s1-r1-5-c06",
+        "s2-rsv-c06",
+        "s1-r2-2-c02",
+        "s2-r2-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-4-c07",
+      "name": "Планка с опорой на блок",
+      "selected": "s5-r1-4-c07",
+      "occurrences": [
+        "s5-r1-4-c08",
+        "s5-r1-4-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-3-c04",
+      "name": "Планка с поднятой ногой",
+      "selected": "s5-r2-3-c04",
+      "occurrences": [
+        "s5-r2-3-c04",
+        "s5-r2-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-2-c04",
+      "name": "Планка с подтягиванием колена (уточнить)",
+      "selected": "s5-r2-2-c04",
+      "occurrences": [
+        "s5-r4-1-c10",
+        "s5-r2-2-c04",
+        "s2-r2-2-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c11",
+      "name": "Плуг с блоком и вытянутыми ногами (уточнить)",
+      "selected": "s5-r1-2-c11",
+      "occurrences": [
+        "s5-r1-2-c11"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c09",
+      "name": "Плуг с блоком и согнутыми ногами (уточнить)",
+      "selected": "s5-r1-2-c09",
+      "occurrences": [
+        "s5-r1-2-c09"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-4-c06",
+      "name": "Поворот корпуса на четвереньках (уточнить)",
+      "selected": "s5-r1-4-c06",
+      "occurrences": [
+        "s5-r1-4-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-2-c06",
+      "name": "Подтягивание колена лёжа с вытянутой второй ногой (уточнить)",
+      "selected": "s2-r1-2-c06",
+      "occurrences": [
+        "s2-r1-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c08",
+      "name": "Подъём прямой ноги лёжа",
+      "selected": "s5-r1-2-c08",
+      "occurrences": [
+        "s3-r1-2-c07",
+        "s5-r1-2-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-3-c05",
+      "name": "Подъём руки в положении стола (уточнить)",
+      "selected": "s3-r1-3-c05",
+      "occurrences": [
+        "s3-r1-3-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-4-c02",
+      "name": "Положение на четвереньках",
+      "selected": "s1-r1-4-c02",
+      "occurrences": [
+        "s1-r1-4-c03",
+        "s1-r1-4-c02",
+        "s1-r1-4-c05",
+        "s2-rsv-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-3-c08",
+      "name": "Положение на четвереньках с опорой коленей (уточнить)",
+      "selected": "s2-r1-3-c08",
+      "occurrences": [
+        "s2-r1-3-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-4-c01",
+      "name": "Положение на четвереньках с опорой ладоней (уточнить)",
+      "selected": "s2-r1-4-c01",
+      "occurrences": [
+        "s2-r1-4-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r3-1-c06",
+      "name": "Положение с одной вытянутой ногой и опорой на колено (уточнить)",
+      "selected": "s5-r3-1-c06",
+      "occurrences": [
+        "s5-r3-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r3-1-c05",
+      "name": "Присед на одной ноге с наклоном корпуса (уточнить)",
+      "selected": "s2-r3-1-c05",
+      "occurrences": [
+        "s2-r3-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c03",
+      "name": "Присед с отклонением корпуса назад (уточнить)",
+      "selected": "s4-r4-1-c03",
+      "occurrences": [
+        "s1-r4-1-c02",
+        "s2-r4-1-c01",
+        "s3-r4-1-c02",
+        "s4-r4-1-c03",
+        "s5-r4-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r3-1-c05",
+      "name": "Присед с перекрёстом ног и рукой за спиной (уточнить)",
+      "selected": "s1-r3-1-c05",
+      "occurrences": [
+        "s1-r3-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r3-1-c06",
+      "name": "Присед с переплетёнными ногами (уточнить)",
+      "selected": "s3-r3-1-c06",
+      "occurrences": [
+        "s3-r3-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-4-c05",
+      "name": "Прогиб в упоре с вытянутой ногой",
+      "selected": "s3-r1-4-c05",
+      "occurrences": [
+        "s3-r1-4-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-1-c05",
+      "name": "Прогиб лёжа с поднятой рукой (уточнить)",
+      "selected": "s1-r2-1-c05",
+      "occurrences": [
+        "s3-r2-1-c06",
+        "s5-r2-1-c05",
+        "s5-r2-1-c07",
+        "s3-r2-1-c05",
+        "s4-r2-1-c05",
+        "s1-r2-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-1-c05",
+      "name": "Прогиб лёжа с согнутой ногой и рукой вверх (уточнить)",
+      "selected": "s2-r2-1-c05",
+      "occurrences": [
+        "s2-r2-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c03",
+      "name": "Прогиб на четвереньках",
+      "selected": "s4-r1-4-c03",
+      "occurrences": [
+        "s3-r1-4-c01",
+        "s3-r6-1-c01",
+        "s4-r1-4-c03",
+        "s5-r1-4-c01",
+        "s5-r1-4-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c04",
+      "name": "Прогиб с коленями на полу (уточнить)",
+      "selected": "s1-r1-5-c04",
+      "occurrences": [
+        "s1-r1-5-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r4-1-c06",
+      "name": "Прогиб с опорой на руки и стопы (уточнить)",
+      "selected": "s4-r4-1-c06",
+      "occurrences": [
+        "s3-r4-1-c06",
+        "s4-r4-1-c06",
+        "s5-r4-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r1-3-c07",
+      "name": "Пурвоттанасана с опорой стоп (уточнить)",
+      "selected": "s2-r1-3-c07",
+      "occurrences": [
+        "s2-r1-3-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r2-2-c07",
+      "name": "Равновесие в приседе с рукой вверх (уточнить)",
+      "selected": "s5-r2-2-c07",
+      "occurrences": [
+        "s5-r2-2-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r3-1-c07",
+      "name": "Равновесие в приседе с рукой за спиной (уточнить)",
+      "selected": "s5-r3-1-c07",
+      "occurrences": [
+        "s5-r3-1-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r3-1-c06",
+      "name": "Равновесие с одной вытянутой ногой и наклоном корпуса (уточнить)",
+      "selected": "s2-r3-1-c06",
+      "occurrences": [
+        "s2-r3-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s5-r1-2-c05",
+      "name": "Равновесие с подтянутыми коленями и вытянутыми руками",
+      "selected": "s5-r1-2-c05",
+      "occurrences": [
+        "s2-r1-2-c05",
+        "s5-r1-2-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r3-1-c07",
+      "name": "Равновесие сидя с вытянутой ногой (уточнить)",
+      "selected": "s4-r3-1-c07",
+      "occurrences": [
+        "s4-r3-1-c07",
+        "s5-r3-1-c05",
+        "s5-r2-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-2-c01",
+      "name": "Равновесие сидя с коленями у груди (уточнить)",
+      "selected": "s4-r1-2-c01",
+      "occurrences": [
+        "s4-r1-2-c01",
+        "s5-r1-2-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-2-c06",
+      "name": "Равновесие сидя с одной поднятой ногой и блоком (уточнить)",
+      "selected": "s4-r1-2-c06",
+      "occurrences": [
+        "s4-r1-2-c04",
+        "s4-r1-2-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-2-c05",
+      "name": "Равновесие сидя с одной прямой ногой вверх (уточнить)",
+      "selected": "s1-r1-2-c05",
+      "occurrences": [
+        "s1-r1-2-c05",
+        "s2-r1-2-c07",
+        "s2-r1-2-c03",
+        "s3-r1-2-c10",
+        "s5-r1-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-2-c04",
+      "name": "Равновесие сидя с согнутыми ногами и отклонённым корпусом (уточнить)",
+      "selected": "s4-r2-2-c04",
+      "occurrences": [
+        "s4-r2-2-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r3-1-c05",
+      "name": "Равновесие стоя с переплетёнными ногами (уточнить)",
+      "selected": "s3-r3-1-c05",
+      "occurrences": [
+        "s3-r3-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r5-1-c03",
+      "name": "Сарвангасана",
+      "selected": "s1-r5-1-c03",
+      "occurrences": [
+        "s1-r5-1-c03",
+        "s2-r5-1-c06",
+        "s3-r5-1-c05",
+        "s4-r5-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-3-c06",
+      "name": "Сгибание корпуса с широкой опорой ног (уточнить)",
+      "selected": "s1-r1-3-c06",
+      "occurrences": [
+        "s1-r1-3-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r1-2-c09",
+      "name": "Сгибание ног у стены лёжа",
+      "selected": "s3-r1-2-c09",
+      "occurrences": [
+        "s3-r1-2-c09",
+        "s5-r1-2-c14"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-1-c03",
+      "name": "Сидя с одной согнутой и одной вытянутой ногой",
+      "selected": "s1-r1-1-c03",
+      "occurrences": [
+        "s1-r1-1-c03",
+        "s2-r1-1-c03",
+        "s3-r1-1-c03",
+        "s4-r1-1-c03",
+        "s5-r1-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-3-c01",
+      "name": "Сидя с опорой на руки сзади (уточнить)",
+      "selected": "s1-r1-3-c01",
+      "occurrences": [
+        "s2-r1-3-c02",
+        "s1-r1-3-c01",
+        "s2-r1-3-c01",
+        "s3-r1-3-c01",
+        "s4-r1-3-c01",
+        "s4-r1-3-c05",
+        "s5-r1-3-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-3-c03",
+      "name": "Сидя с согнутыми ногами и поднятой рукой (уточнить)",
+      "selected": "s4-r1-3-c03",
+      "occurrences": [
+        "s4-r1-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-3-c02",
+      "name": "Сидя с согнутыми ногами и рукой вперёд (уточнить)",
+      "selected": "s1-r1-3-c02",
+      "occurrences": [
+        "s1-r1-3-c02",
+        "s2-r1-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r5-1-c02",
+      "name": "Скручивание лёжа с одной согнутой ногой (уточнить)",
+      "selected": "s2-r5-1-c02",
+      "occurrences": [
+        "s2-r5-1-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r5-1-c07",
+      "name": "Скручивание лёжа с согнутыми ногами (уточнить)",
+      "selected": "s3-r5-1-c07",
+      "occurrences": [
+        "s3-r5-1-c07",
+        "s4-r5-1-c07",
+        "s2-r5-1-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-3-c02",
+      "name": "Скручивание сидя с согнутыми ногами (уточнить)",
+      "selected": "s4-r1-3-c02",
+      "occurrences": [
+        "s3-r1-3-c02",
+        "s4-r1-3-c02",
+        "s5-r1-3-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r4-2-c04",
+      "name": "Стойка на предплечьях (уточнить)",
+      "selected": "s2-r4-2-c04",
+      "occurrences": [
+        "s2-r4-2-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r4-2-c02",
+      "name": "Стойка у стены с опорой на руки (уточнить)",
+      "selected": "s1-r4-2-c02",
+      "occurrences": [
+        "s1-r4-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r3-1-c03",
+      "name": "Стоя с руками за головой (уточнить)",
+      "selected": "s2-r3-1-c03",
+      "occurrences": [
+        "s1-r3-1-c03",
+        "s1-r3-1-c04",
+        "s2-r3-1-c03",
+        "s3-r3-1-c03",
+        "s3-r3-1-c04",
+        "s4-r3-1-c03",
+        "s4-r3-1-c04",
+        "s5-r3-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-1-c01",
+      "name": "Сукхасана",
+      "selected": "s4-r1-1-c01",
+      "occurrences": [
+        "s1-r1-1-c01",
+        "s1-r5-1-c05",
+        "s2-r1-1-c01",
+        "s3-r1-1-c01",
+        "s4-r1-1-c01",
+        "s5-r1-1-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r5-2-c01",
+      "name": "Сукхасана с руками перед грудью",
+      "selected": "s2-r5-2-c01",
+      "occurrences": [
+        "s2-r5-2-c01",
+        "s3-r5-2-c01",
+        "s4-r5-2-c01",
+        "s5-r5-2-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r3-1-c01",
+      "name": "Тадасана",
+      "selected": "s4-r3-1-c01",
+      "occurrences": [
+        "s1-r3-1-c01",
+        "s2-r3-1-c01",
+        "s3-r3-1-c01",
+        "s4-r3-1-c01",
+        "s5-r3-1-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r3-2-c02",
+      "name": "Удержание ноги в сторону стоя (уточнить)",
+      "selected": "s1-r3-2-c02",
+      "occurrences": [
+        "s1-r3-2-c02",
+        "s1-r3-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r3-2-c01",
+      "name": "Удержание ноги перед собой стоя (уточнить)",
+      "selected": "s1-r3-2-c01",
+      "occurrences": [
+        "s5-r3-1-c04",
+        "s5-r3-1-c08",
+        "s1-r3-2-c01",
+        "s2-r3-1-c04"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r1-4-c07",
+      "name": "Упор на колени и грудь с поднятой рукой и блоком",
+      "selected": "s4-r1-4-c07",
+      "occurrences": [
+        "s4-r1-4-c07"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r2-2-c05",
+      "name": "Упор на одну руку с вытянутой ногой (уточнить)",
+      "selected": "s3-r2-2-c05",
+      "occurrences": [
+        "s3-r2-2-c05",
+        "s3-r2-2-c06",
+        "s3-r2-2-c07",
+        "s3-r2-2-c08"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r1-5-c05",
+      "name": "Урдхва Мукха Шванасана",
+      "selected": "s1-r1-5-c05",
+      "occurrences": [
+        "s4-r2-1-c07",
+        "s1-r1-5-c05",
+        "s2-rsv-c05",
+        "s3-r6-1-c05"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s4-r2-3-c01",
+      "name": "Уткатасана с руками вверх",
+      "selected": "s4-r2-3-c01",
+      "occurrences": [
+        "s4-r2-3-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r4-1-c01",
+      "name": "Уткатасана с руками вперёд",
+      "selected": "s1-r4-1-c01",
+      "occurrences": [
+        "s1-r4-1-c01",
+        "s2-r4-1-c02",
+        "s3-r4-1-c01",
+        "s4-r4-1-c02",
+        "s5-r4-1-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r2-3-c01",
+      "name": "Уттанасана с захватом голеней",
+      "selected": "s3-r2-3-c01",
+      "occurrences": [
+        "s3-r2-3-c01",
+        "s4-r2-3-c02",
+        "s5-r2-3-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-3-c03",
+      "name": "Уттанасана с опорой головы на блок (уточнить)",
+      "selected": "s2-r2-3-c03",
+      "occurrences": [
+        "s2-r1-4-c04",
+        "s2-r2-3-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r2-3-c01",
+      "name": "Уттанасана с руками на полу (уточнить)",
+      "selected": "s2-r2-3-c01",
+      "occurrences": [
+        "s1-r2-3-c01",
+        "s2-r2-3-c01",
+        "s2-r2-3-c02",
+        "s5-r2-3-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r5-1-c04",
+      "name": "Халасана",
+      "selected": "s1-r5-1-c04",
+      "occurrences": [
+        "s1-r5-1-c04",
+        "s2-r5-1-c07",
+        "s3-r5-1-c06",
+        "s4-r5-1-c06"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r5-1-c02",
+      "name": "Халасана с согнутыми ногами (уточнить)",
+      "selected": "s1-r5-1-c02",
+      "occurrences": [
+        "s1-r5-1-c02",
+        "s2-r5-1-c05",
+        "s3-r5-1-c04",
+        "s4-r5-1-c03",
+        "s5-r5-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r5-1-c06",
+      "name": "Шавасана",
+      "selected": "s1-r5-1-c06",
+      "occurrences": [
+        "s1-r5-1-c06",
+        "s2-r5-2-c02",
+        "s3-r5-2-c02",
+        "s4-r5-2-c02",
+        "s5-r5-2-c02"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r2-1-c03",
+      "name": "Шалабхасана",
+      "selected": "s1-r2-1-c03",
+      "occurrences": [
+        "s3-r2-1-c03",
+        "s4-r2-1-c03",
+        "s5-r2-1-c03",
+        "s5-r2-1-c06",
+        "s1-r2-1-c03",
+        "s2-r2-1-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s2-r4-2-c03",
+      "name": "Ширшасана",
+      "selected": "s2-r4-2-c03",
+      "occurrences": [
+        "s5-r4-2-c03",
+        "s2-r4-2-c03"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s3-r4-1-c08",
+      "name": "Ширшасана с согнутыми ногами (уточнить)",
+      "selected": "s3-r4-1-c08",
+      "occurrences": [
+        "s3-r4-1-c08",
+        "s4-r4-2-c01"
+      ]
+    },
+    {
+      "source_key": "spinal-five-v1:s1-r4-2-c01",
+      "name": "Ширшасана у стены с согнутой ногой",
+      "selected": "s1-r4-2-c01",
+      "occurrences": [
+        "s3-r4-2-c01",
+        "s1-r4-2-c01"
+      ]
+    }
+  ]
+}

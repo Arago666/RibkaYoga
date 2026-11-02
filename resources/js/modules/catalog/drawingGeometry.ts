@@ -103,6 +103,7 @@ export function mirrorElement(element: DrawingElement, axisX: number, id: string
     ...element,
     id,
     rotation: -element.rotation,
+    ...(element.kind === 'image' ? { flip_x: !element.flip_x } : {}),
     points: element.points.map((point) => ({ x: axisX * 2 - point.x, y: point.y })),
   };
   const originalCenter = boundsCenter(elementBounds(element)),
@@ -306,13 +307,54 @@ export function elementPath(element: DrawingElement, smoothing: number): Path2D 
   }
   return path;
 }
+const rasterImages = new Map<string, { image: HTMLImageElement; ready: Promise<void> }>();
+export async function prepareDrawingImages(elements: DrawingElement[]): Promise<void> {
+  const photos = elements.filter((element) => element.kind === 'image');
+  await Promise.all(
+    photos.map((element) => {
+      const data = element.image_data!;
+      let cached = rasterImages.get(data);
+      if (!cached) {
+        const image = new Image();
+        image.src = data;
+        cached = {
+          image,
+          ready: image.decode().then(() => {
+            if (image.naturalWidth > 1024 || image.naturalHeight > 1024)
+              throw new Error('Фотография больше 1024 пикселей.');
+          }),
+        };
+        rasterImages.set(data, cached);
+      }
+      return cached.ready;
+    }),
+  );
+  // Keep current photos available; old sheets need not retain decoded image buffers forever.
+  const active = new Set(photos.map((element) => element.image_data!));
+  for (const key of rasterImages.keys())
+    if (rasterImages.size > 24 && !active.has(key)) rasterImages.delete(key);
+}
 export function drawElement(ctx: CanvasRenderingContext2D, element: DrawingElement, smoothing: number): void {
-  const center = boundsCenter(elementBounds(element)),
-    path = elementPath(element, smoothing);
+  const bounds = elementBounds(element),
+    center = boundsCenter(bounds);
   ctx.save();
+  ctx.globalAlpha = element.opacity ?? 1;
   ctx.translate(center.x, center.y);
   ctx.rotate((element.rotation * Math.PI) / 180);
   ctx.translate(-center.x, -center.y);
+  if (element.kind === 'image') {
+    const image = rasterImages.get(element.image_data!)?.image;
+    if (image?.complete && image.naturalWidth) {
+      if (element.flip_x) {
+        ctx.translate(bounds.x * 2 + bounds.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height);
+    }
+    ctx.restore();
+    return;
+  }
+  const path = elementPath(element, smoothing);
   ctx.strokeStyle = ctx.fillStyle = element.kind === 'eraser' ? '#fff' : (element.color ?? '#111');
   ctx.lineWidth = element.width;
   ctx.lineCap = ctx.lineJoin = 'round';
@@ -328,6 +370,15 @@ export function hitElement(
   tolerance: number,
 ): boolean {
   const local = rotatePoint(point, boundsCenter(elementBounds(element)), -element.rotation);
+  if (element.kind === 'image') {
+    const bounds = elementBounds(element);
+    return (
+      local.x >= bounds.x &&
+      local.x <= bounds.x + bounds.width &&
+      local.y >= bounds.y &&
+      local.y <= bounds.y + bounds.height
+    );
+  }
   const path = elementPath(element, smoothing);
   ctx.save();
   ctx.lineWidth = element.width + tolerance * 2;

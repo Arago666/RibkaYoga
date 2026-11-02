@@ -101,10 +101,11 @@ async function create() {
   display: flex;
   align-items: center;
   gap: 7px;
-  background: #f7f9f6;
-  padding: 9px;
-  border-radius: 9px;
+  background: var(--surface-soft);
+  padding: 10px 12px;
+  border-radius: var(--field-radius);
   font-size: 13px;
+  min-height: var(--control-height);
 }
 .create-collection {
   display: flex;

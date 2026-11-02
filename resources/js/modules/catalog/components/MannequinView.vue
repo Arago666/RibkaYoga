@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
   background: white;
   touch-action: none;
   border-radius: 0.7rem;
-  border: 1px solid #dae3d7;
+  border: 1px solid var(--line);
   cursor: grab;
 }
 .mannequin-view canvas:active {
@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
 }
 .muted {
   font-size: 0.8rem;
-  color: #61705c;
+  color: var(--muted);
   margin: 0.6rem 0;
   text-align: center;
 }

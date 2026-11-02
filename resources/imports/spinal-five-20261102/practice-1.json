@@ -1,0 +1,774 @@
+{
+  "format": "ribka-practice-sheet-v1",
+  "title": "1 Х/М — Дуга позвоночника",
+  "theme": "Дуга позвоночника",
+  "blocks": [
+    {
+      "id": "41c75cb9-2c02-536c-b6ba-0a9a98aae2a0",
+      "title": "Начальная настройка и подготовка",
+      "purpose": null,
+      "rows": [
+        {
+          "id": "b4eee970-d208-5248-b0c7-647756bc97d9",
+          "note": null,
+          "cells": [
+            {
+              "id": "fc2c1094-458f-5f24-a2a1-74cd894b172c",
+              "asana_id": "01a19c82-b29c-73bb-9b35-bf9428b8e0f0",
+              "source_image": "sheet-1/assets/1-1-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "b029a956-42eb-54c4-9d63-aae74240d6bf",
+              "asana_id": "01a19c82-ae52-72d0-824a-39e8efe655e1",
+              "source_image": "sheet-1/assets/1-1-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "ebcec7ab-cfe5-52c3-b25b-b7ea781931a8",
+              "asana_id": "01a19c82-a76e-7118-b615-3f6090e03227",
+              "source_image": "sheet-1/assets/1-1-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "488496e8-3c9a-5b53-9253-60d668b11465",
+              "asana_id": "01a19c82-a77c-73ea-b559-8b61ccdda456",
+              "source_image": "sheet-1/assets/1-1-04.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "a2310a99-cbcc-5b14-8cc2-02a7631d92d6",
+          "note": null,
+          "cells": [
+            {
+              "id": "fa605b21-ad7d-56c6-93ba-4369ecb59a49",
+              "asana_id": "01a19c82-a78b-704f-8a70-39cf1c595f34",
+              "source_image": "sheet-1/assets/1-2-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "43433f62-380f-540f-8f46-77bec6b964e4",
+              "asana_id": "01a19c82-a799-71f4-aacd-864519a0176c",
+              "source_image": "sheet-1/assets/1-2-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "8160dc46-6175-5918-bbb9-1472f9e95d1e",
+              "asana_id": "01a19c82-a7a5-7130-aa3f-6d429154fc0d",
+              "source_image": "sheet-1/assets/1-2-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "e06076be-ee2b-5d88-a82f-f5717c60c015",
+              "asana_id": "01a19c82-a7b1-706a-aa9b-0964a99ab101",
+              "source_image": "sheet-1/assets/1-2-04.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "b0bb82d6-76b4-5099-b428-52996b480667",
+              "asana_id": "01a19c82-a7be-7381-9498-137d7d7096ad",
+              "source_image": "sheet-1/assets/1-2-05.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "c9300bd2-ba8c-5b50-80d4-74adbf88c723",
+              "arrow_direction": null
+            },
+            {
+              "id": "e6fdbbf8-2d31-54f5-9c82-e0c4199f4cd4",
+              "asana_id": "01a19c82-a78b-704f-8a70-39cf1c595f34",
+              "source_image": "sheet-1/assets/1-2-06.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": "c9300bd2-ba8c-5b50-80d4-74adbf88c723",
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "5b8b3517-26e0-51f5-a540-535e0e164b69",
+          "note": null,
+          "cells": [
+            {
+              "id": "442dbb4b-ef25-57cb-9cbc-1e1758c8368a",
+              "asana_id": "01a19c82-a7d7-7263-b9d5-2adbda179243",
+              "source_image": "sheet-1/assets/1-3-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "ddd5508c-7bbe-5f6e-82ff-addd7e4ff083",
+              "asana_id": "01a19c82-a7e3-726b-9586-e4f8f2f57acc",
+              "source_image": "sheet-1/assets/1-3-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "cdada06a-8958-5b03-ab4b-bff642ea5981",
+              "asana_id": "01a19c82-a7ef-737b-8118-399af99d933f",
+              "source_image": "sheet-1/assets/1-3-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "fa5aa345-e847-5d5c-9c7a-c4ac7896bf17",
+              "asana_id": "01a19c82-a7fb-7057-913d-6484ccf530b0",
+              "source_image": "sheet-1/assets/1-3-04.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "0aed9bde-4971-56eb-8cd0-f61653854d55",
+              "arrow_direction": null
+            },
+            {
+              "id": "65c4151b-c631-536c-ac0f-c9017c5a4b58",
+              "asana_id": "01a19c82-a7fb-7057-913d-6484ccf530b0",
+              "source_image": "sheet-1/assets/1-3-05.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "0aed9bde-4971-56eb-8cd0-f61653854d55",
+              "arrow_direction": null
+            },
+            {
+              "id": "cfdd5192-d5f1-59af-8f0b-e1de8f0e5f0f",
+              "asana_id": "01a19c82-a813-70da-b27e-000c0b06c675",
+              "source_image": "sheet-1/assets/1-3-06.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "25fe0e03-ca5b-5555-b97d-e93bfea6d60e",
+              "arrow_direction": null
+            },
+            {
+              "id": "6a83a2e4-a25d-532e-a2c4-062bff6ba335",
+              "asana_id": "01a19c82-b35e-709f-96df-4fc2cbce3567",
+              "source_image": "sheet-1/assets/1-3-07.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "25fe0e03-ca5b-5555-b97d-e93bfea6d60e",
+              "arrow_direction": null
+            },
+            {
+              "id": "a2b18a62-b917-5edb-96b2-496ac8ae34c5",
+              "asana_id": "01a19c82-a837-7281-ac35-00876aac9c94",
+              "source_image": "sheet-1/assets/1-3-08.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "25c558e0-85e6-5105-a0d7-76dc2946c27c",
+          "note": null,
+          "cells": [
+            {
+              "id": "f9cdbce8-3563-5efc-9e7d-2fa15d285c51",
+              "asana_id": "01a19c82-a837-7281-ac35-00876aac9c94",
+              "source_image": "sheet-1/assets/1-4-01.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "8ca0f3f1-0aa0-5dfa-8e17-77cb00df58e4",
+              "arrow_direction": null
+            },
+            {
+              "id": "be121e67-4f02-5822-9d54-d6cd67692ede",
+              "asana_id": "01a19c82-a843-71ce-aaeb-b46f0a890c4d",
+              "source_image": "sheet-1/assets/1-4-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "8ca0f3f1-0aa0-5dfa-8e17-77cb00df58e4",
+              "arrow_direction": null
+            },
+            {
+              "id": "d642c4d7-35f4-5709-a7ca-9f02301c2ff6",
+              "asana_id": "01a19c82-a843-71ce-aaeb-b46f0a890c4d",
+              "source_image": "sheet-1/assets/1-4-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "7be76378-a79c-5122-9b63-235d27b4c9da",
+              "asana_id": "01a19c82-a85a-7084-b2a7-d54b6aca23c6",
+              "source_image": "sheet-1/assets/1-4-04.png",
+              "custom_name": null,
+              "note": "=",
+              "group_key": "a6b497e3-ba0a-5672-9869-0b5df1461b5a",
+              "arrow_direction": null
+            },
+            {
+              "id": "075b6ad1-8cb1-57db-9256-1c074f913af8",
+              "asana_id": "01a19c82-a843-71ce-aaeb-b46f0a890c4d",
+              "source_image": "sheet-1/assets/1-4-05.png",
+              "custom_name": null,
+              "note": "=",
+              "group_key": "a6b497e3-ba0a-5672-9869-0b5df1461b5a",
+              "arrow_direction": null
+            },
+            {
+              "id": "6eb63501-ea37-5a20-8d4a-814c0e3d709a",
+              "asana_id": "01a19c82-a871-7091-9fa4-a1229df8afba",
+              "source_image": "sheet-1/assets/1-4-06.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "a6b497e3-ba0a-5672-9869-0b5df1461b5a",
+              "arrow_direction": null
+            },
+            {
+              "id": "38bc8e96-d95a-5ae8-b447-0e997ec0cfc6",
+              "asana_id": "01a19c82-a871-7091-9fa4-a1229df8afba",
+              "source_image": "sheet-1/assets/1-4-07.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "2f147c97-e23f-5a0a-bb82-a568c3ab6a9b",
+              "arrow_direction": null
+            },
+            {
+              "id": "7d13cf87-0647-54a3-935e-f8e7d1cb42ab",
+              "asana_id": "01a19c82-a8a8-737f-b6b5-8a8b9f6b17bd",
+              "source_image": "sheet-1/assets/1-4-08.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": "2f147c97-e23f-5a0a-bb82-a568c3ab6a9b",
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "898b0561-1dc2-55c6-adf9-4e91fb5022d6",
+          "note": null,
+          "cells": [
+            {
+              "id": "1592c02e-e3b3-5eb9-9104-5fdf7027a7a6",
+              "asana_id": "01a19c82-a892-716f-bab1-48b4d92ea32b",
+              "source_image": "sheet-1/assets/1-5-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "a67fd9f2-6866-5b94-a37d-796bf2fe2161",
+              "asana_id": "01a19c82-a89d-71c1-80aa-95a7a4fdff8a",
+              "source_image": "sheet-1/assets/1-5-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "8d1ecf5c-d5cb-51b6-9079-280baa42622c",
+              "asana_id": "01a19c82-a8a8-737f-b6b5-8a8b9f6b17bd",
+              "source_image": "sheet-1/assets/1-5-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "3d6d1c2b-31ff-5567-9dbd-bfb0501d77f3",
+              "asana_id": "01a19c82-a8b3-717f-832d-76e03a3cdda6",
+              "source_image": "sheet-1/assets/1-5-04.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "b2cf8917-79a2-5115-9450-e1ca3226b7f4",
+              "asana_id": "01a19c82-a8be-706f-9871-7077896f12c1",
+              "source_image": "sheet-1/assets/1-5-05.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "90b3367e-02f8-501e-96e5-ae5580105fa2",
+              "asana_id": "01a19c82-a8ca-72e7-a040-bc20ea953269",
+              "source_image": "sheet-1/assets/1-5-06.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "a387fb01-9c06-55db-a02e-f776434e7a28",
+              "asana_id": "01a19c82-abf3-731e-ad24-775d82c5731d",
+              "source_image": "sheet-1/assets/1-5-07.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "9c013c9b-aa21-5981-867e-7681c1145011",
+              "asana_id": null,
+              "custom_name": "СВ",
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6109c6da-81bf-50b3-aec1-a0a778c542cf",
+      "title": "Основная последовательность",
+      "purpose": null,
+      "rows": [
+        {
+          "id": "44066cfd-57ad-5177-ab62-5c6b559e3674",
+          "note": null,
+          "cells": [
+            {
+              "id": "91aad60d-f49b-5e00-93a0-394d7a2e719d",
+              "asana_id": "01a19c82-abf3-731e-ad24-775d82c5731d",
+              "source_image": "sheet-1/assets/2-1-01.png",
+              "custom_name": null,
+              "note": "S · →",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "b7899f4a-90dc-5215-9950-df0365985ceb",
+              "asana_id": "01a19c82-a892-716f-bab1-48b4d92ea32b",
+              "source_image": "sheet-1/assets/2-1-02.png",
+              "custom_name": null,
+              "note": "S · →",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "5a0bb508-e0de-5c34-aa02-f1b9b283bc69",
+              "asana_id": "01a19c82-a8f8-73fa-a7f5-1bd195a12fb8",
+              "source_image": "sheet-1/assets/2-1-03.png",
+              "custom_name": null,
+              "note": "S · →",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "b24488e3-ca40-5967-836a-eb84f0659b42",
+              "asana_id": "01a19c82-b9af-70f2-8390-dcc8f48ece06",
+              "source_image": "sheet-1/assets/2-1-04.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "0feff5ed-c112-550c-8880-fcf152c92561",
+              "asana_id": "01a19c82-a90f-7015-a35d-f581bf9b43d1",
+              "source_image": "sheet-1/assets/2-1-05.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "5b97701a-0228-596a-9b90-a7e5c9f71264",
+              "arrow_direction": null
+            },
+            {
+              "id": "9028756f-787b-5a6c-8353-a2b99b93e210",
+              "asana_id": "01a19c82-a7a5-7130-aa3f-6d429154fc0d",
+              "source_image": "sheet-1/assets/2-1-06.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "5b97701a-0228-596a-9b90-a7e5c9f71264",
+              "arrow_direction": null
+            },
+            {
+              "id": "2e6e2c5e-b1ed-5f54-bfca-6c72bb60e4df",
+              "asana_id": null,
+              "custom_name": "СВ",
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "1bf0fecd-9d03-53b1-b13c-cea026777e13",
+          "note": null,
+          "cells": [
+            {
+              "id": "7d0e98f3-0b34-5fb8-b23a-312e8e4e5a98",
+              "asana_id": "01a19c82-abf3-731e-ad24-775d82c5731d",
+              "source_image": "sheet-1/assets/2-2-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "8af7acef-4d87-5ad8-b206-b5e04f530bcc",
+              "asana_id": "01a19c82-a8ca-72e7-a040-bc20ea953269",
+              "source_image": "sheet-1/assets/2-2-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "13bec8ec-b691-57b5-aafe-1003c31406af",
+              "asana_id": "01a19c82-ac4f-70e0-8585-706b515eb6a1",
+              "source_image": "sheet-1/assets/2-2-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "fe3c3f19-bc72-5569-a36d-3bf7cfc71fff",
+              "asana_id": "01a19c82-a949-7024-a297-cdf0901192db",
+              "source_image": "sheet-1/assets/2-2-04.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "9301f290-8b8d-5dfa-9ceb-1d23a0522a7a",
+              "asana_id": "01a19c82-a954-723f-be5b-dab29807192a",
+              "source_image": "sheet-1/assets/2-2-05.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "eb8a6c06-72e1-509e-87c9-91f7de8b1bff",
+              "asana_id": "01a19c82-a960-72a1-b3a9-f43edb0872b2",
+              "source_image": "sheet-1/assets/2-2-06.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "a9841ce2-a87c-53e1-acf3-6f8e097a3d6c",
+              "asana_id": "01a19c82-a96b-739c-ac5c-c81f7819eb1e",
+              "source_image": "sheet-1/assets/2-2-07.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "9e0fb79e-4182-57fc-9288-0da2680f1123",
+              "asana_id": "01a19c82-af38-723c-88f5-8bfd4dddfac2",
+              "source_image": "sheet-1/assets/2-2-08.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "2b6b5ddd-bea9-52fa-bdee-07fb7b471282",
+          "note": null,
+          "cells": [
+            {
+              "id": "da6e0a80-4602-5629-b89c-60b3ead8b44b",
+              "asana_id": "01a19c82-ac8a-73f0-afd0-c3e407edea1d",
+              "source_image": "sheet-1/assets/2-3-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "e3cd3f68-369c-5b13-8dcb-e895c9d7f77b",
+              "asana_id": null,
+              "custom_name": "10 Т.Ш.",
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3377e5a2-67be-5e85-abc8-9e97ce68f8c2",
+      "title": "Положения стоя и равновесие",
+      "purpose": null,
+      "rows": [
+        {
+          "id": "690dbd7b-4f3e-5267-9618-0a336cb20747",
+          "note": null,
+          "cells": [
+            {
+              "id": "523cb3c0-c158-562e-9303-50b67cf83122",
+              "asana_id": "01a19c82-b4b8-72cc-96c0-fc1c26d355bc",
+              "source_image": "sheet-1/assets/3-1-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "a7dd2999-9145-5e2b-99b6-70b91712b8bf",
+              "asana_id": "01a19c82-b0e2-7096-8856-79b7f8d6a3a4",
+              "source_image": "sheet-1/assets/3-1-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "dac8a4c1-3a7f-5a33-97c2-c0e122d7c956",
+              "asana_id": "01a19c82-acdf-733f-88a2-1638991685f0",
+              "source_image": "sheet-1/assets/3-1-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "dd730f40-cf9f-5386-840c-1ae1a7e529e0",
+              "asana_id": "01a19c82-acdf-733f-88a2-1638991685f0",
+              "source_image": "sheet-1/assets/3-1-04.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "bdb3741a-40ed-5cd7-8718-be1ac0adafa1",
+              "arrow_direction": null
+            },
+            {
+              "id": "3b52ef17-76c0-5e1c-9ce0-4baef88c5a10",
+              "asana_id": "01a19c82-a9be-71a0-a1d2-d9dec0799251",
+              "source_image": "sheet-1/assets/3-1-05.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": "bdb3741a-40ed-5cd7-8718-be1ac0adafa1",
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "5a78e885-991e-5ba3-a868-dde7f98e9964",
+          "note": null,
+          "cells": [
+            {
+              "id": "ff338c68-cdcf-54eb-8508-2aff9b0782da",
+              "asana_id": "01a19c82-a9c9-7288-94d1-6bdf95ccb40c",
+              "source_image": "sheet-1/assets/3-2-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "7a6c692a-a2a3-5233-921d-91aa7c85c332",
+              "asana_id": "01a19c82-a9d5-72f7-ac0f-1f1c1aeaeb0e",
+              "source_image": "sheet-1/assets/3-2-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "c8d20a33-6434-51a2-8d8f-f0f95bc38ad8",
+              "asana_id": "01a19c82-a9d5-72f7-ac0f-1f1c1aeaeb0e",
+              "source_image": "sheet-1/assets/3-2-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "ebfd227c-b79c-5e1c-aa20-bbb11654ce87",
+              "asana_id": "01a19c82-a9ec-73f6-86c8-1f5558a9bfce",
+              "source_image": "sheet-1/assets/3-2-04.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fc017453-b9d0-536f-a0a8-114af541a28d",
+      "title": "Продолжение последовательности",
+      "purpose": null,
+      "rows": [
+        {
+          "id": "e4a09366-0de7-5ca2-ab72-1ad48b1c573a",
+          "note": null,
+          "cells": [
+            {
+              "id": "ae537fa2-2154-5e2e-8a17-7bb8f5c2826c",
+              "asana_id": "01a19c82-a9fa-722c-9ab3-19f614b781b2",
+              "source_image": "sheet-1/assets/4-1-01.png",
+              "custom_name": null,
+              "note": "=",
+              "group_key": "116daded-decc-5a01-b6e0-9a4d3c3d52a0",
+              "arrow_direction": null
+            },
+            {
+              "id": "b4b4856a-bdd2-5f34-ba43-22287123f76e",
+              "asana_id": "01a19c82-b527-714b-90f1-f175b2d9b59a",
+              "source_image": "sheet-1/assets/4-1-02.png",
+              "custom_name": null,
+              "note": "=",
+              "group_key": "116daded-decc-5a01-b6e0-9a4d3c3d52a0",
+              "arrow_direction": null
+            },
+            {
+              "id": "421054e7-dd71-5506-9dc8-a6c4927bfa2c",
+              "asana_id": "01a19c82-aa12-7175-a5d1-e5d908d839a1",
+              "source_image": "sheet-1/assets/4-1-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": "116daded-decc-5a01-b6e0-9a4d3c3d52a0",
+              "arrow_direction": null
+            },
+            {
+              "id": "3e3eff07-9925-5d9b-bef4-5ab60e4d0042",
+              "asana_id": "01a19c82-aa1e-733b-b2eb-d7d2dc8d7234",
+              "source_image": "sheet-1/assets/4-1-04.png",
+              "custom_name": null,
+              "note": "/",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "10b45100-bdb2-5fab-93c1-c537884ef986",
+              "asana_id": "01a19c82-aa1e-733b-b2eb-d7d2dc8d7234",
+              "source_image": "sheet-1/assets/4-1-05.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        },
+        {
+          "id": "52623fd5-70a1-5078-a50a-f5f561d596d8",
+          "note": null,
+          "cells": [
+            {
+              "id": "733120f9-bf7b-56bb-9fc5-0ddac23a1969",
+              "asana_id": "01a19c82-aa36-7378-9efb-839a7b83d789",
+              "source_image": "sheet-1/assets/4-2-01.png",
+              "custom_name": null,
+              "note": "↔",
+              "group_key": "8cf8354e-56b7-5cf6-8dd6-ca64871282a7",
+              "arrow_direction": null
+            },
+            {
+              "id": "6c742822-21e9-5c90-aa02-664a7ad8313a",
+              "asana_id": "01a19c82-aa42-729f-a7ca-6b365e724297",
+              "source_image": "sheet-1/assets/4-2-02.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": "8cf8354e-56b7-5cf6-8dd6-ca64871282a7",
+              "arrow_direction": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d9a38656-d6de-5bbb-853b-35e1a1f257af",
+      "title": "Завершение",
+      "purpose": null,
+      "rows": [
+        {
+          "id": "87b7581b-3c2a-5ab3-a960-de831cc26230",
+          "note": null,
+          "cells": [
+            {
+              "id": "b6e52021-db1d-546c-86fe-e73394ac925a",
+              "asana_id": "01a19c82-b589-73b0-bc30-e0ab56f5e1e3",
+              "source_image": "sheet-1/assets/5-1-01.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "33878d78-c7f3-5d38-b9cc-d0a84a4e9267",
+              "asana_id": "01a19c82-aa5a-7004-8ea8-6e8f3ef00b82",
+              "source_image": "sheet-1/assets/5-1-02.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "684c6e69-5ab2-5bb3-8b1c-c8abec6b43c0",
+              "asana_id": "01a19c82-aa65-733f-976c-0f977f2941b0",
+              "source_image": "sheet-1/assets/5-1-03.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "376739d9-8679-5352-a117-85e397383ef0",
+              "asana_id": "01a19c82-aa70-7201-aab9-cd65311b08f1",
+              "source_image": "sheet-1/assets/5-1-04.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "de49d3bd-c00f-5dcf-8c74-9fd340a58dce",
+              "asana_id": "01a19c82-b29c-73bb-9b35-bf9428b8e0f0",
+              "source_image": "sheet-1/assets/5-1-05.png",
+              "custom_name": null,
+              "note": "→",
+              "group_key": null,
+              "arrow_direction": null
+            },
+            {
+              "id": "7fee9235-1dc8-5b1f-8579-817fe85134cc",
+              "asana_id": "01a19c82-aa88-709a-a0e2-fcff29942256",
+              "source_image": "sheet-1/assets/5-1-06.png",
+              "custom_name": null,
+              "note": null,
+              "group_key": null,
+              "arrow_direction": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

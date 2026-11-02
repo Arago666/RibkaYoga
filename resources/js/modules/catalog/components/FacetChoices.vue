@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends FacetAssignments">
 import { ref } from 'vue';
+import { SlidersHorizontal } from '@lucide/vue';
 import {
   dimensions,
   dimensionLabels,
@@ -26,41 +27,47 @@ function select(dimension: Dimension, id: string) {
   <div class="facet-choices">
     <details
       v-for="dimension in dimensions"
+      class="disclosure"
       :key="dimension"
       :open="!collapsible || model[dimension].length > 0"
     >
       <summary>
-        {{ dimensionLabels[dimension] }}
-        <span v-if="model[dimension].length">({{ model[dimension].length }})</span>
+        <span class="disclosure-icon"><SlidersHorizontal aria-hidden="true" /></span>
+        <span class="disclosure-copy">
+          <strong>{{ dimensionLabels[dimension] }}</strong>
+          <small v-if="model[dimension].length">Выбрано: {{ model[dimension].length }}</small>
+        </span>
       </summary>
-      <input
-        v-if="dictionary[dimension]?.length > 10"
-        v-model="searches[dimension]"
-        class="input value-search"
-        :aria-label="`Найти: ${dimensionLabels[dimension]}`"
-        placeholder="Поиск значения"
-      />
-      <div class="facet-values" role="group" :aria-label="dimensionLabels[dimension]">
-        <button
-          type="button"
-          :disabled="disabled"
-          :aria-pressed="!model[dimension].length"
-          @click="model = { ...model, [dimension]: [] }"
-        >
-          {{ dimension === 'difficulty' ? 'Любой' : 'Все' }}
-        </button>
-        <button
-          v-for="value in (dictionary[dimension] || []).filter((v) =>
-            v.name.toLocaleLowerCase('ru').includes(searches[dimension].toLocaleLowerCase('ru')),
-          )"
-          :key="value.id"
-          type="button"
-          :disabled="disabled"
-          :aria-pressed="model[dimension].includes(value.id)"
-          @click="select(dimension, value.id)"
-        >
-          {{ value.name }} <span v-if="value.count !== undefined">{{ value.count }}</span>
-        </button>
+      <div class="disclosure-body">
+        <input
+          v-if="dictionary[dimension]?.length > 10"
+          v-model="searches[dimension]"
+          class="input value-search"
+          :aria-label="`Найти: ${dimensionLabels[dimension]}`"
+          placeholder="Поиск значения"
+        />
+        <div class="facet-values" role="group" :aria-label="dimensionLabels[dimension]">
+          <button
+            type="button"
+            :disabled="disabled"
+            :aria-pressed="!model[dimension].length"
+            @click="model = { ...model, [dimension]: [] }"
+          >
+            {{ dimension === 'difficulty' ? 'Любой' : 'Все' }}
+          </button>
+          <button
+            v-for="value in (dictionary[dimension] || []).filter((v) =>
+              v.name.toLocaleLowerCase('ru').includes(searches[dimension].toLocaleLowerCase('ru')),
+            )"
+            :key="value.id"
+            type="button"
+            :disabled="disabled"
+            :aria-pressed="model[dimension].includes(value.id)"
+            @click="select(dimension, value.id)"
+          >
+            {{ value.name }} <span v-if="value.count !== undefined">{{ value.count }}</span>
+          </button>
+        </div>
       </div>
     </details>
   </div>
@@ -71,16 +78,6 @@ function select(dimension: Dimension, id: string) {
   gap: 12px;
   min-width: 0;
 }
-.facet-choices details {
-  border: 1px solid #e3e9df;
-  border-radius: 12px;
-  padding: 12px;
-}
-.facet-choices summary {
-  font-weight: 650;
-  cursor: pointer;
-  font-size: 0.87rem;
-}
 .facet-values {
   display: flex;
   flex-wrap: wrap;
@@ -88,19 +85,23 @@ function select(dimension: Dimension, id: string) {
   margin-top: 12px;
 }
 .facet-values button {
-  border: 1px solid #dce5d6;
-  background: white;
-  border-radius: 18px;
+  min-height: var(--control-height);
+  min-width: 44px;
+  color: var(--text);
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 999px;
   padding: 8px 12px;
   font: inherit;
-  font-size: 0.79rem;
+  font-size: 13px;
   text-align: left;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 #fff;
 }
 .facet-values button[aria-pressed='true'] {
-  background: #397a28;
-  color: white;
-  border-color: #397a28;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border-color: #b5edc5;
 }
 .facet-values span {
   opacity: 0.75;

@@ -73,7 +73,7 @@ onMounted(load);
     <header v-if="data" class="page-header">
       <div>
         <h1 class="page-title">{{ data.document.title }}</h1>
-        <p class="muted">
+        <p class="page-description">
           Опубликованная версия занятия. Правки автора после публикации не меняют этот лист.
         </p>
       </div>
@@ -106,21 +106,36 @@ onMounted(load);
 <style scoped>
 .published-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
+.page-header > div:first-child {
+  flex: 1 1 320px;
+  min-width: 0;
+}
 .published-sheet {
-  background: #fff;
-  border: 1px solid #dce6d6;
-  border-radius: 12px;
-  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  box-shadow: var(--panel-shadow);
   overflow: auto;
-  margin: 20px 0;
+  margin: var(--section-gap) 0;
+  min-width: 0;
 }
 .published-sheet iframe {
   width: 100%;
   min-width: 1050px;
   border: 0;
   display: block;
+}
+@media (max-width: 650px) {
+  .published-actions {
+    width: 100%;
+  }
+  .published-actions .btn {
+    flex: 1 1 auto;
+    white-space: normal;
+  }
 }
 </style>

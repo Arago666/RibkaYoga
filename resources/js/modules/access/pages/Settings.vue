@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Bell, HardDrive, ShieldCheck, SlidersHorizontal } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
-import IllustrationSettings from '@/modules/catalog/components/IllustrationSettings.vue';
 import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
 const page = usePage(),
   key = uiPreferencesKey(page.props.auth);
 const values = ref(readUiPreferences(key)),
   notice = ref(''),
-  error = ref(''),
-  illustrationsOpen = ref(false);
+  error = ref('');
 const notificationSupported = 'Notification' in window && window.isSecureContext;
 const permission = ref(notificationSupported ? Notification.permission : 'unavailable');
 const estimate = ref<{ usage?: number; quota?: number }>({});
 const bytes = (value?: number) =>
   value === undefined ? 'недоступно' : `${(value / 1024 / 1024).toFixed(1)} МБ`;
-const libraryUrl = computed(() =>
-  values.value.libraryStyle === 'volume' ? '/library?image_style=volume' : '/library?image_style=original',
-);
 function save() {
   try {
     localStorage.setItem(key, JSON.stringify(values.value));
@@ -81,32 +77,21 @@ onMounted(async () => {
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <div class="settings-grid">
       <section class="card settings-section">
-        <h2>Отображение</h2>
-        <label class="field"
-          ><span class="label">Библиотека асан</span
-          ><select v-model="values.libraryStyle" class="select" @change="save">
-            <option value="original">Мои рисунки</option>
-            <option value="volume">Объёмные фигуры</option>
-          </select></label
-        >
-        <p class="muted">
-          Меняется только просмотр библиотеки. Исходники и сохранённые практики сохраняют свои изображения.
-        </p>
-        <Link :href="libraryUrl" class="btn btn-primary">Открыть библиотеку в выбранном стиле</Link
-        ><label class="settings-check"
+        <h2>
+          <span class="section-icon"><SlidersHorizontal aria-hidden="true" /></span>Отображение
+        </h2>
+        <p class="muted">В библиотеке и практиках используются ваши исходные изображения асан.</p>
+        <Link href="/library" class="btn btn-primary">Открыть библиотеку</Link>
+        <label class="settings-check"
           ><input v-model="values.rememberFilters" type="checkbox" @change="save" />Запоминать выбранную
           подборку при заполнении ячеек</label
-        ><button
-          class="btn btn-secondary"
-          :aria-expanded="illustrationsOpen"
-          @click="illustrationsOpen = !illustrationsOpen"
         >
-          Стиль новых практик и просмотр фигур</button
-        ><IllustrationSettings v-if="illustrationsOpen" />
       </section>
       <div class="settings-column">
         <section class="card settings-section">
-          <h2>Уведомления</h2>
+          <h2>
+            <span class="section-icon"><Bell aria-hidden="true" /></span>Уведомления
+          </h2>
           <label class="settings-check"
             ><input
               :checked="values.meditationNotifications"
@@ -131,7 +116,9 @@ onMounted(async () => {
           </p>
         </section>
         <section class="card settings-section">
-          <h2>Конфиденциальность</h2>
+          <h2>
+            <span class="section-icon"><ShieldCheck aria-hidden="true" /></span>Конфиденциальность
+          </h2>
           <p class="muted">
             Документы и изображения доступны в вашем рабочем пространстве. Доступ преподавателям и публикации
             по ссылке настраиваются для каждой практики отдельно.
@@ -140,7 +127,9 @@ onMounted(async () => {
           ><Link href="/account" class="btn btn-ghost">Профиль и пароль</Link>
         </section>
         <section class="card settings-section">
-          <h2>Память браузера</h2>
+          <h2>
+            <span class="section-icon"><HardDrive aria-hidden="true" /></span>Память браузера
+          </h2>
           <p class="muted">
             Использовано этим сайтом: {{ bytes(estimate.usage) }}. Доступная квота:
             {{ bytes(estimate.quota) }}. Это оценка браузера, не объём серверных документов.
@@ -156,22 +145,28 @@ onMounted(async () => {
 .settings-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 22px;
+  gap: var(--section-gap);
 }
 .settings-column {
   display: grid;
-  gap: 22px;
+  gap: var(--section-gap);
   align-content: start;
 }
 .settings-section {
-  padding: 24px;
+  padding: var(--panel-padding);
   display: grid;
   align-content: start;
-  gap: 17px;
+  gap: 18px;
   min-width: 0;
 }
 .settings-section h2 {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin: 0;
 }
 .settings-section .btn {
   width: fit-content;

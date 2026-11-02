@@ -9,8 +9,8 @@ const form = useForm({ email: '' });
     <div class="login-brand brand">
       <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
     </div>
-    <section class="login-card">
-      <h1>Восстановить пароль</h1>
+    <section class="login-card card">
+      <h1 class="page-title">Восстановить пароль</h1>
       <p v-if="localMail" class="muted">
         Локальный режим: письмо со ссылкой появится в <code>storage/logs/local-mail.log</code>.
       </p>
@@ -42,6 +42,9 @@ const form = useForm({ email: '' });
   </main>
 </template>
 <style scoped>
+.login-card.card {
+  padding: var(--panel-padding);
+}
 .muted {
   font-size: 0.86rem;
   line-height: 1.5;
@@ -53,6 +56,12 @@ const form = useForm({ email: '' });
   font-size: 0.86rem;
 }
 .auth-links a {
-  color: #397a28;
+  color: var(--accent-dark);
+}
+.login-card .page-title {
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
 }
 </style>

@@ -26,6 +26,9 @@ export interface CatalogPage extends Page<Asana> {
   facets?: FacetDictionary;
 }
 export interface ReferenceFields {
+  alternate_name: string;
+  information_description: string;
+  benefits: string[];
   sanskrit_cyrillic: string;
   sanskrit_latin: string;
   steps: string[];
@@ -52,6 +55,9 @@ export function emptyFilters(): CatalogFilters {
 }
 export function emptyReference(): ReferenceFields {
   return {
+    alternate_name: '',
+    information_description: '',
+    benefits: [],
     sanskrit_cyrillic: '',
     sanskrit_latin: '',
     steps: [],

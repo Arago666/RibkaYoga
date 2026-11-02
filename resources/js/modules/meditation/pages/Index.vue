@@ -1,8 +1,25 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import {
+  AudioLines,
+  CalendarDays,
+  Download,
+  Upload,
+  Wind,
+  Bell,
+  BellRing,
+  Expand,
+  Leaf,
+  Play,
+  SlidersHorizontal,
+  Timer,
+  Volume2,
+  VolumeX,
+} from '@lucide/vue';
 import { notifyMeditationCompleted, uiPreferencesKey } from '@/shared/uiPreferences';
 import AppShell from '@/shared/AppShell.vue';
+import AppSelect from '@/shared/AppSelect.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import { MeditationAudio } from '../audioEngine';
@@ -137,6 +154,30 @@ const signalNames: Record<Signal, string> = {
   bell: 'Мягкий колокольчик',
 };
 const kindNames = { meditation: 'Медитация', breathing: 'Дыхание', tones: 'Звуковые частоты' };
+const durationOptions = [1, 3, 5, 10, 15, 20, 30, 60, 180];
+const lastBackground = reactive<{
+  ambience: MeditationConfig['ambience'];
+  audio_asset_id: string | null;
+}>({ ambience: 'rain', audio_asset_id: null });
+const backgroundEnabled = computed({
+  get: () => config.ambience !== 'none' || config.audio_asset_id !== null,
+  set: (enabled: boolean) => {
+    if (enabled) {
+      const rememberedAudio = audios.value.find((item) => item.id === lastBackground.audio_asset_id);
+      config.audio_asset_id = rememberedAudio?.archived_at ? null : lastBackground.audio_asset_id;
+      config.ambience =
+        lastBackground.ambience === 'none' && !config.audio_asset_id ? 'rain' : lastBackground.ambience;
+    } else {
+      lastBackground.ambience = config.ambience;
+      lastBackground.audio_asset_id = config.audio_asset_id;
+      config.ambience = 'none';
+      config.audio_asset_id = null;
+    }
+  },
+});
+function toggleGong(key: 'start_signal' | 'end_signal'): void {
+  config[key] = config[key] === 'none' ? 'gong' : 'none';
+}
 
 function time(seconds: number): string {
   const whole = Math.max(0, Math.ceil(seconds));
@@ -490,7 +531,10 @@ async function changeAudio(item: PersonalAudio, archived: boolean): Promise<void
       method: 'PATCH',
       body: JSON.stringify({ expected_revision: item.revision, archived }),
     });
-    if (archived && config.audio_asset_id === item.id) config.audio_asset_id = null;
+    if (archived) {
+      if (config.audio_asset_id === item.id) config.audio_asset_id = null;
+      if (lastBackground.audio_asset_id === item.id) lastBackground.audio_asset_id = null;
+    }
     await loadAudio();
   } catch (cause) {
     error.value = message(cause);
@@ -572,10 +616,11 @@ onBeforeUnmount(() => {
   <Head title="Медитация" />
   <AppShell section="meditation">
     <div class="meditation-page">
-      <header class="meditation-heading">
+      <header class="meditation-heading page-header">
         <div>
-          <h1>Медитация</h1>
-          <p>Личный таймер, дыхание и звук. Время пауз не входит в статистику.</p>
+          <p class="eyebrow">Пауза для себя</p>
+          <h1 class="page-title">Медитация</h1>
+          <p class="page-description">Выберите время, настройте звук — и просто побудьте в моменте.</p>
         </div>
       </header>
       <div v-if="error" class="meditation-error" role="alert">
@@ -596,459 +641,755 @@ onBeforeUnmount(() => {
         <button type="button" class="btn" @click="initialize">Повторить</button>
       </div>
       <template v-else>
-        <section class="card meditation-timer" aria-label="Таймер медитации">
-          <p class="meditation-kicker">
-            {{
-              preparing
-                ? 'Подготовка — не считается временем медитации'
-                : session
-                  ? kindNames[session.kind]
-                  : 'Готовы начать?'
-            }}
-          </p>
-          <div class="meditation-clock" role="timer" aria-atomic="true">
-            {{
-              preparing
-                ? time(preparationLeft)
-                : session
-                  ? time(shownSeconds)
-                  : time(config.duration_seconds ?? 0)
-            }}
+        <div class="meditation-workspace">
+          <div class="meditation-setup">
+            <section class="card meditation-duration">
+              <h2><Timer aria-hidden="true" />Длительность</h2>
+              <fieldset
+                :disabled="locked || requestBusy"
+                class="duration-options"
+                aria-label="Длительность медитации"
+              >
+                <button
+                  v-for="minutes in durationOptions"
+                  :key="minutes"
+                  type="button"
+                  class="duration-option"
+                  :class="{ selected: config.duration_seconds === minutes * 60 }"
+                  :aria-pressed="config.duration_seconds === minutes * 60"
+                  @click="config.duration_seconds = minutes * 60"
+                >
+                  {{ minutes }} <span>мин</span>
+                </button>
+              </fieldset>
+              <p
+                v-if="
+                  config.duration_seconds === null || !durationOptions.includes(config.duration_seconds / 60)
+                "
+                class="muted small"
+              >
+                {{
+                  config.duration_seconds === null
+                    ? 'Выбран свободный отсчёт.'
+                    : `Выбрано своё время: ${time(config.duration_seconds)}.`
+                }}
+                Его можно изменить в дополнительных настройках.
+              </p>
+            </section>
+            <section class="card meditation-sounds">
+              <h2><Volume2 aria-hidden="true" />Звуки</h2>
+              <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                <div class="sound-row">
+                  <span class="sound-icon"><BellRing aria-hidden="true" /></span>
+                  <div class="sound-label">
+                    <span id="start-gong-label">Гонг в начале</span>
+                    <small v-if="!['none', 'gong'].includes(config.start_signal)"
+                      >Сохранённый сигнал: {{ signalNames[config.start_signal] }}</small
+                    >
+                  </div>
+                  <button
+                    type="button"
+                    class="meditation-switch"
+                    role="switch"
+                    :aria-checked="config.start_signal !== 'none'"
+                    aria-labelledby="start-gong-label"
+                    @click="toggleGong('start_signal')"
+                  >
+                    <span />
+                  </button>
+                </div>
+                <div class="sound-row">
+                  <span class="sound-icon"><Bell aria-hidden="true" /></span>
+                  <div class="sound-label">
+                    <span id="end-gong-label">Гонг в конце</span>
+                    <small v-if="!['none', 'gong'].includes(config.end_signal)"
+                      >Сохранённый сигнал: {{ signalNames[config.end_signal] }}</small
+                    >
+                  </div>
+                  <button
+                    type="button"
+                    class="meditation-switch"
+                    role="switch"
+                    :aria-checked="config.end_signal !== 'none'"
+                    aria-labelledby="end-gong-label"
+                    @click="toggleGong('end_signal')"
+                  >
+                    <span />
+                  </button>
+                </div>
+              </fieldset>
+            </section>
+            <section class="card meditation-background">
+              <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                <div class="sound-row">
+                  <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
+                  <h2 id="background-label">Фоновый звук</h2>
+                  <button
+                    type="button"
+                    class="meditation-switch"
+                    role="switch"
+                    :aria-checked="backgroundEnabled"
+                    aria-labelledby="background-label"
+                    @click="backgroundEnabled = !backgroundEnabled"
+                  >
+                    <span />
+                  </button>
+                </div>
+                <template v-if="backgroundEnabled">
+                  <div class="ambience-options" aria-label="Выбор фонового звука">
+                    <button
+                      v-for="(item, key) in soundManifest.ambience"
+                      :key="key"
+                      type="button"
+                      class="btn"
+                      :class="{ 'ambience-selected': config.ambience === key }"
+                      :aria-pressed="config.ambience === key"
+                      @click="config.ambience = key"
+                    >
+                      {{ item.name }}
+                    </button>
+                  </div>
+                  <label class="background-volume"
+                    >Громкость
+                    <input v-model.number="config.ambience_volume" type="range" min="0" max="1" step="0.01" />
+                  </label>
+                  <p v-if="config.audio_asset_id" class="muted small">
+                    Также выбрана личная запись. Управление — в разделе «Моё аудио».
+                  </p>
+                  <p class="muted small">Лес, дождь и волны — синтез звуков природы.</p>
+                </template>
+              </fieldset>
+            </section>
+            <button class="btn save-preferences" :disabled="locked || requestBusy" @click="saveSettings">
+              Сохранить мои настройки
+            </button>
           </div>
-          <p>
-            {{
-              preparing
-                ? preparationPaused
-                  ? 'Подготовка на паузе'
-                  : 'Устройтесь удобно'
-                : running
-                  ? 'Идёт сессия'
+          <section
+            class="card meditation-timer"
+            :class="{ 'is-active': locked }"
+            aria-label="Таймер медитации"
+          >
+            <div class="meditation-emblem" aria-hidden="true"><Leaf /></div>
+            <p class="meditation-kicker">
+              {{ preparing ? 'Подготовка' : kindNames[session && !terminal ? session.kind : config.kind] }}
+            </p>
+            <div class="meditation-clock" role="timer" aria-atomic="true">
+              {{
+                preparing
+                  ? time(preparationLeft)
                   : session && !terminal
-                    ? 'Пауза — нажмите «Продолжить»'
-                    : session?.status === 'completed'
-                      ? 'Завершено'
-                      : session?.status === 'interrupted'
-                        ? 'Прервано'
-                        : config.duration_seconds === null
-                          ? 'Свободный отсчёт'
-                          : 'До начала'
-            }}
-          </p>
-          <p v-if="session" class="muted">Активное время: {{ time(activeMs / 1000) }}</p>
-          <div v-if="breath && !terminal" class="breathing-guide" :style="{ '--breath-scale': breath.scale }">
-            <div class="breathing-orb" aria-hidden="true"></div>
-            <div class="breathing-label">
-              <strong>{{ breath.name }}</strong
-              ><span v-if="breath.remaining">{{ breath.remaining }}</span
-              ><small>Цикл {{ breath.cycle }} из {{ session?.settings.breathing_cycles }}</small>
+                    ? time(shownSeconds)
+                    : time(config.duration_seconds ?? 0)
+              }}
             </div>
-          </div>
-          <div class="meditation-actions">
-            <template v-if="preparing"
-              ><button class="btn" @click="togglePreparation">
-                {{ preparationPaused ? 'Продолжить подготовку' : 'Пауза' }}</button
-              ><button class="btn" @click="preparing = false">Отменить подготовку</button></template
-            >
-            <button
-              v-else-if="terminal"
-              class="btn btn-primary"
-              :disabled="requestBusy || uploading"
-              @click="start"
-            >
-              {{ session ? 'Начать новую сессию' : 'Начать' }}
-            </button>
-            <template v-else
-              ><button
-                class="btn btn-primary"
-                :disabled="requestBusy"
-                @click="command(running ? 'pause' : 'resume')"
-              >
-                {{ running ? 'Пауза' : 'Продолжить' }}</button
-              ><button class="btn" :disabled="requestBusy" @click="command('complete')">Завершить</button
-              ><button class="btn" :disabled="requestBusy" @click="command('interrupt')">
-                Прервать
-              </button></template
-            >
-            <button class="btn" @click="muted = !muted">{{ muted ? 'Включить громкость' : 'Тишина' }}</button>
-            <button v-if="running" class="btn" @click="sound">Включить звук</button
-            ><button class="btn" @click="fullscreen">Полный экран</button>
-          </div>
-          <p class="muted small">
-            При сворачивании страницы, блокировке или потере связи таймер ставится на паузу. Вернувшись,
-            продолжите явно.
-          </p>
-        </section>
-
-        <section class="card">
-          <h2>Настройки сессии</h2>
-          <p v-if="locked" class="muted">
-            Настройки действуют для следующей сессии. Завершите текущую, чтобы их изменить.
-          </p>
-          <fieldset :disabled="locked || requestBusy" class="meditation-form">
-            <label
-              >Режим<select v-model="config.kind">
-                <option value="meditation">Медитация</option>
-                <option value="breathing">Дыхание</option>
-                <option value="tones">Звуковые частоты</option>
-              </select></label
-            >
-            <label
-              >Длительность<select
-                :value="config.duration_seconds === null ? 'free' : 'timed'"
-                @change="
-                  config.duration_seconds = ($event.target as HTMLSelectElement).value === 'free' ? null : 600
-                "
-              >
-                <option value="timed">Заданное время</option>
-                <option value="free">Свободный отсчёт</option>
-              </select></label
-            >
-            <label v-if="config.duration_seconds !== null"
-              >Минуты<input
-                :value="config.duration_seconds / 60"
-                type="number"
-                min="0.02"
-                max="720"
-                step="0.1"
-                @change="
-                  config.duration_seconds = Math.max(
-                    1,
-                    Math.round(Number(($event.target as HTMLInputElement).value) * 60),
-                  )
-                "
-            /></label>
-            <label
-              >Подготовка, секунд<input
-                v-model.number="config.preparation_seconds"
-                type="number"
-                min="0"
-                max="300"
-            /></label>
-            <label
-              >Часовой пояс<select v-model="config.timezone">
-                <option v-for="zone in timezoneOptions" :key="zone" :value="zone">{{ zone }}</option>
-              </select></label
-            >
-          </fieldset>
-          <h3>Сигналы</h3>
-          <fieldset :disabled="locked" class="meditation-form">
-            <label
-              >В начале<select v-model="config.start_signal">
-                <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
-              </select></label
-            >
-            <label
-              >В конце<select v-model="config.end_signal">
-                <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
-              </select></label
-            >
-            <label
-              >Интервальный сигнал<select v-model="config.interval_signal">
-                <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
-              </select></label
-            >
-            <label v-if="config.interval_signal !== 'none'"
-              >Интервал, секунд<input
-                v-model.number="config.interval_seconds"
-                type="number"
-                min="1"
-                max="43200"
-            /></label>
-            <label
-              >Громкость сигналов<input
-                v-model.number="config.signal_volume"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-            /></label>
-          </fieldset>
-          <div class="meditation-actions">
-            <button
-              v-for="signal in ['gong', 'bowl', 'bell'] as Signal[]"
-              :key="signal"
-              type="button"
-              class="btn"
-              :disabled="locked"
-              @click="preview(signal)"
-            >
-              Послушать: {{ signalNames[signal] }}</button
-            ><button type="button" class="btn" :disabled="locked" @click="engine.stop">
-              Остановить предпрослушивание
-            </button>
-          </div>
-          <h3>Фон</h3>
-          <fieldset :disabled="locked" class="meditation-form">
-            <label
-              >Звуковой фон<select v-model="config.ambience">
-                <option value="none">Без фона</option>
-                <option v-for="(item, key) in soundManifest.ambience" :key="key" :value="key">
-                  {{ item.name }} — синтез
-                </option>
-              </select></label
-            ><label
-              >Громкость фона<input
-                v-model.number="config.ambience_volume"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-            /></label>
-          </fieldset>
-          <p class="muted small">
-            Лес, дождь, волны и инструменты созданы процедурным синтезом RibkaYoga. Это звуковые образы, а не
-            записи природы. Чужие аудиозаписи не используются.
-          </p>
-          <details>
-            <summary>Дыхательное сопровождение</summary>
-            <fieldset :disabled="locked" class="meditation-form">
-              <label class="check"
-                ><input v-model="config.breathing_enabled" type="checkbox" /> Показывать ритм</label
-              ><label
-                >Сигнал смены фазы<select v-model="config.breathing_signal">
-                  <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
-                </select></label
-              ><label
-                >Вдох, секунд<input
-                  v-model.number="config.inhale_seconds"
-                  type="number"
-                  min="1"
-                  max="30" /></label
-              ><label
-                >Выдох, секунд<input
-                  v-model.number="config.exhale_seconds"
-                  type="number"
-                  min="1"
-                  max="30" /></label
-              ><label
-                >Пауза после вдоха<input
-                  v-model.number="config.hold_in_seconds"
-                  type="number"
-                  min="0"
-                  max="30" /></label
-              ><label
-                >Пауза после выдоха<input
-                  v-model.number="config.hold_out_seconds"
-                  type="number"
-                  min="0"
-                  max="30" /></label
-              ><label
-                >Количество циклов<input
-                  v-model.number="config.breathing_cycles"
-                  type="number"
-                  min="1"
-                  max="1000"
-              /></label>
-            </fieldset>
-            <p class="muted small">
-              Следуйте комфортному ритму. Задержки отключены по умолчанию. Показанный ритм не измеряет ваше
-              дыхание.
+            <p>
+              {{
+                preparing
+                  ? preparationPaused
+                    ? 'Подготовка на паузе'
+                    : 'Устройтесь удобно'
+                  : running
+                    ? 'Идёт сессия'
+                    : session && !terminal
+                      ? 'Пауза — нажмите «Продолжить»'
+                      : session?.status === 'completed'
+                        ? 'Завершено'
+                        : session?.status === 'interrupted'
+                          ? 'Прервано'
+                          : config.duration_seconds === null
+                            ? 'Свободный отсчёт'
+                            : 'Устройтесь удобно и начните'
+              }}
             </p>
-          </details>
-          <details>
-            <summary>Звуковые частоты</summary>
-            <fieldset :disabled="locked" class="meditation-form">
-              <label class="check"
-                ><input v-model="config.tone_enabled" type="checkbox" /> Одиночный синусоидальный тон</label
-              ><label
-                >Частота, Гц<input
-                  v-model.number="config.tone_frequency"
-                  type="number"
-                  min="20"
-                  max="2000" /></label
-              ><label
-                >Длительность тона, секунд<input
-                  v-model.number="config.tone_seconds"
-                  type="number"
-                  min="1"
-                  max="43200" /></label
-              ><label
-                >Тихая начальная громкость<input
-                  v-model.number="config.tone_volume"
-                  type="range"
-                  min="0"
-                  max="0.2"
-                  step="0.005"
-              /></label>
-            </fieldset>
-            <p class="muted small">
-              Управляемый звук без медицинских обещаний. Этот режим не является бинауральным и не описывает
-              влияние частоты на органы.
-            </p>
-          </details>
-          <div class="meditation-actions">
-            <button class="btn" :disabled="locked || requestBusy" @click="saveSettings">
-              Сохранить личные настройки
-            </button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Моё аудио</h2>
-          <p class="muted">
-            Только для вашего аккаунта. До {{ Math.round(limits.max_bytes / 1048576) }} МБ и
-            {{ Math.round(limits.max_seconds / 60) }} минут на файл; библиотека с архивом — до
-            {{ Math.round(limits.max_library_bytes / 1048576) }} МБ.
-          </p>
-          <fieldset :disabled="locked || uploading" class="meditation-form">
-            <label
-              >Личная запись<select v-model="config.audio_asset_id">
-                <option :value="null">Без личного аудио</option>
-                <option
-                  v-for="item in audios.filter((item) => !item.archived_at)"
-                  :key="item.id"
-                  :value="item.id"
-                >
-                  {{ item.title }} · {{ time(item.duration_ms / 1000) }}
-                </option>
-              </select></label
-            ><label
-              >Громкость записи<input
-                v-model.number="config.audio_volume"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01" /></label
-            ><label class="check"
-              ><input v-model="config.audio_repeat" type="checkbox" /> Повторять запись</label
-            ><label v-if="!config.audio_repeat"
-              >После окончания<select v-model="config.audio_end">
-                <option value="continue">Продолжить таймер</option>
-                <option value="finish">Завершить сессию</option>
-              </select></label
+            <p v-if="session && !terminal" class="muted small">Активное время: {{ time(activeMs / 1000) }}</p>
+            <div
+              v-if="breath && !terminal"
+              class="breathing-guide"
+              :style="{ '--breath-scale': breath.scale }"
             >
-          </fieldset>
-          <form class="audio-upload" @submit.prevent="upload">
-            <label
-              >Название<input v-model="audioTitle" maxlength="160" required :disabled="uploading" /></label
-            ><label
-              >MP3, M4A/AAC, WAV<input
-                type="file"
-                accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/wav"
-                :disabled="uploading"
-                @change="selectFile" /></label
-            ><button class="btn" :disabled="uploading || !audioFile || !audioTitle.trim()" type="submit">
-              Загрузить личную запись</button
-            ><template v-if="uploading"
-              ><progress :value="uploadPercent" max="100"></progress
-              ><span
-                >{{ uploadPercent }}%{{ uploadPercent === 100 ? ' — проверяем декодирование…' : '' }}</span
-              ><button type="button" class="btn" @click="uploadCancel?.()">
-                Отменить загрузку
-              </button></template
-            >
-          </form>
-          <label class="check"><input v-model="audioArchive" type="checkbox" /> Показать архив аудио</label>
-          <p v-if="!audios.length" class="muted">
-            {{ audioArchive ? 'Архив пуст.' : 'Личных записей пока нет.' }}
-          </p>
-          <ul class="audio-list">
-            <li v-for="item in audios" :key="item.id">
-              <div>
-                <strong>{{ item.title }}</strong
-                ><small
-                  >{{ time(item.duration_ms / 1000) }} · {{ (item.bytes / 1048576).toFixed(1) }} МБ</small
-                >
+              <div class="breathing-orb" aria-hidden="true"></div>
+              <div class="breathing-label">
+                <strong>{{ breath.name }}</strong
+                ><span v-if="breath.remaining">{{ breath.remaining }}</span
+                ><small>Цикл {{ breath.cycle }} из {{ session?.settings.breathing_cycles }}</small>
               </div>
-              <audio
-                :controls="!locked"
-                preload="none"
-                :src="item.stream_url"
-                :aria-label="`Прослушать ${item.title}`"
-              ></audio>
-              <div class="meditation-actions">
-                <button class="btn" :disabled="locked" @click="renameAudio(item)">Название</button
-                ><button class="btn" :disabled="locked" @click="changeAudio(item, !item.archived_at)">
-                  {{ item.archived_at ? 'Восстановить' : 'Убрать в архив' }}
+            </div>
+            <div class="meditation-actions">
+              <template v-if="preparing"
+                ><button class="btn" @click="togglePreparation">
+                  {{ preparationPaused ? 'Продолжить подготовку' : 'Пауза' }}</button
+                ><button class="btn" @click="preparing = false">Отменить подготовку</button></template
+              >
+              <button
+                v-else-if="terminal"
+                class="btn btn-primary meditation-start"
+                :disabled="requestBusy || uploading"
+                @click="start"
+              >
+                <Play :size="18" fill="currentColor" aria-hidden="true" />
+                {{ session ? 'Начать снова' : 'Начать' }}
+              </button>
+              <template v-else
+                ><button
+                  class="btn btn-primary"
+                  :disabled="requestBusy"
+                  @click="command(running ? 'pause' : 'resume')"
+                >
+                  {{ running ? 'Пауза' : 'Продолжить' }}</button
+                ><button class="btn" :disabled="requestBusy" @click="command('complete')">Завершить</button
+                ><button class="btn" :disabled="requestBusy" @click="command('interrupt')">
+                  Прервать
+                </button></template
+              >
+            </div>
+            <div class="meditation-utilities">
+              <button class="btn" @click="muted = !muted" :aria-pressed="muted">
+                <VolumeX v-if="muted" :size="17" aria-hidden="true" /><Volume2
+                  v-else
+                  :size="17"
+                  aria-hidden="true"
+                />
+                {{ muted ? 'Звук выключен' : 'Звук включён' }}
+              </button>
+              <button class="btn" @click="fullscreen">
+                <Expand :size="17" aria-hidden="true" />На весь экран
+              </button>
+              <button v-if="running" class="btn" @click="sound">Возобновить звук</button>
+            </div>
+            <p class="muted small">
+              При сворачивании страницы, блокировке или потере связи таймер ставится на паузу. Вернувшись,
+              продолжите явно.
+            </p>
+          </section>
+        </div>
+        <div class="meditation-extras">
+          <details class="disclosure meditation-extra">
+            <summary>
+              <span class="disclosure-icon"><SlidersHorizontal aria-hidden="true" /></span>
+              <span class="disclosure-copy"
+                ><strong>Дополнительные настройки</strong
+                ><small>Время, звуки и сопровождение вашей практики</small></span
+              >
+            </summary>
+            <div class="disclosure-body extra-content">
+              <p v-if="locked" class="settings-notice">
+                Настройки действуют для следующей сессии. Завершите текущую, чтобы их изменить.
+              </p>
+              <div class="meditation-settings-grid">
+                <section class="settings-panel">
+                  <header class="settings-panel-heading">
+                    <span class="sound-icon"><Timer aria-hidden="true" /></span>
+                    <div>
+                      <h3>Время и режим</h3>
+                      <p>Выберите удобный формат практики</p>
+                    </div>
+                  </header>
+                  <fieldset :disabled="locked || requestBusy" class="meditation-form">
+                    <label
+                      >Режим<AppSelect v-model="config.kind">
+                        <option value="meditation">Медитация</option>
+                        <option value="breathing">Дыхание</option>
+                        <option value="tones">Звуковые частоты</option>
+                      </AppSelect></label
+                    >
+                    <label
+                      >Длительность<AppSelect
+                        :value="config.duration_seconds === null ? 'free' : 'timed'"
+                        @change="
+                          config.duration_seconds =
+                            ($event.target as HTMLSelectElement).value === 'free' ? null : 600
+                        "
+                      >
+                        <option value="timed">Заданное время</option>
+                        <option value="free">Свободный отсчёт</option>
+                      </AppSelect></label
+                    >
+                    <label v-if="config.duration_seconds !== null"
+                      >Минуты<input
+                        class="input"
+                        :value="config.duration_seconds / 60"
+                        type="number"
+                        min="0.02"
+                        max="720"
+                        step="0.1"
+                        @change="
+                          config.duration_seconds = Math.max(
+                            1,
+                            Math.round(Number(($event.target as HTMLInputElement).value) * 60),
+                          )
+                        "
+                    /></label>
+                    <label
+                      >Подготовка, секунд<input
+                        class="input"
+                        v-model.number="config.preparation_seconds"
+                        type="number"
+                        min="0"
+                        max="300"
+                    /></label>
+                    <label class="field-wide"
+                      >Часовой пояс<AppSelect v-model="config.timezone">
+                        <option v-for="zone in timezoneOptions" :key="zone" :value="zone">{{ zone }}</option>
+                      </AppSelect></label
+                    >
+                  </fieldset>
+                </section>
+                <section class="settings-panel">
+                  <header class="settings-panel-heading">
+                    <span class="sound-icon"><Bell aria-hidden="true" /></span>
+                    <div>
+                      <h3>Сигналы</h3>
+                      <p>Мягкое начало, завершение и интервалы</p>
+                    </div>
+                  </header>
+                  <fieldset :disabled="locked" class="meditation-form">
+                    <label
+                      >В начале<AppSelect v-model="config.start_signal">
+                        <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
+                      </AppSelect></label
+                    >
+                    <label
+                      >В конце<AppSelect v-model="config.end_signal">
+                        <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
+                      </AppSelect></label
+                    >
+                    <label
+                      >Интервальный сигнал<AppSelect v-model="config.interval_signal">
+                        <option v-for="(name, key) in signalNames" :key="key" :value="key">{{ name }}</option>
+                      </AppSelect></label
+                    >
+                    <label v-if="config.interval_signal !== 'none'"
+                      >Интервал, секунд<input
+                        class="input"
+                        v-model.number="config.interval_seconds"
+                        type="number"
+                        min="1"
+                        max="43200"
+                    /></label>
+                    <label class="field-wide"
+                      >Громкость сигналов<input
+                        v-model.number="config.signal_volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    /></label>
+                  </fieldset>
+                  <div class="signal-previews">
+                    <span class="field-caption">Послушать сигнал</span>
+                    <div class="meditation-actions">
+                      <button
+                        v-for="signal in ['gong', 'bowl', 'bell'] as Signal[]"
+                        :key="signal"
+                        type="button"
+                        class="btn"
+                        :disabled="locked"
+                        @click="preview(signal)"
+                      >
+                        <Play :size="15" aria-hidden="true" />{{ signalNames[signal] }}</button
+                      ><button type="button" class="btn" :disabled="locked" @click="engine.stop">
+                        Остановить
+                      </button>
+                    </div>
+                  </div>
+                </section>
+                <section class="settings-panel settings-atmosphere">
+                  <header class="settings-panel-heading">
+                    <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
+                    <div>
+                      <h3>Атмосфера</h3>
+                      <p>Звуковой фон и его громкость</p>
+                    </div>
+                  </header>
+                  <fieldset :disabled="locked" class="meditation-form">
+                    <label
+                      >Звуковой фон<AppSelect v-model="config.ambience">
+                        <option value="none">Без фона</option>
+                        <option v-for="(item, key) in soundManifest.ambience" :key="key" :value="key">
+                          {{ item.name }} — синтез
+                        </option>
+                      </AppSelect></label
+                    ><label
+                      >Громкость фона<input
+                        v-model.number="config.ambience_volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    /></label>
+                  </fieldset>
+                  <p class="muted small">Синтезированные звуковые образы природы и инструментов.</p>
+                </section>
+              </div>
+              <div class="meditation-mode-grid">
+                <details class="disclosure mode-disclosure">
+                  <summary>
+                    <span class="disclosure-icon"><Wind aria-hidden="true" /></span
+                    ><span class="disclosure-copy"
+                      ><strong>Дыхательное сопровождение</strong
+                      ><small>Вдох, выдох и паузы в вашем ритме</small></span
+                    >
+                  </summary>
+                  <div class="disclosure-body">
+                    <div class="settings-toggle">
+                      <div>
+                        <strong>Показывать ритм</strong>
+                        <p>Визуальная подсказка для дыхания</p>
+                      </div>
+                      <button
+                        type="button"
+                        class="meditation-switch"
+                        role="switch"
+                        aria-label="Показывать ритм дыхания"
+                        :aria-checked="config.breathing_enabled"
+                        :disabled="locked"
+                        @click="config.breathing_enabled = !config.breathing_enabled"
+                      >
+                        <span aria-hidden="true"></span>
+                      </button>
+                    </div>
+                    <fieldset :disabled="locked" class="meditation-form">
+                      <label
+                        >Сигнал смены фазы<AppSelect v-model="config.breathing_signal">
+                          <option v-for="(name, key) in signalNames" :key="key" :value="key">
+                            {{ name }}
+                          </option>
+                        </AppSelect></label
+                      ><label
+                        >Вдох, секунд<input
+                          class="input"
+                          v-model.number="config.inhale_seconds"
+                          type="number"
+                          min="1"
+                          max="30" /></label
+                      ><label
+                        >Выдох, секунд<input
+                          class="input"
+                          v-model.number="config.exhale_seconds"
+                          type="number"
+                          min="1"
+                          max="30" /></label
+                      ><label
+                        >Пауза после вдоха<input
+                          class="input"
+                          v-model.number="config.hold_in_seconds"
+                          type="number"
+                          min="0"
+                          max="30" /></label
+                      ><label
+                        >Пауза после выдоха<input
+                          class="input"
+                          v-model.number="config.hold_out_seconds"
+                          type="number"
+                          min="0"
+                          max="30" /></label
+                      ><label
+                        >Количество циклов<input
+                          class="input"
+                          v-model.number="config.breathing_cycles"
+                          type="number"
+                          min="1"
+                          max="1000"
+                      /></label>
+                    </fieldset>
+                    <p class="muted small">
+                      Следуйте комфортному ритму. Паузы отключены по умолчанию; подсказка не измеряет ваше
+                      дыхание.
+                    </p>
+                  </div>
+                </details>
+                <details class="disclosure mode-disclosure">
+                  <summary>
+                    <span class="disclosure-icon"><AudioLines aria-hidden="true" /></span
+                    ><span class="disclosure-copy"
+                      ><strong>Звуковые частоты</strong><small>Ровный тон на выбранной частоте</small></span
+                    >
+                  </summary>
+                  <div class="disclosure-body">
+                    <div class="settings-toggle">
+                      <div>
+                        <strong>Включить тон</strong>
+                        <p>Одна частота с отдельной громкостью</p>
+                      </div>
+                      <button
+                        type="button"
+                        class="meditation-switch"
+                        role="switch"
+                        aria-label="Включить звуковой тон"
+                        :aria-checked="config.tone_enabled"
+                        :disabled="locked"
+                        @click="config.tone_enabled = !config.tone_enabled"
+                      >
+                        <span aria-hidden="true"></span>
+                      </button>
+                    </div>
+                    <fieldset :disabled="locked" class="meditation-form">
+                      <label
+                        >Частота, Гц<input
+                          class="input"
+                          v-model.number="config.tone_frequency"
+                          type="number"
+                          min="20"
+                          max="2000" /></label
+                      ><label
+                        >Длительность тона, секунд<input
+                          class="input"
+                          v-model.number="config.tone_seconds"
+                          type="number"
+                          min="1"
+                          max="43200" /></label
+                      ><label class="field-wide"
+                        >Громкость тона<input
+                          v-model.number="config.tone_volume"
+                          type="range"
+                          min="0"
+                          max="0.2"
+                          step="0.005"
+                      /></label>
+                    </fieldset>
+                    <p class="muted small">
+                      Одиночный тон, без бинаурального эффекта и медицинских обещаний.
+                    </p>
+                  </div>
+                </details>
+              </div>
+              <div class="settings-save">
+                <p class="muted small">Настройки сохранятся для ваших следующих сессий.</p>
+                <button class="btn btn-primary" :disabled="locked || requestBusy" @click="saveSettings">
+                  Сохранить мои настройки
                 </button>
               </div>
-            </li>
-          </ul>
-        </section>
+            </div>
+          </details>
+          <details class="disclosure meditation-extra">
+            <summary>
+              <span class="disclosure-icon"><AudioLines aria-hidden="true" /></span
+              ><span class="disclosure-copy"
+                ><strong>Моё аудио</strong><small>Личные записи и музыка для практики</small></span
+              >
+            </summary>
+            <div class="disclosure-body extra-content">
+              <div class="meditation-audio-grid">
+                <section class="settings-panel">
+                  <header class="settings-panel-heading">
+                    <span class="sound-icon"><Play aria-hidden="true" /></span>
+                    <div>
+                      <h3>Для этой сессии</h3>
+                      <p>Запись, громкость и повтор</p>
+                    </div>
+                  </header>
+                  <fieldset :disabled="locked || uploading" class="meditation-form">
+                    <label
+                      >Личная запись<AppSelect v-model="config.audio_asset_id">
+                        <option :value="null">Без личного аудио</option>
+                        <option
+                          v-for="item in audios.filter((item) => !item.archived_at)"
+                          :key="item.id"
+                          :value="item.id"
+                        >
+                          {{ item.title }} · {{ time(item.duration_ms / 1000) }}
+                        </option>
+                      </AppSelect></label
+                    ><label
+                      >Громкость записи<input
+                        v-model.number="config.audio_volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01" /></label
+                    ><label v-if="!config.audio_repeat"
+                      >После окончания<AppSelect v-model="config.audio_end">
+                        <option value="continue">Продолжить таймер</option>
+                        <option value="finish">Завершить сессию</option>
+                      </AppSelect></label
+                    >
+                  </fieldset>
+                  <div class="settings-toggle">
+                    <div>
+                      <strong>Повторять запись</strong>
+                      <p>Начинать снова после завершения</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      aria-label="Повторять личную запись"
+                      :aria-checked="config.audio_repeat"
+                      :disabled="locked || uploading"
+                      @click="config.audio_repeat = !config.audio_repeat"
+                    >
+                      <span aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </section>
+                <section class="settings-panel">
+                  <header class="settings-panel-heading">
+                    <span class="sound-icon"><Upload aria-hidden="true" /></span>
+                    <div>
+                      <h3>Добавить запись</h3>
+                      <p>Аудио доступно только вашему аккаунту</p>
+                    </div>
+                  </header>
+                  <form class="audio-upload" @submit.prevent="upload">
+                    <label
+                      >Название<input
+                        class="input"
+                        v-model="audioTitle"
+                        maxlength="160"
+                        required
+                        :disabled="uploading" /></label
+                    ><label
+                      >MP3, M4A/AAC, WAV<input
+                        type="file"
+                        accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/wav"
+                        :disabled="uploading"
+                        @change="selectFile" /></label
+                    ><button
+                      class="btn btn-primary"
+                      :disabled="uploading || !audioFile || !audioTitle.trim()"
+                      type="submit"
+                    >
+                      Загрузить личную запись</button
+                    ><template v-if="uploading"
+                      ><progress :value="uploadPercent" max="100"></progress
+                      ><span
+                        >{{ uploadPercent }}%{{
+                          uploadPercent === 100 ? ' — проверяем декодирование…' : ''
+                        }}</span
+                      ><button type="button" class="btn" @click="uploadCancel?.()">
+                        Отменить загрузку
+                      </button></template
+                    >
+                  </form>
 
-        <section class="card">
-          <div class="meditation-heading">
-            <div>
-              <h2>Моя статистика медитации</h2>
-              <p class="muted">
-                Часовой пояс: {{ config.timezone }}. Завершённые и прерванные сессии различаются.
+                  <p class="muted small">
+                    До {{ Math.round(limits.max_bytes / 1048576) }} МБ и
+                    {{ Math.round(limits.max_seconds / 60) }} минут на файл. Вся библиотека с архивом — до
+                    {{ Math.round(limits.max_library_bytes / 1048576) }} МБ.
+                  </p>
+                </section>
+              </div>
+              <div class="audio-library">
+                <label class="check"
+                  ><input v-model="audioArchive" type="checkbox" /> Показать архив аудио</label
+                >
+                <p v-if="!audios.length" class="muted">
+                  {{ audioArchive ? 'Архив пуст.' : 'Личных записей пока нет.' }}
+                </p>
+                <ul class="audio-list">
+                  <li v-for="item in audios" :key="item.id">
+                    <div>
+                      <strong>{{ item.title }}</strong
+                      ><small
+                        >{{ time(item.duration_ms / 1000) }} ·
+                        {{ (item.bytes / 1048576).toFixed(1) }} МБ</small
+                      >
+                    </div>
+                    <audio
+                      :controls="!locked"
+                      preload="none"
+                      :src="item.stream_url"
+                      :aria-label="`Прослушать ${item.title}`"
+                    ></audio>
+                    <div class="meditation-actions">
+                      <button class="btn" :disabled="locked" @click="renameAudio(item)">Название</button
+                      ><button class="btn" :disabled="locked" @click="changeAudio(item, !item.archived_at)">
+                        {{ item.archived_at ? 'Восстановить' : 'Убрать в архив' }}
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </details>
+          <details class="disclosure meditation-extra">
+            <summary>
+              <span class="disclosure-icon"><CalendarDays aria-hidden="true" /></span
+              ><span class="disclosure-copy"
+                ><strong>Моя статистика</strong><small>Время, регулярность и история сессий</small></span
+              >
+            </summary>
+            <div class="disclosure-body extra-content">
+              <div class="statistics-toolbar">
+                <label
+                  >Период<AppSelect v-model="period"
+                    ><option value="1">Сегодня</option>
+                    <option value="7">7 дней</option>
+                    <option value="30">30 дней</option>
+                    <option value="180">6 месяцев</option>
+                    <option value="all">Всё время</option></AppSelect
+                  ></label
+                ><a class="btn" :href="exportUrl"><Download :size="17" aria-hidden="true" />Экспорт CSV</a>
+              </div>
+              <p class="muted small">
+                Часовой пояс: {{ config.timezone }}. Завершённые и прерванные сессии учитываются отдельно.
               </p>
-            </div>
-            <a class="btn" :href="exportUrl">Экспорт CSV</a>
-          </div>
-          <label
-            >Период<select v-model="period">
-              <option value="1">Сегодня</option>
-              <option value="7">7 дней</option>
-              <option value="30">30 дней</option>
-              <option value="180">6 месяцев</option>
-              <option value="all">Всё время</option>
-            </select></label
-          >
-          <template v-if="history"
-            ><div class="meditation-stats">
-              <div>
-                <strong>{{ Math.round(history.summary.active_ms / 60000) }}</strong
-                ><span>активных минут</span>
-              </div>
-              <div>
-                <strong>{{ history.summary.completed }}</strong
-                ><span>завершено</span>
-              </div>
-              <div>
-                <strong>{{ history.summary.interrupted }}</strong
-                ><span>прервано</span>
-              </div>
-            </div>
-            <h3>Регулярность за последние 35 дней</h3>
-            <div class="meditation-calendar" aria-label="Календарь регулярности">
-              <span
-                v-for="day in calendar"
-                :key="day.date"
-                :class="{ practiced: day.ms > 0 }"
-                :title="`${day.date}: ${time(day.ms / 1000)}`"
-                tabindex="0"
-                >{{ day.day }}<small v-if="day.ms > 0">{{ Math.ceil(day.ms / 60000) }}м</small></span
+              <template v-if="history"
+                ><div class="meditation-stats">
+                  <div>
+                    <strong>{{ Math.round(history.summary.active_ms / 60000) }}</strong
+                    ><span>активных минут</span>
+                  </div>
+                  <div>
+                    <strong>{{ history.summary.completed }}</strong
+                    ><span>завершено</span>
+                  </div>
+                  <div>
+                    <strong>{{ history.summary.interrupted }}</strong
+                    ><span>прервано</span>
+                  </div>
+                </div>
+                <h3>Регулярность за последние 35 дней</h3>
+                <div class="meditation-calendar" aria-label="Календарь регулярности">
+                  <span
+                    v-for="day in calendar"
+                    :key="day.date"
+                    :class="{ practiced: day.ms > 0 }"
+                    :title="`${day.date}: ${time(day.ms / 1000)}`"
+                    tabindex="0"
+                    >{{ day.day }}<small v-if="day.ms > 0">{{ Math.ceil(day.ms / 60000) }}м</small></span
+                  >
+                </div>
+                <p class="muted small">
+                  Зелёный день — есть активное время в выбранном периоде. Дни вне периода не подсвечиваются.
+                </p>
+                <p v-if="!history.total">В этом периоде завершённых или прерванных сессий нет.</p>
+                <ul class="meditation-history">
+                  <li v-for="item in history.data" :key="item.id">
+                    <span>{{
+                      new Date(item.started_at).toLocaleString('ru-RU', { timeZone: config.timezone })
+                    }}</span
+                    ><span>{{ kindNames[item.kind] }}</span
+                    ><strong>{{ time(item.active_ms / 1000) }}</strong
+                    ><span>{{ item.status === 'completed' ? 'Завершено' : 'Прервано' }}</span>
+                  </li>
+                </ul>
+                <div v-if="history.last_page > 1" class="meditation-actions">
+                  <button
+                    class="btn"
+                    :disabled="historyBusy || history.current_page <= 1"
+                    @click="
+                      historyPage--;
+                      loadHistory();
+                    "
+                  >
+                    Назад</button
+                  ><span>{{ history.current_page }} / {{ history.last_page }}</span
+                  ><button
+                    class="btn"
+                    :disabled="historyBusy || history.current_page >= history.last_page"
+                    @click="
+                      historyPage++;
+                      loadHistory();
+                    "
+                  >
+                    Дальше
+                  </button>
+                </div></template
               >
             </div>
-            <p class="muted small">
-              Зелёный день — есть активное время в выбранном периоде. Дни вне периода не подсвечиваются.
-            </p>
-            <p v-if="!history.total">В этом периоде завершённых или прерванных сессий нет.</p>
-            <ul class="meditation-history">
-              <li v-for="item in history.data" :key="item.id">
-                <span>{{
-                  new Date(item.started_at).toLocaleString('ru-RU', { timeZone: config.timezone })
-                }}</span
-                ><span>{{ kindNames[item.kind] }}</span
-                ><strong>{{ time(item.active_ms / 1000) }}</strong
-                ><span>{{ item.status === 'completed' ? 'Завершено' : 'Прервано' }}</span>
-              </li>
-            </ul>
-            <div v-if="history.last_page > 1" class="meditation-actions">
-              <button
-                class="btn"
-                :disabled="historyBusy || history.current_page <= 1"
-                @click="
-                  historyPage--;
-                  loadHistory();
-                "
-              >
-                Назад</button
-              ><span>{{ history.current_page }} / {{ history.last_page }}</span
-              ><button
-                class="btn"
-                :disabled="historyBusy || history.current_page >= history.last_page"
-                @click="
-                  historyPage++;
-                  loadHistory();
-                "
-              >
-                Дальше
-              </button>
-            </div></template
-          >
-        </section>
+          </details>
+        </div>
       </template>
     </div>
   </AppShell>
@@ -1057,213 +1398,674 @@ onBeforeUnmount(() => {
 <style scoped>
 .meditation-page {
   display: grid;
-  gap: 1rem;
-  max-width: 1100px;
-  margin: auto;
+  gap: var(--section-gap);
+  width: 100%;
+  min-width: 0;
+  color: var(--text, #151916);
 }
 .meditation-heading {
+  margin: 0;
   display: flex;
   justify-content: space-between;
   align-items: start;
-  gap: 1rem;
+  gap: 16px;
   flex-wrap: wrap;
 }
-.meditation-page h1 {
-  font-size: 1.65rem;
-  font-weight: 650;
-}
 .meditation-page h2 {
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  font-size: var(--panel-title-size);
   font-weight: 650;
-  margin-bottom: 0.65rem;
+  letter-spacing: -0.025em;
+}
+.meditation-page h2 > svg {
+  width: 21px;
+  height: 21px;
+  color: var(--accent-dark, #16783a);
+  stroke-width: 1.8;
 }
 .meditation-page h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  margin: 1rem 0 0.5rem;
-}
-.card {
-  border: 1px solid #dae3d7;
-  border-radius: 1rem;
-  padding: 1.2rem;
-  background: white;
+  margin: 24px 0 10px;
 }
 .muted {
-  color: #61705c;
+  color: var(--muted, #6b726d);
 }
 .small {
-  font-size: 0.85rem;
-  margin-top: 0.6rem;
+  font-size: 12px;
+  line-height: 1.65;
+  margin-top: 12px;
 }
 .meditation-error {
-  background: #fff0ec;
-  border: 1px solid #eeab9c;
-  color: #842d1b;
-  border-radius: 0.8rem;
-  padding: 1rem;
+  background: #fff3f0;
+  border: 1px solid #f0c3b9;
+  color: #8a3320;
+  border-radius: 18px;
+  padding: 16px;
 }
 .meditation-notice {
-  background: #eef7e9;
-  padding: 0.9rem;
-  border-radius: 0.8rem;
+  background: var(--accent-soft, #eaf9ef);
+  padding: 16px;
+  border-radius: 18px;
+  font-size: 14px;
+}
+.meditation-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.meditation-setup {
+  display: grid;
+  gap: 18px;
+}
+.duration-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.duration-option {
+  min-height: 54px;
+  padding: 12px 8px;
+  border: 1px solid var(--line, #e3e8e4);
+  border-radius: 100px;
+  background: linear-gradient(180deg, #ffffffed, #f3f6f3c9);
+  color: var(--text, #151916);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 4px #15191603;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.duration-option span {
+  font-size: 14px;
+  font-weight: 500;
+}
+.duration-option:hover:not(:disabled) {
+  border-color: var(--accent-dark, #16783a);
+  background: var(--accent-soft, #eaf9ef);
+}
+.duration-option.selected {
+  border-color: var(--accent, #2ac45a);
+  background: linear-gradient(180deg, #4bd875, var(--accent, #2ac45a));
+  box-shadow:
+    inset 0 1px 0 #ffffff80,
+    0 4px 12px #2ac45a1c;
+  color: #102a17;
+}
+.duration-option:focus-visible,
+.meditation-switch:focus-visible {
+  outline: 3px solid var(--accent-dark, #16783a);
+  outline-offset: 4px;
+}
+.sound-switches {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 62px;
+}
+.sound-row + .sound-row {
+  border-top: 1px solid var(--line, #e3e8e4);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+.sound-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--accent-soft, #eaf9ef);
+  color: var(--accent-dark, #16783a);
+}
+.sound-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.6;
+}
+.sound-label {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+}
+.sound-label small {
+  color: var(--muted, #6b726d);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.meditation-switch {
+  position: relative;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 100px;
+  background: transparent;
+  cursor: pointer;
+}
+.meditation-switch::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 50px;
+  height: 30px;
+  box-sizing: border-box;
+  border: 1px solid #00000005;
+  border-radius: 100px;
+  background: #dce1dd;
+  box-shadow: inset 0 1px 3px #1519160a;
+  transition: background 0.18s;
+}
+.meditation-switch > span {
+  position: absolute;
+  left: 4px;
+  top: 11px;
+  display: block;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #15191626;
+  transition: transform 0.18s;
+}
+.meditation-switch[aria-checked='true']::before {
+  background: var(--accent, #2ac45a);
+}
+.meditation-switch[aria-checked='true'] > span {
+  transform: translateX(20px);
+}
+.meditation-background .sound-row {
+  min-height: 44px;
+}
+.meditation-background h2 {
+  margin: 0;
+  flex: 1;
+  font-size: 17px;
+}
+.ambience-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 22px;
+}
+.ambience-options .btn {
+  justify-content: center;
+  font-size: 13px;
+}
+.ambience-selected {
+  color: var(--accent-dark, #16783a);
+  border-color: #a8dfb8;
+  background: var(--accent-soft, #eaf9ef);
+  box-shadow: inset 0 1px 0 #fff;
+}
+.meditation-page .background-volume {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted, #6b726d);
+}
+.background-volume input {
+  flex: 1;
+  min-width: 0;
+}
+.save-preferences {
+  justify-self: start;
+  color: var(--muted, #6b726d);
+  font-size: 12px;
 }
 .meditation-timer {
+  position: sticky;
+  top: 110px;
   text-align: center;
-  padding: 1.5rem;
+  padding: 36px 24px 24px;
+  background: radial-gradient(ellipse 180px 130px at 50% 14%, #eaf9ef9c, transparent), #fff;
+}
+.meditation-emblem {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 26px;
+  border-radius: 50%;
+  border: 1px solid #b5edc5;
+  background: linear-gradient(145deg, #ffffffb3, #ddf7e5a1);
+  box-shadow:
+    inset 0 1px 2px white,
+    0 8px 24px #2ac45a10;
+  color: var(--accent-dark, #16783a);
+}
+.meditation-emblem svg {
+  width: 32px;
+  height: 32px;
+  stroke-width: 1.3;
+}
+.meditation-kicker {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted, #6b726d);
+}
+.meditation-clock {
+  margin: 14px 0 6px;
+  font-size: clamp(54px, 6.4vw, 78px);
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text, #151916);
+}
+.meditation-clock + p {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted, #6b726d);
+}
+.meditation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.meditation-timer > .meditation-actions {
+  justify-content: center;
+  margin-top: 30px;
+}
+.meditation-timer .meditation-actions .btn-primary {
+  width: 100%;
+  min-height: 54px;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+}
+.meditation-utilities {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 14px 0 18px;
+}
+.meditation-utilities .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 8px 10px;
+  min-height: 38px;
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+  color: var(--muted, #6b726d);
+}
+.meditation-timer > .small:last-child {
+  margin: 20px auto 0;
+  max-width: 280px;
+  font-size: 11px;
 }
 .meditation-timer:fullscreen {
+  position: static;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
   background: white;
+  border-radius: 0;
 }
-.meditation-kicker {
-  font-weight: 600;
+.meditation-timer:fullscreen > .meditation-actions {
+  min-width: 280px;
 }
-.meditation-clock {
-  font-size: clamp(3.5rem, 12vw, 6.5rem);
-  line-height: 1.35;
-  font-variant-numeric: tabular-nums;
-  color: #2f622a;
+.meditation-extras {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
 }
-.meditation-actions {
+.meditation-extra {
+  min-width: 0;
+}
+.meditation-settings-grid,
+.meditation-audio-grid,
+.meditation-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 18px;
+}
+.meditation-mode-grid {
+  margin-top: 18px;
+}
+.settings-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px;
+  background: linear-gradient(155deg, #fff, #f9fbf9);
+  box-shadow: inset 0 1px 0 #fff;
+}
+.settings-atmosphere {
+  grid-column: 1 / -1;
+}
+.settings-panel-heading {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: inherit;
-  gap: 0.55rem;
-  margin-top: 0.8rem;
+  gap: 12px;
+  margin-bottom: 22px;
 }
-.meditation-timer .meditation-actions {
-  justify-content: center;
+.settings-panel-heading > div {
+  min-width: 0;
+}
+.settings-panel-heading h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.settings-panel-heading p,
+.settings-toggle p {
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .meditation-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
   border: 0;
   padding: 0;
-  margin-top: 0.75rem;
+  margin: 0;
+  min-width: 0;
+}
+.meditation-form .field-wide {
+  grid-column: 1 / -1;
 }
 .meditation-page label {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.9rem;
+  gap: 9px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 .meditation-page label.check {
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0.7rem 0;
-}
-.meditation-page input:not([type='checkbox']):not([type='range']),
-.meditation-page select {
-  width: 100%;
-  min-height: 44px;
-  border: 1px solid #c5d0c0;
-  border-radius: 0.55rem;
-  padding: 0.5rem;
-  background: white;
+  gap: 10px;
+  margin: 0;
 }
 .meditation-page input[type='range'] {
   width: 100%;
-  min-height: 44px;
-  accent-color: #397a28;
-}
-.meditation-page input[type='checkbox'] {
-  accent-color: #397a28;
+  min-width: 0;
 }
 .meditation-page fieldset:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
 }
-.meditation-page details {
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #e6ece3;
+.meditation-page fieldset:disabled button {
+  cursor: default;
 }
-.meditation-page summary {
-  cursor: pointer;
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 54px;
+  margin: 0 0 20px;
+}
+.settings-toggle strong {
+  font-size: 14px;
   font-weight: 600;
-  min-height: 44px;
-  padding-top: 0.5rem;
+}
+.settings-panel > .settings-toggle {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin: 18px 0 0;
+}
+.settings-notice {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.signal-previews {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.field-caption {
+  color: var(--muted);
+  font-size: 12px;
+}
+.signal-previews .meditation-actions {
+  gap: 6px;
+  margin-top: 10px;
+}
+.signal-previews .btn {
+  font-size: 12px;
+  min-height: 40px;
+  padding-inline: 12px;
+  gap: 6px;
+}
+.settings-save {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 22px;
+}
+.settings-save .small {
+  margin: 0;
 }
 .audio-upload {
   display: grid;
-  gap: 0.7rem;
-  margin: 1rem 0;
-  border: 1px dashed #a9b8a1;
-  border-radius: 0.8rem;
-  padding: 1rem;
+  gap: 16px;
+  margin: 0;
 }
 .audio-upload progress {
   width: 100%;
+  accent-color: var(--accent);
+}
+.audio-upload .btn {
+  justify-content: center;
+}
+.audio-library {
+  margin-top: 24px;
+}
+.audio-library > p {
+  margin-top: 16px;
+  padding: 28px 20px;
+  border-radius: 20px;
+  background: var(--surface-soft);
+  text-align: center;
+  font-size: 14px;
 }
 .audio-list,
 .meditation-history {
   list-style: none;
   padding: 0;
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
 }
 .audio-list li {
   display: grid;
-  gap: 0.6rem;
-  padding: 1rem 0;
-  border-top: 1px solid #e2e9df;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--glass);
 }
 .audio-list small {
   display: block;
-  color: #61705c;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
 }
 .audio-list audio {
   width: min(100%, 440px);
 }
-.meditation-history li {
-  display: flex;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-  padding: 0.75rem 0;
-  border-top: 1px solid #e2e9df;
+.audio-list .meditation-actions {
+  margin: 0;
 }
-.meditation-history li span:first-child {
-  min-width: 170px;
+.statistics-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.statistics-toolbar label {
+  width: 240px;
+  max-width: 100%;
+}
+.meditation-history li {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.2fr) 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  font-size: 13px;
+}
+.meditation-history li span:last-child {
+  color: var(--muted);
 }
 .meditation-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  margin: 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
 }
-.meditation-stats div {
+.meditation-stats > div {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--glass);
 }
 .meditation-stats strong {
-  font-size: 1.8rem;
-  color: #2f622a;
+  font-size: 38px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.meditation-stats > div:first-child {
+  border-color: #ccebd5;
+  background: linear-gradient(155deg, #fff, var(--accent-soft));
+}
+.meditation-stats span {
+  font-size: 13px;
+  color: var(--muted);
 }
 .meditation-calendar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.35rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
   max-width: 480px;
 }
 .meditation-calendar > span {
   display: flex;
-  min-height: 47px;
+  min-height: 49px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-radius: 0.4rem;
-  background: #f1f4ef;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--glass);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 .meditation-calendar > span.practiced {
-  background: #d2e9c7;
-  color: #214c1d;
+  background: var(--accent-soft);
+  border-color: #ccebd5;
+  color: var(--accent-dark);
 }
 .meditation-calendar small {
-  font-size: 0.65rem;
+  font-size: 10px;
+}
+@media (max-width: 960px) {
+  .meditation-settings-grid,
+  .meditation-audio-grid,
+  .meditation-mode-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .settings-panel {
+    padding: 18px;
+    border-radius: 20px;
+  }
+  .meditation-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .settings-panel-heading {
+    margin-bottom: 20px;
+  }
+  .settings-save > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .meditation-stats {
+    gap: 8px;
+  }
+  .meditation-stats > div {
+    padding: 16px 10px;
+    border-radius: 18px;
+  }
+  .meditation-stats strong {
+    font-size: 30px;
+  }
+  .meditation-stats span {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .meditation-history li {
+    grid-template-columns: 1fr auto;
+  }
+  .meditation-history li span:first-child {
+    grid-column: 1 / -1;
+  }
+  .meditation-history li span:last-child {
+    grid-column: 1 / -1;
+  }
+  .statistics-toolbar label {
+    width: 100%;
+  }
 }
 .breathing-guide {
   position: relative;
@@ -1271,14 +2073,15 @@ onBeforeUnmount(() => {
   width: 190px;
   display: grid;
   place-items: center;
-  margin: 1rem auto;
+  margin: 20px auto;
 }
 .breathing-orb {
   position: absolute;
   width: 145px;
   height: 145px;
   border-radius: 50%;
-  background: #e4f1dc;
+  background: var(--accent-soft, #eaf9ef);
+  border: 1px solid #b5edc5;
   transform: scale(var(--breath-scale));
   transition: transform 1.5s ease;
 }
@@ -1286,33 +2089,73 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
+  font-size: 14px;
 }
 .breathing-label span {
-  font-size: 1.7rem;
+  font-size: 28px;
 }
 @media (prefers-reduced-motion: reduce) {
   .breathing-orb {
     transition: none;
     transform: none;
   }
-}
-@media (max-width: 500px) {
-  .card {
-    padding: 0.9rem;
+  .duration-option,
+  .meditation-switch::before,
+  .meditation-switch > span {
+    transition: none;
   }
-  .meditation-stats {
-    gap: 1rem;
+}
+@media (max-width: 760px) {
+  .meditation-page {
+    gap: 20px;
+  }
+  .meditation-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .meditation-setup {
+    gap: 14px;
+  }
+  .meditation-timer {
+    position: static;
+    padding-top: 28px;
+  }
+  .meditation-emblem {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
   }
   .meditation-clock {
-    font-size: 4.5rem;
+    font-size: 64px;
   }
-  .meditation-history li {
-    font-size: 0.85rem;
+}
+@media (max-width: 420px) {
+  .meditation-page h2 {
+    font-size: 18px;
+    margin-bottom: 18px;
   }
-  .meditation-timer .meditation-actions .btn {
-    flex: 1 1 43%;
-    min-height: 44px;
+  .meditation-background h2 {
+    margin-bottom: 0;
+    font-size: 16px;
+  }
+  .sound-row {
+    gap: 10px;
+  }
+  .sound-icon {
+    flex-basis: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+  .sound-label {
+    font-size: 15px;
+  }
+  .duration-option {
+    min-height: 50px;
+    font-size: 15px;
+  }
+  .duration-option span {
+    font-size: 13px;
   }
 }
 </style>

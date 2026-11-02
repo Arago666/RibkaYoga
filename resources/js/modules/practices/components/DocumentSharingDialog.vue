@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, ref, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { UserPlus, MessageSquare, RotateCcw, X } from '@lucide/vue';
@@ -140,10 +141,10 @@ function choose(share: PracticeShare) {
         </div>
         <div class="field">
           <label class="label" for="sharing-permission">Разрешить</label
-          ><select id="sharing-permission" v-model="permission" class="select" :disabled="busy">
+          ><AppSelect id="sharing-permission" v-model="permission" class="select" :disabled="busy">
             <option value="view">Только просмотр</option>
             <option value="comment">Просмотр и комментарии</option>
-          </select>
+          </AppSelect>
         </div>
         <label class="check-label"
           ><input v-model="allowCopy" type="checkbox" :disabled="busy" />Разрешить независимую копию в
@@ -191,34 +192,38 @@ function choose(share: PracticeShare) {
 .sharing-dialog,
 .sharing-form {
   display: grid;
-  gap: 16px;
+  gap: var(--section-gap);
+  min-width: 0;
 }
 .sharing-dialog p {
   margin: 0;
-  line-height: 1.5;
-  font-size: 0.87rem;
+  line-height: 1.6;
+  font-size: 14px;
 }
 .sharing-success {
-  color: #367721;
+  color: var(--accent-dark);
 }
 .sharing-form {
-  border-bottom: 1px solid #e5ebe1;
-  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--section-gap);
 }
 .sharing-form > .btn {
   justify-self: start;
 }
 .sharing-list {
   display: grid;
-  gap: 9px;
+  gap: 12px;
 }
 .sharing-person {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
-  border: 1px solid #e5ebe1;
-  border-radius: 12px;
-  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+  min-width: 0;
 }
 .sharing-person > div {
   flex: 1;
@@ -230,15 +235,29 @@ function choose(share: PracticeShare) {
   overflow-wrap: anywhere;
 }
 .sharing-person strong {
-  font-size: 0.88rem;
+  font-size: 15px;
+  font-weight: 600;
 }
 .sharing-person span {
-  font-size: 0.73rem;
-  color: #6c7965;
-  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 6px;
 }
-.sharing-person .btn {
-  font-size: 0.76rem;
-  padding: 8px;
+.sharing-person .btn,
+.sharing-person .icon-btn {
+  flex: none;
+}
+@media (max-width: 440px) {
+  .sharing-person {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sharing-person > div {
+    flex-basis: 100%;
+  }
+  .sharing-dialog > .btn {
+    white-space: normal;
+  }
 }
 </style>

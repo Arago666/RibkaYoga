@@ -58,11 +58,12 @@ onMounted(async () => {
 <style scoped>
 .insertion-style {
   display: flex;
-  gap: 0.75rem;
+  gap: 16px;
   flex-wrap: wrap;
-  border: 1px solid #dce5d7;
-  border-radius: 0.7rem;
-  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  padding: 20px;
+  background: var(--surface-soft);
 }
 .insertion-style legend {
   font-weight: 600;
@@ -75,15 +76,15 @@ onMounted(async () => {
   flex: 1;
 }
 .insertion-style select {
-  min-height: 44px;
-  border: 1px solid #c5d0c0;
-  border-radius: 0.4rem;
-  padding: 0.4rem;
+  min-height: var(--control-height);
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  padding: 10px 12px;
   background: white;
 }
 .insertion-style p {
   font-size: 0.8rem;
-  color: #61705c;
+  color: var(--muted);
   width: 100%;
 }
 .insertion-style a {

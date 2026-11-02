@@ -252,7 +252,7 @@ onBeforeUnmount(clearReplacement);
 <style scoped>
 .edit-form {
   display: grid;
-  gap: 18px;
+  gap: var(--section-gap);
 }
 .replacement-help {
   font-size: 0.78rem;

@@ -51,16 +51,15 @@ export function scaleElements(elements: DrawingElement[], factor: number, center
   return elements.map((element) => {
     // Bake visible coordinates for paths so even degenerate rotated lines scale exactly.
     const bounds = elementBounds(element);
-    const points =
-      element.kind === 'ellipse'
-        ? [
-            { x: bounds.x, y: bounds.y },
-            { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
-          ]
-        : element.points.map((point) => worldPoint(point, element));
+    const points = ['ellipse', 'image'].includes(element.kind)
+      ? [
+          { x: bounds.x, y: bounds.y },
+          { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
+        ]
+      : element.points.map((point) => worldPoint(point, element));
     return {
       ...element,
-      rotation: element.kind === 'ellipse' ? element.rotation : 0,
+      rotation: ['ellipse', 'image'].includes(element.kind) ? element.rotation : 0,
       points: points.map((point) => ({
         x: center.x + (point.x - center.x) * factor,
         y: center.y + (point.y - center.y) * factor,
@@ -129,7 +128,7 @@ function intersects(a: Point, b: Point, c: Point, d: Point): boolean {
   return ca * da < 0 && ac * bc < 0;
 }
 function outline(element: DrawingElement): Point[] {
-  if (element.kind === 'ellipse') {
+  if (['ellipse', 'image'].includes(element.kind)) {
     const b = elementBounds(element),
       c = boundsCenter(b);
     return Array.from({ length: 33 }, (_, i) =>
@@ -158,6 +157,18 @@ function outline(element: DrawingElement): Point[] {
 }
 export function selectedByPolygon(element: DrawingElement, polygon: Point[]): boolean {
   if (polygon.length < 3) return false;
+  if (element.kind === 'image') {
+    const corners = selectionCorners(element);
+    return (
+      corners.some((point) => inPolygon(point, polygon)) ||
+      polygon.some((point) => inPolygon(point, corners)) ||
+      corners.some((point, i) =>
+        polygon.some((other, j) =>
+          intersects(point, corners[(i + 1) % 4], other, polygon[(j + 1) % polygon.length]),
+        ),
+      )
+    );
+  }
   const shape = selectionBounds([element]),
     px = polygon.map((p) => p.x),
     py = polygon.map((p) => p.y);

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
@@ -85,12 +86,12 @@ async function choose(item: Item) {
     </p>
     <label class="field"
       ><span class="label">Способ вставки</span
-      ><select v-model="placement" class="select">
+      ><AppSelect v-model="placement" class="select">
         <option v-if="!singleRow" value="rows">Добавить строками</option>
         <option v-if="!singleRow" value="blocks">Добавить блоками</option>
         <option value="after" :disabled="!hasCell">Добавить после выбранной ячейки</option>
         <option value="replace" :disabled="!hasCell">Заменить позиции от выбранной ячейки</option>
-      </select></label
+      </AppSelect></label
     >
     <form
       class="fragment-search"
@@ -156,23 +157,49 @@ async function choose(item: Item) {
 <style scoped>
 .fragment-search {
   display: flex;
-  gap: 10px;
-  margin: 16px 0;
+  gap: 12px;
+  margin: var(--section-gap) 0;
   align-items: center;
+}
+.fragment-search .input {
+  flex: 1;
+  min-width: 0;
+}
+.fragment-search > .btn {
+  flex: none;
 }
 .fragment-option {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   text-align: left;
   width: 100%;
-  border: 1px solid #dce6d6;
-  border-radius: 10px;
-  padding: 13px;
-  margin: 7px 0;
-  background: white;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  margin: 12px 0;
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.fragment-option:hover:not(:disabled) {
+  border-color: var(--accent-dark);
+  background: var(--accent-soft);
+}
+.fragment-option strong {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 .fragment-option small {
+  font-size: 13px;
   color: var(--muted);
 }
 </style>

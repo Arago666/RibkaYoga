@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { Upload, CheckCircle2, AlertCircle, X, LoaderCircle, ChevronDown, ChevronUp } from '@lucide/vue';
 import Modal from '@/shared/Modal.vue';
@@ -217,6 +218,9 @@ function close() {
           item.file ||
           item.name.trim() ||
           item.aliases.trim() ||
+          JSON.stringify(item.reference) !== JSON.stringify(emptyReference()) ||
+          JSON.stringify(item.facetAssignments) !== JSON.stringify(emptyAssignments()) ||
+          item.relations.length ||
           item.categoryIds.length ||
           item.collectionIds.length),
     ) &&
@@ -246,12 +250,12 @@ onBeforeUnmount(() => {
     <div v-if="items.length > 1 && categories.length" class="batch-category">
       <label class="label" for="batch-category">Добавить категорию всем незагруженным карточкам</label>
       <div class="batch-category-controls">
-        <select id="batch-category" v-model="commonCategory" class="select" :disabled="busy">
+        <AppSelect id="batch-category" v-model="commonCategory" class="select" :disabled="busy">
           <option value="">Выберите категорию</option>
           <option v-for="category in categories" :key="category.id" :value="category.id">
             {{ category.name }}
           </option>
-        </select>
+        </AppSelect>
         <button
           class="btn btn-secondary"
           type="button"
@@ -404,12 +408,12 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 16px;
+  padding: var(--panel-padding);
   margin: 22px 0 0;
-  border: 2px dashed #cddfc7;
-  border-radius: 14px;
-  background: #f8fbf6;
-  color: #397a28;
+  border: 2px dashed var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface-soft);
+  color: var(--accent-dark);
   cursor: pointer;
   text-align: left;
 }
@@ -422,12 +426,12 @@ onBeforeUnmount(() => {
 }
 .upload-drop small {
   font-size: 0.78rem;
-  color: #687568;
+  color: var(--muted);
   line-height: 1.4;
 }
 .upload-drop.dragging {
-  background: #edf7e8;
-  border-color: #397a28;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .upload-drop:disabled {
   opacity: 0.55;
@@ -447,17 +451,18 @@ onBeforeUnmount(() => {
 }
 .upload-list {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
 }
 .upload-item {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
   min-width: 0;
 }
 .batch-item {
-  padding: 14px;
-  border: 1px solid #e2e8df;
-  border-radius: 14px;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .upload-item-header {
   display: flex;
@@ -469,8 +474,8 @@ onBeforeUnmount(() => {
   width: 54px;
   height: 60px;
   object-fit: contain;
-  border-radius: 10px;
-  background: #f7f9f6;
+  border-radius: var(--field-radius);
+  background: var(--surface-soft);
   padding: 5px;
   flex: none;
 }
@@ -489,7 +494,7 @@ onBeforeUnmount(() => {
   border: 0;
   background: transparent;
   text-align: left;
-  color: #344e2b;
+  color: var(--text);
 }
 .item-toggle > span {
   flex: 1;
@@ -504,7 +509,7 @@ onBeforeUnmount(() => {
   display: block;
   font-size: 0.76rem;
   margin-top: 5px;
-  color: #687568;
+  color: var(--muted);
   overflow-wrap: anywhere;
 }
 .item-toggle > svg {
@@ -517,7 +522,7 @@ onBeforeUnmount(() => {
   font-size: 0.82rem;
 }
 .good {
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .spin {
   animation: rotate 1s linear infinite;

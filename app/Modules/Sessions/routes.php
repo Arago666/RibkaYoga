@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Sessions\MetronomePresetController;
 use App\Modules\Sessions\SessionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -7,6 +8,10 @@ use Inertia\Inertia;
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/practices/{id}/run', fn (string $id) => Inertia::render('sessions/Player', ['documentId' => $id]))->whereUuid('id');
     Route::get('/practice-history', fn () => Inertia::render('sessions/History'));
+    Route::get('/api/metronome-presets', [MetronomePresetController::class, 'index']);
+    Route::post('/api/metronome-presets', [MetronomePresetController::class, 'store'])->middleware('throttle:60,1');
+    Route::put('/api/metronome-presets/{id}', [MetronomePresetController::class, 'update'])->whereUuid('id')->middleware('throttle:60,1');
+    Route::delete('/api/metronome-presets/{id}', [MetronomePresetController::class, 'destroy'])->whereUuid('id')->middleware('throttle:60,1');
     Route::get('/api/executions/plan/{id}', [SessionController::class, 'plan'])->whereUuid('id');
     Route::get('/api/executions', [SessionController::class, 'index']);
     Route::get('/api/executions/export', [SessionController::class, 'export']);

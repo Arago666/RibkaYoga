@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { uid } from '../types';
@@ -174,10 +175,13 @@ onMounted(load);
 <template>
   <Head :title="state ? `${state.document.title} — совместный просмотр` : 'Просмотр практики'" />
   <AppShell section="practices" wide>
-    <header class="shared-header">
-      <Link :href="state?.access.owner ? '/practices' : '/shared-practices'" class="btn btn-ghost"
-        ><ArrowLeft :size="16" />{{ state?.access.owner ? 'Мои практики' : 'Мне дали доступ' }}</Link
-      >
+    <header class="page-header shared-header">
+      <div class="shared-intro">
+        <Link :href="state?.access.owner ? '/practices' : '/shared-practices'" class="btn btn-ghost"
+          ><ArrowLeft :size="16" />{{ state?.access.owner ? 'Мои практики' : 'Мне дали доступ' }}</Link
+        >
+        <h1 class="page-title">{{ state?.document.title || 'Просмотр практики' }}</h1>
+      </div>
       <button class="btn btn-secondary" :disabled="loading || busy" @click="load">
         <RefreshCw :size="16" />Обновить лист
       </button>
@@ -185,7 +189,7 @@ onMounted(load);
     <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
     <p v-if="loading" class="muted" role="status">Открываем практику…</p>
     <div v-else-if="state" class="shared-layout">
-      <section class="shared-sheet">
+      <section class="card shared-sheet">
         <div class="shared-owner">
           {{ state.access.owner_name }} ·
           {{
@@ -230,19 +234,19 @@ onMounted(load);
         <form v-if="state.access.can_comment" class="comment-form" @submit.prevent="save">
           <div v-if="state.access.owner && !editing" class="field">
             <label class="label" for="comment-channel">Для преподавателя</label
-            ><select id="comment-channel" v-model="shareId" class="select" :disabled="busy" required>
+            ><AppSelect id="comment-channel" v-model="shareId" class="select" :disabled="busy" required>
               <option value="" disabled>Выберите преподавателя</option>
               <option v-for="channel in channels" :key="channel.id" :value="channel.id">
                 {{ channel.recipient.name }} · {{ channel.recipient.login }}
               </option>
-            </select>
+            </AppSelect>
           </div>
           <div v-if="!editing" class="field">
             <label class="label" for="comment-cell">Комментарий к</label
-            ><select id="comment-cell" v-model="cellId" class="select" :disabled="busy">
+            ><AppSelect id="comment-cell" v-model="cellId" class="select" :disabled="busy">
               <option value="">Практике в целом</option>
               <option v-for="cell in cells" :key="cell.id" :value="cell.id">{{ cell.name }}</option>
-            </select>
+            </AppSelect>
           </div>
           <div class="field">
             <label class="label" for="comment-body">{{
@@ -323,7 +327,9 @@ onMounted(load);
 <style scoped>
 .shared-renderer {
   overflow: auto;
-  margin-top: 18px;
+  margin-top: var(--section-gap);
+  padding-top: var(--section-gap);
+  border-top: 1px solid var(--line);
 }
 .shared-renderer iframe {
   width: 100%;
@@ -334,53 +340,67 @@ onMounted(load);
 .shared-header {
   display: flex;
   justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 22px;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: var(--section-gap);
+}
+.shared-intro {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.shared-intro .page-title {
+  margin-top: 12px;
 }
 .shared-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
+  gap: var(--section-gap);
   align-items: start;
 }
 .shared-sheet {
   min-width: 0;
-  overflow-x: auto;
+  padding: var(--panel-padding);
 }
 .shared-owner {
   display: flex;
   justify-content: space-between;
-  gap: 15px;
-  font-size: 0.82rem;
-  color: #6b7863;
-  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
 }
 .shared-owner label {
   display: flex;
   gap: 7px;
   align-items: center;
   flex: none;
+  min-height: var(--control-height);
 }
 .shared-comments {
-  padding: 20px !important;
+  padding: var(--panel-padding);
+  min-width: 0;
 }
 .shared-comments h2 {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 1.1rem;
-  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin: 0 0 20px;
 }
 .shared-comments > .muted {
-  font-size: 0.8rem;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.65;
   margin: 0 0 16px;
 }
 .comment-form {
   display: grid;
-  gap: 13px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #e2eadc;
+  gap: 16px;
+  padding-bottom: var(--section-gap);
+  border-bottom: 1px solid var(--line);
 }
 .comment-submit {
   display: flex;
@@ -388,14 +408,14 @@ onMounted(load);
 }
 .comment-list {
   display: grid;
-  gap: 15px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: var(--section-gap);
 }
 .comment {
-  padding: 12px;
-  background: #f7faf4;
-  border: 1px solid #e4ebde;
-  border-radius: 10px;
+  padding: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 18px;
 }
 .comment header {
   display: flex;
@@ -407,8 +427,8 @@ onMounted(load);
 }
 .comment time,
 .comment-context {
-  font-size: 0.68rem;
-  color: #7a8970;
+  font-size: 11px;
+  color: var(--muted);
 }
 .comment-context {
   display: block;
@@ -428,12 +448,12 @@ onMounted(load);
   margin-top: 7px;
 }
 .comment-tools .btn {
-  font-size: 0.72rem;
-  padding: 5px;
+  font-size: 12px;
+  padding: 10px 12px;
 }
 .comment-tools .icon-btn {
-  width: 26px;
-  height: 26px;
+  width: var(--control-height);
+  height: var(--control-height);
 }
 @media (max-width: 1100px) {
   .shared-layout {

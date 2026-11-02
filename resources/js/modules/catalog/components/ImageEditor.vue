@@ -299,19 +299,25 @@ onBeforeUnmount(() => {
         ><input v-model.number="saturation" type="range" min="0" max="200"
       /></label>
       <label class="check-label"><input v-model="grayscale" type="checkbox" />Чёрно-белое</label>
-      <details class="task-export">
-        <summary>Экспорт изображения в JSON</summary>
-        <p class="muted help">
-          JSON включает картинку, настройки и данные карточки. Полученный PNG загрузите в поле «Изображение».
-        </p>
-        <textarea
-          v-model="instructions"
-          class="textarea"
-          rows="2"
-          placeholder="Что нужно исправить или дорисовать"
-        /><button type="button" class="btn btn-secondary" @click="exportTask">
-          <Download :size="16" />Скачать JSON задания
-        </button>
+      <details class="task-export disclosure">
+        <summary>
+          <span class="disclosure-icon"><Download aria-hidden="true" /></span>
+          <span class="disclosure-copy"><strong>Экспорт изображения в JSON</strong></span>
+        </summary>
+        <div class="task-export-body disclosure-body">
+          <p class="muted help">
+            JSON включает картинку, настройки и данные карточки. Полученный PNG загрузите в поле
+            «Изображение».
+          </p>
+          <textarea
+            v-model="instructions"
+            class="textarea"
+            rows="2"
+            placeholder="Что нужно исправить или дорисовать"
+          /><button type="button" class="btn btn-secondary" @click="exportTask">
+            <Download :size="16" />Скачать JSON задания
+          </button>
+        </div>
       </details>
       <button type="button" class="btn btn-primary" @click="apply">
         <Check :size="17" />{{ busy ? 'Обрабатываем…' : 'Использовать изображение' }}
@@ -322,13 +328,14 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .image-editor {
-  border: 1px solid #dce7d7;
+  border: 1px solid var(--line);
   background: #fff;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
   display: grid;
-  gap: 12px;
+  gap: 20px;
   min-width: 0;
+  box-shadow: var(--panel-shadow);
 }
 header,
 header strong,
@@ -342,7 +349,9 @@ header {
   justify-content: space-between;
 }
 header strong {
-  font-size: 0.92rem;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .help {
   font-size: 0.8rem;
@@ -358,7 +367,7 @@ header strong {
   overflow: hidden;
   cursor: crosshair;
   line-height: 0;
-  border: 1px solid #d7e1d1;
+  border: 1px solid var(--line);
   background: #fff;
 }
 canvas {
@@ -370,9 +379,9 @@ canvas {
 }
 .crop-selection {
   position: absolute;
-  border: 2px solid #397a28;
+  border: 2px solid var(--accent);
   pointer-events: none;
-  box-shadow: 0 0 0 900px #20351d40;
+  box-shadow: 0 0 0 900px color-mix(in srgb, var(--text) 25%, transparent);
 }
 .crop-selection span {
   position: absolute;
@@ -434,24 +443,14 @@ canvas {
 .range-label input {
   width: 100%;
   grid-column: 1/-1;
-  accent-color: #397a28;
+  accent-color: var(--accent);
 }
-.task-export {
-  border-top: 1px solid #e3e9df;
-  padding-top: 12px;
-}
-.task-export summary {
-  cursor: pointer;
-  color: #397a28;
-  font-size: 0.82rem;
-}
-.task-export[open] {
+.task-export-body {
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 .task-export .textarea {
   width: 100%;
-  margin: 10px 0;
 }
 @media (max-width: 420px) {
   .crop-numbers {

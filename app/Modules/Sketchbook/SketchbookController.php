@@ -81,7 +81,7 @@ class SketchbookController
                     abort_unless($asset['mime'] === 'image/png' && $asset['width'] === 1024 && $asset['height'] === 1024, 422, 'Нужен PNG 1024 × 1024.');
                     $this->native->remember($asset['id'], $source, true);
                     app(SketchImages::class)->remember($asset['id']);
-                    $values += ['image_asset_id' => $asset['id'], 'drawing_source' => json_encode($source, JSON_THROW_ON_ERROR)];
+                    $values += ['image_asset_id' => $asset['id'], 'drawing_source' => json_encode($source, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)];
                 }
                 $this->owned()->where('id', $id)->update($values);
 

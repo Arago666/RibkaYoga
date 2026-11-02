@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import AppShell from '@/shared/AppShell.vue';
@@ -147,6 +148,7 @@ onMounted(load);
       <div>
         <Link class="btn btn-ghost" :href="`/practices/${documentId}/edit`">К редактированию</Link>
         <h1 class="page-title">Готовый лист</h1>
+        <p v-if="practice" class="page-description">{{ practice.title }}</p>
       </div>
       <div class="output-actions">
         <button class="btn btn-primary" :disabled="!printReady" @click="printSheet">
@@ -164,20 +166,20 @@ onMounted(load);
       {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
     </p>
     <p v-if="loading" class="muted" role="status">Открываем лист…</p>
-    <div v-if="practice" class="output-settings">
+    <div v-if="practice" class="card output-settings">
       <label class="field"
         ><span class="label">Преднастройка</span
-        ><select v-model="preset" class="select" @change="choosePreset">
+        ><AppSelect v-model="preset" class="select" @change="choosePreset">
           <option value="clean">Чистый лист</option>
           <option value="names">С названиями</option>
           <option value="teach">Для проведения</option>
-        </select></label
+        </AppSelect></label
       ><label class="field"
         ><span class="label">Ориентация A4</span
-        ><select v-model="orientation" class="select">
+        ><AppSelect v-model="orientation" class="select">
           <option value="landscape">Альбомная</option>
           <option value="portrait">Книжная</option>
-        </select></label
+        </AppSelect></label
       ><label class="check-label"
         ><input v-model="showNames" type="checkbox" :disabled="preset === 'clean'" />Названия асан</label
       ><button class="btn btn-ghost" @click="savePreferences">Запомнить настройки</button
@@ -220,21 +222,39 @@ onMounted(load);
   gap: 12px;
   flex-wrap: wrap;
 }
+.page-header > div:first-child {
+  flex: 1 1 260px;
+  min-width: 0;
+}
 .output-actions {
   justify-content: flex-end;
 }
 .output-settings {
-  margin: 18px 0;
+  align-items: flex-end;
+  margin: var(--section-gap) 0;
+  padding: var(--panel-padding);
+  gap: 20px;
 }
 .output-settings .field {
-  min-width: 180px;
+  flex: 1 1 180px;
+  max-width: 260px;
+  min-width: 0;
+}
+.output-settings .check-label {
+  min-height: var(--control-height);
+}
+.output-settings > .muted {
+  flex-basis: 100%;
+  font-size: 13px;
 }
 .sheet-region {
   overflow: auto;
-  background: white;
-  border: 1px solid #dce6d6;
-  border-radius: 12px;
-  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  box-shadow: var(--panel-shadow);
+  min-width: 0;
 }
 .sheet-frame {
   display: block;
@@ -249,15 +269,21 @@ onMounted(load);
   min-width: 730px;
 }
 .output-hint {
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: 13px;
+  line-height: 1.65;
 }
 @media (max-width: 700px) {
-  .page-header {
-    align-items: stretch;
-  }
   .output-actions {
     justify-content: flex-start;
+    width: 100%;
+  }
+  .output-actions .btn {
+    flex: 1 1 auto;
+    white-space: normal;
+  }
+  .output-settings .field {
+    max-width: none;
   }
 }
 </style>

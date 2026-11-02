@@ -26,9 +26,9 @@ class StarterLibrary
         if (Asana::where('workspace_id', $workspaceId)->exists()) {
             return;
         }
-        $root = database_path('seeders/snapshot');
-        if (! is_file($root.'/dataset.json.gz')) {
-            return;
+        $root = resource_path('imports/spinal-five-20261102/starter');
+        if (! is_file($root.'/dataset.json.gz') || ! is_readable($root.'/dataset.json.gz')) {
+            throw new \RuntimeException('Новая стартовая библиотека асан не подготовлена. Добавьте набор spinal-five-20261102 перед регистрацией пользователей.');
         }
         $tables = json_decode(gzdecode(file_get_contents($root.'/dataset.json.gz')), true, 512, JSON_THROW_ON_ERROR)['tables'];
         $pending = [];
@@ -57,7 +57,7 @@ class StarterLibrary
                     if ($source['archived_at']) {
                         continue;
                     }
-                    foreach (['drawing_source', 'steps', 'teacher_cues', 'equipment', 'precautions', 'adaptations', 'editorial'] as $field) {
+                    foreach (['drawing_source', 'steps', 'teacher_cues', 'benefits', 'equipment', 'precautions', 'adaptations', 'editorial'] as $field) {
                         if (is_string($source[$field] ?? null)) {
                             $source[$field] = json_decode($source[$field], true, 512, JSON_THROW_ON_ERROR);
                         }
@@ -77,7 +77,7 @@ class StarterLibrary
                     $asset = $this->assets->store(new UploadedFile($path, $image['original_filename'], null, null, true));
                     $pending[] = $asset['id'];
                     $aliases = array_column(array_filter($tables['catalog_asana_aliases'], fn ($a) => $a['asana_id'] === $source['id']), 'name');
-                    $asana = Asana::create(['workspace_id' => $workspaceId, 'name' => $source['name'], 'normalized_name' => Names::normalize($source['name']), 'normalized_search_text' => Names::normalize(implode(' ', [$source['name'], $source['sanskrit_cyrillic'] ?? '', $source['sanskrit_latin'] ?? '', ...$aliases])), 'current_image_asset_id' => $asset['id'], 'created_by' => $this->workspace->userId(), 'updated_by' => $this->workspace->userId(), 'revision' => 1, 'drawing_source' => $drawing, 'sanskrit_cyrillic' => $source['sanskrit_cyrillic'] ?? null, 'sanskrit_latin' => $source['sanskrit_latin'] ?? null, 'steps' => $source['steps'] ?? null, 'teacher_cues' => $source['teacher_cues'] ?? null, 'equipment' => $source['equipment'] ?? null, 'precautions' => $source['precautions'] ?? null, 'adaptations' => $source['adaptations'] ?? null, 'editorial' => $source['editorial'] ?? null, 'has_bind' => $source['has_bind'] ?? null, 'classification_status' => $source['classification_status'] ?? 'unreviewed']);
+                    $asana = Asana::create(['workspace_id' => $workspaceId, 'name' => $source['name'], 'alternate_name' => $source['alternate_name'] ?? null, 'information_description' => $source['information_description'] ?? null, 'benefits' => $source['benefits'] ?? null, 'normalized_name' => Names::normalize($source['name']), 'normalized_search_text' => Names::normalize(implode(' ', [$source['name'], $source['alternate_name'] ?? '', $source['sanskrit_cyrillic'] ?? '', $source['sanskrit_latin'] ?? '', ...$aliases])), 'current_image_asset_id' => $asset['id'], 'created_by' => $this->workspace->userId(), 'updated_by' => $this->workspace->userId(), 'revision' => 1, 'drawing_source' => $drawing, 'sanskrit_cyrillic' => $source['sanskrit_cyrillic'] ?? null, 'sanskrit_latin' => $source['sanskrit_latin'] ?? null, 'steps' => $source['steps'] ?? null, 'teacher_cues' => $source['teacher_cues'] ?? null, 'equipment' => $source['equipment'] ?? null, 'precautions' => $source['precautions'] ?? null, 'adaptations' => $source['adaptations'] ?? null, 'editorial' => $source['editorial'] ?? null, 'has_bind' => $source['has_bind'] ?? null, 'classification_status' => $source['classification_status'] ?? 'unreviewed']);
                     $mapping[$source['id']] = $asana->id;
                     if ($asana->drawing_source !== null) {
                         app(NativeImages::class)->remember($asset['id'], $asana->drawing_source);

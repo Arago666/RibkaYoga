@@ -164,7 +164,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   width: 100%;
   min-width: 0;
   padding: 40px 36px;
-  color: #253127;
+  color: var(--text);
   background: #fff;
   font-size: 13px;
 }
@@ -189,7 +189,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   font-size: 15px;
   margin-top: 8px;
   line-height: 1.5;
-  color: #52624e;
+  color: var(--muted);
   overflow-wrap: anywhere;
 }
 .sequence-block + .sequence-block {
@@ -209,14 +209,14 @@ function underlined(note: string | null | undefined, position: number, cellCount
 }
 .block-index {
   flex-shrink: 0;
-  color: #81947a;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 500;
 }
 .block-heading p {
   margin-top: 3px;
   font-size: 12px;
-  color: #697568;
+  color: var(--muted);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -229,7 +229,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   gap: 6px;
 }
 .row-number {
-  color: #687568;
+  color: var(--muted);
   font-size: 11px;
   line-height: 1.3;
   padding-top: 24px;
@@ -250,7 +250,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   top: calc(var(--pose-height) / 2);
   left: calc(100% + var(--sequence-gap) / 2);
   transform: translate(-50%, -50%);
-  color: #151915;
+  color: var(--text);
   font-size: 15px;
   line-height: 1;
   white-space: nowrap;
@@ -259,7 +259,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   position: absolute;
   top: 0;
   left: 5px;
-  color: #151915;
+  color: var(--text);
   font-size: 13px;
   line-height: 1;
 }
@@ -273,7 +273,7 @@ function underlined(note: string | null | undefined, position: number, cellCount
   top: calc(var(--pose-height) + 2px);
   right: 0;
   left: 0;
-  border-top: 1px solid #151915;
+  border-top: 1px solid var(--text);
 }
 .underline-continues::after {
   right: calc(-1 * var(--sequence-gap));
@@ -292,17 +292,17 @@ function underlined(note: string | null | undefined, position: number, cellCount
   top: 3px;
   bottom: 3px;
   width: 5px;
-  border-top: 1.5px solid #253127;
-  border-bottom: 1.5px solid #253127;
+  border-top: 1.5px solid var(--text);
+  border-bottom: 1.5px solid var(--text);
   pointer-events: none;
 }
 .group-bracket-start {
   left: -1px;
-  border-left: 1.5px solid #253127;
+  border-left: 1.5px solid var(--text);
 }
 .group-bracket-end {
   right: -1px;
-  border-right: 1.5px solid #253127;
+  border-right: 1.5px solid var(--text);
 }
 .card-image-box,
 .empty-space {
@@ -343,13 +343,13 @@ function underlined(note: string | null | undefined, position: number, cellCount
 }
 .cell-note {
   white-space: pre-wrap;
-  color: #657160;
+  color: var(--muted);
 }
 .row-note {
   margin: 6px 0 0 32px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: #697568;
+  color: var(--muted);
   font-size: 11px;
   line-height: 1.5;
 }

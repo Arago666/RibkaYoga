@@ -2,8 +2,13 @@
 import { computed, ref, watch } from 'vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
-import { clone, executionParameters, uid, type Row } from '../types';
-const props = defineProps<{ open: boolean; row: Row | null; theme?: string | null }>();
+import { clone, resolvedExecutionParameters, uid, type Practice, type Row } from '../types';
+const props = defineProps<{
+  open: boolean;
+  row: Row | null;
+  theme?: string | null;
+  defaults?: Pick<Practice, 'default_duration_seconds' | 'default_rest_seconds'> | null;
+}>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const first = ref(1),
   last = ref(1),
@@ -40,7 +45,7 @@ async function save() {
       if (group && !groups.has(group)) groups.set(group, uid());
       return {
         ...clone(cell),
-        ...executionParameters(cell),
+        ...resolvedExecutionParameters(cell, props.defaults),
         id: uid(),
         group_key: group ? groups.get(group) : null,
       };
@@ -106,6 +111,7 @@ async function save() {
 <style scoped>
 .range-fields {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
+  min-width: 0;
 }
 </style>

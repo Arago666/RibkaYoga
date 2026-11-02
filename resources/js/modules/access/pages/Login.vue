@@ -15,8 +15,8 @@ function submit() {
     <div class="login-brand brand">
       <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
     </div>
-    <section class="login-card">
-      <h1>Добро пожаловать</h1>
+    <section class="login-card card">
+      <h1 class="page-title">Добро пожаловать</h1>
       <p v-if="status" class="success-banner" role="status">{{ status }}</p>
       <form @submit.prevent="submit" class="login-form">
         <label class="field"
@@ -63,6 +63,9 @@ function submit() {
   </main>
 </template>
 <style scoped>
+.login-card.card {
+  padding: var(--panel-padding);
+}
 .auth-links {
   display: flex;
   justify-content: space-between;
@@ -72,6 +75,12 @@ function submit() {
   flex-wrap: wrap;
 }
 .auth-links a {
-  color: #397a28;
+  color: var(--accent-dark);
+}
+.login-card .page-title {
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
 }
 </style>

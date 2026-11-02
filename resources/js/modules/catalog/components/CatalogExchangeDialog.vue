@@ -102,9 +102,9 @@ p {
 code {
   display: block;
   overflow-wrap: anywhere;
-  background: #f5f8f3;
+  background: var(--surface-soft);
   padding: 13px;
-  border-radius: 10px;
+  border-radius: var(--field-radius);
   font-size: 12px;
 }
 </style>

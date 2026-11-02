@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
 import { DialogRoot, DialogOverlay, DialogContent, DialogTitle } from 'reka-ui';
 import {
@@ -21,6 +22,8 @@ import {
   RotateCw,
   Maximize2,
   FlipHorizontal2,
+  ImagePlus,
+  Layers,
 } from '@lucide/vue';
 import {
   selectionBounds,
@@ -51,6 +54,7 @@ import {
   confineElement,
   drawingHeadCenter,
   drawElement,
+  prepareDrawingImages,
   editPoints,
   elementBounds,
   hitElement,
@@ -74,8 +78,9 @@ const props = withDefaults(
     initialDrawing?: DrawingDocument | null;
     draftKey?: string;
     active?: boolean;
+    sketchbook?: boolean;
   }>(),
-  { disabled: false, initialDrawing: null, draftKey: '', active: true },
+  { disabled: false, initialDrawing: null, draftKey: '', active: true, sketchbook: false },
 );
 const emit = defineEmits<{
   image: [file: File, drawing: DrawingDocument];
@@ -84,11 +89,12 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-type Tool = DrawingKind | 'asana' | 'select' | 'lasso' | 'rotate' | 'pan';
+type Tool = Exclude<DrawingKind, 'image'> | 'asana' | 'select' | 'lasso' | 'rotate' | 'pan';
 interface Snapshot {
   drawing: DrawingDocument;
   brushWidth: number;
   brushColor?: string;
+  brushOpacity?: number;
 }
 interface Interaction {
   mode:
@@ -125,6 +131,8 @@ const viewport = ref<HTMLDivElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const canvasWidth = ref(1024);
 const importInput = ref<HTMLInputElement | null>(null);
+const photoInput = ref<HTMLInputElement | null>(null);
+const fixedSheet = ref(props.sketchbook);
 const drawing = ref<DrawingDocument>(emptyDrawing());
 const tool = ref<Tool>('asana');
 const symmetry = ref(false),
@@ -135,7 +143,8 @@ const guides = ref<DrawingGuide[]>([]),
 const branch = ref<{ start: Point; segment?: [Point, Point] } | null>(null);
 const showSelection = computed(() => ['asana', 'select', 'lasso', 'rotate'].includes(tool.value));
 const brushWidth = ref(5),
-  brushColor = ref('#111111');
+  brushColor = ref('#111111'),
+  brushOpacity = ref(1);
 const selectedIds = ref<string[]>([]),
   selectionPath = ref<Point[]>([]),
   additiveSelection = ref(false);
@@ -208,6 +217,7 @@ const kindNames: Record<DrawingKind, string> = {
   curve: 'Кривая',
   ellipse: 'Круг / эллипс',
   figure: 'Человечек',
+  image: 'Фото',
 };
 const editablePoints = computed(() =>
   selected.value && ['line', 'curve', 'figure'].includes(selected.value.kind)
@@ -231,6 +241,12 @@ const rotateHandle = computed(() =>
 );
 const selectedBounds = computed(() => (selected.value ? elementBounds(selected.value) : null));
 const polygon = computed(() => corners.value.map((point) => `${point.x},${point.y}`).join(' '));
+const paper = computed(() => drawing.value.paper ?? { style: 'blank' as const, opacity: 0.3, print: false });
+const opacityValue = computed(() =>
+  Math.round(
+    (selectedElements.value.length ? (selectedElements.value[0].opacity ?? 1) : brushOpacity.value) * 100,
+  ),
+);
 const surfaceStyle = computed(() => ({
   transform: `translate(${pan.value.x}px, ${pan.value.y}px) scale(${zoom.value})`,
 }));
@@ -261,6 +277,7 @@ function snapshot(): string {
     drawing: drawing.value,
     brushWidth: brushWidth.value,
     brushColor: brushColor.value,
+    brushOpacity: brushOpacity.value,
   } satisfies Snapshot);
 }
 function fingerprint(): string {
@@ -298,6 +315,7 @@ function restoreSnapshot(value: string) {
   drawing.value = parseDrawing(state.drawing);
   brushWidth.value = state.brushWidth;
   brushColor.value = state.brushColor ?? '#111111';
+  brushOpacity.value = state.brushOpacity ?? 1;
   if (!selected.value) selectedId.value = null;
   pointIndex.value = 0;
   branch.value = null;
@@ -485,22 +503,132 @@ watch(
   { flush: 'post' },
 );
 
-function renderTo(target: HTMLCanvasElement) {
+function paintDocument(target: HTMLCanvasElement, source: DrawingDocument, showPaper = false) {
   const ctx = target.getContext('2d');
   if (!ctx) throw new Error('Браузер не поддерживает рисование.');
   ctx.clearRect(0, 0, 1024, 1024);
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, 1024, 1024);
-  // Rendering reads the current geometry without tracking every coordinate through Vue proxies.
-  // Gestures and history already request their own paint; exported coordinates are unchanged.
-  const source = toRaw(drawing.value);
+  if (source.paper && source.paper.style !== 'blank' && (showPaper || source.paper.print)) {
+    ctx.save();
+    ctx.globalAlpha = source.paper.opacity;
+    ctx.strokeStyle = '#789483';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let position = 32; position < 1024; position += 32) {
+      ctx.moveTo(0, position);
+      ctx.lineTo(1024, position);
+      if (source.paper.style === 'grid') {
+        ctx.moveTo(position, 0);
+        ctx.lineTo(position, 1024);
+      }
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
   for (const element of source.elements) drawElement(ctx, element, source.smoothing);
-  if (current.value) drawElement(ctx, toRaw(current.value), source.smoothing);
+}
+function renderTo(target: HTMLCanvasElement) {
+  paintDocument(target, toRaw(drawing.value), target === canvas.value);
+  const ctx = target.getContext('2d')!;
+  if (current.value) drawElement(ctx, toRaw(current.value), drawing.value.smoothing);
   const mirrored = mirroredCurrent();
   if (mirrored) drawElement(ctx, mirrored, drawing.value.smoothing);
 }
 function render() {
   if (canvas.value) renderTo(canvas.value);
+  if (drawing.value.elements.some((element) => element.kind === 'image')) {
+    void prepareDrawingImages(drawing.value.elements)
+      .then(() => {
+        if (canvas.value) renderTo(canvas.value);
+      })
+      .catch(() => {
+        error.value = 'Не удалось прочитать фотографию в рисунке.';
+      });
+  }
+}
+function setOpacity(value: number) {
+  brushOpacity.value = value / 100;
+  if (selectedElements.value.length) {
+    drawing.value.version = 2;
+    replaceMany(selectedElements.value.map((element) => ({ ...element, opacity: brushOpacity.value })));
+  }
+}
+function updatePaper(values: Partial<NonNullable<DrawingDocument['paper']>>) {
+  if (locked.value || interacting.value) return;
+  drawing.value.version = 2;
+  drawing.value.paper = { ...paper.value, ...values };
+  commit();
+}
+function orderSelection(front: boolean) {
+  if (locked.value || interacting.value || !selectedElements.value.length) return;
+  const chosen = new Set(selectedIds.value);
+  const picked = drawing.value.elements.filter((element) => chosen.has(element.id));
+  const others = drawing.value.elements.filter((element) => !chosen.has(element.id));
+  drawing.value.elements = front ? [...others, ...picked] : [...picked, ...others];
+  commit();
+}
+async function addPhoto(event: Event) {
+  const input = event.target as HTMLInputElement,
+    file = input.files?.[0];
+  input.value = '';
+  if (!file || locked.value || interacting.value) return;
+  error.value = '';
+  busy.value = true;
+  const version = initialVersion;
+  const url = URL.createObjectURL(file);
+  try {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024)
+      throw new Error('Выберите PNG, JPEG или WebP до 10 МБ.');
+    const photo = new Image();
+    photo.src = url;
+    await photo.decode();
+    if (photo.naturalWidth * photo.naturalHeight > 40_000_000)
+      throw new Error('Фотография слишком большая. Выберите изображение до 40 мегапикселей.');
+    const ratio = Math.min(1, 1024 / Math.max(photo.naturalWidth, photo.naturalHeight));
+    const buffer = document.createElement('canvas');
+    buffer.width = Math.max(1, Math.round(photo.naturalWidth * ratio));
+    buffer.height = Math.max(1, Math.round(photo.naturalHeight * ratio));
+    const ctx = buffer.getContext('2d');
+    if (!ctx) throw new Error('Браузер не поддерживает изображения.');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, buffer.width, buffer.height);
+    ctx.drawImage(photo, 0, 0, buffer.width, buffer.height);
+    const image_data = buffer.toDataURL('image/jpeg', 0.86);
+    const scale = 768 / Math.max(buffer.width, buffer.height);
+    const width = buffer.width * scale,
+      height = buffer.height * scale;
+    const element: DrawingElement = {
+      id: uid(),
+      kind: 'image',
+      width: 1,
+      rotation: 0,
+      opacity: brushOpacity.value,
+      image_data,
+      points: [
+        { x: (1024 - width) / 2, y: (1024 - height) / 2 },
+        { x: (1024 + width) / 2, y: (1024 + height) / 2 },
+      ],
+    };
+    const next = parseDrawing({
+      ...cloneDrawing(drawing.value),
+      version: 2,
+      elements: [...drawing.value.elements, element],
+    });
+    await prepareDrawingImages(next.elements);
+    if (version !== initialVersion) return;
+    const before = snapshot();
+    drawing.value = next;
+    setSelection([element.id]);
+    tool.value = 'select';
+    branch.value = null;
+    commit(before);
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : 'Не удалось добавить фото.';
+  } finally {
+    URL.revokeObjectURL(url);
+    busy.value = false;
+  }
 }
 function scheduleRender() {
   if (frame) return;
@@ -527,7 +655,7 @@ function near(a: Point, b: Point, radius = hitRadius()): boolean {
   return Math.hypot(a.x - b.x, a.y - b.y) <= radius;
 }
 function setTool(value: Tool) {
-  if (locked.value || interacting.value) return;
+  if (locked.value || interacting.value || (fixedSheet.value && value === 'pan')) return;
   tool.value = value;
   branch.value = null;
   guides.value = [];
@@ -638,6 +766,7 @@ function beginDrawing(
     width: kind === 'eraser' ? Math.min(100, brushWidth.value * 4) : brushWidth.value,
     rotation: 0,
     ...(brushColor.value !== '#111111' ? { color: brushColor.value } : {}),
+    ...(brushOpacity.value !== 1 ? { opacity: brushOpacity.value } : {}),
     points: Array.from({ length: requiredPoints }, () => ({ ...start })),
   };
   const state: Interaction = {
@@ -681,6 +810,7 @@ function begin(event: PointerEvent) {
   const point = pointFromEvent(event);
   const base: Interaction = { mode: 'pan', pointer: event.pointerId, start: point, before: snapshot() };
   if (tool.value === 'pan' || spacePan.value || event.button === 1) {
+    if (fixedSheet.value) return;
     capture(event, { ...base, start: { x: event.clientX, y: event.clientY }, pan: { ...pan.value } });
     return;
   }
@@ -807,6 +937,26 @@ function begin(event: PointerEvent) {
     }
     const found = elementAt(point);
     pointIndex.value = 0;
+    const frame = selectionBounds(selectedElements.value);
+    if (
+      !found &&
+      selectedElements.value.length &&
+      !event.shiftKey &&
+      !additiveSelection.value &&
+      point.x >= frame.x &&
+      point.x <= frame.x + frame.width &&
+      point.y >= frame.y &&
+      point.y <= frame.y + frame.height
+    ) {
+      if (multiple.value)
+        capture(event, {
+          ...base,
+          mode: 'group-move',
+          originals: JSON.parse(JSON.stringify(selectedElements.value)),
+        });
+      else capture(event, { ...base, mode: 'move', original: JSON.parse(JSON.stringify(selected.value)) });
+      return;
+    }
     if (found) {
       const additive = event.shiftKey || additiveSelection.value;
       if (additive || !selectedIds.value.includes(found.id)) toggleSelection(found, additive);
@@ -1048,6 +1198,7 @@ function finish(event?: PointerEvent) {
       .filter((e) => selectedByPolygon(e, selectionPath.value))
       .map((e) => e.id);
     setSelection(state.additive ? [...(state.selectionBefore ?? []), ...ids] : ids);
+    if (selectedIds.value.length && state.mode === 'lasso') tool.value = 'select';
     selectionPath.value = [];
   }
   if (state.mode === 'draw' && current.value) {
@@ -1069,7 +1220,11 @@ function finish(event?: PointerEvent) {
         error.value =
           'Для зеркальной пары не хватает места в исходнике. Удалите лишние элементы или отключите симметрию.';
       } else {
-        if (element.color) drawing.value.version = 2;
+        if (brushOpacity.value !== 1) {
+          element.opacity = brushOpacity.value;
+          if (mirrored) mirrored.opacity = brushOpacity.value;
+        }
+        if (element.color || element.opacity !== undefined) drawing.value.version = 2;
         drawing.value.elements.push(state.mirrorAxis === undefined ? confineElement(element) : element);
         if (mirrored) drawing.value.elements.push(mirrored);
         selectedId.value = element.id;
@@ -1203,6 +1358,14 @@ function removeSelected() {
 function duplicateSelected() {
   if (locked.value || interacting.value || !selectedElements.value.length) return;
   if (
+    drawing.value.elements.filter((element) => element.kind === 'image').length +
+      selectedElements.value.filter((element) => element.kind === 'image').length >
+    drawingLimits.photos
+  ) {
+    error.value = 'На одном листе можно разместить до 12 фотографий.';
+    return;
+  }
+  if (
     drawing.value.elements.length + selectedElements.value.length > drawingLimits.elements ||
     drawingPointCount(drawing.value) + selectedElements.value.reduce((n, e) => n + e.points.length, 0) >
       drawingLimits.points
@@ -1271,6 +1434,7 @@ function addFigure() {
     width: brushWidth.value,
     rotation: 0,
     ...(brushColor.value !== '#111111' ? { color: brushColor.value } : {}),
+    ...(brushOpacity.value !== 1 ? { opacity: brushOpacity.value } : {}),
     points: [
       [512, 230],
       [512, 305],
@@ -1289,7 +1453,7 @@ function addFigure() {
       [589, 790],
     ].map(([x, y]) => ({ x, y })),
   };
-  if (element.color) drawing.value.version = 2;
+  if (element.color || element.opacity !== undefined) drawing.value.version = 2;
   drawing.value.elements.push(element);
   selectedId.value = element.id;
   pointIndex.value = 0;
@@ -1387,6 +1551,14 @@ function nudge(dx: number, dy: number, node = false) {
 function setZoom(next: number, anchor?: Point) {
   if (interacting.value || !viewport.value) return;
   const limited = Math.max(0.5, Math.min(4, next));
+  if (fixedSheet.value) {
+    zoom.value = limited;
+    pan.value = {
+      x: (viewport.value.clientWidth * (1 - limited)) / 2,
+      y: (viewport.value.clientWidth * (1 - limited)) / 2,
+    };
+    return;
+  }
   const focus = anchor ?? { x: viewport.value.clientWidth / 2, y: viewport.value.clientHeight / 2 };
   const ratio = limited / zoom.value;
   pan.value = { x: focus.x - (focus.x - pan.value.x) * ratio, y: focus.y - (focus.y - pan.value.y) * ratio };
@@ -1397,7 +1569,7 @@ function resetView() {
   pan.value = { x: 0, y: 0 };
 }
 function wheel(event: WheelEvent) {
-  if (locked.value || interacting.value || !viewport.value) return;
+  if (fixedSheet.value || locked.value || interacting.value || !viewport.value) return;
   if (event.ctrlKey || event.metaKey) {
     event.preventDefault();
     const rect = viewport.value.getBoundingClientRect();
@@ -1495,7 +1667,7 @@ function keydown(event: KeyboardEvent) {
   }
 }
 function keyup(event: KeyboardEvent) {
-  if (event.code === 'Space') spacePan.value = false;
+  if (!fixedSheet.value && event.code === 'Space') spacePan.value = false;
 }
 function blur() {
   spacePan.value = false;
@@ -1516,7 +1688,8 @@ async function exportDrawing(): Promise<{ file: File; drawing: DrawingDocument }
   if (!ctx) throw new Error('Браузер не поддерживает рисование.');
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, 1024, 1024);
-  for (const element of source.elements) drawElement(ctx, element, source.smoothing);
+  await prepareDrawingImages(source.elements);
+  paintDocument(output, source);
   return { file: await canvasFile(output, props.context.name), drawing: source };
 }
 async function exportSelection(): Promise<{ file: File; drawing: DrawingDocument }> {
@@ -1529,13 +1702,15 @@ async function exportSelection(): Promise<{ file: File; drawing: DrawingDocument
     })),
   );
   const source = parseDrawing({ ...cloneDrawing(drawing.value), elements });
+  delete source.paper;
   const output = document.createElement('canvas');
   output.width = output.height = 1024;
   const ctx = output.getContext('2d');
   if (!ctx) throw new Error('Браузер не поддерживает рисование.');
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, 1024, 1024);
-  for (const element of source.elements) drawElement(ctx, element, source.smoothing);
+  await prepareDrawingImages(source.elements);
+  paintDocument(output, source);
   return { file: await canvasFile(output, props.context.name), drawing: source };
 }
 async function apply(): Promise<boolean> {
@@ -1551,7 +1726,8 @@ async function apply(): Promise<boolean> {
     const source = parseDrawing(drawing.value);
     const output = document.createElement('canvas');
     output.width = output.height = 1024;
-    renderTo(output);
+    await prepareDrawingImages(source.elements);
+    paintDocument(output, source);
     const file = await canvasFile(output, props.context.name);
     appliedFingerprint = JSON.stringify(source);
     pendingCardSave = true;
@@ -1576,7 +1752,9 @@ async function exportPng() {
   try {
     const output = document.createElement('canvas');
     output.width = output.height = 1024;
-    renderTo(output);
+    const source = parseDrawing(drawing.value);
+    await prepareDrawingImages(source.elements);
+    paintDocument(output, source);
     const file = await canvasFile(output, props.context.name),
       url = URL.createObjectURL(file);
     const anchor = document.createElement('a');
@@ -1619,6 +1797,13 @@ function close() {
   fullscreen.value = false;
   emit('close');
 }
+watch(fixedSheet, (fixed) => {
+  if (fixed) {
+    if (tool.value === 'pan') tool.value = 'select';
+    spacePan.value = false;
+    resetView();
+  }
+});
 defineExpose({ hasUnappliedChanges, discardDraft, apply, exportDrawing, exportSelection });
 onMounted(() => {
   render();
@@ -1663,7 +1848,7 @@ onBeforeUnmount(() => {
           >
             <header class="drawing-header">
               <component :is="fullscreen ? DialogTitle : 'strong'" class="drawing-title"
-                ><Pencil :size="17" /> Нарисовать асану</component
+                ><Pencil :size="17" /> {{ sketchbook ? 'Редактор листа' : 'Нарисовать асану' }}</component
               >
               <div class="toolbar">
                 <button
@@ -1679,7 +1864,13 @@ onBeforeUnmount(() => {
                 >
                   <Maximize2 :size="18" />
                 </button>
-                <button type="button" class="btn btn-ghost" :disabled="locked || interacting" @click="close">
+                <button
+                  v-if="!sketchbook"
+                  type="button"
+                  class="btn btn-ghost"
+                  :disabled="locked || interacting"
+                  @click="close"
+                >
                   Закрыть
                 </button>
               </div>
@@ -1699,7 +1890,7 @@ onBeforeUnmount(() => {
             <fieldset class="drawing-controls" :disabled="locked || interacting">
               <div class="toolbar tools" aria-label="Инструменты рисунка">
                 <button
-                  v-for="item in tools"
+                  v-for="item in tools.filter((item) => !fixedSheet || item.id !== 'pan')"
                   :key="item.id"
                   type="button"
                   class="tool-button"
@@ -1729,6 +1920,17 @@ onBeforeUnmount(() => {
                 >
                   <PersonStanding :size="18" /><span>Человечек</span>
                 </button>
+                <button type="button" class="tool-button" @click="photoInput?.click()">
+                  <ImagePlus :size="18" /><span>Добавить фото</span>
+                </button>
+                <input
+                  ref="photoInput"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  class="sr-only"
+                  aria-label="Фотография для листа"
+                  @change="addPhoto"
+                />
               </div>
               <div class="settings-row">
                 <label
@@ -1752,26 +1954,37 @@ onBeforeUnmount(() => {
                     @input="scheduleRender"
                     @change="commit()"
                 /></label>
+                <label
+                  >Прозрачность <output>{{ 100 - opacityValue }}%</output
+                  ><input
+                    type="range"
+                    min="0"
+                    max="100"
+                    :value="100 - opacityValue"
+                    aria-label="Прозрачность выделенных элементов и новых штрихов"
+                    @input="setOpacity(100 - Number(($event.target as HTMLInputElement).value))"
+                    @change="commit()"
+                /></label>
                 <div class="toolbar history-tools">
                   <button
                     type="button"
-                    class="icon-btn"
+                    class="btn btn-secondary"
                     title="Отменить (Ctrl / ⌘ Z)"
                     aria-label="Отменить изменение"
                     :disabled="!undoStack.length"
                     @click="undo"
                   >
-                    <Undo2 :size="19" />
+                    <Undo2 :size="19" /><span>Отменить</span>
                   </button>
                   <button
                     type="button"
-                    class="icon-btn"
+                    class="btn btn-secondary"
                     title="Повторить (Ctrl / ⌘ Shift Z)"
                     aria-label="Повторить изменение"
                     :disabled="!redoStack.length"
                     @click="redo"
                   >
-                    <Redo2 :size="19" />
+                    <Redo2 :size="19" /><span>Повторить</span>
                   </button>
                   <button
                     type="button"
@@ -1789,6 +2002,58 @@ onBeforeUnmount(() => {
                 ><input v-model="snapping" type="checkbox" /> Привязка к осям и углам 90°
                 <span class="muted">Alt — временно отключить</span>
               </label>
+            </fieldset>
+            <fieldset class="paper-tools" :disabled="locked || interacting">
+              <legend><Layers :size="17" /> Слои</legend>
+              <label
+                >Подложка листа<AppSelect
+                  class="select"
+                  :value="paper.style"
+                  @change="
+                    updatePaper({
+                      style: ($event.target as HTMLSelectElement).value as 'blank' | 'ruled' | 'grid',
+                    })
+                  "
+                >
+                  <option value="blank">Без линий</option>
+                  <option value="ruled">Линейка</option>
+                  <option value="grid">Клетка</option>
+                </AppSelect></label
+              >
+              <label v-if="paper.style !== 'blank'"
+                >Яркость линий<input
+                  type="range"
+                  min="5"
+                  max="70"
+                  :value="paper.opacity * 100"
+                  @change="updatePaper({ opacity: Number(($event.target as HTMLInputElement).value) / 100 })"
+              /></label>
+              <label v-if="paper.style !== 'blank'" class="check-label"
+                ><input
+                  type="checkbox"
+                  :checked="paper.print"
+                  @change="updatePaper({ print: ($event.target as HTMLInputElement).checked })"
+                />Подложка в PNG и печати</label
+              >
+              <label class="check-label"
+                ><input v-model="fixedSheet" type="checkbox" @change="resetView" />Закрепить лист</label
+              >
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="!selectedElements.length"
+                @click="orderSelection(false)"
+              >
+                На задний план
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                :disabled="!selectedElements.length"
+                @click="orderSelection(true)"
+              >
+                На передний план
+              </button>
             </fieldset>
             <div class="view-tools toolbar">
               <button
@@ -1830,7 +2095,7 @@ onBeforeUnmount(() => {
             </div>
             <label v-if="drawing.elements.length && showSelection" class="element-choice">
               Выбрать элемент
-              <select
+              <AppSelect
                 class="select"
                 :value="additiveSelection ? '' : selectedId || ''"
                 :disabled="locked || interacting"
@@ -1840,7 +2105,7 @@ onBeforeUnmount(() => {
                 <option v-for="(element, index) in drawing.elements" :key="element.id" :value="element.id">
                   {{ index + 1 }}. {{ kindNames[element.kind] }}
                 </option>
-              </select>
+              </AppSelect>
             </label>
             <div v-if="showSelection" class="toolbar selection-actions">
               <button
@@ -1949,7 +2214,7 @@ onBeforeUnmount(() => {
               ref="viewport"
               class="drawing-viewport"
               :class="{
-                panning: tool === 'pan' || spacePan,
+                panning: !fixedSheet && (tool === 'pan' || spacePan),
                 selecting: tool === 'select' || tool === 'lasso',
                 rotating: tool === 'rotate',
                 drawing: !['select', 'lasso', 'rotate', 'pan'].includes(tool),
@@ -2074,9 +2339,9 @@ onBeforeUnmount(() => {
               размер.
             </p>
             <p class="muted help" v-else-if="tool === 'select' || tool === 'lasso'">
-              Потяните по пустому месту для рамки или обведите лассо. Shift или «Добавлять к выбору» расширяет
-              выделение. Поворот и размер работают со всем выбранным; один жест можно отменить одним
-              действием.
+              Обведите лассо, затем потяните выбранное внутри рамки. По пустому месту можно начать новое
+              выделение. Shift или «Добавлять к выбору» расширяет выделение. Поворот и размер работают со всем
+              выбранным; один жест можно отменить одним действием.
             </p>
             <p class="muted help" v-else-if="tool === 'rotate'">
               Выделите элемент и потяните вокруг него для поворота. Угол также можно задать в поле «Поворот».
@@ -2229,11 +2494,11 @@ onBeforeUnmount(() => {
               </div>
               <div v-if="editablePoints.length" class="joint-controls">
                 <label
-                  >Точка<select v-model.number="pointIndex" class="select">
+                  >Точка<AppSelect v-model.number="pointIndex" class="select">
                     <option v-for="(name, index) in pointNames" :key="index" :value="index">
                       {{ name }}
                     </option>
-                  </select></label
+                  </AppSelect></label
                 >
                 <div class="toolbar">
                   <button
@@ -2312,10 +2577,16 @@ onBeforeUnmount(() => {
                 :disabled="locked || interacting || !drawing.elements.length"
                 @click="apply"
               >
-                <Check :size="17" />{{ busy ? 'Сохраняем…' : 'Использовать рисунок' }}
+                <Check :size="17" />{{
+                  busy ? 'Сохраняем…' : sketchbook ? 'Сохранить рисунок' : 'Использовать рисунок'
+                }}
               </button>
             </footer>
-            <p class="muted help">
+            <p v-if="sketchbook" class="muted help">
+              Изменения листа сохраняются автоматически. Кнопка «Сохранить» применяет их сразу; исходник
+              позволяет продолжить редактирование.
+            </p>
+            <p v-else class="muted help">
               Кнопка «Использовать рисунок» обновит изображение карточки. Для сохранения на сайте нажмите
               «Сохранить» или «Создать карточку» в форме. Исходник позволяет продолжить редактирование.
             </p>
@@ -2327,9 +2598,35 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.paper-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+.paper-tools legend {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.paper-tools > label:not(.check-label) {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.paper-tools .check-label {
+  min-height: 44px;
+}
+
 .lasso-outline {
-  fill: #397a2818;
-  stroke: #397a28;
+  fill: color-mix(in srgb, var(--accent) 9%, transparent);
+  stroke: var(--accent-dark);
   stroke-width: 2;
   stroke-dasharray: 8 5;
   vector-effect: non-scaling-stroke;
@@ -2351,14 +2648,15 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 .asana-drawing {
-  border: 1px solid #dce7d7;
-  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
   background: #fff;
-  padding: 14px;
+  padding: var(--panel-padding);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
   min-width: 0;
+  box-shadow: var(--panel-shadow);
 }
 .drawing-header,
 .drawing-title,
@@ -2372,8 +2670,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
 }
 .drawing-title {
-  font-size: 0.92rem;
+  font-size: 19px;
   margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .drawing-controls {
   border: 0;
@@ -2388,24 +2688,26 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 54px;
-  min-height: 50px;
-  border: 1px solid #dce5d7;
-  border-radius: 9px;
-  background: #fff;
-  padding: 7px 9px;
-  color: #43583b;
-  font-size: 0.7rem;
+  min-width: 64px;
+  min-height: var(--control-height);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--glass);
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 12px;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 #fff;
+  font-weight: 550;
 }
 .tool-button.selected {
-  border-color: #397a28;
-  color: #397a28;
-  background: #eef6e9;
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--accent-soft);
 }
 .tool-button:focus-visible,
 .nudge-button:focus-visible {
-  outline: 3px solid #397a2870;
+  outline: 3px solid color-mix(in srgb, var(--accent) 44%, transparent);
   outline-offset: 2px;
 }
 .tool-button:disabled {
@@ -2414,8 +2716,8 @@ onBeforeUnmount(() => {
 }
 .settings-row {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 12px;
+  grid-template-columns: 90px repeat(3, minmax(0, 1fr));
+  gap: 16px;
   align-items: center;
 }
 .settings-row label {
@@ -2427,7 +2729,18 @@ onBeforeUnmount(() => {
 .settings-row input {
   width: 100%;
   grid-column: 1 / -1;
-  accent-color: #397a28;
+  accent-color: var(--accent);
+}
+.settings-row input[type='color'] {
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background: white;
+}
+.history-tools {
+  grid-column: 1 / -1;
 }
 .snap-setting {
   display: flex;
@@ -2437,7 +2750,7 @@ onBeforeUnmount(() => {
   font-size: 0.77rem;
 }
 .snap-setting input {
-  accent-color: #397a28;
+  accent-color: var(--accent);
 }
 .snap-setting .muted {
   font-size: 0.72rem;
@@ -2450,9 +2763,9 @@ onBeforeUnmount(() => {
   top: 8px;
   left: 8px;
   padding: 5px 9px;
-  border: 1px solid #bed8b3;
+  border: 1px solid var(--line);
   border-radius: 7px;
-  color: #24551a;
+  color: var(--accent-dark);
   background: #fff;
   font-size: 0.75rem;
   pointer-events: none;
@@ -2460,13 +2773,13 @@ onBeforeUnmount(() => {
 .symmetry-axis,
 .snap-guide {
   fill: none;
-  stroke: #8aaa7b;
+  stroke: var(--muted);
   stroke-width: 1;
   stroke-dasharray: 6 5;
   vector-effect: non-scaling-stroke;
 }
 .snap-guide {
-  stroke: #397a28;
+  stroke: var(--accent-dark);
   stroke-width: 2;
 }
 .help {
@@ -2493,12 +2806,12 @@ onBeforeUnmount(() => {
   aspect-ratio: 1;
   flex: 0 0 auto;
   align-self: flex-start;
-  border: 1px solid #d7e1d1;
-  border-radius: 10px;
-  background-color: #f2f4f0;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background-color: var(--surface-soft);
   background-image:
-    linear-gradient(45deg, #e8ece5 25%, transparent 25%, transparent 75%, #e8ece5 75%),
-    linear-gradient(45deg, #e8ece5 25%, transparent 25%, transparent 75%, #e8ece5 75%);
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%),
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%);
   background-position:
     0 0,
     8px 8px;
@@ -2518,7 +2831,7 @@ canvas {
   outline: none;
 }
 canvas:focus-visible {
-  box-shadow: inset 0 0 0 3px #397a2870;
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 44%, transparent);
 }
 .panning {
   cursor: grab;
@@ -2542,7 +2855,7 @@ canvas:focus-visible {
 }
 .selection-box {
   fill: none;
-  stroke: #397a28;
+  stroke: var(--accent-dark);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 5 3;
@@ -2550,41 +2863,42 @@ canvas:focus-visible {
 .resize-handle,
 .rotate-handle {
   fill: #fff;
-  stroke: #397a28;
+  stroke: var(--accent-dark);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
 }
 .point-handle {
   fill: #fff;
-  stroke: #397a28;
+  stroke: var(--accent-dark);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
 }
 .point-handle.active {
-  fill: #d2edc5;
-  stroke: #24551a;
+  fill: var(--accent-soft);
+  stroke: var(--accent-dark);
   stroke-width: 2;
 }
 .curve-guide {
   fill: none;
-  stroke: #809378;
+  stroke: var(--muted);
   stroke-width: 1;
   stroke-dasharray: 3 4;
   vector-effect: non-scaling-stroke;
 }
 .selection-controls {
-  border: 1px solid #e3e9df;
-  border-radius: 10px;
-  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  padding: 16px;
   margin: 0;
   display: grid;
   gap: 10px;
   min-width: 0;
+  background: var(--surface-soft);
 }
 .selection-controls legend {
   font-size: 0.8rem;
   padding: 0 5px;
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .element-choice {
   display: grid;
@@ -2624,12 +2938,12 @@ canvas:focus-visible {
   font-size: 0.8rem;
 }
 .nudge-button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid #dce5d7;
-  border-radius: 8px;
-  background: #fff;
-  color: #397a28;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--glass);
+  color: var(--accent-dark);
   cursor: pointer;
 }
 .drawing-footer {
@@ -2637,7 +2951,7 @@ canvas:focus-visible {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 10px;
-  border-top: 1px solid #e3e9df;
+  border-top: 1px solid var(--line);
   padding-top: 12px;
 }
 .file-tools .btn {
@@ -2645,9 +2959,9 @@ canvas:focus-visible {
   padding: 8px 10px;
 }
 .draft-notice {
-  background: #eef6e9;
-  border: 1px solid #cfe0c7;
-  border-radius: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
   padding: 10px;
 }
 .draft-notice p {
@@ -2667,8 +2981,8 @@ canvas:focus-visible {
   inset: 12px;
   z-index: 151;
   overflow: auto;
-  border: 1px solid #cddbc6;
-  box-shadow: 0 12px 70px #20351d40;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 70px color-mix(in srgb, var(--text) 25%, transparent);
   display: flex;
   align-items: stretch;
 }
@@ -2676,7 +2990,7 @@ canvas:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 150;
-  background: #20351d66;
+  background: color-mix(in srgb, var(--text) 40%, transparent);
 }
 .fullscreen .drawing-viewport {
   width: min(100%, 68vh);
@@ -2684,8 +2998,8 @@ canvas:focus-visible {
 }
 @media (max-width: 480px) {
   .asana-drawing {
-    padding: 10px;
-    gap: 10px;
+    padding: var(--panel-padding);
+    gap: 16px;
   }
   .tools {
     gap: 5px;

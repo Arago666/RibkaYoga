@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import {
@@ -302,10 +303,10 @@ async function createPractice() {
         aria-label="Поиск подборок"
       />
     </div>
-    <select v-model="archive" class="select" aria-label="Состояние подборок">
+    <AppSelect v-model="archive" class="select" aria-label="Состояние подборок">
       <option value="active">Активные</option>
       <option value="archived">В архиве</option>
-    </select>
+    </AppSelect>
   </div>
   <div v-if="error" class="error-banner" role="alert">
     {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
@@ -363,7 +364,7 @@ async function createPractice() {
             <p v-if="collection.description">{{ collection.description }}</p>
             <button
               v-if="!collection.archived_at"
-              class="btn btn-primary collection-start"
+              class="btn btn-secondary collection-start"
               :disabled="busy"
               @click="openPractice(collection)"
             >
@@ -487,11 +488,11 @@ async function createPractice() {
       </div>
       <div class="field">
         <label class="label" for="collection-practice-template">Начать с</label
-        ><select id="collection-practice-template" v-model="templateId" class="select" :disabled="busy">
+        ><AppSelect id="collection-practice-template" v-model="templateId" class="select" :disabled="busy">
           <option value="">Пустая практика — 5 блоков</option>
           <option v-for="template in templates" :key="template.id" :value="template.id">
             {{ template.title }}
-          </option></select
+          </option></AppSelect
         ><button
           v-if="templatePage < templateLastPage"
           class="btn btn-ghost"
@@ -520,12 +521,14 @@ async function createPractice() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  margin: 26px 0 20px;
+  gap: var(--section-gap);
+  margin: var(--section-gap) 0;
 }
 .collections-header h2 {
-  font-size: 1.2rem;
+  font-size: 19px;
   margin: 0 0 7px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .collections-header p {
   font-size: 0.87rem;
@@ -545,13 +548,13 @@ async function createPractice() {
 .collection-search {
   position: relative;
   flex: 1;
-  max-width: 500px;
+  max-width: none;
 }
 .collection-search svg {
   position: absolute;
   left: 14px;
   top: 14px;
-  color: #687568;
+  color: var(--muted);
 }
 .collection-search .input {
   width: 100%;
@@ -560,21 +563,23 @@ async function createPractice() {
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: var(--section-gap);
 }
 .collection-card {
   padding: 0 !important;
   overflow: hidden;
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 .collection-cover {
   height: 150px;
-  background: #f6f9f3;
+  background: var(--surface-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 18px;
-  padding: 25px;
-  color: #91a789;
+  padding: var(--panel-padding);
+  color: var(--muted);
 }
 .collection-cover img {
   min-width: 0;
@@ -584,21 +589,23 @@ async function createPractice() {
   object-fit: contain;
 }
 .collection-content {
-  padding: 21px;
+  padding: var(--panel-padding);
 }
 .collection-count {
   font-size: 0.7rem;
-  color: #687568;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .collection-content h3 {
-  font-size: 1.1rem;
+  font-size: 19px;
   margin: 9px 0;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .collection-content > p {
   font-size: 0.83rem;
-  color: #687568;
+  color: var(--muted);
   line-height: 1.5;
   min-height: 2.9em;
   margin: 0 0 18px;
@@ -626,12 +633,14 @@ async function createPractice() {
   padding: 65px 20px;
 }
 .collection-empty > svg {
-  color: #86a77b;
+  color: var(--muted);
   margin-bottom: 15px;
 }
 .collection-empty h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .collection-empty p {
   max-width: 380px;
@@ -647,7 +656,7 @@ async function createPractice() {
 }
 .collection-pagination span {
   font-size: 0.82rem;
-  color: #687568;
+  color: var(--muted);
 }
 .new-practice-form {
   display: grid;
@@ -656,7 +665,7 @@ async function createPractice() {
 .collections-with-folders {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  gap: 20px;
+  gap: var(--section-gap);
 }
 .folder-content {
   min-width: 0;
@@ -667,7 +676,7 @@ async function createPractice() {
   gap: 12px;
   align-items: center;
   margin: 0 0 16px;
-  color: #66725f;
+  color: var(--muted);
   font-size: 0.82rem;
 }
 .folder-current > label {
@@ -680,7 +689,7 @@ async function createPractice() {
   min-height: 0;
   margin: 0 0 10px;
   font-size: 0.72rem;
-  color: #768a69;
+  color: var(--muted);
 }
 @media (max-width: 1000px) {
   .collections-with-folders {

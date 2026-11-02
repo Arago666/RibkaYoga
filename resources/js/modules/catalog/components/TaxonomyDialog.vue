@@ -185,8 +185,9 @@ async function remove(item: Category) {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 9px 8px;
-  border-bottom: 1px solid #edf0eb;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--line);
+  min-height: 58px;
 }
 .category-name {
   min-width: 0;

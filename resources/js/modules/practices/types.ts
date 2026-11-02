@@ -20,6 +20,7 @@ export interface Snapshot {
 export interface ExecutionParameters {
   advance_mode: 'manual' | 'time' | 'breaths' | null;
   duration_seconds: number | null;
+  rest_seconds: number | null;
   breath_count: number | null;
   repetitions: number | null;
   side: 'left' | 'right' | 'both' | null;
@@ -28,6 +29,7 @@ export interface ExecutionParameters {
 export const executionParameters = (cell?: Partial<ExecutionParameters>): ExecutionParameters => ({
   advance_mode: cell?.advance_mode ?? null,
   duration_seconds: cell?.duration_seconds ?? null,
+  rest_seconds: cell?.rest_seconds ?? null,
   breath_count: cell?.breath_count ?? null,
   repetitions: cell?.repetitions ?? null,
   side: cell?.side ?? null,
@@ -64,6 +66,8 @@ export interface Practice {
   note: string | null;
   practice_date: string | null;
   revision: number;
+  default_duration_seconds?: number | null;
+  default_rest_seconds?: number | null;
   blocks: Block[];
   archived_at?: string | null;
   row_template_kind?: 'row' | 'transition';
@@ -99,6 +103,19 @@ export const emptyCell = (): Cell => ({
 });
 export const cellFilled = (cell: Cell): boolean => Boolean(cell.card_snapshot_id || cell.custom_name?.trim());
 export const cellLabel = (cell: Cell): string => cell.card?.name || cell.custom_name || 'Пустая ячейка';
+export function resolvedExecutionParameters(
+  cell: Cell,
+  defaults?: Pick<Practice, 'default_duration_seconds' | 'default_rest_seconds'> | null,
+): ExecutionParameters {
+  const values = executionParameters(cell);
+  if (!cellFilled(cell)) return values;
+  if (defaults?.default_duration_seconds != null && values.advance_mode !== 'breaths') {
+    values.advance_mode = 'time';
+    values.duration_seconds ??= defaults.default_duration_seconds;
+  }
+  values.rest_seconds ??= defaults?.default_rest_seconds ?? null;
+  return values;
+}
 export function cellGroupEdges(row: Row, index: number): { start: boolean; end: boolean } {
   const key = row.cells[index]?.group_key;
   return {
@@ -162,6 +179,8 @@ export function payload(document: Practice, rowMode = false) {
     illustration_character: document.illustration_character || null,
     note: document.note || null,
     practice_date: document.practice_date || null,
+    default_duration_seconds: document.default_duration_seconds ?? null,
+    default_rest_seconds: document.default_rest_seconds ?? null,
     blocks: document.blocks.map((block) => ({
       id: block.id,
       title: block.title.trim(),

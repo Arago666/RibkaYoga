@@ -28,7 +28,7 @@ class NativeImages
 
             return;
         }
-        DB::table('practice_native_sources')->insertOrIgnore(['id' => (string) Str::uuid(), 'workspace_id' => $this->workspace->id(), 'image_asset_id' => $assetId, 'drawing_source' => json_encode($drawing, JSON_THROW_ON_ERROR), 'image_sha256' => hash('sha256', $bytes), 'created_by' => $this->workspace->userId(), 'created_at' => now()]);
+        DB::table('practice_native_sources')->insertOrIgnore(['id' => (string) Str::uuid(), 'workspace_id' => $this->workspace->id(), 'image_asset_id' => $assetId, 'drawing_source' => json_encode($drawing, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), 'image_sha256' => hash('sha256', $bytes), 'created_by' => $this->workspace->userId(), 'created_at' => now()]);
         $pinned = DB::table('practice_native_sources')->where('workspace_id', $this->workspace->id())->where('image_asset_id', $assetId)->first();
         abort_unless($pinned && json_decode($pinned->drawing_source, true) === $drawing && hash_equals($pinned->image_sha256, hash('sha256', $bytes)), 409, 'Для этого изображения уже закреплён другой исходник.');
     }

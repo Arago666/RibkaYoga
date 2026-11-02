@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
@@ -195,12 +196,12 @@ onBeforeUnmount(() => {
     </header>
     <div class="palette-filters">
       <label class="sr-only" :for="sourceInputId">Подборка асан</label
-      ><select :id="sourceInputId" v-model="source" class="select" :disabled="disabled">
+      ><AppSelect :id="sourceInputId" v-model="source" class="select" :disabled="disabled">
         <option value="all">Все асаны</option>
         <optgroup label="Подборки">
           <option v-for="item in collections" :key="item.id" :value="item.id">{{ item.name }}</option>
         </optgroup>
-      </select>
+      </AppSelect>
       <div class="palette-search">
         <Search :size="17" /><input
           ref="searchInput"
@@ -311,7 +312,8 @@ onBeforeUnmount(() => {
   align-self: start;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
   overflow: hidden;
   max-height: calc(100vh - 48px);
   display: flex;
@@ -321,19 +323,20 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px 20px 17px;
+  padding: var(--panel-padding) var(--panel-padding) 20px;
 }
 .palette-heading h2 {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .palette-heading p {
   font-size: 12px;
-  color: #8a9781;
+  color: var(--muted);
   margin-top: 5px;
 }
 .palette-filters {
-  padding: 0 18px;
+  padding: 0 var(--panel-padding);
 }
 .palette-filters .select {
   font-size: 14px;
@@ -347,7 +350,7 @@ onBeforeUnmount(() => {
 .palette-search > svg {
   position: absolute;
   left: 11px;
-  color: #99a58f;
+  color: var(--muted);
 }
 .palette-search input {
   padding-left: 35px;
@@ -367,7 +370,7 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   padding: 1px 3px;
   color: white;
-  background: #397a28;
+  background: var(--accent-dark);
   font-size: 10px;
   line-height: 13px;
 }
@@ -379,27 +382,27 @@ onBeforeUnmount(() => {
 .palette-hint {
   font-size: 12px;
   line-height: 1.6;
-  color: #7f8e76;
-  padding: 14px 19px;
-  background: #fafcf8;
-  border-bottom: 1px solid #edf0e9;
+  color: var(--muted);
+  padding: 16px var(--panel-padding);
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--line);
   margin-top: 16px;
 }
 .palette-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 16px;
+  gap: 12px;
+  padding: var(--panel-padding);
   overflow-y: auto;
   min-height: 120px;
 }
 .palette-card {
   position: relative;
   user-select: none;
-  border: 1px solid #e3e9df;
+  border: 1px solid var(--line);
   background: #fff;
-  border-radius: 12px;
-  padding: 12px 8px 9px;
+  border-radius: var(--field-radius);
+  padding: 12px 8px;
   text-align: center;
   min-width: 0;
   cursor: grab;
@@ -418,7 +421,7 @@ onBeforeUnmount(() => {
   width: 28px;
   height: 28px;
   margin: 0 !important;
-  color: #8ca47f;
+  color: var(--muted);
   cursor: grab;
   touch-action: none;
 }
@@ -430,10 +433,10 @@ onBeforeUnmount(() => {
   z-index: 150;
   width: 126px;
   padding: 10px;
-  border: 1px solid #83aa71;
+  border: 1px solid var(--accent);
   border-radius: 13px;
   background: #fff;
-  box-shadow: 0 10px 30px #25312730;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--text) 19%, transparent);
   pointer-events: none;
   transform: rotate(-3deg);
 }
@@ -448,7 +451,7 @@ onBeforeUnmount(() => {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.3;
-  color: #48643c;
+  color: var(--accent-dark);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -461,8 +464,8 @@ onBeforeUnmount(() => {
   }
 }
 .palette-card:hover {
-  border-color: #8eaf7d;
-  background: #f8fcf5;
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .palette-card img {
   height: 74px;
@@ -472,7 +475,7 @@ onBeforeUnmount(() => {
 .palette-card span {
   display: block;
   font-size: 12px;
-  color: #68745f;
+  color: var(--muted);
   margin-top: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -489,7 +492,7 @@ onBeforeUnmount(() => {
 }
 .palette-empty svg {
   margin: auto;
-  color: #a0b890;
+  color: var(--muted);
 }
 .palette-empty h3 {
   font-size: 16px;
@@ -503,10 +506,10 @@ onBeforeUnmount(() => {
   margin-bottom: 19px;
 }
 .palette-footer {
-  padding: 12px 16px;
+  padding: 16px var(--panel-padding);
   border-top: 1px solid var(--border);
   font-size: 12px;
-  color: #91a086;
+  color: var(--muted);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -577,9 +580,9 @@ onBeforeUnmount(() => {
     right: 0;
     top: auto;
     z-index: 70;
-    border-radius: 24px 24px 0 0;
+    border-radius: var(--panel-radius) var(--panel-radius) 0 0;
     max-height: 68dvh;
-    box-shadow: 0 -10px 60px #223b2020;
+    box-shadow: 0 -10px 60px color-mix(in srgb, var(--text) 13%, transparent);
   }
   .close-palette {
     display: inline-flex;

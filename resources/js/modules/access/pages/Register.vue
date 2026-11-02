@@ -12,8 +12,8 @@ function submit() {
     <div class="login-brand brand">
       <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
     </div>
-    <section class="login-card">
-      <h1>Создать кабинет</h1>
+    <section class="login-card card">
+      <h1 class="page-title">Создать кабинет</h1>
       <p class="muted">
         Своя библиотека, подборки и практики.
         <span v-if="trialDays">Тариф «Про» на {{ trialDays }} дней без оплаты.</span>
@@ -85,16 +85,25 @@ function submit() {
   </main>
 </template>
 <style scoped>
+.login-card.card {
+  padding: var(--panel-padding);
+}
 .auth-links {
   margin: 22px 0 0;
   text-align: center;
   font-size: 0.86rem;
 }
 .auth-links a {
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .login-card > .muted {
   font-size: 0.88rem;
   line-height: 1.5;
+}
+.login-card .page-title {
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
 }
 </style>

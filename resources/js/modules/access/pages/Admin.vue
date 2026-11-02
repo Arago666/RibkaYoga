@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppSelect from '@/shared/AppSelect.vue';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { Download, ShieldCheck, Users, CircleCheck, Clock, CreditCard } from '@lucide/vue';
@@ -207,10 +208,10 @@ onBeforeUnmount(() => {
       <form id="admin-grant" class="grant-form" @submit.prevent="grant">
         <label class="field"
           ><span class="label">Тариф</span
-          ><select v-model="plan" class="select" :disabled="busy">
+          ><AppSelect v-model="plan" class="select" :disabled="busy">
             <option value="basic">Базовый</option>
             <option value="pro">Про</option>
-          </select></label
+          </AppSelect></label
         ><label class="check-label"
           ><input v-model="unlimited" type="checkbox" :disabled="busy" />Без ограничения срока</label
         ><label v-if="!unlimited" class="field"
@@ -241,31 +242,34 @@ onBeforeUnmount(() => {
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin: 24px 0;
+  gap: var(--section-gap);
+  margin: var(--section-gap) 0;
 }
 .admin-stats article {
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 8px;
-  padding: 20px;
-  border: 1px solid #dfe6db;
-  border-radius: 16px;
+  padding: var(--panel-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
   background: #fff;
+  box-shadow: var(--panel-shadow);
 }
 .admin-stats svg {
-  color: #397a28;
+  color: var(--accent-dark);
 }
 .admin-stats strong {
-  font-size: 1.25rem;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
 }
 .admin-stats span {
   grid-column: 1/-1;
   font-size: 0.8rem;
-  color: #687568;
+  color: var(--muted);
 }
 .local-billing {
-  background: #f0f5eb;
+  background: var(--surface-soft);
   border-radius: 12px;
   padding: 14px;
   font-size: 0.86rem;
@@ -273,14 +277,15 @@ onBeforeUnmount(() => {
 }
 .search-box {
   display: block;
-  max-width: 540px;
+  max-width: none;
   margin: 24px 0 18px;
 }
 .users-table {
   overflow: auto;
   background: #fff;
-  border: 1px solid #dfe6db;
-  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
 table {
   border-collapse: collapse;
@@ -291,16 +296,16 @@ th,
 td {
   padding: 16px;
   text-align: left;
-  border-bottom: 1px solid #e9eee6;
+  border-bottom: 1px solid var(--line);
 }
 th {
-  color: #687568;
+  color: var(--muted);
   font-size: 0.8rem;
 }
 td small {
   display: block;
   margin-top: 5px;
-  color: #687568;
+  color: var(--muted);
 }
 td .btn {
   white-space: nowrap;

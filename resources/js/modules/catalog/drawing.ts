@@ -5,7 +5,7 @@ export interface Point {
   y: number;
 }
 
-export type DrawingKind = 'pen' | 'eraser' | 'line' | 'curve' | 'ellipse' | 'figure';
+export type DrawingKind = 'pen' | 'eraser' | 'line' | 'curve' | 'ellipse' | 'figure' | 'image';
 
 export interface DrawingElement {
   id: string;
@@ -16,6 +16,9 @@ export interface DrawingElement {
   /** V2 only; a flat persistent group, unrelated to practice brackets. */
   group_id?: string;
   color?: string;
+  opacity?: number;
+  image_data?: string;
+  flip_x?: boolean;
 }
 
 export interface DrawingDocument {
@@ -25,9 +28,16 @@ export interface DrawingDocument {
   height: 1024;
   smoothing: number;
   elements: DrawingElement[];
+  paper?: { style: 'blank' | 'ruled' | 'grid'; opacity: number; print: boolean };
 }
 
-export const drawingLimits = { elements: 1000, points: 50000, strokePoints: 3000, bytes: 4 * 1024 * 1024 };
+export const drawingLimits = {
+  elements: 1000,
+  photos: 12,
+  points: 50000,
+  strokePoints: 3000,
+  bytes: 4 * 1024 * 1024,
+};
 
 export function emptyDrawing(): DrawingDocument {
   return { format: 'ribka-drawing', version: 1, width: 1024, height: 1024, smoothing: 70, elements: [] };
@@ -63,7 +73,16 @@ export function parseDrawing(value: unknown): DrawingDocument {
   }
   if (
     Object.keys(input).some(
-      (key) => !['format', 'version', 'width', 'height', 'smoothing', 'elements'].includes(key),
+      (key) =>
+        ![
+          'format',
+          'version',
+          'width',
+          'height',
+          'smoothing',
+          'elements',
+          ...(input.version === 2 ? ['paper'] : []),
+        ].includes(key),
     ) ||
     input.format !== 'ribka-drawing' ||
     (input.version !== 1 && input.version !== 2) ||
@@ -79,7 +98,15 @@ export function parseDrawing(value: unknown): DrawingDocument {
 
   const ids = new Set<string>();
   let pointCount = 0;
-  const kinds: DrawingKind[] = ['pen', 'eraser', 'line', 'curve', 'ellipse', 'figure'];
+  const kinds: DrawingKind[] = [
+    'pen',
+    'eraser',
+    'line',
+    'curve',
+    'ellipse',
+    'figure',
+    ...(input.version === 2 ? ['image' as const] : []),
+  ];
   const elements = input.elements.map((raw: unknown): DrawingElement => {
     if (!raw || typeof raw !== 'object') throw new Error('Некорректный элемент рисунка.');
     const element = raw as Record<string, unknown>;
@@ -103,7 +130,9 @@ export function parseDrawing(value: unknown): DrawingDocument {
       'width',
       'rotation',
       'points',
-      ...(input.version === 2 ? ['color', 'group_id'] : []),
+      ...(input.version === 2
+        ? ['color', 'group_id', 'opacity', ...(element.kind === 'image' ? ['image_data', 'flip_x'] : [])]
+        : []),
     ];
     if (Object.keys(element).some((key) => !allowed.includes(key)))
       throw new Error('Исходник содержит неподдерживаемые свойства элемента.');
@@ -118,10 +147,24 @@ export function parseDrawing(value: unknown): DrawingDocument {
         !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(element.group_id))
     )
       throw new Error('Некорректная группа рисунка.');
+    if (
+      element.opacity !== undefined &&
+      (!Number.isFinite(element.opacity) || Number(element.opacity) < 0 || Number(element.opacity) > 1)
+    )
+      throw new Error('Некорректная прозрачность элемента.');
+    if (
+      element.kind === 'image' &&
+      (typeof element.image_data !== 'string' ||
+        element.image_data.length > 2 * 1024 * 1024 ||
+        !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(element.image_data))
+    )
+      throw new Error('Фотография должна быть встроенным изображением PNG, JPEG или WebP до 2 МБ.');
+    if (element.flip_x !== undefined && typeof element.flip_x !== 'boolean')
+      throw new Error('Некорректное отражение фотографии.');
     ids.add(element.id.toLowerCase());
     const kind = element.kind as DrawingKind;
     const expected =
-      kind === 'figure' ? 15 : kind === 'curve' ? 3 : ['line', 'ellipse'].includes(kind) ? 2 : null;
+      kind === 'figure' ? 15 : kind === 'curve' ? 3 : ['line', 'ellipse', 'image'].includes(kind) ? 2 : null;
     if (
       expected
         ? element.points.length !== expected
@@ -150,16 +193,44 @@ export function parseDrawing(value: unknown): DrawingDocument {
       width: Number(element.width),
       rotation: Number(element.rotation),
       points,
+      ...(element.opacity !== undefined ? { opacity: Number(element.opacity) } : {}),
+      ...(element.kind === 'image'
+        ? {
+            image_data: String(element.image_data),
+            ...(element.flip_x !== undefined ? { flip_x: element.flip_x as boolean } : {}),
+          }
+        : {}),
       ...(element.color !== undefined ? { color: String(element.color).toLowerCase() } : {}),
       ...(element.group_id !== undefined ? { group_id: String(element.group_id).toLowerCase() } : {}),
     };
   });
+  if (elements.filter((element) => element.kind === 'image').length > drawingLimits.photos)
+    throw new Error('На одном листе можно разместить до 12 фотографий.');
   const document: DrawingDocument = {
     ...emptyDrawing(),
     version: input.version as 1 | 2,
     smoothing: Number(input.smoothing),
     elements,
   };
+  if (input.paper !== undefined) {
+    const paper = input.paper as Record<string, unknown> | null;
+    if (
+      !paper ||
+      typeof paper !== 'object' ||
+      Object.keys(paper).some((key) => !['style', 'opacity', 'print'].includes(key)) ||
+      !['blank', 'ruled', 'grid'].includes(String(paper.style)) ||
+      !Number.isFinite(paper.opacity) ||
+      Number(paper.opacity) < 0 ||
+      Number(paper.opacity) > 1 ||
+      typeof paper.print !== 'boolean'
+    )
+      throw new Error('Некорректная подложка листа.');
+    document.paper = {
+      style: paper.style as 'blank' | 'ruled' | 'grid',
+      opacity: Number(paper.opacity),
+      print: paper.print,
+    };
+  }
   const groups = new Map<string, number>();
   for (const element of elements)
     if (element.group_id) groups.set(element.group_id, (groups.get(element.group_id) ?? 0) + 1);

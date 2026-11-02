@@ -83,6 +83,7 @@ async function change(folder: FolderItem, values: Record<string, unknown>) {
       body: JSON.stringify({ expected_revision: folder.revision, ...values }),
     });
     await load();
+    if (values.archived === true && props.selectedFolder === folder.id) emit('select', '');
     emit('changed');
   } catch (e) {
     error.value = failure(e);
@@ -156,7 +157,10 @@ onMounted(load);
 defineExpose({ refresh: load });
 </script>
 <template>
-  <section :aria-label="mode === 'program' ? 'Папки программ и циклов' : 'Категории практик'">
+  <section
+    :class="{ 'folder-section-compact': compact }"
+    :aria-label="mode === 'program' ? 'Папки программ и циклов' : 'Категории практик'"
+  >
     <div class="folder-heading">
       <button class="btn btn-secondary" @click="creating = true">
         <Plus :size="17" />{{ mode === 'program' ? 'Создать папку' : 'Создать категорию' }}</button
@@ -185,7 +189,8 @@ defineExpose({ refresh: load });
     </p>
     <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
     <p v-if="hasSelection" class="muted">
-      Нажмите на папку, чтобы добавить выбранный документ. Его прежние категории сохранятся.
+      Нажмите на папку, чтобы добавить выбранный документ. Его прежние
+      {{ mode === 'program' ? 'папки' : 'категории' }} сохранятся.
     </p>
     <div class="folder-grid">
       <article
@@ -218,6 +223,7 @@ defineExpose({ refresh: load });
           v-else
           class="folder-title"
           :disabled="busy || !!folder.archived_at"
+          :aria-pressed="mode === 'program' && !hasSelection ? selectedFolder === folder.id : undefined"
           @click="openFolder(folder)"
         >
           {{ folder.name }}
@@ -271,26 +277,28 @@ defineExpose({ refresh: load });
 .folder-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
-  gap: 14px;
-  margin: 18px 0;
+  gap: var(--section-gap);
+  margin: var(--section-gap) 0;
 }
 .folder-card {
-  border: 1px solid #dce6d6;
-  border-radius: 16px;
-  padding: 17px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
   min-width: 0;
 }
 .folder-card-heading {
   margin: 0 0 14px;
-  color: #71955c;
+  color: var(--accent-dark);
 }
 .folder-title {
   display: block;
+  min-height: var(--control-height);
   font-size: 17px;
   font-weight: 650;
   text-decoration: none;
-  color: #30442a;
+  color: var(--text);
   background: none;
   border: 0;
   padding: 0;
@@ -301,12 +309,33 @@ defineExpose({ refresh: load });
 .folder-card small {
   display: block;
   margin-top: 10px;
-  color: #73816b;
+  color: var(--muted);
 }
 .folder-card.selected,
 .folder-card.drop-target {
-  background: #eff7e9;
-  border-color: #75a958;
-  outline: 2px solid #92b77c;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+}
+.folder-section-compact .folder-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 10px;
+}
+.folder-section-compact .folder-card {
+  padding: 12px;
+}
+.folder-section-compact .folder-card-heading {
+  margin-bottom: 4px;
+}
+.folder-section-compact .folder-card-heading > svg {
+  width: 22px;
+  height: 22px;
+}
+.folder-section-compact .folder-title {
+  font-size: 15px;
+}
+.folder-section-compact .folder-card small {
+  margin-top: 6px;
+  font-size: 12px;
 }
 </style>

@@ -897,13 +897,13 @@ onBeforeUnmount(() => {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  margin: 12px 0;
+  margin: var(--section-gap) 0;
 }
 .week-preview {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 22px;
+  padding: var(--panel-padding);
   min-height: 300px;
 }
 .preview-poses {
@@ -916,11 +916,11 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   background: #fff;
-  border: 1px solid #e4eadf;
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 .preview-poses > button.preview-target {
-  outline: 3px solid #75a958;
+  outline: 3px solid var(--accent);
 }
 .preview-poses img {
   width: 100%;
@@ -928,7 +928,7 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 .active-week {
-  outline: 2px solid #74a960;
+  outline: 2px solid var(--accent);
 }
 .weeks-board {
   grid-template-columns: repeat(var(--visible-weeks), minmax(0, 1fr)) !important;
@@ -940,7 +940,8 @@ onBeforeUnmount(() => {
 .week-column > header h2 {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 650;
 }
 .week-column iframe {
   width: 100%;
@@ -961,25 +962,30 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 24px;
   align-items: center;
-  margin: 12px 0 20px;
+  margin: 12px 0 var(--section-gap);
+  flex-wrap: wrap;
 }
 .cycle-heading > div {
-  flex: 1;
+  flex: 1 1 400px;
+  min-width: 0;
 }
 .cycle-title {
   display: block;
   width: 100%;
   border: 0;
   background: transparent;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
   padding: 6px 0;
   color: var(--text);
+  text-overflow: ellipsis;
 }
 .cycle-theme {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
   color: var(--muted);
   font-size: 13px;
 }
@@ -990,19 +996,26 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   z-index: 30;
-  max-height: 210px;
+  max-height: 280px;
   overflow: auto;
   background: white;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  margin: 16px 0;
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  box-shadow: var(--panel-shadow);
+  margin: var(--section-gap) 0;
 }
 .cycle-cloud > header {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cycle-cloud > header > strong {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 .cycle-cloud > header > span {
   margin-left: auto;
@@ -1027,7 +1040,7 @@ onBeforeUnmount(() => {
   align-items: center;
   background: white;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--field-radius);
   padding: 8px 5px;
   width: 100%;
   height: 84px;
@@ -1041,8 +1054,8 @@ onBeforeUnmount(() => {
   width: 26px;
   height: 26px;
   border-radius: 6px;
-  background: #edf5e7;
-  color: #397a28;
+  background: var(--surface-soft);
+  color: var(--accent-dark);
   cursor: grab;
   touch-action: none;
 }
@@ -1065,14 +1078,14 @@ onBeforeUnmount(() => {
   gap: 5px;
   width: 120px;
   padding: 8px;
-  border: 2px solid #a0ad99;
+  border: 2px solid var(--line);
   border-radius: 12px;
   background: white;
   box-shadow: 0 5px 24px #0003;
   pointer-events: none;
 }
 .cloud-drag-preview.has-target {
-  border-color: #4d9638;
+  border-color: var(--accent);
 }
 .cloud-drag-preview img {
   width: 80px;
@@ -1105,36 +1118,38 @@ onBeforeUnmount(() => {
   background: white;
   border: 1px solid var(--border);
   border-radius: 50%;
-  width: 21px;
-  height: 21px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
 }
 .cloud-target {
-  color: #397a28;
+  color: var(--accent-dark);
   font-size: 13px;
   margin-top: 8px;
 }
 .weeks-board {
   display: grid;
   grid-template-columns: repeat(5, minmax(200px, 1fr));
-  gap: 14px;
+  gap: var(--section-gap);
   overflow-x: auto;
   padding-bottom: 12px;
 }
 .week-column {
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: var(--panel-radius);
   overflow: visible;
-  background: white;
+  background: var(--surface);
+  box-shadow: var(--panel-shadow);
 }
 .week-column > header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px;
-  background: #edf5e7;
-  border-radius: 15px 15px 0 0;
+  padding: 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--panel-radius) var(--panel-radius) 0 0;
 }
 .week-column h2 {
   flex: 1;
@@ -1147,7 +1162,7 @@ onBeforeUnmount(() => {
   height: 720px;
   max-height: 78vh;
   border: 0;
-  background: #f7f9f6;
+  background: var(--surface);
 }
 .board-help {
   font-size: 12px;
@@ -1161,6 +1176,10 @@ onBeforeUnmount(() => {
   .cycle-heading > div {
     width: 100%;
     flex: none;
+  }
+  .cycle-heading > .btn {
+    flex: 1 1 auto;
+    white-space: normal;
   }
   .cycle-cloud > header {
     flex-wrap: wrap;

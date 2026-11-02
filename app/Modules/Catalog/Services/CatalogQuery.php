@@ -5,7 +5,6 @@ namespace App\Modules\Catalog\Services;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Catalog\Models\Asana;
 use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\PublicApi\IllustrationStyles;
 use App\Modules\Collections\PublicApi\CollectionMembership;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -122,13 +121,6 @@ class CatalogQuery
         }
         $page = $query->orderBy('id')->paginate($input['per_page'] ?? 48);
         $cards = $this->reader->serialize($page->getCollection());
-        if (($input['image_style'] ?? 'original') === 'volume') {
-            $displayImages = app(IllustrationStyles::class)->displayImagesForLibrary($cards);
-            foreach ($cards as $id => &$card) {
-                $card['display_image'] = $displayImages[$id];
-            }
-            unset($card);
-        }
 
         return ['data' => array_values($cards), 'current_page' => $page->currentPage(),
             'last_page' => $page->lastPage(), 'total' => $page->total(), 'facets' => $this->counts($input)];
