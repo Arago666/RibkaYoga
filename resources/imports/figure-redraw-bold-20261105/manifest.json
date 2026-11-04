@@ -1,0 +1,2150 @@
+{
+  "format": "ribka-reviewed-figure-redraw-v1",
+  "date": "2026-11-05",
+  "stroke_width": 8.5,
+  "source_coordinate_system": "512x512",
+  "items": [
+    {
+      "index": 1,
+      "id": "01a19c82-abf3-731e-ad24-775d82c5731d",
+      "name": "Адхо Мукха Шванасана",
+      "source_key": "spinal-five-v1:s2-r2-1-c01",
+      "frame": [
+        33,
+        109,
+        451,
+        295
+      ],
+      "svg": "svg/001.svg",
+      "sha256": "e5dd55a1ef6698d66e7ccc71d5841922b6258fa31a211f34341d97d89580b54b"
+    },
+    {
+      "index": 2,
+      "id": "01a19c82-ad58-7329-bfbb-4f95763d2fe0",
+      "name": "Адхо Мукха Шванасана на предплечьях (уточнить)",
+      "source_key": "spinal-five-v1:s2-r4-2-c01",
+      "frame": [
+        30,
+        88,
+        453,
+        331
+      ],
+      "svg": "svg/002.svg",
+      "sha256": "682b2476fe594679afedad4019a38052cb76c431f3851a3ae548b6689e4eee6f"
+    },
+    {
+      "index": 3,
+      "id": "01a19c82-aba4-7158-b695-5d1dc5031692",
+      "name": "Адхо Мукха Шванасана с блоком под головой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-4-c03",
+      "frame": [
+        32,
+        102,
+        448,
+        305
+      ],
+      "svg": "svg/003.svg",
+      "sha256": "ab8dc53208096d94c26c3fcf53ae4702ca8252006160538825fb04c56bd0281d"
+    },
+    {
+      "index": 4,
+      "id": "01a19c82-ac4f-70e0-8585-706b515eb6a1",
+      "name": "Адхо Мукха Шванасана с поднятой ногой",
+      "source_key": "spinal-five-v1:s2-r2-2-c03",
+      "frame": [
+        58,
+        26,
+        393,
+        459
+      ],
+      "svg": "svg/004.svg",
+      "sha256": "c65375d2632cc6d25df4ebe016a9420a75745b5e84cbfb7659ef5aa179e60b12"
+    },
+    {
+      "index": 5,
+      "id": "01a19c82-b589-73b0-bc30-e0ab56f5e1e3",
+      "name": "Апанасана",
+      "source_key": "spinal-five-v1:s4-r5-1-c01",
+      "frame": [
+        26,
+        126,
+        459,
+        269
+      ],
+      "svg": "svg/005.svg",
+      "sha256": "5c050d716e700914f530d6c5b0cf379b347daa710c5c133d3f3ba5ba9ab3bd6d"
+    },
+    {
+      "index": 6,
+      "id": "01a19c82-a7a5-7130-aa3f-6d429154fc0d",
+      "name": "Ардха Навасана",
+      "source_key": "spinal-five-v1:s1-r1-2-c03",
+      "frame": [
+        25,
+        157,
+        464,
+        198
+      ],
+      "svg": "svg/006.svg",
+      "sha256": "23e99ae39c9cb3c7665a9ec5d53f54b229d7bd57e191adf79c042476f1e87c2b"
+    },
+    {
+      "index": 7,
+      "id": "01a19c82-ae90-7337-9157-ec90db59b97e",
+      "name": "Ардха Навасана с поднятой ногой и рукой",
+      "source_key": "spinal-five-v1:s3-r1-2-c03",
+      "frame": [
+        22,
+        136,
+        469,
+        244
+      ],
+      "svg": "svg/007.svg",
+      "sha256": "28b3aee88ce4c27fbf1013ac44c620ca1f788782de67ccd9d2e28150aaf01e83"
+    },
+    {
+      "index": 8,
+      "id": "01a19c82-b677-73ff-b934-33a51bb07358",
+      "name": "Ардха Навасана с согнутой ногой",
+      "source_key": "spinal-five-v1:s5-r1-2-c06",
+      "frame": [
+        16,
+        111,
+        480,
+        295
+      ],
+      "svg": "svg/008.svg",
+      "sha256": "d581aef983d16a7ee52d5bfd6d203cbe265e0e90cf83c099c1467fdbb700d1f4"
+    },
+    {
+      "index": 9,
+      "id": "01a19c82-a837-7281-ac35-00876aac9c94",
+      "name": "Ардха Пурвоттанасана — обратный стол (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-4-c01",
+      "frame": [
+        26,
+        100,
+        458,
+        307
+      ],
+      "svg": "svg/009.svg",
+      "sha256": "12735d966def8c780a8645ae6c4d1c164623d84fd22961622c08eb7f60b11f1a"
+    },
+    {
+      "index": 10,
+      "id": "01a19c82-a8a8-737f-b6b5-8a8b9f6b17bd",
+      "name": "Аштанга Намаскара",
+      "source_key": "spinal-five-v1:s1-r1-5-c03",
+      "frame": [
+        22,
+        172,
+        465,
+        165
+      ],
+      "svg": "svg/010.svg",
+      "sha256": "af3a3cd5788c0a5e11a1cd0544dca9442c317c410a96f16a677c5f50172e461c"
+    },
+    {
+      "index": 11,
+      "id": "01a19c82-b46c-726d-913d-6eda65f34d97",
+      "name": "Баланс на одной ноге с рукой над головой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r2-2-c03",
+      "frame": [
+        16,
+        96,
+        472,
+        318
+      ],
+      "svg": "svg/011.svg",
+      "sha256": "9ee1006e270d428e2971db903e3a81c04f1cf8bbec4a968ffb879369e4afa04d"
+    },
+    {
+      "index": 12,
+      "id": "01a19c82-b84a-71ca-8438-9c208af7867d",
+      "name": "Баланс на руках с одной вытянутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s5-r2-2-c05",
+      "frame": [
+        23,
+        157,
+        467,
+        192
+      ],
+      "svg": "svg/012.svg",
+      "sha256": "8551891eaf1e09640f650340d7054e4ea3acc6f1b9a775af36222b3a39422877"
+    },
+    {
+      "index": 13,
+      "id": "01a19c82-b570-710d-bf66-40cf25917438",
+      "name": "Баланс на руках с опущенной стопой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c09",
+      "frame": [
+        22,
+        116,
+        468,
+        281
+      ],
+      "svg": "svg/013.svg",
+      "sha256": "e8692897ab05a50e061ecc0a9bf82a4588cba6b1c173889ab6dd3ff5f5160a8e"
+    },
+    {
+      "index": 14,
+      "id": "01a19c82-b563-736f-becd-8e36baad818c",
+      "name": "Баланс на руках с согнутыми коленями (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c08",
+      "frame": [
+        23,
+        96,
+        466,
+        317
+      ],
+      "svg": "svg/014.svg",
+      "sha256": "9f0e1808631ccb79a924a9b06fbe18897b762c284feb6a500232799d53fe6c49"
+    },
+    {
+      "index": 15,
+      "id": "01a19c82-b8d1-71ad-9665-7855722a2b35",
+      "name": "Баланс стоя с поднятым коленом и рукой над головой (уточнить)",
+      "source_key": "spinal-five-v1:s5-r3-1-c02",
+      "frame": [
+        121,
+        23,
+        265,
+        467
+      ],
+      "svg": "svg/015.svg",
+      "sha256": "264b2a99bc6a500f511430f314254e8a25db39f75e3e074914c8f106495634a6"
+    },
+    {
+      "index": 16,
+      "id": "01a19c82-af38-723c-88f5-8bfd4dddfac2",
+      "name": "Баласана",
+      "source_key": "spinal-five-v1:s3-r1-3-c06",
+      "frame": [
+        24,
+        148,
+        464,
+        209
+      ],
+      "svg": "svg/016.svg",
+      "sha256": "eed2898d1507b4c2aaf776cd92299ecf96bde6856ce2e0c769e953ece9b90818"
+    },
+    {
+      "index": 17,
+      "id": "01a19c82-a85a-7084-b2a7-d54b6aca23c6",
+      "name": "Баласана с вытянутыми руками",
+      "source_key": "spinal-five-v1:s1-r1-4-c04",
+      "frame": [
+        26,
+        169,
+        465,
+        174
+      ],
+      "svg": "svg/017.svg",
+      "sha256": "7e123fbbfc36f1b4ebe411bb4e20eb8045946953c65da2fa820c8ec8efe28dc6"
+    },
+    {
+      "index": 18,
+      "id": "01a19c82-b38f-73b2-8ed5-858785b2c376",
+      "name": "Баласана с опорой головы на блок",
+      "source_key": "spinal-five-v1:s4-r1-4-c02",
+      "frame": [
+        25,
+        96,
+        461,
+        311
+      ],
+      "svg": "svg/018.svg",
+      "sha256": "08d462d06c213a76e235317c941acbb42c2129995f242c5f38d0c26ff2e1ab27"
+    },
+    {
+      "index": 19,
+      "id": "01a19c82-ae52-72d0-824a-39e8efe655e1",
+      "name": "Боковой наклон сидя",
+      "source_key": "spinal-five-v1:s3-r1-1-c02",
+      "frame": [
+        23,
+        120,
+        459,
+        273
+      ],
+      "svg": "svg/019.svg",
+      "sha256": "c890dcca3a59eeaaeea07527a2fac235437f0a2b96de6ed633a7a2daff48f333"
+    },
+    {
+      "index": 20,
+      "id": "01a19c82-a960-72a1-b3a9-f43edb0872b2",
+      "name": "Боковой упор с рукой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s1-r2-2-c06",
+      "frame": [
+        24,
+        54,
+        476,
+        403
+      ],
+      "svg": "svg/020.svg",
+      "sha256": "c3331dff76c09534da51113ecfd653a7c291ae8d57364722fd0216db667ea728"
+    },
+    {
+      "index": 21,
+      "id": "01a19c82-a96b-739c-ac5c-c81f7819eb1e",
+      "name": "Вирабхадрасана I (уточнить)",
+      "source_key": "spinal-five-v1:s1-r2-2-c07",
+      "frame": [
+        29,
+        78,
+        458,
+        356
+      ],
+      "svg": "svg/021.svg",
+      "sha256": "1c7505b12879f4c300f3ec858d64ac6a385eaee5450ad5f6c651381902062dbc"
+    },
+    {
+      "index": 22,
+      "id": "01a19c82-afa6-73cf-9ece-f2af9468dbd3",
+      "name": "Волнообразное вытяжение в упоре с опущенной головой (уточнить)",
+      "source_key": "spinal-five-v1:s3-r1-4-c04",
+      "frame": [
+        18,
+        177,
+        478,
+        158
+      ],
+      "svg": "svg/022.svg",
+      "sha256": "817147a0a121f5ee948403713fdc04d29f7e1e9da56668b41085794be6dba301"
+    },
+    {
+      "index": 23,
+      "id": "01a19c82-b0e2-7096-8856-79b7f8d6a3a4",
+      "name": "Врикшасана",
+      "source_key": "spinal-five-v1:s3-r3-1-c02",
+      "frame": [
+        145,
+        24,
+        221,
+        466
+      ],
+      "svg": "svg/023.svg",
+      "sha256": "c672de9513c2925d18e86e0c4dec93a08bf4d1e7fa3df01dcd3d99bb734e5836"
+    },
+    {
+      "index": 24,
+      "id": "01a19c82-a871-7091-9fa4-a1229df8afba",
+      "name": "Вытяжение в упоре на колени и руки (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-4-c06",
+      "frame": [
+        12,
+        166,
+        488,
+        178
+      ],
+      "svg": "svg/024.svg",
+      "sha256": "347973f8f84839c79287f4fc7eec140d905af6eb8083773f8c4810a94b147b73"
+    },
+    {
+      "index": 25,
+      "id": "01a19c82-a77c-73ea-b559-8b61ccdda456",
+      "name": "Вытяжение рук вверх сидя (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-1-c04",
+      "frame": [
+        121,
+        29,
+        271,
+        453
+      ],
+      "svg": "svg/025.svg",
+      "sha256": "108b7580b1f125ddd356da7ddf7dbe753bde0dd0ccba0e3790c782772dfe125d"
+    },
+    {
+      "index": 26,
+      "id": "01a19c82-b383-7271-8dc5-db3b27ddc675",
+      "name": "Вытяжение руки в наклоне (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-4-c01",
+      "frame": [
+        58,
+        32,
+        393,
+        455
+      ],
+      "svg": "svg/026.svg",
+      "sha256": "6e1c811a1eeb66d2536a3067c5680a7ef7207774972ad2cf06b1c766e6aa0bc3"
+    },
+    {
+      "index": 27,
+      "id": "01a19c82-b3d5-73b6-8e24-b373e9adbbd0",
+      "name": "Вытяжение с опорой на колени и поднятым блоком",
+      "source_key": "spinal-five-v1:s4-r1-4-c08",
+      "frame": [
+        21,
+        157,
+        469,
+        198
+      ],
+      "svg": "svg/027.svg",
+      "sha256": "c2a4ed2a64df3c5601826877bca35efbba7e9f198049971df69049fa72c1a913"
+    },
+    {
+      "index": 28,
+      "id": "01a19c82-b540-7201-9353-113b81caca1c",
+      "name": "Глубокий присед",
+      "source_key": "spinal-five-v1:s4-r4-1-c05",
+      "frame": [
+        90,
+        29,
+        323,
+        456
+      ],
+      "svg": "svg/028.svg",
+      "sha256": "2bd7dc58a4443f0c1bb3a9c4a52f15e11d4ddebb277aaac7c01ab28821e91072"
+    },
+    {
+      "index": 29,
+      "id": "01a19c82-b50f-7035-98f3-fa127156cc78",
+      "name": "Глубокий присед с раскрытием плеч (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c01",
+      "frame": [
+        32,
+        31,
+        456,
+        450
+      ],
+      "svg": "svg/029.svg",
+      "sha256": "6361fa3757e443c2fa7dbc379a0dbf51493294404e6061cea207471e7a9d3ce9"
+    },
+    {
+      "index": 30,
+      "id": "01a19c82-b785-73fe-941a-1b2a58c37cc1",
+      "name": "Движение корпуса на четвереньках (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-4-c05",
+      "frame": [
+        22,
+        98,
+        463,
+        313
+      ],
+      "svg": "svg/030.svg",
+      "sha256": "4d346e484cc0abff6e998f2ce67776172458507f61da7fff8cc6472c530eace0"
+    },
+    {
+      "index": 31,
+      "id": "01a19c82-b596-732d-9fa6-2980ce3dbddc",
+      "name": "Движение согнутых ног лёжа на спине (уточнить)",
+      "source_key": "spinal-five-v1:s4-r5-1-c02",
+      "frame": [
+        26,
+        63,
+        457,
+        378
+      ],
+      "svg": "svg/031.svg",
+      "sha256": "3a36bb73e40b055d7f6de1991d44d145a4bafe318ccb3fad5e7048fbebe65fc8"
+    },
+    {
+      "index": 32,
+      "id": "01a19c82-b6fe-709c-b6e5-598c3adabee5",
+      "name": "Круговое движение корпуса сидя (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c03",
+      "frame": [
+        23,
+        134,
+        464,
+        247
+      ],
+      "svg": "svg/032.svg",
+      "sha256": "9a70623f85e27f3de0acb672eb001453ce4712f1ae0ac65f96143f12ba83b429"
+    },
+    {
+      "index": 33,
+      "id": "01a19c82-aea7-70d8-bebd-de3a4b1b9b7a",
+      "name": "Лёжа на спине с ногами на полу (уточнить)",
+      "source_key": "spinal-five-v1:s3-r1-2-c05",
+      "frame": [
+        25,
+        105,
+        462,
+        310
+      ],
+      "svg": "svg/033.svg",
+      "sha256": "94b98b35ba2769ae5ef047dc238dc30d4a929f71164771825da478194b8c66e6"
+    },
+    {
+      "index": 34,
+      "id": "01a19c82-b5da-729f-a536-4ba29f2b2eff",
+      "name": "Лёжа на спине с одной согнутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r5-1-c08",
+      "frame": [
+        21,
+        168,
+        469,
+        178
+      ],
+      "svg": "svg/034.svg",
+      "sha256": "8175a3ad2c209dcc1f328cf1083e5a361d99680d139cc09ba8bae3520921b490"
+    },
+    {
+      "index": 35,
+      "id": "01a19c82-b683-71fe-98c0-a257ddece736",
+      "name": "Лёжа на спине с согнутыми и разведёнными ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-2-c07",
+      "frame": [
+        23,
+        63,
+        473,
+        384
+      ],
+      "svg": "svg/035.svg",
+      "sha256": "fb51316e1dec90b8130cd379409fc3311d53b1c673bb877b51393e17fe094946"
+    },
+    {
+      "index": 36,
+      "id": "01a19c82-ad9c-70b5-93df-76be5dcd10d8",
+      "name": "Лёжа на спине с согнутыми ногами и поднятой рукой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r5-1-c03",
+      "frame": [
+        14,
+        122,
+        465,
+        269
+      ],
+      "svg": "svg/036.svg",
+      "sha256": "2dbb774bc123a3b4f46b6cee2bf17006c1a2759d7fa3453ebe2299bb92f96a51"
+    },
+    {
+      "index": 37,
+      "id": "01a19c82-a7b1-706a-aa9b-0964a99ab101",
+      "name": "Лёжа на спине с согнутыми ногами и согнутой рукой (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-2-c04",
+      "frame": [
+        26,
+        110,
+        458,
+        295
+      ],
+      "svg": "svg/037.svg",
+      "sha256": "b578b559f621accd53bc52afe023e3bc7600859c92bc4824baa63c5b371c0903"
+    },
+    {
+      "index": 38,
+      "id": "01a19c82-b660-7245-a438-992c4eba4eb8",
+      "name": "Лёжа с поднятыми согнутыми ногами",
+      "source_key": "spinal-five-v1:s5-r1-2-c04",
+      "frame": [
+        25,
+        67,
+        457,
+        372
+      ],
+      "svg": "svg/038.svg",
+      "sha256": "7de74b49632c4053cf99411579389b59d2dc77841b27c2144a344aae8af3a1f7"
+    },
+    {
+      "index": 39,
+      "id": "01a19c82-a78b-704f-8a70-39cf1c595f34",
+      "name": "Навасана",
+      "source_key": "spinal-five-v1:s1-r1-2-c01",
+      "frame": [
+        52,
+        40,
+        407,
+        441
+      ],
+      "svg": "svg/039.svg",
+      "sha256": "76fd05a325349f137be63032786aeb568ac6503778c42b33d9dc71ce16add59e"
+    },
+    {
+      "index": 40,
+      "id": "01a19c82-b310-7089-83f4-9b80d576c660",
+      "name": "Навасана с блоком на стопе",
+      "source_key": "spinal-five-v1:s4-r1-2-c07",
+      "frame": [
+        44,
+        27,
+        417,
+        458
+      ],
+      "svg": "svg/040.svg",
+      "sha256": "b819e575ddc87a7202c1ab82bd7dd2be585918222ce854405dbcd296f4c1a8a3"
+    },
+    {
+      "index": 41,
+      "id": "01a19c82-b6c1-720b-992b-db7e201d1694",
+      "name": "Навасана с блоком перед корпусом",
+      "source_key": "spinal-five-v1:s5-r1-2-c12",
+      "frame": [
+        82,
+        24,
+        348,
+        461
+      ],
+      "svg": "svg/041.svg",
+      "sha256": "c6702421c7041c7707b71fef7cb7acef8089ee3ba77ceffbc307c1a3ee4dc250"
+    },
+    {
+      "index": 42,
+      "id": "01a19c82-a799-71f4-aacd-864519a0176c",
+      "name": "Навасана с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-2-c02",
+      "frame": [
+        29,
+        58,
+        455,
+        395
+      ],
+      "svg": "svg/042.svg",
+      "sha256": "dce72de2ea587166599dd4b2db4a5789165fb261dbab8f4cf2ed593d3087de07"
+    },
+    {
+      "index": 43,
+      "id": "01a19c82-b748-7340-9975-19d1c8c904e2",
+      "name": "Наклон в приседе с опорой рук у ног (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c09",
+      "frame": [
+        29,
+        69,
+        458,
+        373
+      ],
+      "svg": "svg/043.svg",
+      "sha256": "de0fc5fe289b33eedad986432434694cfebcdd995fe933bcb3362a6c3969d95d"
+    },
+    {
+      "index": 44,
+      "id": "01a19c82-b35e-709f-96df-4fc2cbce3567",
+      "name": "Наклон в приседе с руками за спиной (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-3-c06",
+      "frame": [
+        24,
+        44,
+        462,
+        418
+      ],
+      "svg": "svg/044.svg",
+      "sha256": "810f7feed1c4e769767f538de3b9fad7fb3ce3e1a8164f95daf6ae31a1f04c96"
+    },
+    {
+      "index": 45,
+      "id": "01a19c82-b709-720b-bffe-5daff388340f",
+      "name": "Наклон вперёд сидя на пятках (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c04",
+      "frame": [
+        24,
+        134,
+        457,
+        243
+      ],
+      "svg": "svg/045.svg",
+      "sha256": "a12e2bf4a14e898cd0d6bb8ae235fd4ac9bc05bbea4d77b01c6f64dff1c99234"
+    },
+    {
+      "index": 46,
+      "id": "01a19c82-a7ef-737b-8118-399af99d933f",
+      "name": "Наклон вперёд сидя с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-3-c03",
+      "frame": [
+        39,
+        146,
+        439,
+        221
+      ],
+      "svg": "svg/046.svg",
+      "sha256": "644107217dfee009f45ba122c4813fc92f7953c5c291efea2f162f987ab49259"
+    },
+    {
+      "index": 47,
+      "id": "01a19c82-b4f4-722b-8e7b-2e348c6d751e",
+      "name": "Наклон к бедру на одной ноге (уточнить)",
+      "source_key": "spinal-five-v1:s4-r3-1-c06",
+      "frame": [
+        30,
+        25,
+        443,
+        462
+      ],
+      "svg": "svg/047.svg",
+      "sha256": "3a19f9aa3c7228b778f996048748e6c37a040e72c0abbb65a3ad5e2ec8fd0ad8"
+    },
+    {
+      "index": 48,
+      "id": "01a19c82-b715-724c-a287-5eb8be659b1d",
+      "name": "Наклон к стене с опорой на блок (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c05",
+      "frame": [
+        30,
+        41,
+        454,
+        441
+      ],
+      "svg": "svg/048.svg",
+      "sha256": "ca2fc27c335cb8f9b3c23a127ff96e4a7b9cc7e5c95ca8df161ad37c1e4ec52c"
+    },
+    {
+      "index": 49,
+      "id": "01a19c82-b723-704c-a542-abeefd86d36c",
+      "name": "Наклон к стене с опорой на блок и согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c06",
+      "frame": [
+        23,
+        58,
+        467,
+        399
+      ],
+      "svg": "svg/049.svg",
+      "sha256": "877689da72fbff83836505444adfa39dc45353d8798ca6d6c920d6b5f1ea3d0e"
+    },
+    {
+      "index": 50,
+      "id": "01a19c82-ab54-702e-9811-0c97965e3025",
+      "name": "Наклон корпуса вперёд с вытянутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-3-c04",
+      "frame": [
+        25,
+        136,
+        462,
+        252
+      ],
+      "svg": "svg/050.svg",
+      "sha256": "f5f4eae65a9eccb6a85cb139c536684d610993e8004ac1d965fe22ae3a7ef163"
+    },
+    {
+      "index": 51,
+      "id": "01a19c82-aa1e-733b-b2eb-d7d2dc8d7234",
+      "name": "Наклон корпуса вперёд с руками за спиной (уточнить)",
+      "source_key": "spinal-five-v1:s1-r4-1-c04",
+      "frame": [
+        27,
+        119,
+        459,
+        273
+      ],
+      "svg": "svg/051.svg",
+      "sha256": "582f1253d1dee600857a176d3828d6ee7cc25ada3785af595c22804bf55af14d"
+    },
+    {
+      "index": 52,
+      "id": "01a19c82-a949-7024-a297-cdf0901192db",
+      "name": "Наклон корпуса с опорой на предплечье (уточнить)",
+      "source_key": "spinal-five-v1:s1-r2-2-c04",
+      "frame": [
+        30,
+        118,
+        464,
+        279
+      ],
+      "svg": "svg/052.svg",
+      "sha256": "216e66a50dd176d6cbe35b5574d4b3eef6037ea1cb1805e15bfbc2130139c88f"
+    },
+    {
+      "index": 53,
+      "id": "01a19c82-b45f-7195-9cfc-74d6472cb877",
+      "name": "Наклон корпуса с опорой на руку и согнутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r2-2-c02",
+      "frame": [
+        25,
+        100,
+        464,
+        325
+      ],
+      "svg": "svg/053.svg",
+      "sha256": "680699e2f3e7327c8e6fe8e6ff0ba45d3891ce953d7f0e7e3ceb94479d98163b"
+    },
+    {
+      "index": 54,
+      "id": "01a19c82-b344-7359-a2da-b385956f5e1a",
+      "name": "Наклон корпуса сидя с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-3-c04",
+      "frame": [
+        25,
+        44,
+        461,
+        422
+      ],
+      "svg": "svg/054.svg",
+      "sha256": "17d1bb310874add5eb865c60fbe8b11629207b5d30a75904687cddb57d69a00f"
+    },
+    {
+      "index": 55,
+      "id": "01a19c82-a9ec-73f6-86c8-1f5558a9bfce",
+      "name": "Наклон корпуса стоя под прямым углом (уточнить)",
+      "source_key": "spinal-five-v1:s1-r3-2-c04",
+      "frame": [
+        26,
+        73,
+        459,
+        370
+      ],
+      "svg": "svg/055.svg",
+      "sha256": "8a91e9146c35f6a9dde4c0ae82d6e7a5291228fa5e2456f7dac384390cfb6e28"
+    },
+    {
+      "index": 56,
+      "id": "01a19c82-b4e8-70e1-957b-e4564c1955d6",
+      "name": "Наклон корпуса стоя с руками за головой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r3-1-c05",
+      "frame": [
+        117,
+        23,
+        276,
+        468
+      ],
+      "svg": "svg/056.svg",
+      "sha256": "4243d1958e2730ae9f19e6e03a396fdb89a344bbbc51924cf7dc811ef09fab23"
+    },
+    {
+      "index": 57,
+      "id": "01a19c82-b3a7-721e-aa69-cade4dbc6c4e",
+      "name": "Наклон на коленях с поднятым тазом",
+      "source_key": "spinal-five-v1:s4-r1-4-c04",
+      "frame": [
+        16,
+        142,
+        474,
+        226
+      ],
+      "svg": "svg/057.svg",
+      "sha256": "11bdec6a14066565718913dce1eb16d30ad18fae455e092d7431e5ba020b2f2d"
+    },
+    {
+      "index": 58,
+      "id": "01a19c82-a7fb-7057-913d-6484ccf530b0",
+      "name": "Наклон на коленях с руками за головой (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-3-c04",
+      "frame": [
+        52,
+        38,
+        405,
+        443
+      ],
+      "svg": "svg/058.svg",
+      "sha256": "5b709e2cc07fc02d7def259a08f50750a372638258631dcda2da0d01b546ff86"
+    },
+    {
+      "index": 59,
+      "id": "01a19c82-b448-71a0-9ce8-5db274312740",
+      "name": "Наклон стоя с опорой стопы на блок",
+      "source_key": "spinal-five-v1:s4-r2-1-c08",
+      "frame": [
+        92,
+        26,
+        319,
+        463
+      ],
+      "svg": "svg/059.svg",
+      "sha256": "ad7176ac385b8379e14d169960a585c4104bee8e33d4974f6fe0919e8ca0609d"
+    },
+    {
+      "index": 60,
+      "id": "01a19c82-acb0-73e7-9f59-1d43371dd61e",
+      "name": "Наклон стоя с согнутыми коленями и блоком (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-3-c04",
+      "frame": [
+        37,
+        71,
+        436,
+        368
+      ],
+      "svg": "svg/060.svg",
+      "sha256": "ad34ecea5ba693903314d2a02c835b6b3387a48b978501028f63de425c92a8e7"
+    },
+    {
+      "index": 61,
+      "id": "01a19c82-acbc-72dd-a5fd-9c9762cd3ed5",
+      "name": "Наклон стоя спиной к стене (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-3-c05",
+      "frame": [
+        136,
+        12,
+        237,
+        474
+      ],
+      "svg": "svg/061.svg",
+      "sha256": "f8d5a06fad5fcf752dfdb25dd6b142b6796bdcf03db7affbfc3fb6bf39b5ab38"
+    },
+    {
+      "index": 62,
+      "id": "01a19c82-a89d-71c1-80aa-95a7a4fdff8a",
+      "name": "Низкая планка (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-5-c02",
+      "frame": [
+        24,
+        166,
+        465,
+        180
+      ],
+      "svg": "svg/062.svg",
+      "sha256": "9de3f0708fc3add942af08bb8464cf181bb2c99145aba0906e319eff472625e0"
+    },
+    {
+      "index": 63,
+      "id": "01a19c82-b3ec-7242-93ef-a33ccb11a691",
+      "name": "Низкая планка с поднятой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-4-c10",
+      "frame": [
+        16,
+        163,
+        476,
+        185
+      ],
+      "svg": "svg/063.svg",
+      "sha256": "d6ed143d1fc09cdf85436ff47eff7e0cb5815617fe6a24a11a5f87cde9c90ec6"
+    },
+    {
+      "index": 64,
+      "id": "01a19c82-b9af-70f2-8390-dcc8f48ece06",
+      "name": "Низкий прогиб с опорой на предплечья",
+      "source_key": "spinal-five-v1:s5-r4-2-c02",
+      "frame": [
+        16,
+        151,
+        475,
+        210
+      ],
+      "svg": "svg/064.svg",
+      "sha256": "53e45c26d101d182cbf49d409b1dbcf7065766a364372b12f58d2ded2d3fe3b4"
+    },
+    {
+      "index": 65,
+      "id": "01a19c82-abe7-73ca-bbbc-b606df107496",
+      "name": "Низкий прогиб с опорой на согнутые руки (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-4-c09",
+      "frame": [
+        23,
+        149,
+        477,
+        202
+      ],
+      "svg": "svg/065.svg",
+      "sha256": "7035131533971153a263f95baec088940b65f6424a902865d83b092e35db3569"
+    },
+    {
+      "index": 66,
+      "id": "01a19c82-b3be-720d-9d64-c6cd430e45a0",
+      "name": "Низкий упор на колени с блоком перед головой",
+      "source_key": "spinal-five-v1:s4-r1-4-c06",
+      "frame": [
+        16,
+        165,
+        477,
+        177
+      ],
+      "svg": "svg/066.svg",
+      "sha256": "b421a78910da31332d0802f142ddfdf814c3696b12bc00bdaf10c750bbcf3ff0"
+    },
+    {
+      "index": 67,
+      "id": "01a19c82-b7b2-7086-b70a-e76a68de28fe",
+      "name": "Низкий упор с блоком под опорой рук",
+      "source_key": "spinal-five-v1:s5-r1-4-c09",
+      "frame": [
+        22,
+        163,
+        474,
+        183
+      ],
+      "svg": "svg/067.svg",
+      "sha256": "d33e6d93680b1d0159403cf93d783e116e347a1d1880a3227aa8e2bfbd6a874c"
+    },
+    {
+      "index": 68,
+      "id": "01a19c82-ada7-739b-87b2-344cf2975097",
+      "name": "Ноги вверх лёжа (уточнить)",
+      "source_key": "spinal-five-v1:s2-r5-1-c04",
+      "frame": [
+        18,
+        86,
+        464,
+        342
+      ],
+      "svg": "svg/068.svg",
+      "sha256": "a0e47d9fad90bebb9543d1b16b0ca5d29447a456eaeeed4f311f4b9697539185"
+    },
+    {
+      "index": 69,
+      "id": "01a19c82-aecc-7297-a0d4-4e7108d43b0d",
+      "name": "Ноги у стены лёжа",
+      "source_key": "spinal-five-v1:s3-r1-2-c08",
+      "frame": [
+        75,
+        25,
+        359,
+        464
+      ],
+      "svg": "svg/069.svg",
+      "sha256": "62fe5c09040d0c6ec14aba89bf29cedce2576d1a758d56273f5e6193e2c42a33"
+    },
+    {
+      "index": 70,
+      "id": "01a19c82-b376-70e5-9d1f-2a231b643387",
+      "name": "Обратная опора с низким положением таза (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-3-c08",
+      "frame": [
+        16,
+        96,
+        469,
+        316
+      ],
+      "svg": "svg/070.svg",
+      "sha256": "e065d756db6a734e05f374bac200b697799bfa344f5a298b919cefd45db101d0"
+    },
+    {
+      "index": 71,
+      "id": "01a19c82-b73b-705e-94a8-d07f9e2ef290",
+      "name": "Обратная опора с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-3-c08",
+      "frame": [
+        31,
+        31,
+        456,
+        441
+      ],
+      "svg": "svg/071.svg",
+      "sha256": "d007c8bfaba1eeca788312fa4b038159442ee63e6cf73309dfbb815f89b0f2be"
+    },
+    {
+      "index": 72,
+      "id": "01a19c82-ab6b-7058-995b-3a6541ac627b",
+      "name": "Обратный стол с дополнительной опорой стоп (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-3-c06",
+      "frame": [
+        27,
+        98,
+        456,
+        313
+      ],
+      "svg": "svg/072.svg",
+      "sha256": "55673c4279b85888f3f3a48ba69bc35578b4c68772334382255a941846ab9bcc"
+    },
+    {
+      "index": 73,
+      "id": "01a19c82-a954-723f-be5b-dab29807192a",
+      "name": "Опора на руку и ноги с рукой за спиной (уточнить)",
+      "source_key": "spinal-five-v1:s1-r2-2-c05",
+      "frame": [
+        23,
+        114,
+        466,
+        287
+      ],
+      "svg": "svg/073.svg",
+      "sha256": "097ef54eca493d509d41c83a2be17438a28363391e72ef9e9b7e5490090b827a"
+    },
+    {
+      "index": 74,
+      "id": "01a19c82-b533-707b-b50c-927d61e0608c",
+      "name": "Отклонение корпуса назад на коленях (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c04",
+      "frame": [
+        69,
+        29,
+        377,
+        458
+      ],
+      "svg": "svg/074.svg",
+      "sha256": "c3a3e9d5ed1537020b7d5ff447f8397398f2d436b9f0665037ba4956f596fd8e"
+    },
+    {
+      "index": 75,
+      "id": "01a19c82-ad41-7374-91f4-0d67b08a4893",
+      "name": "Отклонение корпуса назад с опорой рукой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r4-1-c04",
+      "frame": [
+        79,
+        31,
+        355,
+        469
+      ],
+      "svg": "svg/075.svg",
+      "sha256": "1ad3ac576cf0e1d7f967b6824c2136823c9e62437b4a36b31620517b2e7565f6"
+    },
+    {
+      "index": 76,
+      "id": "01a19c82-aa12-7175-a5d1-e5d908d839a1",
+      "name": "Отклонение назад с опорой на одно колено (уточнить)",
+      "source_key": "spinal-five-v1:s1-r4-1-c03",
+      "frame": [
+        70,
+        28,
+        371,
+        452
+      ],
+      "svg": "svg/076.svg",
+      "sha256": "79dce3c8e6e551b205a679f2e1e807d964de754a21f9db4109b22a805b414068"
+    },
+    {
+      "index": 77,
+      "id": "01a19c82-b98d-712e-80ca-1e5dc62164bd",
+      "name": "Перевёрнутая опора с одной ногой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s5-r4-1-c09",
+      "frame": [
+        105,
+        24,
+        295,
+        466
+      ],
+      "svg": "svg/077.svg",
+      "sha256": "80eb95e20b47a778f33f1a00fe4df71eb18ec26c8dcec023131d97b79f36f1fb"
+    },
+    {
+      "index": 78,
+      "id": "01a19c82-b49e-7068-8935-c00d1d3e3a6d",
+      "name": "Перевёрнутая опора у стены с одной ногой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s4-r2-3-c04",
+      "frame": [
+        66,
+        16,
+        374,
+        471
+      ],
+      "svg": "svg/078.svg",
+      "sha256": "cd99ea5b3c8229eb0dacf1b8deabd907c6ba30501f208edb1d71035c0df50644"
+    },
+    {
+      "index": 79,
+      "id": "01a19c82-b1c0-7176-bd15-8ab85548b653",
+      "name": "Перевёрнутая опора у стены с опущенной ногой (уточнить)",
+      "source_key": "spinal-five-v1:s3-r4-2-c02",
+      "frame": [
+        103,
+        16,
+        302,
+        468
+      ],
+      "svg": "svg/079.svg",
+      "sha256": "3336767ea8206d0c1003143eb077021b02f349d0a3e9e1f299c7ce59d258d922"
+    },
+    {
+      "index": 80,
+      "id": "01a19c82-b8a3-721c-88cb-0674d909e9a0",
+      "name": "Перевёрнутая опора у стены с прямыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r2-3-c06",
+      "frame": [
+        116,
+        16,
+        281,
+        471
+      ],
+      "svg": "svg/080.svg",
+      "sha256": "ec51973d512ad3ab467c2bfa05002d9882af077c90fde45fc2fe0368ee5d15db"
+    },
+    {
+      "index": 81,
+      "id": "01a19c82-b0bc-708e-9192-80c05679450f",
+      "name": "Перевёрнутая опора у стены с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s3-r2-3-c02",
+      "frame": [
+        24,
+        33,
+        463,
+        450
+      ],
+      "svg": "svg/081.svg",
+      "sha256": "5d110578df230eed309e065ca0fe33abd715def16d461b62d4b59ce381e68d17"
+    },
+    {
+      "index": 82,
+      "id": "01a19c82-b8ae-7327-8832-e4ddc0611aa8",
+      "name": "Перевёрнутое положение у стены с блоком (уточнить)",
+      "source_key": "spinal-five-v1:s5-r2-3-c07",
+      "frame": [
+        27,
+        88,
+        469,
+        333
+      ],
+      "svg": "svg/082.svg",
+      "sha256": "b0acff13168661315a0dc966efe1457972b549276bdb3ec91f93731d815cef8a"
+    },
+    {
+      "index": 83,
+      "id": "01a19c82-b5ad-72c2-a7a1-1b92e22af9cf",
+      "name": "Переход в плуг с поднятой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r5-1-c04",
+      "frame": [
+        34,
+        16,
+        452,
+        471
+      ],
+      "svg": "svg/083.svg",
+      "sha256": "f10b05d788a60357c6fc55a7974d983d982dfc864c85763dfcb3f83c61a7bf65"
+    },
+    {
+      "index": 84,
+      "id": "01a19c82-a892-716f-bab1-48b4d92ea32b",
+      "name": "Планка",
+      "source_key": "spinal-five-v1:s1-r1-5-c01",
+      "frame": [
+        26,
+        136,
+        464,
+        242
+      ],
+      "svg": "svg/084.svg",
+      "sha256": "2ac035fd84703ee5afbb0a11570c70c40b0d86488716ee4b9c7c7d53541d7b89"
+    },
+    {
+      "index": 85,
+      "id": "01a19c82-ac72-7371-914e-592889810207",
+      "name": "Планка с дополнительной опорой стоп (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-2-c06",
+      "frame": [
+        12,
+        129,
+        476,
+        267
+      ],
+      "svg": "svg/085.svg",
+      "sha256": "c38bdf68326d4494cbc9f28b5d20cc7e4bc223d69034d9af05d02ca2f137bd36"
+    },
+    {
+      "index": 86,
+      "id": "01a19c82-a8ca-72e7-a040-bc20ea953269",
+      "name": "Планка с округлением спины (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-5-c06",
+      "frame": [
+        23,
+        144,
+        466,
+        222
+      ],
+      "svg": "svg/086.svg",
+      "sha256": "9f62721999325a8c198e7d86ccb58a1320e981ea2e69a42775a08e2d90ceb071"
+    },
+    {
+      "index": 87,
+      "id": "01a19c82-b79c-7104-9890-a184106acf63",
+      "name": "Планка с опорой на блок",
+      "source_key": "spinal-five-v1:s5-r1-4-c07",
+      "frame": [
+        16,
+        122,
+        476,
+        275
+      ],
+      "svg": "svg/087.svg",
+      "sha256": "9e652b68272ba06644ca95f86e41ac2ad8274f981384e1c04b34502458249162"
+    },
+    {
+      "index": 88,
+      "id": "01a19c82-b88b-7288-9b2c-6a39fcaf1679",
+      "name": "Планка с поднятой ногой",
+      "source_key": "spinal-five-v1:s5-r2-3-c04",
+      "frame": [
+        23,
+        107,
+        468,
+        298
+      ],
+      "svg": "svg/088.svg",
+      "sha256": "cb13d07ab618ac9ecf34344b68a37b7b9f1e11ef17a2b074428c96ef33cc722e"
+    },
+    {
+      "index": 89,
+      "id": "01a19c82-b83e-70ae-950c-bfa93198d85a",
+      "name": "Планка с подтягиванием колена (уточнить)",
+      "source_key": "spinal-five-v1:s5-r2-2-c04",
+      "frame": [
+        20,
+        151,
+        472,
+        213
+      ],
+      "svg": "svg/089.svg",
+      "sha256": "a37c4e73be5e07bae7c4cf5717f57648762b6a3c270fc500476bf28e5a01d573"
+    },
+    {
+      "index": 90,
+      "id": "01a19c82-b6b4-7329-a0a7-2827a8e3f28c",
+      "name": "Плуг с блоком и вытянутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-2-c11",
+      "frame": [
+        25,
+        107,
+        462,
+        297
+      ],
+      "svg": "svg/090.svg",
+      "sha256": "3188f3cf3eee8d7dd7801e0fee5df1da354f36f5a7c36c3f3d47f52fd50a1349"
+    },
+    {
+      "index": 91,
+      "id": "01a19c82-b69b-71bb-82d3-5fc0f310a5e5",
+      "name": "Плуг с блоком и согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-2-c09",
+      "frame": [
+        61,
+        27,
+        390,
+        462
+      ],
+      "svg": "svg/091.svg",
+      "sha256": "01f7217f838195e14302f9985bf6840fce3226c9d09c03f1eaa982bbe0cdbd3f"
+    },
+    {
+      "index": 92,
+      "id": "01a19c82-b791-708f-9246-8606e042b4e6",
+      "name": "Поворот корпуса на четвереньках (уточнить)",
+      "source_key": "spinal-five-v1:s5-r1-4-c06",
+      "frame": [
+        16,
+        77,
+        480,
+        355
+      ],
+      "svg": "svg/092.svg",
+      "sha256": "1e9528d232dd8690d3b7ed2fe190d15293bf4752d10c8eee8ca78f69b2c0a678"
+    },
+    {
+      "index": 93,
+      "id": "01a19c82-ab0c-73e8-8996-edd0acc8a98f",
+      "name": "Подтягивание колена лёжа с вытянутой второй ногой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-2-c06",
+      "frame": [
+        12,
+        157,
+        488,
+        199
+      ],
+      "svg": "svg/093.svg",
+      "sha256": "9ad8173dafe6fb01c94aaace8ddd0e4ed444df3a000aaee3b1d1c8f8e75714d4"
+    },
+    {
+      "index": 94,
+      "id": "01a19c82-b68f-7399-aabf-61940874715a",
+      "name": "Подъём прямой ноги лёжа",
+      "source_key": "spinal-five-v1:s5-r1-2-c08",
+      "frame": [
+        16,
+        43,
+        478,
+        425
+      ],
+      "svg": "svg/094.svg",
+      "sha256": "29bad7b08427c4da03f645634c313b131b8a8ddd6e19dd63bff8885588c8e09c"
+    },
+    {
+      "index": 95,
+      "id": "01a19c82-af2c-70ba-8daa-fc291786fcb0",
+      "name": "Подъём руки в положении стола (уточнить)",
+      "source_key": "spinal-five-v1:s3-r1-3-c05",
+      "frame": [
+        23,
+        57,
+        465,
+        399
+      ],
+      "svg": "svg/095.svg",
+      "sha256": "30f279e4519d17b83fcf6d4ee9a53c5b247895defe8609871a39706a4a29f2a1"
+    },
+    {
+      "index": 96,
+      "id": "01a19c82-a843-71ce-aaeb-b46f0a890c4d",
+      "name": "Положение на четвереньках",
+      "source_key": "spinal-five-v1:s1-r1-4-c02",
+      "frame": [
+        29,
+        110,
+        451,
+        290
+      ],
+      "svg": "svg/096.svg",
+      "sha256": "5f371427a2ba38c263b5f2f3ea19de97b38cb126f816e2c5062def48d068dea7"
+    },
+    {
+      "index": 97,
+      "id": "01a19c82-ab81-7160-943d-f6a61d75a994",
+      "name": "Положение на четвереньках с опорой коленей (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-3-c08",
+      "frame": [
+        29,
+        108,
+        454,
+        295
+      ],
+      "svg": "svg/097.svg",
+      "sha256": "ac87b67979e3bac48e8bc51f2cd093f72903d03a885211d643fabf39d98f8590"
+    },
+    {
+      "index": 98,
+      "id": "01a19c82-ab8d-7354-8170-83b493d314a0",
+      "name": "Положение на четвереньках с опорой ладоней (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-4-c01",
+      "frame": [
+        28,
+        117,
+        456,
+        278
+      ],
+      "svg": "svg/098.svg",
+      "sha256": "945befb15411a7060ffac2592385ed9a6e0ff687ceee83afb3dfd61a8a1bde0b"
+    },
+    {
+      "index": 99,
+      "id": "01a19c82-b901-737c-8237-a9f1060ca469",
+      "name": "Положение с одной вытянутой ногой и опорой на колено (уточнить)",
+      "source_key": "spinal-five-v1:s5-r3-1-c06",
+      "frame": [
+        28,
+        57,
+        455,
+        399
+      ],
+      "svg": "svg/099.svg",
+      "sha256": "616bbdb624c984dd34c57065e77903eb017037e28627899f8d5beef36bd5bb8a"
+    },
+    {
+      "index": 100,
+      "id": "01a19c82-acf7-7005-9cb3-de06f87362ac",
+      "name": "Присед на одной ноге с наклоном корпуса (уточнить)",
+      "source_key": "spinal-five-v1:s2-r3-1-c05",
+      "frame": [
+        81,
+        36,
+        349,
+        441
+      ],
+      "svg": "svg/100.svg",
+      "sha256": "017b63e0681b4759f2827362bc91ceb2ec16f452bc017db4ad2e57a6b2b29b2b"
+    },
+    {
+      "index": 101,
+      "id": "01a19c82-b527-714b-90f1-f175b2d9b59a",
+      "name": "Присед с отклонением корпуса назад (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c03",
+      "frame": [
+        43,
+        30,
+        432,
+        450
+      ],
+      "svg": "svg/101.svg",
+      "sha256": "2d1fe3713b21050adc34f555a6d24f39a129a051ab8eb739b6903f4355d0c380"
+    },
+    {
+      "index": 102,
+      "id": "01a19c82-a9be-71a0-a1d2-d9dec0799251",
+      "name": "Присед с перекрёстом ног и рукой за спиной (уточнить)",
+      "source_key": "spinal-five-v1:s1-r3-1-c05",
+      "frame": [
+        118,
+        28,
+        277,
+        451
+      ],
+      "svg": "svg/102.svg",
+      "sha256": "e3f7695c0f235a54e388612da34fe458b252c20f0b9a666e75ee2dcb531c5239"
+    },
+    {
+      "index": 103,
+      "id": "01a19c82-b11a-7236-91b0-9d2da1927698",
+      "name": "Присед с переплетёнными ногами (уточнить)",
+      "source_key": "spinal-five-v1:s3-r3-1-c06",
+      "frame": [
+        94,
+        34,
+        320,
+        449
+      ],
+      "svg": "svg/103.svg",
+      "sha256": "722b5eb2fe398ee757a5bb069d87a3370b317dfffc34f570e9422078d8407182"
+    },
+    {
+      "index": 104,
+      "id": "01a19c82-afb1-70f1-be3e-4087b25ee001",
+      "name": "Прогиб в упоре с вытянутой ногой",
+      "source_key": "spinal-five-v1:s3-r1-4-c05",
+      "frame": [
+        29,
+        134,
+        460,
+        244
+      ],
+      "svg": "svg/104.svg",
+      "sha256": "ebbfc50c15fee41fc8f7908cda79f1208d276e012689d43f560b7d2a8878744a"
+    },
+    {
+      "index": 105,
+      "id": "01a19c82-a90f-7015-a35d-f581bf9b43d1",
+      "name": "Прогиб лёжа с поднятой рукой (уточнить)",
+      "source_key": "spinal-five-v1:s1-r2-1-c05",
+      "frame": [
+        12,
+        104,
+        478,
+        303
+      ],
+      "svg": "svg/105.svg",
+      "sha256": "429409bfef748009532ceac71f9d68b988e7f74fdb63cedad61bfe8fe3730820"
+    },
+    {
+      "index": 106,
+      "id": "01a19c82-ac20-7080-869a-d78b640b820e",
+      "name": "Прогиб лёжа с согнутой ногой и рукой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-1-c05",
+      "frame": [
+        12,
+        118,
+        476,
+        277
+      ],
+      "svg": "svg/106.svg",
+      "sha256": "24b6fce4a9fbebad3547a771c49f9d29997017db6aab2cbc1cfefb34a6ed3225"
+    },
+    {
+      "index": 107,
+      "id": "01a19c82-b39b-71a6-bd4a-6d5e5551382e",
+      "name": "Прогиб на четвереньках",
+      "source_key": "spinal-five-v1:s4-r1-4-c03",
+      "frame": [
+        27,
+        101,
+        456,
+        315
+      ],
+      "svg": "svg/107.svg",
+      "sha256": "2526e89dae0cf4325c59ebcfd6ee70a3d6bbdc058c25aed588ad9eb9c47c1e56"
+    },
+    {
+      "index": 108,
+      "id": "01a19c82-a8b3-717f-832d-76e03a3cdda6",
+      "name": "Прогиб с коленями на полу (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-5-c04",
+      "frame": [
+        23,
+        121,
+        462,
+        270
+      ],
+      "svg": "svg/108.svg",
+      "sha256": "ceb64d704cd5cc2c9c119abfd0d8fdf5ae937034a870885d36651ce0de9ac33d"
+    },
+    {
+      "index": 109,
+      "id": "01a19c82-b54c-73c0-b882-216eaed0cba1",
+      "name": "Прогиб с опорой на руки и стопы (уточнить)",
+      "source_key": "spinal-five-v1:s4-r4-1-c06",
+      "frame": [
+        24,
+        85,
+        458,
+        341
+      ],
+      "svg": "svg/109.svg",
+      "sha256": "361399c2fa00b100bcfe077db92bd9010541775e33b4e948e8529125fce22340"
+    },
+    {
+      "index": 110,
+      "id": "01a19c82-ab76-73cf-b146-27237fbd1542",
+      "name": "Пурвоттанасана с опорой стоп (уточнить)",
+      "source_key": "spinal-five-v1:s2-r1-3-c07",
+      "frame": [
+        25,
+        120,
+        463,
+        272
+      ],
+      "svg": "svg/110.svg",
+      "sha256": "dd3d41e8da9fc99513af2118aaef2456dd686ac28f14b99eebd19770ab713674"
+    },
+    {
+      "index": 111,
+      "id": "01a19c82-b866-73f8-b3d8-beea23a22580",
+      "name": "Равновесие в приседе с рукой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s5-r2-2-c07",
+      "frame": [
+        109,
+        16,
+        290,
+        467
+      ],
+      "svg": "svg/111.svg",
+      "sha256": "7f035c340adea8beb8856bf319c9490e60dd54d2d2e3455a9b7c86fbeb5468a0"
+    },
+    {
+      "index": 112,
+      "id": "01a19c82-b90d-7129-ba23-6a44f976543f",
+      "name": "Равновесие в приседе с рукой за спиной (уточнить)",
+      "source_key": "spinal-five-v1:s5-r3-1-c07",
+      "frame": [
+        83,
+        31,
+        357,
+        448
+      ],
+      "svg": "svg/112.svg",
+      "sha256": "8acfcc421ba1d041cd4a9aea26140505b5364cf0f800bbe607a2015fbea8db0e"
+    },
+    {
+      "index": 113,
+      "id": "01a19c82-ad04-70c8-9bae-842a5562930a",
+      "name": "Равновесие с одной вытянутой ногой и наклоном корпуса (уточнить)",
+      "source_key": "spinal-five-v1:s2-r3-1-c06",
+      "frame": [
+        40,
+        33,
+        430,
+        439
+      ],
+      "svg": "svg/113.svg",
+      "sha256": "6ab9e19e60d21ec91566d70f82af88729b2adbd20dc66f33e5f409ede9b344b6"
+    },
+    {
+      "index": 114,
+      "id": "01a19c82-b66c-738c-be96-06d3b74234b9",
+      "name": "Равновесие с подтянутыми коленями и вытянутыми руками",
+      "source_key": "spinal-five-v1:s5-r1-2-c05",
+      "frame": [
+        32,
+        105,
+        455,
+        299
+      ],
+      "svg": "svg/114.svg",
+      "sha256": "47d275e6d2da25bb9e389fb2e7c2ab7c6c913bfe5a567ce3e7f4c3d4ed4553ef"
+    },
+    {
+      "index": 115,
+      "id": "01a19c82-b501-702a-8e40-8b8a7a3a732e",
+      "name": "Равновесие сидя с вытянутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r3-1-c07",
+      "frame": [
+        31,
+        25,
+        448,
+        462
+      ],
+      "svg": "svg/115.svg",
+      "sha256": "a0309d65dbc1916e9c8a29292069febb55ebea0e9463f0978eef016c0c39dad2"
+    },
+    {
+      "index": 116,
+      "id": "01a19c82-b2d0-705b-a5b6-126d13fedab9",
+      "name": "Равновесие сидя с коленями у груди (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-2-c01",
+      "frame": [
+        104,
+        32,
+        303,
+        462
+      ],
+      "svg": "svg/116.svg",
+      "sha256": "0c3403b5a77682916caea1a125a30a3a828e615ec9e60b8fc938acac75c6533a"
+    },
+    {
+      "index": 117,
+      "id": "01a19c82-b303-70d9-bb85-b2fe6d82f1ef",
+      "name": "Равновесие сидя с одной поднятой ногой и блоком (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-2-c06",
+      "frame": [
+        61,
+        25,
+        396,
+        463
+      ],
+      "svg": "svg/117.svg",
+      "sha256": "614a355807d3c4a7d0085fee02a8e96eca8346cc0371d4f07f1067bfe035862f"
+    },
+    {
+      "index": 118,
+      "id": "01a19c82-a7be-7381-9498-137d7d7096ad",
+      "name": "Равновесие сидя с одной прямой ногой вверх (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-2-c05",
+      "frame": [
+        74,
+        31,
+        367,
+        450
+      ],
+      "svg": "svg/118.svg",
+      "sha256": "aab402c8131ad6947ebe2b99533d37ee51573aab411cb17043e94a661a2464a3"
+    },
+    {
+      "index": 119,
+      "id": "01a19c82-b479-7099-a81a-fb0b49908e1a",
+      "name": "Равновесие сидя с согнутыми ногами и отклонённым корпусом (уточнить)",
+      "source_key": "spinal-five-v1:s4-r2-2-c04",
+      "frame": [
+        29,
+        118,
+        462,
+        277
+      ],
+      "svg": "svg/119.svg",
+      "sha256": "5cfe7b9a2f37079380ece95a2746865f232e446cdd20cc159105be7a4204a4ef"
+    },
+    {
+      "index": 120,
+      "id": "01a19c82-b10c-70f3-8e1a-40fa3d7721ca",
+      "name": "Равновесие стоя с переплетёнными ногами (уточнить)",
+      "source_key": "spinal-five-v1:s3-r3-1-c05",
+      "frame": [
+        123,
+        23,
+        263,
+        467
+      ],
+      "svg": "svg/120.svg",
+      "sha256": "abfb92b0b0230b37f25388d9faf9e94824501774d09e5ad7ee3d1283e2a69031"
+    },
+    {
+      "index": 121,
+      "id": "01a19c82-aa65-733f-976c-0f977f2941b0",
+      "name": "Сарвангасана",
+      "source_key": "spinal-five-v1:s1-r5-1-c03",
+      "frame": [
+        110,
+        26,
+        292,
+        459
+      ],
+      "svg": "svg/121.svg",
+      "sha256": "f33e827025820d78d65d1e67328e57e03cd8bae45b02fb1258d620a03e96074b"
+    },
+    {
+      "index": 122,
+      "id": "01a19c82-a813-70da-b27e-000c0b06c675",
+      "name": "Сгибание корпуса с широкой опорой ног (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-3-c06",
+      "frame": [
+        37,
+        135,
+        448,
+        237
+      ],
+      "svg": "svg/122.svg",
+      "sha256": "b105888ba26ab84864cb37aa99f3fa87f2e4c665f622125c1f69466ef00397e9"
+    },
+    {
+      "index": 123,
+      "id": "01a19c82-aed8-73ae-80c6-d040b1ac29b9",
+      "name": "Сгибание ног у стены лёжа",
+      "source_key": "spinal-five-v1:s3-r1-2-c09",
+      "frame": [
+        122,
+        23,
+        274,
+        467
+      ],
+      "svg": "svg/123.svg",
+      "sha256": "99620af43f47280b121ab26109594c5ca8323b3fc84aafe52ccf2027e412be68"
+    },
+    {
+      "index": 124,
+      "id": "01a19c82-a76e-7118-b615-3f6090e03227",
+      "name": "Сидя с одной согнутой и одной вытянутой ногой",
+      "source_key": "spinal-five-v1:s1-r1-1-c03",
+      "frame": [
+        23,
+        108,
+        466,
+        292
+      ],
+      "svg": "svg/124.svg",
+      "sha256": "1d9f53cbcf6838faf2d443004f87ad358cce96e2610b6c71728ab75fbc963918"
+    },
+    {
+      "index": 125,
+      "id": "01a19c82-a7d7-7263-b9d5-2adbda179243",
+      "name": "Сидя с опорой на руки сзади (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-3-c01",
+      "frame": [
+        26,
+        84,
+        461,
+        345
+      ],
+      "svg": "svg/125.svg",
+      "sha256": "56f7b74a40a5b97af6980e910a7a13dcff96a66f2d495d8ae219bd40562fa578"
+    },
+    {
+      "index": 126,
+      "id": "01a19c82-b337-7344-98b0-85273a640631",
+      "name": "Сидя с согнутыми ногами и поднятой рукой (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-3-c03",
+      "frame": [
+        66,
+        25,
+        380,
+        460
+      ],
+      "svg": "svg/126.svg",
+      "sha256": "0f465d8ac7cc7d848e680acedb342d1f0df0f42d5e23e3e50b8dcbc8e5e4aa6b"
+    },
+    {
+      "index": 127,
+      "id": "01a19c82-a7e3-726b-9586-e4f8f2f57acc",
+      "name": "Сидя с согнутыми ногами и рукой вперёд (уточнить)",
+      "source_key": "spinal-five-v1:s1-r1-3-c02",
+      "frame": [
+        29,
+        74,
+        454,
+        363
+      ],
+      "svg": "svg/127.svg",
+      "sha256": "c25d071abdd065bd3054305abd8e1197d37fdd100186121cba94823c7c57392e"
+    },
+    {
+      "index": 128,
+      "id": "01a19c82-ad91-715b-ae60-31184e44899f",
+      "name": "Скручивание лёжа с одной согнутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r5-1-c02",
+      "frame": [
+        27,
+        107,
+        456,
+        302
+      ],
+      "svg": "svg/128.svg",
+      "sha256": "06c8fecae4d8142c1dd45cb74adc8b3231a904ef993d9c87fd26add54aba6ab9"
+    },
+    {
+      "index": 129,
+      "id": "01a19c82-b218-7198-bd15-adab2ae0af86",
+      "name": "Скручивание лёжа с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s3-r5-1-c07",
+      "frame": [
+        23,
+        100,
+        462,
+        310
+      ],
+      "svg": "svg/129.svg",
+      "sha256": "aee652bfd24a895078609cfefef9f715fdab57d962b993b851bf4a55c77f8d37"
+    },
+    {
+      "index": 130,
+      "id": "01a19c82-b32a-71d6-8fc6-ed94399b007c",
+      "name": "Скручивание сидя с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s4-r1-3-c02",
+      "frame": [
+        30,
+        26,
+        460,
+        463
+      ],
+      "svg": "svg/130.svg",
+      "sha256": "e5c95430686f11bb3f01cdda8bcc36ee56784efe6f4b3db74720f4d86d557fb8"
+    },
+    {
+      "index": 131,
+      "id": "01a19c82-ad7a-71d2-b803-ee8f752f6abc",
+      "name": "Стойка на предплечьях (уточнить)",
+      "source_key": "spinal-five-v1:s2-r4-2-c04",
+      "frame": [
+        135,
+        31,
+        240,
+        457
+      ],
+      "svg": "svg/131.svg",
+      "sha256": "872e9458e42e20a5b87f25153cfb0f29d75eabbe46a0dda46f893fce7f7104a7"
+    },
+    {
+      "index": 132,
+      "id": "01a19c82-aa42-729f-a7ca-6b365e724297",
+      "name": "Стойка у стены с опорой на руки (уточнить)",
+      "source_key": "spinal-five-v1:s1-r4-2-c02",
+      "frame": [
+        134,
+        25,
+        247,
+        459
+      ],
+      "svg": "svg/132.svg",
+      "sha256": "0a10dc0f7f637f5941b9e11adc2e88ef21cf315ffcf65282c3211f451c47a036"
+    },
+    {
+      "index": 133,
+      "id": "01a19c82-acdf-733f-88a2-1638991685f0",
+      "name": "Стоя с руками за головой (уточнить)",
+      "source_key": "spinal-five-v1:s2-r3-1-c03",
+      "frame": [
+        143,
+        26,
+        228,
+        454
+      ],
+      "svg": "svg/133.svg",
+      "sha256": "1f4663f5c2c9f108c915c9faf30015cc821e96c1642fd2ec0e2bcc0fccc6125f"
+    },
+    {
+      "index": 134,
+      "id": "01a19c82-b29c-73bb-9b35-bf9428b8e0f0",
+      "name": "Сукхасана",
+      "source_key": "spinal-five-v1:s4-r1-1-c01",
+      "frame": [
+        102,
+        30,
+        307,
+        457
+      ],
+      "svg": "svg/134.svg",
+      "sha256": "b8f0bfa94439038b875bbce915e3b9aa75dc2ab41466e26b03b92fd02d170293"
+    },
+    {
+      "index": 135,
+      "id": "01a19c82-ade0-7017-a90f-952c9188981a",
+      "name": "Сукхасана с руками перед грудью",
+      "source_key": "spinal-five-v1:s2-r5-2-c01",
+      "frame": [
+        106,
+        33,
+        297,
+        442
+      ],
+      "svg": "svg/135.svg",
+      "sha256": "d4459d98c78c514f54cd2ff7bb2287d7d2f6db63703bb09d216c7353d41612ca"
+    },
+    {
+      "index": 136,
+      "id": "01a19c82-b4b8-72cc-96c0-fc1c26d355bc",
+      "name": "Тадасана",
+      "source_key": "spinal-five-v1:s4-r3-1-c01",
+      "frame": [
+        164,
+        28,
+        181,
+        463
+      ],
+      "svg": "svg/136.svg",
+      "sha256": "0cb810e613a96b43177e3ddebabe4482d690678dbe084c101aa4f8e0102093df"
+    },
+    {
+      "index": 137,
+      "id": "01a19c82-a9d5-72f7-ac0f-1f1c1aeaeb0e",
+      "name": "Удержание ноги в сторону стоя (уточнить)",
+      "source_key": "spinal-five-v1:s1-r3-2-c02",
+      "frame": [
+        31,
+        34,
+        455,
+        449
+      ],
+      "svg": "svg/137.svg",
+      "sha256": "7f0ffe8b121f0952c78e5c65457cec0b0708c24f03e24beaeb2c55c0a851794f"
+    },
+    {
+      "index": 138,
+      "id": "01a19c82-a9c9-7288-94d1-6bdf95ccb40c",
+      "name": "Удержание ноги перед собой стоя (уточнить)",
+      "source_key": "spinal-five-v1:s1-r3-2-c01",
+      "frame": [
+        126,
+        30,
+        261,
+        449
+      ],
+      "svg": "svg/138.svg",
+      "sha256": "59ea9efb7006e5bd25a70dd546ca4802e0512f6d7e6e495c1edb35411b1613d6"
+    },
+    {
+      "index": 139,
+      "id": "01a19c82-b3c9-71f8-aaa6-644abddae2ac",
+      "name": "Упор на колени и грудь с поднятой рукой и блоком",
+      "source_key": "spinal-five-v1:s4-r1-4-c07",
+      "frame": [
+        25,
+        160,
+        464,
+        196
+      ],
+      "svg": "svg/139.svg",
+      "sha256": "ef32a513fc9f2aa03c44222726e1f7da333a20a630a04d74a8dd36c80fa66262"
+    },
+    {
+      "index": 140,
+      "id": "01a19c82-b07f-713a-ac78-079dcec72321",
+      "name": "Упор на одну руку с вытянутой ногой (уточнить)",
+      "source_key": "spinal-five-v1:s3-r2-2-c05",
+      "frame": [
+        28,
+        133,
+        462,
+        246
+      ],
+      "svg": "svg/140.svg",
+      "sha256": "35516f6fc19999c3e095e32a20fe7ac68f25a3b8ceb490e33e0ed3b18026c107"
+    },
+    {
+      "index": 141,
+      "id": "01a19c82-a8be-706f-9871-7077896f12c1",
+      "name": "Урдхва Мукха Шванасана",
+      "source_key": "spinal-five-v1:s1-r1-5-c05",
+      "frame": [
+        23,
+        93,
+        465,
+        321
+      ],
+      "svg": "svg/141.svg",
+      "sha256": "28a6f52002ce7ce4599baa7c21e3ce3bcc3f775f0a07f5284ae25de6edcf4e5f"
+    },
+    {
+      "index": 142,
+      "id": "01a19c82-b485-73cd-baf0-b895d8f1fbff",
+      "name": "Уткатасана с руками вверх",
+      "source_key": "spinal-five-v1:s4-r2-3-c01",
+      "frame": [
+        115,
+        25,
+        279,
+        462
+      ],
+      "svg": "svg/142.svg",
+      "sha256": "c97048cafcc63b8112b95ac37421e695d123c5e07ece559fa7f46ecfdbd59943"
+    },
+    {
+      "index": 143,
+      "id": "01a19c82-a9fa-722c-9ab3-19f614b781b2",
+      "name": "Уткатасана с руками вперёд",
+      "source_key": "spinal-five-v1:s1-r4-1-c01",
+      "frame": [
+        55,
+        33,
+        403,
+        448
+      ],
+      "svg": "svg/143.svg",
+      "sha256": "9bfa60237166cd70e341faa6fdc6a8a2d3a4147dcbc94436e6424de27acbe0ae"
+    },
+    {
+      "index": 144,
+      "id": "01a19c82-b0af-7027-a576-4ae63ba19e4a",
+      "name": "Уттанасана с захватом голеней",
+      "source_key": "spinal-five-v1:s3-r2-3-c01",
+      "frame": [
+        120,
+        24,
+        267,
+        456
+      ],
+      "svg": "svg/144.svg",
+      "sha256": "0ac77e1a80cf6c104c9951b5902fb2859d7b88c7f11ee31a2336baddd7f9d83f"
+    },
+    {
+      "index": 145,
+      "id": "01a19c82-aca3-703c-bd3a-222b38062f2b",
+      "name": "Уттанасана с опорой головы на блок (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-3-c03",
+      "frame": [
+        32,
+        44,
+        447,
+        425
+      ],
+      "svg": "svg/145.svg",
+      "sha256": "68b3fd722e9f57b3a51951ab3ed4632e61bf543c61aa1879f33b4f1a299253c6"
+    },
+    {
+      "index": 146,
+      "id": "01a19c82-ac8a-73f0-afd0-c3e407edea1d",
+      "name": "Уттанасана с руками на полу (уточнить)",
+      "source_key": "spinal-five-v1:s2-r2-3-c01",
+      "frame": [
+        111,
+        33,
+        288,
+        437
+      ],
+      "svg": "svg/146.svg",
+      "sha256": "fe8ad13ce6f2e3304deb72990e11c3147a4bc676a4a2b1b3990cce03dc051ace"
+    },
+    {
+      "index": 147,
+      "id": "01a19c82-aa70-7201-aab9-cd65311b08f1",
+      "name": "Халасана",
+      "source_key": "spinal-five-v1:s1-r5-1-c04",
+      "frame": [
+        25,
+        144,
+        464,
+        224
+      ],
+      "svg": "svg/147.svg",
+      "sha256": "d636d946130e38b7ad0041a12549dba83fff36ec6645ef1b725925e442a68352"
+    },
+    {
+      "index": 148,
+      "id": "01a19c82-aa5a-7004-8ea8-6e8f3ef00b82",
+      "name": "Халасана с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s1-r5-1-c02",
+      "frame": [
+        38,
+        99,
+        442,
+        314
+      ],
+      "svg": "svg/148.svg",
+      "sha256": "b1db27675aee21b46343a6e8c8af208a27994f3051f52eee25aba83c930e1eff"
+    },
+    {
+      "index": 149,
+      "id": "01a19c82-aa88-709a-a0e2-fcff29942256",
+      "name": "Шавасана",
+      "source_key": "spinal-five-v1:s1-r5-1-c06",
+      "frame": [
+        27,
+        169,
+        456,
+        175
+      ],
+      "svg": "svg/149.svg",
+      "sha256": "7183defa5c222c7851007e1572de2b5c0fadaacd5d09a54aa55b60eea6f63f5a"
+    },
+    {
+      "index": 150,
+      "id": "01a19c82-a8f8-73fa-a7f5-1bd195a12fb8",
+      "name": "Шалабхасана",
+      "source_key": "spinal-five-v1:s1-r2-1-c03",
+      "frame": [
+        24,
+        159,
+        466,
+        192
+      ],
+      "svg": "svg/150.svg",
+      "sha256": "e689f85578c84a2eea56778e92b6e7ceee2dd083e5a198da58d1e5dd5599959a"
+    },
+    {
+      "index": 151,
+      "id": "01a19c82-ad6e-701d-a88e-c1772199b912",
+      "name": "Ширшасана",
+      "source_key": "spinal-five-v1:s2-r4-2-c03",
+      "frame": [
+        167,
+        27,
+        176,
+        459
+      ],
+      "svg": "svg/151.svg",
+      "sha256": "7a5fe76973976ed0f688157ed8def049dac1586e59d414ddc481de69f79b6b73"
+    },
+    {
+      "index": 152,
+      "id": "01a19c82-b19a-7244-a60a-4717c51f5817",
+      "name": "Ширшасана с согнутыми ногами (уточнить)",
+      "source_key": "spinal-five-v1:s3-r4-1-c08",
+      "frame": [
+        137,
+        26,
+        239,
+        457
+      ],
+      "svg": "svg/152.svg",
+      "sha256": "4c61d6d5c238b50c473f68c95ad3be9b720c4456499060738426a19b44ce06cf"
+    },
+    {
+      "index": 153,
+      "id": "01a19c82-aa36-7378-9efb-839a7b83d789",
+      "name": "Ширшасана у стены с согнутой ногой",
+      "source_key": "spinal-five-v1:s1-r4-2-c01",
+      "frame": [
+        132,
+        28,
+        247,
+        462
+      ],
+      "svg": "svg/153.svg",
+      "sha256": "a5cbc4bbcddd35754ab482030148153d2a0c1e3f01af33d1a1cc3eea72654c6a"
+    }
+  ]
+}

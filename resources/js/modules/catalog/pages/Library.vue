@@ -30,6 +30,7 @@ import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
 import ClassificationDialog from '../components/ClassificationDialog.vue';
 const classificationOpen = ref(false);
+const comparisonAvailable = ref(false);
 const categoryCard = ref<Asana | null>(null);
 const filters = ref(emptyFilters());
 const initial = new URL(window.location.href);
@@ -145,6 +146,9 @@ watch(tab, updateUrl);
 onMounted(() => {
   void load();
   void loadMetadata();
+  void api<{ available: boolean }>('/api/figure-comparison/availability')
+    .then((response) => (comparisonAvailable.value = response.available))
+    .catch(() => undefined);
 });
 onBeforeUnmount(() => {
   clearTimeout(timer);
@@ -247,6 +251,9 @@ async function taxonomyChanged() {
         </button>
       </div>
       <ActionMenu label="Настройки библиотеки">
+        <a v-if="comparisonAvailable" href="/figure-comparison" target="_blank" rel="noopener"
+          >Сравнение рисунков</a
+        >
         <a href="/settings">Настройки отображения</a>
         <button @click="taxonomyOpen = true">Управление категориями</button>
         <button @click="selectVisible">

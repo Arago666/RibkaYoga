@@ -1,0 +1,1313 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Сравнение рисунков · RibkaYoga</title>
+    <style>
+      :root {
+        --ink: #18231c;
+        --muted: #788279;
+        --line: #e1e8e2;
+        --green: #22914d;
+        --soft: #eaf7ef;
+        --bg: #f7f9f6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.45;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        color: inherit;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid #88d8a4;
+        outline-offset: 3px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      svg {
+        display: block;
+      }
+      button svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+      .wrap {
+        max-width: 1320px;
+        margin: auto;
+        padding: 0 32px;
+      }
+      header {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: -0.9px;
+      }
+      .brandmark {
+        width: 36px;
+        height: 36px;
+        background: #2ab95d;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+      }
+      .brandmark svg {
+        width: 25px;
+        height: 25px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--green);
+        font-weight: 700;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 43px;
+        padding: 10px 17px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: linear-gradient(#fff, #f3f7f3);
+        box-shadow:
+          inset 0 1px #fff,
+          0 3px 10px #15291904;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .btn:hover {
+        border-color: #a6cdb3;
+        background: #f4faf5;
+      }
+      .btn.primary {
+        background: linear-gradient(#43cb71, #28b85a);
+        border-color: #29b95c;
+        color: #102a18;
+        box-shadow:
+          inset 0 1px #ffffff9c,
+          0 5px 16px #24ad5021;
+      }
+      .hero {
+        padding: 22px 0 14px;
+      }
+      .hero h1 {
+        font-size: clamp(30px, 3.8vw, 40px);
+        line-height: 1.12;
+        letter-spacing: -1.7px;
+        margin: 8px 0 10px;
+        font-weight: 680;
+      }
+      .hero p {
+        max-width: 1100px;
+        color: #738078;
+        font-size: 14px;
+        margin: 0;
+      }
+      .stats {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin: 16px 0 0;
+      }
+      .stat {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .stat b {
+        font-size: 21px;
+        color: var(--ink);
+        font-weight: 650;
+      }
+      .stat.good b {
+        color: var(--green);
+      }
+      .stat.bad b {
+        color: #a57138;
+      }
+      .toolbar {
+        position: sticky;
+        top: 10px;
+        z-index: 10;
+        background: #fffffff5;
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--line);
+        border-radius: 23px;
+        padding: 10px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 4px 0 16px;
+        box-shadow: 0 9px 30px #18341e08;
+      }
+      .filters {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+      }
+      .filter {
+        padding: 10px 14px;
+        border: 0;
+        background: transparent;
+        border-radius: 999px;
+        font-size: 13px;
+        min-height: 42px;
+      }
+      .filter[aria-pressed='true'] {
+        background: var(--soft);
+        color: #166d39;
+        font-weight: 650;
+      }
+      .search {
+        min-width: 230px;
+        max-width: 360px;
+        flex: 1;
+        position: relative;
+      }
+      .search input {
+        width: 100%;
+        padding: 11px 16px 11px 40px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #f8faf7;
+        color: var(--ink);
+        font-size: 13px;
+      }
+      .search svg {
+        position: absolute;
+        width: 17px;
+        height: 17px;
+        top: 13px;
+        left: 14px;
+        color: #869188;
+      }
+      .help {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0 2px 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 27px;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 5px 25px #17331c03;
+        min-width: 0;
+        scroll-margin-top: 100px;
+      }
+      .card[data-vote='like'] {
+        border-color: #9ed5af;
+      }
+      .card[data-vote='redo'] {
+        border-color: #dfc49f;
+      }
+      .cardhead {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+        min-height: 42px;
+      }
+      .num {
+        font-size: 12px;
+        font-weight: 600;
+        color: #849087;
+        padding-top: 4px;
+        font-variant-numeric: tabular-nums;
+      }
+      .card h2 {
+        font-size: 17px;
+        line-height: 1.38;
+        margin: 0;
+        font-weight: 650;
+        letter-spacing: -0.25px;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .drawing {
+        position: relative;
+        border: 1px solid #e6ebe6;
+        background: #fff;
+        border-radius: 19px;
+        min-width: 0;
+        padding: 35px 7px 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        overflow: hidden;
+        width: 100%;
+      }
+      .drawing:hover {
+        border-color: #b9d8c1;
+      }
+      .drawing.new {
+        background: radial-gradient(ellipse at top, #f4fbf5, white 65%);
+        border-color: #d8eadc;
+      }
+      .drawing svg,
+      .drawing img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .drawing .tag {
+        position: absolute;
+        top: 11px;
+        left: 12px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #8b958e;
+      }
+      .drawing.new .tag {
+        color: #2b8b4c;
+      }
+      .zoomicon {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        color: #a6b5aa;
+      }
+      .zoomicon svg {
+        width: 14px;
+        height: 14px;
+      }
+      .feedback {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+      .vote {
+        flex: 1;
+        min-width: 105px;
+        min-height: 41px;
+        border: 1px solid var(--line);
+        background: linear-gradient(#fff, #f6f9f5);
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 9px 10px;
+      }
+      .vote svg {
+        width: 15px;
+        height: 15px;
+      }
+      .vote[data-v='like'][aria-pressed='true'] {
+        background: #e7f6ec;
+        border-color: #a0d7b1;
+        color: #18753b;
+      }
+      .vote[data-v='redo'][aria-pressed='true'] {
+        background: #fcf3e7;
+        border-color: #e6c69a;
+        color: #956121;
+      }
+      .comment-toggle {
+        width: 41px;
+        height: 41px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: white;
+        display: grid;
+        place-items: center;
+      }
+      .comment-toggle.has-note {
+        color: #27894c;
+        background: #eef9f1;
+      }
+      .comment-toggle svg {
+        width: 17px;
+        height: 17px;
+      }
+      .commentbox {
+        margin-top: 12px;
+      }
+      .commentbox[hidden] {
+        display: none;
+      }
+      .commentbox textarea {
+        display: block;
+        width: 100%;
+        resize: vertical;
+        min-height: 76px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+        background: #fbfcfa;
+      }
+      .reset {
+        margin: 9px 0 0;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: #8b958e;
+        font-size: 11px;
+      }
+      .source-note {
+        margin: 12px 0 0;
+        font-size: 11px;
+        color: #8c938c;
+        line-height: 1.5;
+      }
+      .empty {
+        grid-column: 1/-1;
+        padding: 75px 15px;
+        text-align: center;
+        color: #7b887e;
+        border: 1px dashed var(--line);
+        border-radius: 25px;
+      }
+      .footer {
+        padding: 32px 0 45px;
+        color: #89948c;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .toast {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e3526;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 999px;
+        z-index: 50;
+        font-size: 13px;
+        max-width: calc(100% - 30px);
+        text-align: center;
+        box-shadow: 0 5px 25px #16351c20;
+      }
+      .toast[hidden] {
+        display: none;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 0;
+        width: min(1120px, calc(100vw - 32px));
+        max-height: calc(100dvh - 32px);
+        color: var(--ink);
+        box-shadow: 0 30px 100px #102b1c30;
+      }
+      dialog::backdrop {
+        background: #18352050;
+        backdrop-filter: blur(6px);
+      }
+      .modalinner {
+        padding: 27px;
+      }
+      .modalhead {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+      }
+      .modalhead h2 {
+        font-size: 23px;
+        margin: 4px 0 18px;
+        letter-spacing: -0.5px;
+      }
+      .close {
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: #fff;
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+      .modal .drawing {
+        height: min(48vh, 400px);
+        pointer-events: none;
+      }
+      .modal .pair {
+        gap: 18px;
+      }
+      .modalfoot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .modalfoot .feedback {
+        margin: 0;
+        flex: 1;
+        max-width: 390px;
+      }
+      .anatomy-toggle {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: #728477;
+        margin-top: 15px;
+      }
+      .anatomy .part-arms {
+        stroke: #387fbd;
+      }
+      .anatomy .part-legs {
+        stroke: #b07a35;
+      }
+      .anatomy .part-head {
+        stroke: #269451;
+      }
+      .legend {
+        font-size: 11px;
+        color: #829087;
+        display: none;
+      }
+      .anatomy .legend {
+        display: block;
+      }
+      .navbuttons {
+        display: flex;
+        gap: 7px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .previous-info,
+      .previous-grade {
+        font-size: 11px;
+        color: #9a773f;
+        margin: 9px 0 0;
+      }
+      .source-overlay {
+        display: none;
+        opacity: 0.32;
+        pointer-events: none;
+      }
+      .overlay-on .drawing.new .source-overlay {
+        display: inline;
+      }
+      .overlay-on .drawing.new .understroke {
+        stroke-opacity: 0;
+      }
+      .overlay-on .drawing.new .part-head {
+        fill: none;
+      }
+      .inspection-toggles {
+        display: flex;
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+      .inspection-toggles .anatomy-toggle {
+        margin-top: 12px;
+      }
+      @media (max-width: 900px) {
+        .wrap {
+          padding: 0 20px;
+        }
+        .grid {
+          gap: 16px;
+        }
+        .card {
+          padding: 18px;
+        }
+        .drawing {
+          height: 205px;
+        }
+        .toolbar {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 9px;
+        }
+        .search {
+          max-width: none;
+        }
+        .hero {
+          padding-top: 32px;
+        }
+        .top {
+          align-items: flex-start;
+        }
+        .actions .btn {
+          font-size: 11px;
+          padding: 9px 11px;
+          min-height: 39px;
+        }
+        .brand {
+          font-size: 20px;
+        }
+        .brandmark {
+          width: 32px;
+          height: 32px;
+        }
+        .hero h1 {
+          letter-spacing: -1px;
+        }
+        .stats {
+          gap: 18px;
+        }
+      }
+      @media (max-width: 680px) {
+        .wrap {
+          padding: 0 15px;
+        }
+        .top {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .top .actions {
+          width: 100%;
+        }
+        .top .actions .btn {
+          flex: 1;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          padding-top: 28px;
+        }
+        .hero h1 {
+          font-size: 32px;
+        }
+        .hero p {
+          font-size: 14px;
+        }
+        .toolbar {
+          top: 6px;
+          border-radius: 20px;
+          padding: 9px;
+        }
+        .filters {
+          justify-content: space-between;
+        }
+        .filter {
+          font-size: 11px;
+          padding: 9px 10px;
+        }
+        .search {
+          min-width: 0;
+        }
+        .drawing {
+          height: 210px;
+        }
+        .cardhead {
+          min-height: 0;
+        }
+        .help {
+          font-size: 10px;
+        }
+        .card {
+          padding: 18px;
+          border-radius: 23px;
+        }
+        .stats {
+          gap: 16px;
+        }
+        .stat {
+          font-size: 11px;
+        }
+        .stat b {
+          font-size: 20px;
+        }
+        .modalinner {
+          padding: 18px;
+        }
+        .modalhead h2 {
+          font-size: 18px;
+        }
+        .modal .pair {
+          gap: 9px;
+        }
+        .modal .drawing {
+          height: 220px;
+          padding-top: 28px;
+        }
+        .modalfoot {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .modalfoot .feedback {
+          max-width: none;
+        }
+        .navbuttons .btn {
+          flex: 1;
+        }
+        .modalhead .eyebrow {
+          font-size: 10px;
+        }
+        .modal .drawing .tag {
+          font-size: 8px;
+        }
+        .footer {
+          font-size: 11px;
+        }
+        .modal .source-note {
+          font-size: 10px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto !important;
+        }
+      }
+
+      .pair {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .drawing {
+        height: 235px;
+      }
+      .drawing.realistic {
+        background: #fff;
+      }
+      .drawing.realistic .tag {
+        color: #727e77;
+      }
+      .drawing.realistic img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .photo-pending {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      a.btn {
+        text-decoration: none;
+      }
+      .modal .pair {
+        gap: 12px;
+      }
+      .modal .drawing {
+        height: min(48vh, 360px);
+      }
+      @media (max-width: 1100px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .drawing {
+          height: 265px;
+        }
+      }
+      @media (max-width: 680px) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+        .drawing {
+          height: 220px;
+        }
+        .modal .pair {
+          grid-template-columns: 1fr;
+        }
+        .modal .drawing {
+          height: 220px;
+        }
+        .inspection-toggles {
+          gap: 4px;
+        }
+        .modalhead {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          background: white;
+        }
+        .modal {
+          max-height: calc(100dvh - 24px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap top">
+        <div class="brand">
+          <span class="brandmark"
+            ><svg viewBox="0 0 32 32" fill="none" stroke="#123820" stroke-width="2.7" stroke-linecap="round">
+              <circle cx="16" cy="8" r="3" />
+              <path d="M16 12v8m-8-5 8 3 8-3M16 20l-7 6m7-6 7 6" /></svg></span
+          >ribkayoga
+        </div>
+        <div class="actions">
+          <a class="btn" href="/library">В библиотеку</a
+          ><button class="btn" id="import">Загрузить отметки</button
+          ><button class="btn primary" id="export">Скачать отметки <span id="export-count"></span></button
+          ><input type="file" id="import-file" accept="application/json,.json" hidden />
+        </div>
+      </div>
+    </header>
+    <main class="wrap">
+      <section class="hero">
+        <div class="eyebrow">Три варианта · 5 ноября 2026</div>
+        <h1>Рисунки асан: было → стало</h1>
+        <p>
+          Оригинал, новый рисунок и сгенерированный человек в той же позе. Откройте сравнение крупнее,
+          проверьте наложение и оставьте комментарий. Реалистичные варианты находятся только на этой странице.
+        </p>
+        <p id="previous-count" class="previous-info" hidden></p>
+        <div class="stats">
+          <div class="stat"><b>__COUNT__</b> рисунка</div>
+          <div class="stat"><b>__PHOTO_COUNT__</b> реалистичных</div>
+          <div class="stat"><b id="stat-reviewed">0</b> оценено</div>
+          <div class="stat good"><b id="stat-like">0</b> нравится</div>
+          <div class="stat bad"><b id="stat-redo">0</b> переделать</div>
+        </div>
+      </section>
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="Фильтр рисунков">
+          <button class="filter" data-filter="all" aria-pressed="true">Все</button
+          ><button class="filter" data-filter="unrated" aria-pressed="false">Без оценки</button
+          ><button class="filter" data-filter="like" aria-pressed="false">Нравится</button
+          ><button class="filter" data-filter="redo" aria-pressed="false">Переделать</button>
+        </div>
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m16 16 5 5" /></svg
+          ><input
+            id="search"
+            type="search"
+            placeholder="Название асаны или номер…"
+            aria-label="Поиск рисунка"
+          />
+        </div>
+      </div>
+      <div class="help">
+        <span id="shown">Показаны все рисунки</span><span>Нажмите на рисунок, чтобы рассмотреть</span>
+      </div>
+      <div class="grid" id="grid"></div>
+      <footer class="footer">
+        <span>Отметки сохраняются в этом браузере. Для передачи скачайте файл отметок.</span
+        ><span>Совпадающие руки или ноги показаны одной линией.</span>
+      </footer>
+    </main>
+    <dialog id="modal" class="modal"><div class="modalinner" id="modal-body"></div></dialog>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <script id="drawing-data" type="application/json">
+      __DATA__
+    </script>
+    <script>
+      'use strict';
+      const items = JSON.parse(document.getElementById('drawing-data').textContent),
+        collection = '__COLLECTION__';
+      const key = 'ribka-figure-review-v2-__SOURCE_SET__';
+      const byId = new Map(items.map((i) => [i.id, i]));
+      let reviews = {},
+        filter = 'all',
+        query = '',
+        active = -1,
+        noticeTimer = null;
+      try {
+        const keys = [key, 'ribka-figure-review-v1-__OLD_COLLECTION__'];
+        for (const k of keys) {
+          const raw = localStorage.getItem(k);
+          if (raw === null) continue;
+          const old = JSON.parse(raw) || {};
+          for (const [id, r] of Object.entries(old)) {
+            const item = byId.get(id);
+            if (item && r && typeof r === 'object')
+              reviews[id] = {
+                vote: ['like', 'redo'].includes(r.vote) ? r.vote : null,
+                note: typeof r.note === 'string' ? r.note : '',
+                after_sha: r.after_sha || item.previous_sha,
+              };
+          }
+          localStorage.setItem(key, JSON.stringify(reviews));
+          break;
+        }
+      } catch (e) {
+        reviews = {};
+      }
+      const icons = {
+        like: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>',
+        redo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg>',
+        comment:
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-7a8 8 0 0 1 8-8h2a8 8 0 0 1 8 5Z"/><path d="M7 11h9M7 15h6"/></svg>',
+        zoom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>',
+      };
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+        );
+      function record(id) {
+        const r = reviews[id];
+        return r && typeof r === 'object' ? r : { vote: null, note: '' };
+      }
+      function currentVote(i) {
+        const r = record(i.id);
+        return r.after_sha === i.after_sha ? r.vote : null;
+      }
+      function store() {
+        try {
+          localStorage.setItem(key, JSON.stringify(reviews));
+        } catch (e) {
+          toast('Скачайте отметки, чтобы сохранить их файлом.');
+        }
+      }
+      function toast(s) {
+        const el = document.getElementById('toast');
+        el.textContent = s;
+        el.hidden = false;
+        clearTimeout(noticeTimer);
+        noticeTimer = setTimeout(() => (el.hidden = true), 3200);
+      }
+      function counters() {
+        let like = 0,
+          redo = 0,
+          reviewed = 0,
+          previous = 0;
+        items.forEach((i) => {
+          const r = record(i.id),
+            v = currentVote(i);
+          if (v === 'like') like++;
+          if (v === 'redo') redo++;
+          if (v === 'like' || v === 'redo') reviewed++;
+          if (r.vote && !v) previous++;
+        });
+        document.getElementById('stat-like').textContent = like;
+        document.getElementById('stat-redo').textContent = redo;
+        document.getElementById('stat-reviewed').textContent = reviewed;
+        document.getElementById('export-count').textContent = reviewed ? '(' + reviewed + ')' : '';
+        const p = document.getElementById('previous-count');
+        p.hidden = !previous;
+        p.textContent = previous
+          ? 'Сохранены прежние отметки: ' + previous + '. Перепроверьте их для нового рисунка.'
+          : '';
+      }
+      function visible(i) {
+        const r = record(i.id),
+          v = currentVote(i);
+        return (
+          (filter === 'all' || (filter === 'unrated' && !v) || v === filter) &&
+          (!query ||
+            String(i.index).padStart(3, '0').includes(query) ||
+            i.name.toLocaleLowerCase('ru').includes(query))
+        );
+      }
+      function pair(i, modal) {
+        const tag = modal ? 'div' : 'button',
+          attr = modal ? '' : ' data-open="' + i.id + '"';
+        const old =
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' +
+          i.frame +
+          '" role="img" aria-label="Исходный рисунок: ' +
+          esc(i.name) +
+          '"><image href="' +
+          i.before +
+          '" x="0" y="0" width="512" height="512"/></svg>';
+        const next = i.svg.replace(
+          '<g class="source-overlay"></g>',
+          '<g class="source-overlay"><image href="' +
+            i.before +
+            '" x="0" y="0" width="512" height="512"/></g>',
+        );
+        const photo = i.photo
+          ? '<img src="' +
+            esc(i.photo) +
+            '" loading="lazy" decoding="async" alt="Сгенерированный человек: ' +
+            esc(i.name) +
+            '">'
+          : '<span class="photo-pending">Генерируется</span>';
+        return (
+          '<div class="pair"><' +
+          tag +
+          ' class="drawing"' +
+          attr +
+          ' aria-label="Рассмотреть исходный и новый рисунок: ' +
+          esc(i.name) +
+          '"><span class="tag">Было</span>' +
+          old +
+          (modal ? '' : '<span class="zoomicon">' + icons.zoom + '</span>') +
+          '</' +
+          tag +
+          '><' +
+          tag +
+          ' class="drawing new"' +
+          attr +
+          ' aria-label="Рассмотреть новый рисунок: ' +
+          esc(i.name) +
+          '"><span class="tag">Жирный контур</span>' +
+          next +
+          (modal ? '' : '<span class="zoomicon">' + icons.zoom + '</span>') +
+          '</' +
+          tag +
+          '><' +
+          tag +
+          ' class="drawing realistic"' +
+          attr +
+          ' aria-label="Рассмотреть три варианта: ' +
+          esc(i.name) +
+          '"><span class="tag">Человек · ИИ</span>' +
+          photo +
+          (modal ? '' : '<span class="zoomicon">' + icons.zoom + '</span>') +
+          '</' +
+          tag +
+          '></div>'
+        );
+      }
+      function feedback(i) {
+        const r = record(i.id),
+          v = currentVote(i);
+        return (
+          (r.vote && !v
+            ? '<p class="previous-grade">Прежняя отметка: ' +
+              (r.vote === 'like' ? 'Нравится' : 'Переделать') +
+              '. Проверьте новый вариант.</p>'
+            : '') +
+          '<div class="feedback"><button class="vote" data-id="' +
+          i.id +
+          '" data-v="like" aria-pressed="' +
+          (v === 'like') +
+          '">' +
+          icons.like +
+          'Нравится</button><button class="vote" data-id="' +
+          i.id +
+          '" data-v="redo" aria-pressed="' +
+          (v === 'redo') +
+          '">' +
+          icons.redo +
+          'Переделать</button><button class="comment-toggle ' +
+          (r.note ? 'has-note' : '') +
+          '" data-comment="' +
+          i.id +
+          '" aria-label="Комментарий к рисунку ' +
+          i.index +
+          '">' +
+          icons.comment +
+          '</button></div>'
+        );
+      }
+      function note(i, show) {
+        const r = record(i.id);
+        return (
+          '<div class="commentbox" data-notebox="' +
+          i.id +
+          '" ' +
+          (show || r.note ? '' : 'hidden') +
+          '><textarea data-note="' +
+          i.id +
+          '" rows="2" maxlength="4000" placeholder="Что понравилось или что изменить…" aria-label="Комментарий к рисунку ' +
+          i.index +
+          '">' +
+          esc(r.note || '') +
+          '</textarea></div>'
+        );
+      }
+      function render() {
+        const list = items.filter(visible);
+        document.getElementById('shown').textContent = 'Показано ' + list.length + ' из ' + items.length;
+        document.getElementById('grid').innerHTML = list.length
+          ? list
+              .map((i) => {
+                const r = record(i.id);
+                return (
+                  '<article class="card" data-card="' +
+                  i.id +
+                  '" data-vote="' +
+                  (currentVote(i) || '') +
+                  '"><div class="cardhead"><span class="num">' +
+                  String(i.index).padStart(3, '0') +
+                  '</span><h2>' +
+                  esc(i.name) +
+                  '</h2></div>' +
+                  pair(i, false) +
+                  feedback(i) +
+                  note(i, false) +
+                  (r.vote ? '<button class="reset" data-reset="' + i.id + '">Сбросить оценку</button>' : '') +
+                  '</article>'
+                );
+              })
+              .join('')
+          : '<div class="empty">Рисунков с такими условиями пока нет.</div>';
+        counters();
+      }
+      function setVote(id, v) {
+        const prev = record(id);
+        reviews[id] = {
+          vote: prev.vote === v && prev.after_sha === byId.get(id).after_sha ? null : v,
+          note: prev.note || '',
+          after_sha: byId.get(id).after_sha,
+        };
+        store();
+        render();
+        if (active >= 0) renderModal(false);
+      }
+      function updateNote(id, value) {
+        const prev = record(id);
+        reviews[id] = {
+          vote: prev.vote || null,
+          note: value,
+          after_sha: prev.after_sha || byId.get(id).after_sha,
+        };
+        store();
+        document
+          .querySelectorAll('[data-comment="' + id + '"]')
+          .forEach((b) => b.classList.toggle('has-note', !!value));
+      }
+      const modal = document.getElementById('modal');
+      function open(id) {
+        active = items.findIndex((i) => i.id === id);
+        renderModal(true);
+        if (!modal.open) modal.showModal();
+      }
+      function renderModal(first) {
+        if (active < 0) return;
+        const i = items[active],
+          colored = modal.classList.contains('anatomy'),
+          overlay = modal.classList.contains('overlay-on');
+        document.getElementById('modal-body').innerHTML =
+          '<div class="modalhead"><div><div class="eyebrow">Рисунок ' +
+          String(i.index).padStart(3, '0') +
+          ' / ' +
+          items.length +
+          '</div><h2>' +
+          esc(i.name) +
+          '</h2></div><button class="close" data-close aria-label="Закрыть сравнение">×</button></div>' +
+          pair(i, true) +
+          '<div class="inspection-toggles"><label class="anatomy-toggle"><input type="checkbox" id="anatomy" ' +
+          (colored ? 'checked' : '') +
+          '>Подсветить руки и ноги</label><label class="anatomy-toggle"><input type="checkbox" id="overlay" ' +
+          (overlay ? 'checked' : '') +
+          '>Наложить оригинал</label></div><p class="legend">Синие линии — руки, охристые — ноги, зелёная — голова.</p>' +
+          (i.note ? '<p class="source-note">' + esc(i.note) + '</p>' : '') +
+          note(i, true) +
+          '<div class="modalfoot">' +
+          feedback(i) +
+          '<div class="navbuttons"><button class="btn" data-prev ' +
+          (active === 0 ? 'disabled' : '') +
+          '>← Назад</button><button class="btn" data-next ' +
+          (active === items.length - 1 ? 'disabled' : '') +
+          '>Дальше →</button></div></div>';
+      }
+      document.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.v) {
+          setVote(b.dataset.id, b.dataset.v);
+          return;
+        }
+        if (b.dataset.reset) {
+          reviews[b.dataset.reset] = {
+            vote: null,
+            note: record(b.dataset.reset).note || '',
+            after_sha: byId.get(b.dataset.reset).after_sha,
+          };
+          store();
+          render();
+          return;
+        }
+        if (b.dataset.open) {
+          if (!modal.open) open(b.dataset.open);
+          return;
+        }
+        if (b.dataset.comment) {
+          const area = (modal.open ? modal : document.getElementById('grid')).querySelector(
+            '[data-notebox="' + b.dataset.comment + '"]',
+          );
+          if (area) {
+            area.hidden = !area.hidden;
+            if (!area.hidden) area.querySelector('textarea').focus();
+          }
+          return;
+        }
+        if (b.hasAttribute('data-close')) {
+          modal.close();
+          active = -1;
+          render();
+        }
+        if (b.hasAttribute('data-prev') && active > 0) {
+          active--;
+          renderModal(true);
+        }
+        if (b.hasAttribute('data-next') && active < items.length - 1) {
+          active++;
+          renderModal(true);
+        }
+      });
+      document.addEventListener('input', (e) => {
+        if (e.target.dataset.note) {
+          updateNote(e.target.dataset.note, e.target.value);
+          const other = document.querySelector('#grid [data-note="' + e.target.dataset.note + '"]');
+          if (other && other !== e.target) {
+            other.value = e.target.value;
+            other.parentElement.hidden = false;
+          }
+        }
+      });
+      document.addEventListener('change', (e) => {
+        if (e.target.id === 'anatomy') modal.classList.toggle('anatomy', e.target.checked);
+        if (e.target.id === 'overlay') modal.classList.toggle('overlay-on', e.target.checked);
+      });
+      modal.addEventListener('close', () => {
+        active = -1;
+        render();
+      });
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          const r = modal.getBoundingClientRect();
+          if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)
+            modal.close();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (!modal.open || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+        if (e.key === 'ArrowRight' && active < items.length - 1) {
+          active++;
+          renderModal(true);
+          e.preventDefault();
+        }
+        if (e.key === 'ArrowLeft' && active > 0) {
+          active--;
+          renderModal(true);
+          e.preventDefault();
+        }
+        if (e.key === '1') {
+          setVote(items[active].id, 'like');
+          e.preventDefault();
+        }
+        if (e.key === '2') {
+          setVote(items[active].id, 'redo');
+          e.preventDefault();
+        }
+      });
+      document.querySelectorAll('[data-filter]').forEach((b) =>
+        b.addEventListener('click', () => {
+          filter = b.dataset.filter;
+          document
+            .querySelectorAll('[data-filter]')
+            .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          render();
+        }),
+      );
+      document.getElementById('search').addEventListener('input', (e) => {
+        query = e.target.value.trim().toLocaleLowerCase('ru');
+        render();
+      });
+      document.getElementById('export').addEventListener('click', () => {
+        const rows = items.map((i) => {
+          const r = record(i.id);
+          return {
+            id: i.id,
+            index: i.index,
+            name: i.name,
+            source_key: i.source_key,
+            before_sha256: i.before_sha,
+            after_sha256: r.after_sha || i.after_sha,
+            latest_after_sha256: i.after_sha,
+            needs_recheck: !!r.vote && r.after_sha !== i.after_sha,
+            vote: r.vote || null,
+            note: r.note || '',
+          };
+        });
+        const data = {
+          format: 'ribka-figure-review-v1',
+          collection,
+          exported_at: new Date().toISOString(),
+          items: rows,
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+          url = URL.createObjectURL(blob),
+          a = document.createElement('a');
+        a.href = url;
+        a.download = 'RibkaYoga-figure-feedback.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast('Файл отметок скачан. Его можно прислать для доработки.');
+      });
+      document
+        .getElementById('import')
+        .addEventListener('click', () => document.getElementById('import-file').click());
+      document.getElementById('import-file').addEventListener('change', async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        try {
+          if (f.size > 2000000) throw Error();
+          const data = JSON.parse(await f.text());
+          if (data.format !== 'ribka-figure-review-v1' || !Array.isArray(data.items)) throw Error();
+          const ids = new Set(items.map((i) => i.id));
+          let count = 0;
+          data.items.forEach((r) => {
+            if (ids.has(r.id) && [null, 'like', 'redo'].includes(r.vote) && typeof r.note === 'string') {
+              reviews[r.id] = {
+                vote: r.vote,
+                note: r.note.slice(0, 4000),
+                after_sha: r.after_sha256 || byId.get(r.id).previous_sha,
+              };
+              count++;
+            }
+          });
+          store();
+          render();
+          toast('Отметки загружены: ' + count + '.');
+        } catch (err) {
+          toast('Не удалось открыть файл отметок. Выберите JSON, скачанный с этой страницы.');
+        }
+        e.target.value = '';
+      });
+      render();
+    </script>
+  </body>
+</html>

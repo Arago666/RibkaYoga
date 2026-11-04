@@ -3,9 +3,15 @@
 use App\Modules\Catalog\Http\AsanaController;
 use App\Modules\Catalog\Http\CategoryController;
 use App\Modules\Catalog\Http\ExchangeController;
+use App\Modules\Catalog\Http\FigureComparisonController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('figure-comparison', [FigureComparisonController::class, 'show'])->name('catalog.figure-comparison');
+Route::get('figure-comparison/images/{index}/{variant}', [FigureComparisonController::class, 'image'])
+    ->whereNumber('index')->whereIn('variant', ['original', 'realistic']);
+
 Route::prefix('api')->group(function () {
+    Route::get('figure-comparison/availability', [FigureComparisonController::class, 'available']);
     Route::post('catalog-json/export', [ExchangeController::class, 'export']);
     Route::post('catalog-json/import', [ExchangeController::class, 'import'])->middleware('throttle:uploads');
     Route::get('asanas/facets', [AsanaController::class, 'facetCounts']);
