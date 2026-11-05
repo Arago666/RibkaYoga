@@ -35,6 +35,10 @@
         cursor: pointer;
         color: inherit;
       }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
       button:focus-visible,
       a:focus-visible,
       input:focus-visible,
@@ -77,17 +81,12 @@
         font-weight: 700;
         letter-spacing: -0.9px;
       }
-      .brandmark {
+      .brand img {
         width: 36px;
         height: 36px;
-        background: #2ab95d;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
       }
-      .brandmark svg {
-        width: 25px;
-        height: 25px;
+      .brand-light {
+        font-weight: 450;
       }
       .eyebrow {
         font-size: 11px;
@@ -786,13 +785,9 @@
   <body>
     <header>
       <div class="wrap top">
-        <div class="brand">
-          <span class="brandmark"
-            ><svg viewBox="0 0 32 32" fill="none" stroke="#123820" stroke-width="2.7" stroke-linecap="round">
-              <circle cx="16" cy="8" r="3" />
-              <path d="M16 12v8m-8-5 8 3 8-3M16 20l-7 6m7-6 7 6" /></svg></span
-          >ribkayoga
-        </div>
+        <a class="brand" href="/" aria-label="RibkaYoga — главная страница"
+          ><img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span></a
+        >
         <div class="actions">
           <a class="btn" href="/library">В библиотеку</a
           ><button class="btn" id="import">Загрузить отметки</button

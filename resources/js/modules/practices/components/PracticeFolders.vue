@@ -32,6 +32,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ changed: []; select: [id: string] }>();
 const items = ref<FolderItem[]>([]),
+  loading = ref(true),
   busy = ref(false),
   error = ref(''),
   notice = ref(''),
@@ -44,12 +45,15 @@ const hasSelection = computed(
   () => !!(props.mode === 'program' ? props.programItems.length : props.documents.length),
 );
 async function load() {
+  loading.value = true;
   try {
     items.value = (
       await api<{ data: FolderItem[] }>(`/api/${endpoint.value}?archived=${archived.value ? 1 : 0}`)
     ).data;
   } catch (e) {
     error.value = failure(e);
+  } finally {
+    loading.value = false;
   }
 }
 function failure(e: unknown) {
@@ -160,6 +164,7 @@ defineExpose({ refresh: load });
 <template>
   <section
     :class="{ 'folder-section-compact': compact }"
+    :aria-busy="busy || loading"
     :aria-label="mode === 'program' ? 'Папки программ и циклов' : 'Категории практик'"
   >
     <div class="folder-heading">
@@ -193,7 +198,10 @@ defineExpose({ refresh: load });
       Нажмите на папку, чтобы добавить выбранный документ. Его прежние
       {{ mode === 'program' ? 'папки' : 'категории' }} сохранятся.
     </p>
-    <div class="folder-grid">
+    <p v-if="loading && !items.length" class="folder-loading" role="status">
+      {{ mode === 'program' ? 'Загружаем папки…' : 'Загружаем категории…' }}
+    </p>
+    <div v-else class="folder-grid">
       <article
         v-for="folder in items"
         :key="folder.id"
@@ -256,7 +264,7 @@ defineExpose({ refresh: load });
         </div>
       </article>
     </div>
-    <p v-if="!items.length" class="muted">
+    <p v-if="!loading && !items.length && !error" class="muted">
       {{
         archived
           ? 'В архиве папок пока нет.'
@@ -301,6 +309,21 @@ defineExpose({ refresh: load });
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 236px), 1fr));
   gap: var(--section-gap);
   margin: var(--section-gap) 0;
+}
+.folder-loading {
+  display: flex;
+  align-items: center;
+  min-height: 221px;
+  margin: var(--section-gap) 0;
+  padding: var(--panel-padding);
+  color: var(--muted);
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: linear-gradient(155deg, #f5f8ee, #fff 70%);
+}
+.folder-section-compact .folder-loading {
+  min-height: 146px;
 }
 .folder-card {
   display: flex;

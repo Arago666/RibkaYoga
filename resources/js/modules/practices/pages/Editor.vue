@@ -2713,7 +2713,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 .editor-title-area {
-  flex: 1 1 320px;
+  flex: 1 1 480px;
   min-width: 0;
 }
 .document-title {
