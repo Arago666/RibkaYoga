@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -113,14 +114,13 @@ onBeforeUnmount(() => {
 <template>
   <Head title="Разбор практики" />
   <AppShell section="reviews">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Внимание к деталям</p>
-        <h1 class="page-title">Разбор практики</h1>
-        <p class="page-description">Комментарии, цветные группы и связи между асанами на отдельном листе.</p>
-      </div>
+    <PageHeading
+      eyebrow="Внимание к деталям"
+      title="Разбор практики"
+      description="Комментарии, цветные группы и связи между асанами на отдельном листе."
+    >
       <button class="btn btn-primary" @click="picker = true"><Plus :size="18" />Открыть практику</button>
-    </header>
+    </PageHeading>
     <p v-if="error" class="error-banner" role="alert">
       {{ error }} <button class="btn" @click="load">Повторить</button>
     </p>

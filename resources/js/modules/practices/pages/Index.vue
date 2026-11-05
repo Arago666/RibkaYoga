@@ -24,6 +24,7 @@ import {
 import ActionMenu from '@/shared/ActionMenu.vue';
 import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { emptyRow, uid, type Cell } from '../types';
@@ -460,12 +461,11 @@ async function saveName() {
   </Modal>
   <Head :title="heading" />
   <AppShell section="practices">
-    <header class="page-header practices-heading">
-      <div>
-        <p class="eyebrow">ПРОСТРАНСТВО ДЛЯ ВАШЕЙ ПРАКТИКИ</p>
-        <h1 class="page-title">{{ heading }}</h1>
-        <p class="page-description">Сохраняйте занятия и собирайте свои последовательности.</p>
-      </div>
+    <PageHeading
+      eyebrow="ПРОСТРАНСТВО ДЛЯ ВАШЕЙ ПРАКТИКИ"
+      :title="heading"
+      description="Сохраняйте занятия и собирайте свои последовательности."
+    >
       <div class="practice-header-actions">
         <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
           <Plus :size="19" /> {{ createLabel }}
@@ -484,7 +484,7 @@ async function saveName() {
           </button>
         </ActionMenu>
       </div>
-    </header>
+    </PageHeading>
     <PracticeNavigation :active="folderId ? 'categories' : 'all'" />
     <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
     <div class="card practices-toolbar">
@@ -845,9 +845,6 @@ async function saveName() {
   font-size: 13px;
   color: var(--muted);
 }
-.practices-heading {
-  margin-bottom: var(--section-gap);
-}
 .practice-header-actions {
   display: flex;
   justify-content: flex-end;
@@ -855,13 +852,6 @@ async function saveName() {
   flex-wrap: wrap;
   gap: 10px;
   max-width: 460px;
-}
-.practices-heading > div:first-child {
-  min-width: 0;
-  flex: 1 1 280px;
-}
-.practices-heading .page-description {
-  max-width: 480px;
 }
 .practice-header-actions > .btn {
   flex: none;
@@ -961,9 +951,10 @@ async function saveName() {
   padding: 0 !important;
   overflow: visible;
   position: relative;
+  border-color: #dfe7da;
   transition:
-    box-shadow 0.15s,
-    border-color 0.15s;
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 .practice-card-menu {
   position: absolute;
@@ -977,21 +968,18 @@ async function saveName() {
 .practice-cover {
   border-radius: var(--panel-radius) var(--panel-radius) 0 0;
 }
-.practice-card:hover {
-  border-color: var(--line);
-  box-shadow: var(--panel-shadow);
-}
 .practice-cover {
   position: relative;
   display: flex;
   flex-direction: column;
   height: 156px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, #f2f6ec, #fbfcf8);
+  border-bottom: 1px solid #e1e8da;
   padding: 20px var(--panel-padding);
   text-decoration: none;
   color: var(--muted);
   overflow: hidden;
+  box-shadow: inset 0 1px 0 #fff;
 }
 .cover-kind {
   display: flex;
@@ -1000,6 +988,15 @@ async function saveName() {
   font-size: 0.6rem;
   letter-spacing: 0.1em;
   font-weight: 650;
+  color: #627452;
+}
+.cover-kind > svg {
+  box-sizing: content-box;
+  padding: 5px;
+  border: 1px solid #dae4cf;
+  border-radius: 8px;
+  background: #ffffffc2;
+  color: #5f7e48;
 }
 .cover-poses {
   display: flex;
@@ -1015,6 +1012,7 @@ async function saveName() {
   max-width: 18%;
   height: 69px;
   object-fit: contain;
+  mix-blend-mode: multiply;
 }
 .cover-cell {
   display: flex;
@@ -1060,7 +1058,7 @@ async function saveName() {
   right: var(--panel-padding);
   bottom: 20px;
   height: 1px;
-  background: var(--line);
+  background: #d8e2ce;
 }
 .practice-content {
   padding: var(--panel-padding);
@@ -1087,9 +1085,9 @@ async function saveName() {
 }
 .practice-title {
   display: block;
-  color: var(--text);
+  color: #253e2d;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1.35;
   text-decoration: none;
@@ -1119,6 +1117,16 @@ async function saveName() {
 .open-practice {
   width: 100%;
   justify-content: space-between;
+}
+.open-practice.btn-secondary {
+  background: linear-gradient(150deg, #fff, #f4f7ef);
+  border-color: #dfe7d7;
+  color: #315536;
+}
+.practice-list .practice-cover {
+  border-radius: var(--panel-radius) 0 0 var(--panel-radius);
+  border-right: 1px solid #e1e8da;
+  border-bottom: 0;
 }
 .practice-actions {
   display: flex;
@@ -1237,17 +1245,11 @@ async function saveName() {
   }
 }
 @media (max-width: 680px) {
-  .practices-heading {
-    display: block;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
   .practice-header-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) var(--control-height);
     max-width: none;
     width: 100%;
-    margin-top: 20px;
   }
   .practice-header-actions > .btn-primary {
     grid-column: 1 / -1;
@@ -1289,6 +1291,9 @@ async function saveName() {
   .practice-list .practice-cover {
     height: 110px;
     min-height: 0;
+    border-radius: var(--panel-radius) var(--panel-radius) 0 0;
+    border-right: 0;
+    border-bottom: 1px solid #e1e8da;
   }
   .practice-grid {
     grid-template-columns: 1fr;
@@ -1316,6 +1321,26 @@ async function saveName() {
   }
   .practices-empty h2 {
     font-size: 1.2rem;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .practice-card:hover {
+    border-color: #c6d5bb;
+    box-shadow: 0 8px 24px rgb(44 65 29 / 5%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-card {
+    transition: none;
+  }
+}
+@media print {
+  .practice-cover {
+    background: #fff;
+    box-shadow: none;
+  }
+  .cover-poses img {
+    mix-blend-mode: normal;
   }
 }
 </style>

@@ -4,6 +4,7 @@ import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { CalendarDays, Plus, BookOpen } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import Modal from '@/shared/Modal.vue';
 import PracticeFolders, { type ProgramItem } from '../components/PracticeFolders.vue';
@@ -201,16 +202,16 @@ onMounted(load);
 <template>
   <Head title="Программы и циклы" />
   <AppShell section="practices">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Программы и циклы</h1>
-        <p class="page-description">Собирайте последовательности и мезоциклы в свои папки.</p>
-      </div>
+    <PageHeading
+      eyebrow="ПОСЛЕДОВАТЕЛЬНОСТЬ ЗАНЯТИЙ"
+      title="Программы и циклы"
+      description="Собирайте последовательности и мезоциклы в свои папки."
+    >
       <div class="program-header-actions">
         <button class="btn btn-primary" @click="openCreate"><Plus :size="18" />Создать мезоцикл</button
         ><button class="btn btn-secondary" @click="addOpen = true">Добавить практику</button>
       </div>
-    </header>
+    </PageHeading>
     <PracticeNavigation active="programs" />
     <PracticeFolders
       ref="folders"
@@ -364,10 +365,6 @@ onMounted(load);
   flex-wrap: wrap;
   gap: 10px;
 }
-.page-header > div:first-child {
-  flex: 1 1 300px;
-  min-width: 0;
-}
 .cycle-filters {
   display: flex;
   gap: 12px;
@@ -393,6 +390,11 @@ onMounted(load);
   gap: 16px;
   align-content: start;
   min-width: 0;
+  border-color: #dfe7da;
+  box-shadow: 0 4px 18px rgb(44 65 29 / 3%);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 .cycle-card-top {
   display: flex;
@@ -400,14 +402,33 @@ onMounted(load);
   justify-content: space-between;
   color: var(--accent-dark);
 }
+.cycle-card-top > svg {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid #dfe7d5;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #fff, #eef4e6);
+  color: #63834d;
+  stroke-width: 1.5;
+  box-shadow: inset 0 1px 0 #fff;
+}
 .cycle-card h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 600;
+  color: #253e2d;
   letter-spacing: -0.025em;
   overflow-wrap: anywhere;
 }
 .cycle-card small {
-  color: var(--muted);
+  color: #627452;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.025em;
+}
+.cycle-card > .btn-secondary {
+  border-color: #dfe7d7;
+  color: #315536;
 }
 .cycle-card > p {
   color: var(--muted);
@@ -440,8 +461,10 @@ onMounted(load);
   min-width: 0;
 }
 .in-folder .cycle-card-top > svg {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 10px;
 }
 .in-folder .cycle-card h2 {
   font-size: 16px;
@@ -456,6 +479,17 @@ onMounted(load);
   padding: 8px 10px;
   white-space: normal;
   margin-top: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cycle-card:hover {
+    border-color: #c6d5bb;
+    box-shadow: 0 8px 24px rgb(44 65 29 / 5%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cycle-card {
+    transition: none;
+  }
 }
 @media (max-width: 600px) {
   .program-header-actions {

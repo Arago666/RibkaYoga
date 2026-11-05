@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -63,14 +64,11 @@ onMounted(load);
 <template>
   <AppShell section="sketchbook"
     ><Head title="Скетчбук" />
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Скетчбук</h1>
-        <p class="page-description">
-          Рисуйте свои асаны и целые строки на свободном листе. Исходники остаются редактируемыми.
-        </p>
-      </div>
-    </header>
+    <PageHeading
+      eyebrow="Идеи в движении"
+      title="Скетчбук"
+      description="Рисуйте свои асаны и целые строки на свободном листе. Исходники остаются редактируемыми."
+    />
     <form class="toolbar sketch-create card" @submit.prevent="create">
       <input
         class="input"

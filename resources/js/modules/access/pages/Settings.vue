@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Bell, HardDrive, ShieldCheck, SlidersHorizontal } from '@lucide/vue';
@@ -66,13 +67,13 @@ onMounted(async () => {
 <template>
   <Head title="Настройки" />
   <AppShell section="account">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Настройки</h1>
-        <p class="muted">Отображение, уведомления, конфиденциальность и память.</p>
-      </div>
+    <PageHeading
+      eyebrow="Всё по-вашему"
+      title="Настройки"
+      description="Отображение, уведомления, конфиденциальность и память."
+    >
       <Link class="btn btn-secondary" href="/library">В библиотеку</Link>
-    </header>
+    </PageHeading>
     <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <div class="settings-grid">

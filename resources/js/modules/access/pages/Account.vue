@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { UserRound, CreditCard, Shield, Save } from '@lucide/vue';
@@ -118,12 +119,15 @@ onMounted(load);
 <template>
   <Head title="Личный кабинет" />
   <AppShell section="account">
-    <header class="page-header">
-      <div><h1 class="page-title">Личный кабинет</h1></div>
+    <PageHeading
+      eyebrow="Ваше пространство"
+      title="Личный кабинет"
+      description="Профиль, доступ и настройки вашего аккаунта."
+    >
       <Link v-if="account?.user.is_admin" href="/admin" class="btn btn-secondary"
         ><Shield :size="17" />Администрирование</Link
       >
-    </header>
+    </PageHeading>
     <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
     <p v-if="success" class="success-banner" role="status">{{ success }}</p>
     <p v-if="loading" class="muted" role="status">Загружаем кабинет…</p>

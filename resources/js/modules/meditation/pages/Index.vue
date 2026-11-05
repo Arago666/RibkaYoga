@@ -19,6 +19,7 @@ import {
 } from '@lucide/vue';
 import { notifyMeditationCompleted, uiPreferencesKey } from '@/shared/uiPreferences';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
@@ -615,14 +616,12 @@ onBeforeUnmount(() => {
 <template>
   <Head title="Медитация" />
   <AppShell section="meditation">
+    <PageHeading
+      eyebrow="Пауза для себя"
+      title="Медитация"
+      description="Выберите время, настройте звук — и просто побудьте в моменте."
+    />
     <div class="meditation-page">
-      <header class="meditation-heading page-header">
-        <div>
-          <p class="eyebrow">Пауза для себя</p>
-          <h1 class="page-title">Медитация</h1>
-          <p class="page-description">Выберите время, настройте звук — и просто побудьте в моменте.</p>
-        </div>
-      </header>
       <div v-if="error" class="meditation-error" role="alert">
         {{ error }}
         <button
@@ -1403,14 +1402,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   color: var(--text, #151916);
 }
-.meditation-heading {
-  margin: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 16px;
-  flex-wrap: wrap;
-}
 .meditation-page h2 {
   display: flex;
   align-items: center;
@@ -1497,12 +1488,16 @@ onBeforeUnmount(() => {
   background: var(--accent-soft, #eaf9ef);
 }
 .duration-option.selected {
-  border-color: var(--accent, #2ac45a);
-  background: linear-gradient(180deg, #4bd875, var(--accent, #2ac45a));
+  border-color: #2c6041;
+  background: #2c6041;
   box-shadow:
-    inset 0 1px 0 #ffffff80,
-    0 4px 12px #2ac45a1c;
-  color: #102a17;
+    inset 0 1px 0 #ffffff29,
+    0 4px 12px #2c604118;
+  color: #fff;
+}
+.duration-option.selected:hover:not(:disabled) {
+  border-color: #234e34;
+  background: #234e34;
 }
 .duration-option:focus-visible,
 .meditation-switch:focus-visible {
@@ -1532,8 +1527,8 @@ onBeforeUnmount(() => {
   flex: 0 0 40px;
   height: 40px;
   border-radius: 13px;
-  background: var(--accent-soft, #eaf9ef);
-  color: var(--accent-dark, #16783a);
+  background: #edf3e7;
+  color: #45653b;
 }
 .sound-icon svg {
   width: 20px;
@@ -1642,7 +1637,7 @@ onBeforeUnmount(() => {
   top: 110px;
   text-align: center;
   padding: 36px 24px 24px;
-  background: radial-gradient(ellipse 180px 130px at 50% 14%, #eaf9ef9c, transparent), #fff;
+  background: radial-gradient(ellipse 180px 130px at 50% 14%, #edf2e4b3, transparent), #fff;
 }
 .meditation-emblem {
   display: grid;
@@ -1651,12 +1646,12 @@ onBeforeUnmount(() => {
   height: 78px;
   margin: 0 auto 26px;
   border-radius: 50%;
-  border: 1px solid #b5edc5;
-  background: linear-gradient(145deg, #ffffffb3, #ddf7e5a1);
+  border: 1px solid #d1dfc4;
+  background: linear-gradient(145deg, #ffffffed, #e6efdbb3);
   box-shadow:
     inset 0 1px 2px white,
-    0 8px 24px #2ac45a10;
-  color: var(--accent-dark, #16783a);
+    0 8px 24px #47613712;
+  color: #42653a;
 }
 .meditation-emblem svg {
   width: 32px;

@@ -4,6 +4,7 @@ import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import Modal from '@/shared/Modal.vue';
 import PortableImportDialog from '../components/PortableImportDialog.vue';
 import { api } from '@/shared/api';
@@ -179,20 +180,18 @@ const labels: Record<string, string> = {
   <PortableImportDialog :open="importOpen" @close="importOpen = false" />
   <Head title="Шаблоны" />
   <AppShell section="templates">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Шаблоны</h1>
-        <p class="page-description">
-          Повторно используемые занятия, фрагменты и программы. Каждая вставка независима.
-        </p>
-      </div>
+    <PageHeading
+      eyebrow="СОХРАНЁННЫЕ ИДЕИ"
+      title="Шаблоны"
+      description="Повторно используемые занятия, фрагменты и программы. Каждая вставка независима."
+    >
       <div class="template-header-actions">
         <button class="btn btn-primary" @click="openCreate()">Создать шаблон</button>
         <ActionMenu label="Действия с шаблонами"
           ><button @click="importOpen = true">Импорт JSON</button></ActionMenu
         >
       </div>
-    </header>
+    </PageHeading>
     <nav class="tabs" aria-label="Виды шаблонов">
       <button
         v-for="entry in [
@@ -330,10 +329,6 @@ const labels: Record<string, string> = {
   flex-wrap: wrap;
   gap: 10px;
 }
-.page-header > div:first-child {
-  flex: 1 1 280px;
-  min-width: 0;
-}
 .template-filters {
   display: flex;
   align-items: flex-end;
@@ -366,6 +361,11 @@ const labels: Record<string, string> = {
   gap: 16px;
   padding: var(--panel-padding);
   min-width: 0;
+  border-color: #dfe7da;
+  box-shadow: 0 4px 18px rgb(44 65 29 / 3%);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 .template-card-top {
   display: flex;
@@ -375,7 +375,8 @@ const labels: Record<string, string> = {
 }
 .template-card h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 600;
+  color: #253e2d;
   letter-spacing: -0.025em;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -385,14 +386,43 @@ const labels: Record<string, string> = {
   line-height: 1.6;
 }
 .template-card small {
-  color: var(--muted);
-  font-size: 12px;
+  color: #627452;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.025em;
+}
+.template-card > small,
+.template-card-top > small {
+  align-self: flex-start;
+  display: inline-flex;
+  padding: 6px 9px;
+  border: 1px solid #e1e9d9;
+  border-radius: 8px;
+  background: #f2f6ec;
 }
 .template-card > .btn {
   white-space: normal;
 }
 .starter-grid .template-card > .btn {
   margin-top: auto;
+}
+.starter-grid .template-card {
+  background: linear-gradient(135deg, #f4f7ef, #fff 70%);
+}
+.template-card > .btn-secondary {
+  border-color: #dfe7d7;
+  color: #315536;
+}
+@media (hover: hover) and (pointer: fine) {
+  .template-card:hover {
+    border-color: #c6d5bb;
+    box-shadow: 0 8px 24px rgb(44 65 29 / 5%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .template-card {
+    transition: none;
+  }
 }
 @media (max-width: 650px) {
   .template-header-actions {

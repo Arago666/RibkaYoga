@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowRight, MessageSquare, Eye, RefreshCw, ChevronLeft, ChevronRight } from '@lucide/vue';
@@ -38,15 +39,15 @@ function go(next: number) {
 <template>
   <Head title="Мне дали доступ" />
   <AppShell section="practices">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Мне дали доступ</h1>
-        <p class="page-description">Практики, которыми с вами поделились.</p>
-      </div>
+    <PageHeading
+      eyebrow="Практика объединяет"
+      title="Мне дали доступ"
+      description="Практики, которыми с вами поделились."
+    >
       <button class="btn btn-secondary" :disabled="loading" @click="load">
         <RefreshCw :size="16" />Обновить
       </button>
-    </header>
+    </PageHeading>
     <PracticeNavigation active="shared" />
     <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
     <p v-if="loading" class="muted" role="status">Загружаем практики…</p>

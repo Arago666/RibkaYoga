@@ -45,6 +45,20 @@
 * {
   box-sizing: border-box;
 }
+html {
+  scrollbar-gutter: stable;
+}
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+@media print {
+  html {
+    scrollbar-gutter: auto;
+    overflow-y: visible;
+  }
+}
 body {
   margin: 0;
 }

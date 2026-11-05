@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
@@ -41,13 +42,14 @@ onMounted(load);
 <template>
   <AppShell section="practices"
     ><Head title="Моя история практики" />
-    <header class="page-header history-heading">
-      <h1 class="page-title">Моя история практики</h1>
-      <div class="history-actions">
-        <Link class="btn btn-secondary" href="/practices">К практикам</Link
-        ><a class="btn btn-secondary" href="/api/executions/export">Скачать CSV</a>
-      </div>
-    </header>
+    <PageHeading
+      eyebrow="Опыт вашей практики"
+      title="Моя история практики"
+      description="Регулярность, проведённые занятия и личная история."
+    >
+      <Link class="btn btn-secondary" href="/practices">К практикам</Link
+      ><a class="btn btn-secondary" href="/api/executions/export">Скачать CSV</a>
+    </PageHeading>
     <label class="period-field"
       >Период
       <AppSelect class="select" v-model="days" @change="load">

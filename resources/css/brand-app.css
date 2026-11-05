@@ -1,8 +1,64 @@
 /* Brand atmosphere stays outside the working canvas and never enters printed sheets. */
 .app-shell-branded {
+  --accent-dark: #2d6343;
+  --accent-soft: #eef5e8;
+  --surface-soft: #f6f8f1;
+  --line: #e1e7dc;
+  --panel-shadow: 0 5px 22px rgb(38 62 28 / 3%);
+  --soft: var(--accent-soft);
+  --border: var(--line);
+  --shadow: var(--panel-shadow);
   position: relative;
   isolation: isolate;
   background: #fdfefb;
+}
+.app-shell-branded .btn-primary,
+.app-shell-branded .btn.primary {
+  background: linear-gradient(150deg, #386d4b, #285b3d);
+  color: #fff;
+  border-color: #2c6041;
+  box-shadow:
+    inset 0 1px 0 #ffffff29,
+    0 4px 12px #254b3212;
+  font-weight: 550;
+}
+.app-shell-branded .btn-primary:hover:not(:disabled),
+.app-shell-branded .btn.primary:hover:not(:disabled) {
+  background: linear-gradient(150deg, #315f41, #214e34);
+}
+.app-shell-branded .app-main:not(.wide) .card {
+  border-color: #e0e7da;
+  box-shadow: var(--panel-shadow);
+}
+.app-shell-branded .app-main:not(.wide) .disclosure-icon,
+.app-shell-branded .app-main:not(.wide) .section-icon {
+  background: linear-gradient(145deg, #f5f8ed, #eaf2df);
+  color: #567544;
+  border: 1px solid #e0e9d3;
+  box-shadow: inset 0 1px 0 #fff;
+}
+.app-shell-branded .app-main:not(.wide) .disclosure {
+  background: #fff;
+  border-color: #e0e7da;
+}
+.app-shell-branded .app-main:not(.wide) .disclosure[open] > summary {
+  background: #f6f9f1;
+}
+.app-shell-branded .app-main:not(.wide) :is(.account-card, .settings-section, .history-section) > h2 {
+  color: #29492f;
+  font-weight: 550;
+  letter-spacing: -0.025em;
+}
+.app-shell-branded .app-main:not(.wide) :is(.account-card, .settings-section, .history-section) > h2::before {
+  content: '';
+  display: inline-block;
+  vertical-align: middle;
+  width: 4px;
+  height: 16px;
+  border-radius: 8px;
+  background: #a2b88a;
+  margin-right: 10px;
+  transform: translateY(-1px);
 }
 .app-ambient {
   position: absolute;

@@ -16,6 +16,7 @@ import {
 import ActionMenu from '@/shared/ActionMenu.vue';
 import AsanaCategoryDialog from '../components/AsanaCategoryDialog.vue';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import { api } from '@/shared/api';
 import AsanaCard from '../components/AsanaCard.vue';
 import AsanaPreview from '../components/AsanaPreview.vue';
@@ -232,20 +233,19 @@ async function taxonomyChanged() {
 <template>
   <Head title="Библиотека асан" />
   <AppShell section="library">
-    <header class="page-header library-heading">
-      <div>
-        <p class="eyebrow">КОЛЛЕКЦИЯ АСАН</p>
-        <h1 class="page-title">Библиотека асан</h1>
-      </div>
+    <PageHeading
+      eyebrow="Коллекция асан"
+      title="Библиотека асан"
+      description="Ваши асаны, рисунки и подборки — в одном месте."
+    >
       <div class="library-actions">
         <button class="btn btn-primary" @click="uploadOpen = true"><Plus :size="19" /> Добавить асаны</button>
       </div>
-    </header>
+    </PageHeading>
     <div class="library-nav">
       <div class="tabs">
         <button class="tab" :class="{ active: tab === 'asanas' }" @click="tab = 'asanas'">
-          <Images :size="17" /> Все асаны
-          <span v-if="result && tab === 'asanas'" class="tab-count">{{ result.total }}</span></button
+          <Images :size="17" /> Все асаны <span class="tab-count">{{ result?.total ?? '…' }}</span></button
         ><button class="tab" :class="{ active: tab === 'collections' }" @click="tab = 'collections'">
           <Layers3 :size="17" /> Подборки
         </button>
@@ -314,11 +314,11 @@ async function taxonomyChanged() {
       <div v-if="error" class="error-banner" role="alert">
         {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
       </div>
-      <div v-if="loading" class="catalog-loading" role="status">
+      <div v-if="loading && !result" class="catalog-loading" role="status">
         <span class="loading-dot" /> Загружаем карточки…
       </div>
       <template v-else-if="result?.data.length">
-        <div class="asana-grid" :aria-busy="busy">
+        <div class="asana-grid" :aria-busy="busy || loading">
           <AsanaCard
             v-for="card in result.data"
             :key="card.id"
@@ -414,16 +414,10 @@ async function taxonomyChanged() {
   </AppShell>
 </template>
 <style scoped>
-.library-heading {
-  margin-bottom: var(--section-gap);
-}
 .library-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-}
-.library-heading > .btn {
-  flex: none;
 }
 .library-nav {
   display: flex;
@@ -448,6 +442,9 @@ async function taxonomyChanged() {
   background: var(--surface-soft);
   padding: 2px 6px;
   font-size: 0.7rem;
+  min-width: 30px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .taxonomy-button {
   font-size: 0.82rem;
@@ -597,6 +594,32 @@ async function taxonomyChanged() {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--section-gap);
 }
+.asana-grid :deep(.asana-card) {
+  border-color: #dfe6d8;
+  box-shadow: 0 3px 16px rgb(39 61 29 / 3%);
+}
+.asana-grid :deep(.asana-image) {
+  background: #fff;
+}
+.asana-grid :deep(.asana-info) {
+  border-top: 1px solid #eef1e8;
+  border-radius: 0 0 var(--panel-radius) var(--panel-radius);
+  background: linear-gradient(180deg, #fbfcf8, #fff);
+}
+.asana-grid :deep(.asana-info h3) {
+  color: #263e2d;
+  font-weight: 550;
+}
+.asana-grid :deep(.asana-card.selected) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 13%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .asana-grid :deep(.asana-card:not(.selected):hover) {
+    border-color: #9bb38a;
+    box-shadow: 0 7px 23px rgb(39 61 29 / 6%);
+  }
+}
 .catalog-loading {
   display: flex;
   justify-content: center;
@@ -725,9 +748,6 @@ async function taxonomyChanged() {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 11px;
   }
-  .library-heading > .btn {
-    margin-top: 5px;
-  }
 }
 @media (max-width: 370px) {
   .sort-controls {
@@ -777,6 +797,13 @@ async function taxonomyChanged() {
 @media (min-width: 701px) and (max-width: 950px) {
   .asana-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media print {
+  .asana-grid :deep(.asana-card),
+  .asana-grid :deep(.asana-info) {
+    background: #fff;
+    box-shadow: none;
   }
 }
 </style>
