@@ -195,9 +195,9 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgb(244 248 237 / 95%),
-    rgb(244 248 237 / 82%) 28%,
-    transparent 60%,
+    rgb(244 248 237 / 98%),
+    rgb(244 248 237 / 90%) 42%,
+    transparent 74%,
     rgb(224 232 211 / 16%)
   );
   z-index: -1;
