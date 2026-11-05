@@ -1026,8 +1026,8 @@ watch(metronome, () => draft(true), { deep: true });
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #d5ecdd;
-  border: 1px solid #c0dfca;
+  background: #eaf1e1;
+  border: 1px solid #dbe5d2;
   font-size: 25px;
   line-height: 1;
   color: var(--accent-dark);
@@ -1042,6 +1042,7 @@ watch(metronome, () => draft(true), { deep: true });
 }
 .metronome-dot.current {
   background: var(--accent);
+  color: #fff;
   box-shadow: 0 0 0 4px rgb(42 196 90 / 14%);
 }
 .metronome-trigger {
@@ -1054,6 +1055,8 @@ watch(metronome, () => draft(true), { deep: true });
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+  color: #203d2c;
+  font-weight: 550;
 }
 .player-settings {
   background: white;
@@ -1103,7 +1106,8 @@ watch(metronome, () => draft(true), { deep: true });
 .pose-stage h2 {
   font-size: 19px;
   margin: 16px 0;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .pose-stage img {
@@ -1186,10 +1190,11 @@ watch(metronome, () => draft(true), { deep: true });
   .pose-stage img {
     height: 260px;
   }
-  .player-heading h1 {
+  .player-heading > div:first-child {
+    flex: 1 1 100%;
+  }
+  .player-header-actions {
     width: 100%;
-    flex-basis: 100%;
-    order: 3;
   }
   .player-settings {
     padding: var(--panel-padding);

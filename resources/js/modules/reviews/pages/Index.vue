@@ -278,15 +278,24 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  background: linear-gradient(150deg, #f5f8ee, #fff 55%);
 }
 .review-card > svg,
 .empty-reviews > svg {
-  color: var(--accent-dark);
+  width: 52px;
+  height: 52px;
+  padding: 12px;
+  border: 1px solid #dce6d3;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, #e8f0dc);
+  box-shadow: inset 0 1px 0 #fff;
+  color: #416448;
 }
 .review-card h2,
 .empty-reviews h2 {
   font-size: var(--panel-title-size);
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }

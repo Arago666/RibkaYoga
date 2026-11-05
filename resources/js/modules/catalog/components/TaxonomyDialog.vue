@@ -176,7 +176,7 @@ async function remove(item: Category) {
 }
 .taxonomy-list {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   max-height: 42vh;
   overflow: auto;
 }
@@ -185,13 +185,17 @@ async function remove(item: Category) {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--line);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background: linear-gradient(150deg, #fafcf7, #fff);
   min-height: 58px;
 }
 .category-name {
   min-width: 0;
   overflow-wrap: anywhere;
+  color: #355739;
+  font-weight: 550;
 }
 .taxonomy-actions {
   display: flex;

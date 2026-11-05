@@ -594,32 +594,6 @@ async function taxonomyChanged() {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--section-gap);
 }
-.asana-grid :deep(.asana-card) {
-  border-color: #dfe6d8;
-  box-shadow: 0 3px 16px rgb(39 61 29 / 3%);
-}
-.asana-grid :deep(.asana-image) {
-  background: #fff;
-}
-.asana-grid :deep(.asana-info) {
-  border-top: 1px solid #eef1e8;
-  border-radius: 0 0 var(--panel-radius) var(--panel-radius);
-  background: linear-gradient(180deg, #fbfcf8, #fff);
-}
-.asana-grid :deep(.asana-info h3) {
-  color: #263e2d;
-  font-weight: 550;
-}
-.asana-grid :deep(.asana-card.selected) {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 13%, transparent);
-}
-@media (hover: hover) and (pointer: fine) {
-  .asana-grid :deep(.asana-card:not(.selected):hover) {
-    border-color: #9bb38a;
-    box-shadow: 0 7px 23px rgb(39 61 29 / 6%);
-  }
-}
 .catalog-loading {
   display: flex;
   justify-content: center;
@@ -797,13 +771,6 @@ async function taxonomyChanged() {
 @media (min-width: 701px) and (max-width: 950px) {
   .asana-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media print {
-  .asana-grid :deep(.asana-card),
-  .asana-grid :deep(.asana-info) {
-    background: #fff;
-    box-shadow: none;
   }
 }
 </style>

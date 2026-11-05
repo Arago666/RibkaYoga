@@ -82,10 +82,21 @@ async function save() {
 }
 .category-options label {
   display: flex;
+  min-height: var(--control-height);
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
   border: 1px solid var(--line);
   border-radius: var(--field-radius);
+  background: var(--glass);
+  overflow-wrap: anywhere;
+}
+.category-options label:has(input:checked) {
+  border-color: #a7be98;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+.category-options input {
+  flex-shrink: 0;
 }
 </style>

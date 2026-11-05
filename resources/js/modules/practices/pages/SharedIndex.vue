@@ -101,10 +101,12 @@ function go(next: number) {
   gap: 16px;
   padding: var(--panel-padding);
   min-width: 0;
+  background: linear-gradient(155deg, #f6f9f1, #fff 45%);
 }
 .shared-card h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
   overflow-wrap: anywhere;
   margin: 0;
@@ -115,11 +117,16 @@ function go(next: number) {
   line-height: 1.6;
 }
 .shared-permission {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
-  color: var(--muted);
+  color: var(--accent-dark);
+  padding: 7px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
   margin-top: auto;
 }
 .shared-card .btn {

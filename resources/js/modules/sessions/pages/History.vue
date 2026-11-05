@@ -147,7 +147,7 @@ onMounted(load);
   font-weight: 600;
 }
 .numbers {
-  background: white;
+  background: linear-gradient(150deg, #f5f8ee, #fff 65%);
   border: 1px solid var(--line);
   padding: var(--panel-padding);
   border-radius: var(--panel-radius);

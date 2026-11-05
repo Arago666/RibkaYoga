@@ -941,7 +941,8 @@ onBeforeUnmount(() => {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 16px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
 }
 .week-column iframe {
   width: 100%;
@@ -979,8 +980,13 @@ onBeforeUnmount(() => {
   letter-spacing: -0.045em;
   line-height: 1.1;
   padding: 6px 0;
-  color: var(--text);
+  color: #203d2c;
   text-overflow: ellipsis;
+}
+.cycle-title:focus-visible {
+  outline: 2px solid #8aa66b;
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 .cycle-theme {
   display: grid;
@@ -998,7 +1004,7 @@ onBeforeUnmount(() => {
   z-index: 30;
   max-height: 280px;
   overflow: auto;
-  background: white;
+  background: linear-gradient(155deg, #fff, #f7f9f3);
   border: 1px solid var(--border);
   border-radius: var(--panel-radius);
   padding: var(--panel-padding);
@@ -1014,8 +1020,9 @@ onBeforeUnmount(() => {
 }
 .cycle-cloud > header > strong {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
   letter-spacing: -0.025em;
+  color: #29492f;
 }
 .cycle-cloud > header > span {
   margin-left: auto;
@@ -1147,7 +1154,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   padding: 16px;
-  background: var(--surface);
+  background: linear-gradient(155deg, #fff, #f2f6ec);
   border-bottom: 1px solid var(--line);
   border-radius: var(--panel-radius) var(--panel-radius) 0 0;
 }

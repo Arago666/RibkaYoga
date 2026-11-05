@@ -241,7 +241,8 @@ async function duplicate() {
   height: min(45vh, 360px);
   object-fit: contain;
   padding: var(--panel-padding);
-  background: var(--surface-soft);
+  background: #fff;
+  border: 1px solid var(--line);
   border-radius: var(--panel-radius);
 }
 .preview-categories,
@@ -270,13 +271,21 @@ async function duplicate() {
 .asana-information h3 {
   margin: 0;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
+}
+.information-part {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--field-radius);
+  background: linear-gradient(150deg, #fafcf7, #fff);
 }
 .information-part h4 {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 600;
+  color: #355739;
 }
 .information-part p,
 .information-part ul {

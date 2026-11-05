@@ -939,6 +939,8 @@ onBeforeUnmount(() => {
 }
 .review-heading h1 {
   margin-top: 12px;
+  color: #203d2c;
+  font-weight: 550;
 }
 .review-actions,
 .review-modes {
@@ -972,10 +974,12 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   margin-bottom: var(--section-gap);
   padding: 16px;
+  background: linear-gradient(150deg, #f8faf4, #fff 70%);
+  border-color: #e0e7da;
 }
 .review-modes .chosen {
   background: var(--accent-soft);
-  border-color: #bfe6cb;
+  border-color: #cbdcbb;
   color: var(--accent-dark);
 }
 .review-save-status {
@@ -1007,7 +1011,8 @@ onBeforeUnmount(() => {
 }
 .annotation-panel h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
 }
 .annotation-hint {
   font-size: 13px;

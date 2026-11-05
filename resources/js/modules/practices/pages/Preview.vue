@@ -226,6 +226,14 @@ onMounted(load);
   flex: 1 1 260px;
   min-width: 0;
 }
+.page-header .page-title {
+  margin-top: 12px;
+  color: #203d2c;
+  overflow-wrap: anywhere;
+}
+.page-header .page-description {
+  overflow-wrap: anywhere;
+}
 .output-actions {
   justify-content: flex-end;
 }
@@ -234,6 +242,7 @@ onMounted(load);
   margin: var(--section-gap) 0;
   padding: var(--panel-padding);
   gap: 20px;
+  background: linear-gradient(155deg, #fff, #f7f9f3);
 }
 .output-settings .field {
   flex: 1 1 180px;

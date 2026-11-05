@@ -324,7 +324,7 @@ async function createPractice() {
       @edit="editFolder"
       @remove="removeFolder"
     />
-    <div class="folder-content">
+    <div class="folder-content" :aria-busy="loading">
       <div class="folder-current">
         <span>{{
           selectedFolder === 'all'
@@ -337,8 +337,8 @@ async function createPractice() {
           ><input v-model="includeDescendants" type="checkbox" /> С подпапками</label
         >
       </div>
-      <p v-if="loading" class="muted" role="status">Загружаем подборки…</p>
-      <div v-else-if="result?.data.length" class="collection-grid">
+      <p v-if="loading && !result" class="muted" role="status">Загружаем подборки…</p>
+      <div v-if="result?.data.length" class="collection-grid">
         <article v-for="collection in result.data" :key="collection.id" class="card collection-card">
           <div class="collection-cover">
             <template v-if="collection.items?.length"
@@ -385,7 +385,7 @@ async function createPractice() {
           </div>
         </article>
       </div>
-      <div v-else-if="!error" class="empty-state collection-empty">
+      <div v-else-if="!loading && !error" class="empty-state collection-empty">
         <Layers3 :size="42" :stroke-width="1.4" aria-hidden="true" />
         <h3>
           {{ query || archive === 'archived' ? 'Подборки не найдены' : 'Соберите свою первую подборку' }}
@@ -527,7 +527,8 @@ async function createPractice() {
 .collections-header h2 {
   font-size: 19px;
   margin: 0 0 7px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .collections-header p {
@@ -573,13 +574,14 @@ async function createPractice() {
 }
 .collection-cover {
   height: 150px;
-  background: var(--surface-soft);
+  background: linear-gradient(150deg, #f1f6e9, #fbfcf8);
+  border-bottom: 1px solid #e4ebdc;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 18px;
   padding: var(--panel-padding);
-  color: var(--muted);
+  color: #668653;
 }
 .collection-cover img {
   min-width: 0;
@@ -600,7 +602,8 @@ async function createPractice() {
 .collection-content h3 {
   font-size: 19px;
   margin: 9px 0;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .collection-content > p {
@@ -633,13 +636,14 @@ async function createPractice() {
   padding: 65px 20px;
 }
 .collection-empty > svg {
-  color: var(--muted);
+  color: #668653;
   margin-bottom: 15px;
 }
 .collection-empty h3 {
   margin: 0;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .collection-empty p {
@@ -675,9 +679,14 @@ async function createPractice() {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
   margin: 0 0 16px;
   color: var(--muted);
   font-size: 0.82rem;
+}
+.folder-current > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .folder-current > label {
   display: flex;

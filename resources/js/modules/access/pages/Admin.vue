@@ -4,6 +4,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { Download, ShieldCheck, Users, CircleCheck, Clock, CreditCard } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import PageHeading from '@/shared/PageHeading.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { errorText } from '@/modules/catalog/types';
@@ -106,13 +107,13 @@ onBeforeUnmount(() => {
 <template>
   <Head title="Администрирование" />
   <AppShell section="account" wide>
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Администрирование</h1>
-        <p class="muted">Пользователи, доступ и фактические платежи.</p>
-      </div>
+    <PageHeading
+      eyebrow="Управление пространством"
+      title="Администрирование"
+      description="Пользователи, доступ и фактические платежи."
+    >
       <a href="/api/admin/export" class="btn btn-secondary" download><Download :size="17" />Выгрузить JSON</a>
-    </header>
+    </PageHeading>
     <div v-if="error && !target" class="error-banner" role="alert">{{ error }}</div>
     <p v-if="success" class="success-banner" role="status">{{ success }}</p>
     <div v-if="data" class="admin-stats">
@@ -241,24 +242,27 @@ onBeforeUnmount(() => {
 <style scoped>
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--section-gap);
   margin: var(--section-gap) 0;
 }
 .admin-stats article {
+  min-width: 0;
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 8px;
   padding: var(--panel-padding);
   border: 1px solid var(--line);
   border-radius: var(--panel-radius);
-  background: #fff;
+  background: linear-gradient(150deg, #f7f9f2, #fff 75%);
   box-shadow: var(--panel-shadow);
 }
 .admin-stats svg {
   color: var(--accent-dark);
 }
 .admin-stats strong {
+  color: #29492f;
+  overflow-wrap: anywhere;
   font-size: 26px;
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -299,8 +303,10 @@ td {
   border-bottom: 1px solid var(--line);
 }
 th {
+  background: #f7f9f2;
   color: var(--muted);
   font-size: 0.8rem;
+  font-weight: 550;
 }
 td small {
   display: block;

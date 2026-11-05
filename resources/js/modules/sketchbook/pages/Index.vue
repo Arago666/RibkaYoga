@@ -3,6 +3,7 @@ import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Pencil } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 interface Sketch {
@@ -108,7 +109,9 @@ onMounted(load);
       <article v-for="row in rows" :key="row.id" class="card">
         <Link :href="`/sketchbook/${row.id}`"
           ><img v-if="row.image_url" :src="row.image_url" :alt="row.title" />
-          <div v-else class="blank">Пустой лист</div>
+          <div v-else class="blank">
+            <Pencil :size="28" :stroke-width="1.4" aria-hidden="true" /><span>Пустой лист</span>
+          </div>
           <h2>{{ row.title }}</h2></Link
         >
         <div class="toolbar">
@@ -165,6 +168,7 @@ onMounted(load);
 .sketch-create {
   padding: var(--panel-padding);
   margin-bottom: 24px;
+  background: linear-gradient(150deg, #f5f8ee, #fff 65%);
 }
 .sketch-search {
   grid-template-columns: minmax(0, 1fr) 180px auto;
@@ -197,8 +201,14 @@ onMounted(load);
 }
 .blank {
   display: grid;
-  place-items: center;
-  color: var(--muted);
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  background: linear-gradient(155deg, #f3f7eb, #fcfdf9);
+  border: 1px solid #e5eadf;
+  border-radius: 17px;
+  color: #718366;
+  font-size: 12px;
 }
 .sketch-grid a {
   color: inherit;
@@ -208,7 +218,8 @@ onMounted(load);
   font-size: 19px;
   margin-top: 16px;
   overflow-wrap: anywhere;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .sketch-grid .toolbar {

@@ -563,8 +563,11 @@ input[type='range'] {
 .beat-button.pulsing {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--text);
+  color: #fff;
   box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.beat-button.pulsing small {
+  color: inherit;
 }
 .metronome-help {
   font-size: 12px;

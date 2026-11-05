@@ -101,7 +101,7 @@ function select(dimension: Dimension, id: string) {
 .facet-values button[aria-pressed='true'] {
   background: var(--accent-soft);
   color: var(--accent-dark);
-  border-color: #b5edc5;
+  border-color: #b8ccaa;
 }
 .facet-values span {
   opacity: 0.75;

@@ -160,6 +160,8 @@ onMounted(load);
 }
 .page-title {
   margin-top: 12px;
+  color: #203d2c;
+  font-weight: 550;
 }
 .preview-actions,
 .preview-settings {
@@ -171,6 +173,8 @@ onMounted(load);
 .preview-settings {
   margin-bottom: 24px;
   gap: 24px;
+  background: linear-gradient(150deg, #f8faf4, #fff 70%);
+  border-color: #e0e7da;
 }
 .preview-settings > .field {
   min-width: 200px;

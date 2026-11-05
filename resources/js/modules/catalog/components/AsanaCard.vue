@@ -117,17 +117,13 @@ defineEmits<{
 .asana-card {
   position: relative;
   overflow: visible;
-  border: 1px solid var(--line);
+  border: 1px solid #dfe6d8;
   border-radius: var(--panel-radius);
   background: #fff;
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
-  box-shadow: var(--panel-shadow);
-}
-.asana-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--text) 5%, transparent);
+  box-shadow: 0 3px 16px rgb(39 61 29 / 3%);
 }
 .asana-card.selected {
   border-color: var(--accent);
@@ -150,7 +146,7 @@ defineEmits<{
   cursor: pointer;
 }
 .selection-toggle.checked {
-  color: var(--text);
+  color: #fff;
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -167,7 +163,7 @@ defineEmits<{
   width: 100%;
   height: 200px;
   border: 0;
-  background: var(--surface);
+  background: #fff;
   padding: var(--panel-padding);
   cursor: zoom-in;
 }
@@ -196,10 +192,14 @@ defineEmits<{
 .asana-info {
   padding: var(--panel-padding);
   padding-top: 16px;
+  border-top: 1px solid #eef1e8;
+  border-radius: 0 0 var(--panel-radius) var(--panel-radius);
+  background: linear-gradient(180deg, #fbfcf8, #fff);
 }
 .asana-info h3 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #263e2d;
   line-height: 1.35;
   margin: 0 0 6px;
   overflow: hidden;
@@ -260,6 +260,20 @@ button:focus-visible {
   }
   .asana-info h3 {
     font-size: 18px;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .asana-card:not(.selected):hover {
+    border-color: #9bb38a;
+    box-shadow: 0 7px 23px rgb(39 61 29 / 6%);
+  }
+}
+@media print {
+  .asana-card,
+  .asana-card.selected,
+  .asana-info {
+    background: #fff;
+    box-shadow: none;
   }
 }
 </style>

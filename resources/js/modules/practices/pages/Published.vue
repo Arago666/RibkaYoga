@@ -113,6 +113,13 @@ onMounted(load);
   flex: 1 1 320px;
   min-width: 0;
 }
+.page-header .page-title {
+  color: #203d2c;
+  overflow-wrap: anywhere;
+}
+.page-header .page-description {
+  overflow-wrap: anywhere;
+}
 .published-sheet {
   background: var(--surface);
   border: 1px solid var(--line);

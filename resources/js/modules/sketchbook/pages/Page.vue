@@ -390,6 +390,8 @@ onBeforeUnmount(() => {
 .sketch-heading .page-title {
   margin: 12px 0 8px;
   overflow-wrap: anywhere;
+  color: #203d2c;
+  font-weight: 550;
 }
 .sketch-heading strong {
   font-size: 13px;
@@ -407,6 +409,8 @@ onBeforeUnmount(() => {
 }
 .sketch-meta {
   padding: var(--panel-padding);
+  background: linear-gradient(150deg, #f8faf4, #fff 70%);
+  border-color: #e0e7da;
 }
 .sketch-actions input {
   flex: 1;
@@ -454,7 +458,8 @@ onBeforeUnmount(() => {
 }
 .transfer-queue h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 @media (max-width: 700px) {

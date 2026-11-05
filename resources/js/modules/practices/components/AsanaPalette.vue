@@ -327,8 +327,9 @@ onBeforeUnmount(() => {
 }
 .palette-heading h2 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
   letter-spacing: -0.025em;
+  color: #29492f;
 }
 .palette-heading p {
   font-size: 12px;

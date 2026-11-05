@@ -352,6 +352,10 @@ p {
   object-fit: cover;
   border-radius: 50%;
 }
+.avatar-field .field {
+  flex: 1;
+  min-width: 0;
+}
 .avatar-field input {
   width: 100%;
   font-size: 0.82rem;

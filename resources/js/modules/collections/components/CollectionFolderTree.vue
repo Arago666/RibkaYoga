@@ -125,6 +125,7 @@ function toggle(id: string) {
   padding: var(--panel-padding) !important;
   align-self: start;
   min-width: 0;
+  background: linear-gradient(155deg, #f7faf2, #fff 70%);
 }
 .folder-heading {
   display: flex;
@@ -134,7 +135,8 @@ function toggle(id: string) {
 }
 .folder-heading strong {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
 }
 .folder-link {
@@ -157,7 +159,7 @@ function toggle(id: string) {
 .folder-link.active {
   background: var(--accent-soft);
   color: var(--accent-dark);
-  font-weight: 650;
+  font-weight: 550;
 }
 .folder-link:hover {
   background: var(--accent-soft);
@@ -172,6 +174,7 @@ function toggle(id: string) {
 .folder-link small {
   margin-left: auto;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .folder-row {
   display: flex;

@@ -6,19 +6,22 @@
     <title>Сравнение рисунков · RibkaYoga</title>
     <style>
       :root {
-        --ink: #18231c;
-        --muted: #788279;
-        --line: #e1e8e2;
-        --green: #22914d;
-        --soft: #eaf7ef;
-        --bg: #f7f9f6;
+        --ink: #203d2c;
+        --muted: #697761;
+        --line: #e1e7dc;
+        --green: #2d6343;
+        --soft: #eef5e8;
+        --bg: #f6f8f1;
       }
       * {
         box-sizing: border-box;
       }
+      html {
+        scrollbar-gutter: stable;
+      }
       body {
         margin: 0;
-        background: #fff;
+        background: #fdfefb;
         color: var(--ink);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         line-height: 1.45;
@@ -36,7 +39,7 @@
       a:focus-visible,
       input:focus-visible,
       textarea:focus-visible {
-        outline: 3px solid #88d8a4;
+        outline: 3px solid #668a56;
         outline-offset: 3px;
       }
       button:disabled {
@@ -119,12 +122,12 @@
         background: #f4faf5;
       }
       .btn.primary {
-        background: linear-gradient(#43cb71, #28b85a);
-        border-color: #29b95c;
-        color: #102a18;
+        background: linear-gradient(150deg, #386d4b, #285b3d);
+        border-color: #2c6041;
+        color: #fff;
         box-shadow:
-          inset 0 1px #ffffff9c,
-          0 5px 16px #24ad5021;
+          inset 0 1px #ffffff29,
+          0 4px 12px #254b3212;
       }
       .hero {
         padding: 22px 0 14px;
@@ -134,7 +137,7 @@
         line-height: 1.12;
         letter-spacing: -1.7px;
         margin: 8px 0 10px;
-        font-weight: 680;
+        font-weight: 550;
       }
       .hero p {
         max-width: 1100px;
@@ -197,8 +200,8 @@
       }
       .filter[aria-pressed='true'] {
         background: var(--soft);
-        color: #166d39;
-        font-weight: 650;
+        color: var(--green);
+        font-weight: 550;
       }
       .search {
         min-width: 230px;
@@ -295,8 +298,8 @@
         border-color: #b9d8c1;
       }
       .drawing.new {
-        background: radial-gradient(ellipse at top, #f4fbf5, white 65%);
-        border-color: #d8eadc;
+        background: radial-gradient(ellipse at top, #f5f8ee, white 65%);
+        border-color: #e0e7da;
       }
       .drawing svg,
       .drawing img {

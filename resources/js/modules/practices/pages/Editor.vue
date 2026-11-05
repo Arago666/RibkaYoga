@@ -2612,7 +2612,7 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   margin-bottom: var(--section-gap);
   padding: 18px var(--panel-padding);
-  background: var(--surface);
+  background: linear-gradient(155deg, #fff, #f7f9f3);
   border: 1px solid var(--line);
   border-radius: var(--panel-radius);
   box-shadow: var(--panel-shadow);
@@ -2726,13 +2726,17 @@ onBeforeUnmount(() => {
   padding: 4px 0;
   max-width: 100%;
   width: 100%;
-  color: var(--text);
+  color: #203d2c;
   line-height: 1.1;
   text-overflow: ellipsis;
 }
 .document-title:hover,
 .block-title:hover {
   border-color: var(--line);
+}
+.document-title:focus-visible {
+  outline: 2px solid #8aa66b;
+  outline-offset: 4px;
 }
 .editor-subtitle {
   display: flex;
@@ -2741,6 +2745,7 @@ onBeforeUnmount(() => {
   font-size: 13px;
   color: var(--muted);
   margin-top: 5px;
+  flex-wrap: wrap;
 }
 .divider-dot {
   color: var(--muted);
@@ -2775,15 +2780,9 @@ onBeforeUnmount(() => {
   color: var(--muted);
 }
 .theme-field input {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: var(--field-radius);
   font-size: 14px;
   flex: 1;
   min-width: 0;
-  color: var(--text);
-  padding: 10px 12px;
-  min-height: var(--control-height);
 }
 .document-meta .btn {
   font-size: 13px;
@@ -2861,9 +2860,9 @@ onBeforeUnmount(() => {
   background: transparent;
   padding: 3px 5px;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
   flex: 1;
-  color: var(--text);
+  color: #29492f;
 }
 .block-menu {
   position: relative;

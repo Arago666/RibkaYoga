@@ -343,6 +343,7 @@ onMounted(load);
   align-items: flex-start;
   gap: 20px;
   margin-bottom: var(--section-gap);
+  flex-wrap: wrap;
 }
 .shared-intro {
   flex: 1 1 280px;
@@ -350,6 +351,8 @@ onMounted(load);
 }
 .shared-intro .page-title {
   margin-top: 12px;
+  color: #203d2c;
+  overflow-wrap: anywhere;
 }
 .shared-layout {
   display: grid;
@@ -387,7 +390,8 @@ onMounted(load);
   gap: 8px;
   align-items: center;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 550;
+  color: #29492f;
   letter-spacing: -0.025em;
   margin: 0 0 20px;
 }
@@ -446,6 +450,7 @@ onMounted(load);
   justify-content: flex-end;
   gap: 4px;
   margin-top: 7px;
+  flex-wrap: wrap;
 }
 .comment-tools .btn {
   font-size: 12px;
