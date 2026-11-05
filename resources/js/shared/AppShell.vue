@@ -111,7 +111,7 @@ const user = computed(
           <LogOut :size="18" />
         </button>
       </div>
-      <Link v-else href="/login" class="btn">Войти</Link>
+      <Link v-else href="/login" class="btn guest-login">Войти</Link>
     </header>
     <main :class="['app-main', { wide }]"><slot /></main>
     <footer class="app-footer">
@@ -123,6 +123,9 @@ const user = computed(
   </div>
 </template>
 <style scoped>
+.guest-login {
+  margin-left: auto;
+}
 .more-nav {
   position: relative;
 }
