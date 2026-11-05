@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { Folder, Plus } from '@lucide/vue';
+import { Archive, ArrowUpRight, Check, FileText, Folder, Plus } from '@lucide/vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
+import BrandMotif from '@/shared/BrandMotif.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 interface FolderItem {
@@ -197,13 +198,24 @@ defineExpose({ refresh: load });
         v-for="folder in items"
         :key="folder.id"
         class="folder-card"
-        :class="{ selected: selectedFolder === folder.id, 'drop-target': dropTarget === folder.id }"
+        :class="{
+          selected: selectedFolder === folder.id,
+          'drop-target': dropTarget === folder.id,
+          'folder-archived': !!folder.archived_at,
+        }"
         @dragover.prevent="!folder.archived_at && (dropTarget = folder.id)"
         @dragleave="dropTarget = null"
         @drop.prevent="!folder.archived_at && drop($event, folder)"
       >
         <div class="folder-card-heading">
-          <Folder :size="28" /><ActionMenu :label="`Действия с папкой: ${folder.name}`"
+          <div class="folder-decoration" aria-hidden="true"><BrandMotif /></div>
+          <span class="folder-icon" aria-hidden="true"
+            ><Archive v-if="folder.archived_at" :size="25" :stroke-width="1.5" /><Folder
+              v-else
+              :size="25"
+              :stroke-width="1.5"
+          /></span>
+          <ActionMenu :label="`Действия с папкой: ${folder.name}`"
             ><template v-if="hasSelection && !folder.archived_at"
               ><button :disabled="busy" @click="assign(folder)">Добавить выбранные</button
               ><button :disabled="busy" @click="assign(folder, true)">Убрать выбранные</button></template
@@ -217,8 +229,9 @@ defineExpose({ refresh: load });
           v-if="mode === 'category' && !hasSelection && !folder.archived_at"
           :href="`/practices?folder=${folder.id}`"
           class="folder-title"
-          >{{ folder.name }}</Link
-        >
+          ><span>{{ folder.name }}</span
+          ><ArrowUpRight :size="18" aria-hidden="true"
+        /></Link>
         <button
           v-else
           class="folder-title"
@@ -226,11 +239,21 @@ defineExpose({ refresh: load });
           :aria-pressed="mode === 'program' && !hasSelection ? selectedFolder === folder.id : undefined"
           @click="openFolder(folder)"
         >
-          {{ folder.name }}
+          <span>{{ folder.name }}</span>
+          <Check v-if="!folder.archived_at && selectedFolder === folder.id" :size="18" aria-hidden="true" />
+          <Plus v-else-if="!folder.archived_at && hasSelection" :size="18" aria-hidden="true" />
+          <ArrowUpRight v-else-if="!folder.archived_at" :size="18" aria-hidden="true" />
         </button>
-        <small
-          >{{ mode === 'program' ? folder.items_count || 0 : folder.documents_count || 0 }} документов</small
-        >
+        <div class="folder-meta">
+          <FileText :size="14" aria-hidden="true" />
+          <small
+            >{{
+              mode === 'program' ? folder.items_count || 0 : folder.documents_count || 0
+            }}
+            документов</small
+          >
+          <span v-if="folder.archived_at" class="folder-archive-label">В архиве</span>
+        </div>
       </article>
     </div>
     <p v-if="!items.length" class="muted">
@@ -266,8 +289,7 @@ defineExpose({ refresh: load });
   </section>
 </template>
 <style scoped>
-.folder-heading,
-.folder-card-heading {
+.folder-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -276,29 +298,73 @@ defineExpose({ refresh: load });
 }
 .folder-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 236px), 1fr));
   gap: var(--section-gap);
   margin: var(--section-gap) 0;
 }
 .folder-card {
-  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e7da;
   border-radius: var(--panel-radius);
   padding: var(--panel-padding);
-  background: var(--surface);
+  background: linear-gradient(155deg, #f5f8ee 0, #fcfdf9 40%, #fff 70%);
   box-shadow: var(--panel-shadow);
   min-width: 0;
 }
 .folder-card-heading {
-  margin: 0 0 14px;
-  color: var(--accent-dark);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -12px -12px 18px;
+  padding: 12px;
+  color: #416448;
+}
+.folder-decoration {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 18px;
+}
+.folder-decoration .brand-motif {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -34px;
+  top: -88px;
+  opacity: 0.12;
+}
+.folder-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 17px;
+  border: 1px solid #dce6d3;
+  background: linear-gradient(145deg, #ffffffdf, #e8f0dc);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 12px #3f5a2f06;
 }
 .folder-title {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
   min-height: var(--control-height);
   font-size: 17px;
-  font-weight: 650;
+  font-weight: 550;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
   text-decoration: none;
-  color: var(--text);
+  color: #29492f;
   background: none;
   border: 0;
   padding: 0;
@@ -306,16 +372,53 @@ defineExpose({ refresh: load });
   text-align: left;
   overflow-wrap: anywhere;
 }
+.folder-title > span {
+  min-width: 0;
+}
+.folder-title > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: #6b845b;
+}
+.folder-title:disabled {
+  cursor: default;
+  color: #697761;
+}
+.folder-title:focus-visible {
+  outline: 2px solid #668a56;
+  outline-offset: 5px;
+  border-radius: 5px;
+}
+.folder-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #e5eadf;
+  color: #73816c;
+}
 .folder-card small {
   display: block;
-  margin-top: 10px;
-  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.folder-archive-label {
+  margin-left: auto;
+  font-size: 10px;
+}
+.folder-archived {
+  background: #fafbf8;
+}
+.folder-archived .folder-decoration {
+  display: none;
 }
 .folder-card.selected,
 .folder-card.drop-target {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  outline: 2px solid var(--accent);
+  background: #eef5e8;
+  border-color: #648853;
+  outline: 2px solid #648853;
 }
 .folder-section-compact .folder-grid {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
@@ -325,17 +428,42 @@ defineExpose({ refresh: load });
   padding: 12px;
 }
 .folder-section-compact .folder-card-heading {
-  margin-bottom: 4px;
+  margin: 0 0 10px;
+  padding: 0;
 }
-.folder-section-compact .folder-card-heading > svg {
-  width: 22px;
-  height: 22px;
+.folder-section-compact .folder-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+.folder-section-compact .folder-icon > svg {
+  width: 20px;
+  height: 20px;
 }
 .folder-section-compact .folder-title {
   font-size: 15px;
+  min-height: 44px;
 }
-.folder-section-compact .folder-card small {
-  margin-top: 6px;
-  font-size: 12px;
+.folder-section-compact .folder-meta {
+  padding-top: 10px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .folder-card:not(.folder-archived, .selected, .drop-target):hover {
+    border-color: #b9cbae;
+    box-shadow: 0 7px 24px #294b2510;
+  }
+  .folder-title:hover:not(:disabled) {
+    color: #376d43;
+  }
+}
+@media print {
+  .folder-card,
+  .folder-icon {
+    background: #fff;
+    box-shadow: none;
+  }
+  .folder-decoration {
+    display: none;
+  }
 }
 </style>
