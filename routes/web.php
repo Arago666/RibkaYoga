@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn () => redirect('/practices'))->name('home');
+Route::get('/', fn () => Inertia::render('presentation/Home', [
+    'socialImage' => url('/images/brand/glass-garden-hero.webp'),
+]))->name('home');
 Route::middleware('auth')->group(function () {
     Route::get('/practices', fn () => Inertia::render('practices/Index'))->name('practices.index');
     Route::get('/mesocycles', fn () => Inertia::render('practices/Mesocycles'))->name('mesocycles.index');

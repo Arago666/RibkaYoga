@@ -15,6 +15,8 @@ import {
 } from '@lucide/vue';
 import { computed } from 'vue';
 import { dismissMenu as vDismissMenu } from './dismissMenu';
+import BrandMotif from './BrandMotif.vue';
+import '../../css/brand-app.css';
 defineProps<{
   section: 'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews';
   wide?: boolean;
@@ -25,9 +27,10 @@ const user = computed(
 );
 </script>
 <template>
-  <div :class="['app-shell', { 'app-shell-wide': wide }]">
+  <div :class="['app-shell', 'app-shell-branded', { 'app-shell-wide': wide }]">
+    <div class="app-ambient" aria-hidden="true"><BrandMotif /></div>
     <header :class="['app-header', { 'with-admin': user?.is_admin }]">
-      <Link href="/practices" class="brand" aria-label="RibkaYoga — практики"
+      <Link href="/" class="brand" aria-label="RibkaYoga — главная страница"
         ><img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span></Link
       >
       <nav v-if="user" class="main-nav" aria-label="Основная навигация">
@@ -111,7 +114,12 @@ const user = computed(
       <Link v-else href="/login" class="btn">Войти</Link>
     </header>
     <main :class="['app-main', { wide }]"><slot /></main>
-    <footer class="app-footer">Место для вашей практики <span>RibkaYoga</span></footer>
+    <footer class="app-footer">
+      <span class="footer-signature"
+        ><span class="brand-seed" aria-hidden="true"></span>Место для вашей практики</span
+      >
+      <Link href="/" class="footer-home">О RibkaYoga <span aria-hidden="true">↗</span></Link>
+    </footer>
   </div>
 </template>
 <style scoped>

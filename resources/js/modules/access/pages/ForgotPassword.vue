@@ -1,67 +1,54 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowRight } from '@lucide/vue';
+import BrandAuthFrame from '@/shared/BrandAuthFrame.vue';
 defineProps<{ status?: string; localMail: boolean; recoveryAvailable: boolean }>();
 const form = useForm({ email: '' });
 </script>
 <template>
-  <Head title="Восстановление пароля" />
-  <main class="login-page">
-    <div class="login-brand brand">
-      <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
-    </div>
-    <section class="login-card card">
-      <h1 class="page-title">Восстановить пароль</h1>
-      <p v-if="localMail" class="muted">
+  <Head title="Восстановление пароля">
+    <meta
+      head-key="description"
+      name="description"
+      content="Восстановите доступ к своему кабинету RibkaYoga."
+    />
+  </Head>
+  <BrandAuthFrame title="Восстановить пароль." eyebrow="Вернуться к своей практике">
+    <template #intro>
+      <p v-if="localMail">
         Локальный режим: письмо со ссылкой появится в <code>storage/logs/local-mail.log</code>.
       </p>
-      <p v-else-if="recoveryAvailable" class="muted">
+      <p v-else-if="recoveryAvailable">
         Укажите почту своего аккаунта. На неё придёт ссылка для смены пароля.
       </p>
-      <p v-else class="muted">
-        Отправка писем пока не подключена. Для восстановления доступа обратитесь к администратору.
-      </p>
-      <p v-if="status" class="success-banner" role="status">{{ status }}</p>
-      <form v-if="recoveryAvailable" class="login-form" @submit.prevent="form.post('/forgot-password')">
-        <label class="field"
-          ><span class="label">Электронная почта</span
-          ><input
-            v-model="form.email"
-            class="input"
-            type="email"
-            autocomplete="email"
-            maxlength="255"
-            required
-            autofocus
-          /><span v-if="form.errors.email" class="field-error">{{ form.errors.email }}</span></label
-        ><button class="btn btn-primary" :disabled="form.processing">
-          {{ form.processing ? 'Отправляем…' : 'Получить ссылку' }}
-        </button>
-      </form>
-      <p class="auth-links"><Link href="/login">Вернуться ко входу</Link></p>
-    </section>
-  </main>
+      <p v-else>Отправка писем пока не подключена. Для восстановления доступа обратитесь к администратору.</p>
+    </template>
+    <p v-if="status" class="success-banner" role="status">{{ status }}</p>
+    <form v-if="recoveryAvailable" class="login-form" @submit.prevent="form.post('/forgot-password')">
+      <label class="field">
+        <span class="label">Электронная почта</span>
+        <input
+          v-model="form.email"
+          class="input"
+          type="email"
+          autocomplete="email"
+          maxlength="255"
+          required
+          autofocus
+          placeholder="Почта вашего аккаунта"
+          :aria-invalid="!!form.errors.email"
+          :aria-describedby="form.errors.email ? 'forgot-email-error' : undefined"
+        />
+        <span v-if="form.errors.email" id="forgot-email-error" class="field-error">{{
+          form.errors.email
+        }}</span>
+      </label>
+      <button class="btn btn-primary login-submit" :disabled="form.processing">
+        {{ form.processing ? 'Отправляем…' : 'Получить ссылку' }}<ArrowRight :size="19" />
+      </button>
+    </form>
+    <template #links
+      ><Link href="/login">Вернуться ко входу <span aria-hidden="true">↗</span></Link></template
+    >
+  </BrandAuthFrame>
 </template>
-<style scoped>
-.login-card.card {
-  padding: var(--panel-padding);
-}
-.muted {
-  font-size: 0.86rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-.auth-links {
-  margin: 22px 0 0;
-  text-align: center;
-  font-size: 0.86rem;
-}
-.auth-links a {
-  color: var(--accent-dark);
-}
-.login-card .page-title {
-  font-size: var(--page-title-size);
-  font-weight: var(--page-title-weight);
-  letter-spacing: -0.045em;
-  line-height: 1.1;
-}
-</style>

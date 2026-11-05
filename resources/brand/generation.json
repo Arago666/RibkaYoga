@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-11-05",
+  "tool": "built-in image_gen.imagegen",
+  "purpose": "Public marketing artwork explicitly authorized by the November 5 landing-page redesign request. These are new brand/lifestyle illustrations; private comparison people and catalogue figure images are not used.",
+  "assets": [
+    {
+      "name": "glass-garden-hero",
+      "file": "public/images/brand/glass-garden-hero.webp",
+      "original": "public/images/brand/glass-garden-hero-original.png",
+      "native_source": "/Users/Arago/.codex/generated_images/01a1a962-0e64-7fc0-96ae-d15f15a810b1/exec-93a660d4-e867-4003-b316-242a65ca9e21.png",
+      "prompt": "Use case: stylized-concept\nAsset type: premium yoga planning software landing-page hero image, landscape 3:2\nPrimary request: editorial premium still life with one sculptural translucent sage-green clear-glass flowing loop, an elegant continuous tubular orbit curving vertically around a small soft rounded island densely covered in vivid fresh green moss, a single pale smooth stone below. Minimal and memorable, nature meets precise design, quiet luxury.\nScene/backdrop: seamless warm off-white studio, soft floor contact shadows and daylight, subtle green refractions and caustics.\nComposition: full sculpture in frame, centered slightly right, generous surrounding negative space, graceful asymmetric curves, eye-level three-quarter view, landscape frame.\nStyle: exceptionally refined photoreal material rendering, high-end architectural still-life photography, detailed natural moss, clear thick optical glass edges, soft bright atmosphere. Restrained pale sage / white / deep green palette.\nConstraints: absolutely no text, letters, labels, logo, UI, people, product jar, packaging, flowers, extra objects, watermark, clutter. Not a generic shiny blob. Beautiful purposeful flowing form."
+    },
+    {
+      "name": "studio-practice",
+      "file": "public/images/brand/studio-practice.webp",
+      "original": "public/images/brand/studio-practice-original.png",
+      "native_source": "/Users/Arago/.codex/generated_images/01a1a962-0e64-7fc0-96ae-d15f15a810b1/exec-e550d794-5266-491a-97ef-954eb1bf1ca4.png",
+      "prompt": "Use case: photorealistic-natural\nAsset type: premium yoga software website editorial lifestyle image, portrait 4:5 composition\nPrimary request: a real-looking athletic adult woman yoga teacher, about 30 years old, in a simple accurate Warrior II yoga pose viewed in three-quarter side view: front knee bent above ankle, back leg straight with grounded foot, torso upright, both arms extended at shoulder height, relaxed head looking over front hand. Full body from fingertips to bare feet clearly inside the frame.\nScene: spacious refined minimalist sunlit yoga studio, warm off-white plaster walls, one tall architectural window casting soft late morning light, pale natural floor, one elegant green plant at edge, sage yoga mat. Large calm blank wall area around her.\nSubject: natural attractive face, dark hair neatly tied back, authentic athletic physique, opaque understated sage-green fitted sleeveless sports top and charcoal leggings, no brand names, barefoot. Exactly two anatomically correct arms, two hands, two legs, two feet.\nStyle: high-end magazine editorial photography, real natural skin texture, quiet focused expression, premium restrained warm white / sage / charcoal color palette, honest daylight and soft subtle shadows, 50mm lens, no excessive bokeh.\nConstraints: no text, lettering, logo, watermark, UI, second person, extra limbs, jewelry, gym equipment, clutter, harsh dramatic lighting. Human is an illustrative lifestyle model, not a named real instructor."
+    }
+  ],
+  "processing": "Native PNG outputs retained unchanged. WebP derivative created with Pillow RGB conversion and quality 89, method 6; no cropping, retouching or pose changes.",
+  "visual_qa": "Inspected both generated outputs. Hero has no text or people; studio depicts one adult, full body, with two arms and legs in a clear Warrior II pose."
+}
