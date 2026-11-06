@@ -3,6 +3,8 @@
 namespace App\Modules\Practices\Http\Controllers;
 
 use App\Modules\Access\PublicApi\WorkspaceContext;
+use App\Modules\Practices\Actions\PracticeEditor;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,9 +12,9 @@ use Illuminate\Support\Str;
 
 class PracticeFolderController
 {
-    public function __construct(private WorkspaceContext $workspace) {}
+    public function __construct(private WorkspaceContext $workspace, private PracticeEditor $editor) {}
 
-    private function folders()
+    private function folders(): Builder
     {
         return DB::table('practice_personal_folders')->where('workspace_id', $this->workspace->id())->where('user_id', $this->workspace->userId());
     }
@@ -22,9 +24,11 @@ class PracticeFolderController
         $query = $this->folders();
         $request->boolean('archived') ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at');
         $items = $query->orderBy('sort_order')->orderBy('name')->orderBy('id')->get();
-        $counts = DB::table('practice_document_folders')->whereIn('folder_id', $items->pluck('id'))->select('folder_id')->selectRaw('count(*) as count')->groupBy('folder_id')->pluck('count', 'folder_id');
+        $includePreviews = $request->boolean('include_previews');
+        $contents = $this->editor->categoryContents($items->pluck('id')->all(), $includePreviews);
+        $empty = $includePreviews ? ['documents_count' => 0, 'preview_documents' => []] : ['documents_count' => 0];
 
-        return response()->json(['data' => $items->map(fn ($item) => (array) $item + ['documents_count' => (int) ($counts[$item->id] ?? 0)])]);
+        return response()->json(['data' => $items->map(fn ($item) => (array) $item + ($contents[$item->id] ?? $empty))]);
     }
 
     public function store(Request $request): JsonResponse
@@ -64,24 +68,35 @@ class PracticeFolderController
     public function assign(Request $request, string $id): JsonResponse
     {
         $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'documents' => 'required|array|list|min:1|max:100', 'documents.*.id' => 'required|uuid|distinct', 'documents.*.expected_revision' => 'required|integer|min:1', 'remove' => 'sometimes|boolean']);
-        DB::transaction(function () use ($id, $input) {
+        $record = DB::transaction(function () use ($id, $input) {
             $folder = $this->folders()->where('id', $id)->whereNull('archived_at')->lockForUpdate()->first();
             abort_unless($folder, 404);
             abort_unless((int) $folder->revision === (int) $input['expected_revision'], 409, 'Категория изменена. Обновите список.');
             $ids = array_column($input['documents'], 'id');
-            $documents = DB::table('practice_documents')->where('workspace_id', $this->workspace->id())->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $documents = DB::table('practice_documents')->where('workspace_id', $this->workspace->id())->whereIn('id', $ids)
+                ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             abort_unless($documents->count() === count($ids), 404);
             foreach ($input['documents'] as $document) {
                 abort_unless((int) $documents[$document['id']]->revision === (int) $document['expected_revision'], 409, 'Практика изменилась. Обновите список.');
-                if ($input['remove'] ?? false) {
-                    DB::table('practice_document_folders')->where('folder_id', $id)->where('document_id', $document['id'])->delete();
+            }
+            $remove = $input['remove'] ?? false;
+            if (! $remove) {
+                $containsIneligible = $documents->contains(fn ($document) => $document->kind !== 'practice' || $document->archived_at !== null)
+                    || DB::table('practice_mesocycle_weeks')->whereIn('document_id', $ids)->exists();
+                abort_if($containsIneligible, 422, 'В категории можно добавить только активные самостоятельные практики.');
+            }
+            foreach ($ids as $documentId) {
+                if ($remove) {
+                    DB::table('practice_document_folders')->where('folder_id', $id)->where('document_id', $documentId)->delete();
                 } else {
-                    DB::table('practice_document_folders')->insertOrIgnore(['folder_id' => $id, 'document_id' => $document['id']]);
+                    DB::table('practice_document_folders')->insertOrIgnore(['folder_id' => $id, 'document_id' => $documentId]);
                 }
             }
             $this->folders()->where('id', $id)->update(['revision' => $folder->revision + 1, 'updated_at' => now()]);
+
+            return $this->folders()->where('id', $id)->first();
         });
 
-        return response()->json(['data' => $this->folders()->where('id', $id)->first()]);
+        return response()->json(['data' => $record]);
     }
 }

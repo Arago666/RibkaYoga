@@ -11,6 +11,7 @@ use App\Modules\Practices\PublicApi\SnapshotClassifications;
 use App\Modules\Practices\Services\ExecutionParameters;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -36,12 +37,26 @@ class PracticeEditor
         } else {
             $query->where('kind', $filters['kind'] ?? 'row');
         }
-        if (! $rows && ! empty($filters['folder_id'])) {
-            $folder = DB::table('practice_personal_folders')->where('workspace_id', $this->workspace())->where('user_id', $this->context->userId())->where('id', $filters['folder_id'])->first();
+        $categoryIds = array_map('strtolower', $filters['folder_ids'] ?? []);
+        $excludedFolderId = $filters['exclude_folder_id'] ?? null;
+        if (! $rows && $categoryIds !== []) {
+            $folders = $this->personalFolders()->whereNull('archived_at')->whereIn('id', $categoryIds);
+            $query->where('kind', 'practice')
+                ->whereIn('id', DB::table('practice_document_folders')->whereIn('folder_id', $folders->select('id'))->select('document_id'));
+        } elseif (! $rows && ! empty($filters['folder_id'])) {
+            $folder = $this->personalFolders()->where('id', $filters['folder_id'])->first();
             abort_unless($folder, 404);
             $query->whereIn('id', DB::table('practice_document_folders')->where('folder_id', $folder->id)->select('document_id'));
         }
-        if (! $rows && ($filters['include_cycle_documents'] ?? true) === false && empty($filters['q'])) {
+        if (! $rows && $excludedFolderId) {
+            $folder = $this->personalFolders()->whereNull('archived_at')->where('id', strtolower($excludedFolderId))->first();
+            abort_unless($folder, 404);
+            $query->where('kind', 'practice')
+                ->whereNotIn('id', DB::table('practice_document_folders')->where('folder_id', $folder->id)->select('document_id'));
+        }
+        $standaloneOnly = $categoryIds !== [] || $excludedFolderId
+            || (($filters['include_cycle_documents'] ?? true) === false && empty($filters['q']));
+        if (! $rows && $standaloneOnly) {
             $query->whereNotIn('id', DB::table('practice_mesocycle_weeks')->select('document_id'));
         }
         $archived = ($filters['archive'] ?? '') === 'archived' || ($filters['archived'] ?? false);
@@ -66,7 +81,54 @@ class PracticeEditor
             $query->orderBy($sortColumn, $sortDirection);
         }
         $page = $query->orderBy('id')->paginate($filters['per_page'] ?? 18);
-        $documentIds = array_map(fn ($record) => $record->id, $page->items());
+
+        return ['data' => $this->listingItems($page->getCollection(), $rows), 'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()];
+    }
+
+    public function categoryContents(array $folderIds, bool $includePreviews): array
+    {
+        if ($folderIds === []) {
+            return [];
+        }
+
+        $folders = $this->personalFolders()->whereIn('id', $folderIds)->select('id');
+        $documents = $this->owned('practice_documents')
+            ->join('practice_document_folders as links', 'links.document_id', '=', 'practice_documents.id')
+            ->whereIn('links.folder_id', $folders)->where('practice_documents.kind', 'practice')
+            ->whereNull('practice_documents.archived_at')
+            ->whereNotIn('practice_documents.id', DB::table('practice_mesocycle_weeks')->select('document_id'));
+        if (! $includePreviews) {
+            return $documents->groupBy('links.folder_id')->select('links.folder_id')->selectRaw('count(*) as documents_count')
+                ->get()->mapWithKeys(fn ($record) => [$record->folder_id => ['documents_count' => (int) $record->documents_count]])->all();
+        }
+
+        $ranked = $documents->select('practice_documents.*', 'links.folder_id')
+            ->selectRaw('row_number() over (partition by links.folder_id order by practice_documents.updated_at desc, practice_documents.id) as category_rank')
+            ->selectRaw('count(*) over (partition by links.folder_id) as documents_count');
+        $records = DB::query()->fromSub($ranked, 'category_documents')->where('category_rank', '<=', 8)
+            ->orderBy('category_rank')->get();
+
+        // A practice can belong to several categories. Hydrate its preview and snapshots only once.
+        $items = collect($this->listingItems($records->unique('id')->map(function ($record) {
+            $document = clone $record;
+            unset($document->folder_id, $document->category_rank, $document->documents_count);
+
+            return $document;
+        })))->keyBy('id');
+
+        return $records->groupBy('folder_id')->map(fn ($group) => [
+            'documents_count' => (int) $group->first()->documents_count,
+            'preview_documents' => $group->map(fn ($record) => $items[$record->id])->all(),
+        ])->all();
+    }
+
+    private function listingItems(Collection $records, bool $rows = false): array
+    {
+        if ($records->isEmpty()) {
+            return [];
+        }
+
+        $documentIds = $records->pluck('id')->all();
         if ($rows) {
             $cellGroups = DB::table('practice_row_template_cells')->whereIn('row_template_id', $documentIds)
                 ->orderBy('position')->orderBy('id')->get()->groupBy('row_template_id');
@@ -99,7 +161,7 @@ class PracticeEditor
         $cycleLinks = ! $rows ? DB::table('practice_mesocycle_weeks as slots')->join('practice_mesocycles as cycles', 'cycles.id', '=', 'slots.mesocycle_id')->where('cycles.workspace_id', $this->workspace())->whereIn('slots.document_id', $documentIds)->select('slots.document_id', 'cycles.id', 'cycles.title', 'slots.position')->get()->groupBy('document_id') : collect();
         $folderLinks = ! $rows ? DB::table('practice_document_folders as links')->join('practice_personal_folders as folders', 'folders.id', '=', 'links.folder_id')->where('folders.workspace_id', $this->workspace())->where('folders.user_id', $this->context->userId())->whereNull('folders.archived_at')->whereIn('links.document_id', $documentIds)->select('links.document_id', 'folders.id', 'folders.name')->get()->groupBy('document_id') : collect();
         $items = [];
-        foreach ($page->items() as $record) {
+        foreach ($records as $record) {
             $item = (array) $record;
             $cells = $cellGroups[$record->id] ?? collect();
             if (! $rows) {
@@ -143,7 +205,7 @@ class PracticeEditor
             $items[] = $item;
         }
 
-        return ['data' => $items, 'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()];
+        return $items;
     }
 
     public function document(string $id): array
@@ -520,6 +582,11 @@ class PracticeEditor
     private function owned(string $table): Builder
     {
         return DB::table($table)->where('workspace_id', $this->workspace());
+    }
+
+    private function personalFolders(): Builder
+    {
+        return $this->owned('practice_personal_folders')->where('user_id', $this->context->userId());
     }
 
     private function workspace(): string

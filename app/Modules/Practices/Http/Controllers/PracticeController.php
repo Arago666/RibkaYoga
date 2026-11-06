@@ -161,6 +161,9 @@ class PracticeController
             'archived' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'folder_id' => ['sometimes', 'nullable', 'uuid'],
+            'folder_ids' => ['sometimes', 'array', 'list', 'max:100'],
+            'folder_ids.*' => ['required', 'uuid', 'distinct:ignore_case'],
+            'exclude_folder_id' => ['sometimes', 'nullable', 'uuid'],
             'include_cycle_documents' => ['sometimes', 'boolean'],
             'page' => ['sometimes', 'integer', 'min:1'],
         ]);

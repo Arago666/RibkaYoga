@@ -17,6 +17,8 @@ const props = withDefaults(
     busy?: boolean;
     templates?: boolean;
     externalError?: string;
+    standalone?: boolean;
+    excludeFolder?: string;
   }>(),
   {
     title: 'Добавить практику',
@@ -37,9 +39,16 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const result = await api<{ data: PracticeChoice[]; last_page: number }>(
-      `/api/practices?${new URLSearchParams({ q: query.value, kind: kind.value, archive: 'active', include_cycle_documents: '1', per_page: '15', page: String(page.value) })}`,
-    );
+    const params = new URLSearchParams({
+      q: query.value,
+      kind: kind.value,
+      archive: 'active',
+      include_cycle_documents: props.standalone ? '0' : '1',
+      per_page: '15',
+      page: String(page.value),
+    });
+    if (props.excludeFolder) params.set('exclude_folder_id', props.excludeFolder);
+    const result = await api<{ data: PracticeChoice[]; last_page: number }>(`/api/practices?${params}`);
     if (version === serial) {
       items.value = result.data;
       lastPage.value = result.last_page;
@@ -60,6 +69,7 @@ watch(
       void load();
     } else serial++;
   },
+  { immediate: true },
 );
 </script>
 <template>

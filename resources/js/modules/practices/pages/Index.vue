@@ -29,6 +29,8 @@ import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { emptyRow, uid, type Cell } from '../types';
 import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+import PracticeCategoryDialog from '../components/PracticeCategoryDialog.vue';
+import PracticeCategoryFilter from '../components/PracticeCategoryFilter.vue';
 import PracticeFolders from '../components/PracticeFolders.vue';
 import PracticeNavigation from '../components/PracticeNavigation.vue';
 import PortableImportDialog from '../components/PortableImportDialog.vue';
@@ -88,11 +90,20 @@ const view = ref<'grid' | 'list'>(initial.searchParams.get('view') === 'list' ? 
 const insertAsana = initial.searchParams.get('insert_asana');
 const insertVariant = initial.searchParams.get('insert_variant');
 const foldersOpen = ref(false);
+const categoryPractice = ref<PracticeListItem | null>(null);
 const importOpen = ref(false);
 const addPracticeOpen = ref(false);
 const selection = ref(new Map<string, PracticeListItem>());
 const includeCycleDocuments = ref(initial.searchParams.get('include_cycle_documents') === '1');
-const folderId = ref(initial.searchParams.get('folder') || '');
+function categoriesFromUrl(params: URLSearchParams) {
+  const ids = params.getAll('folders[]');
+  if (!ids.length) {
+    const legacyId = params.get('folder');
+    if (legacyId) ids.push(legacyId);
+  }
+  return [...new Set(ids.map((id) => id.toLowerCase()).filter(Boolean))];
+}
+const categoryIds = ref(categoriesFromUrl(initial.searchParams));
 const selectedDocuments = computed(() =>
   [...selection.value.values()].map(({ id, revision }) => ({ id, revision })),
 );
@@ -173,21 +184,27 @@ const resultCount = computed(() => {
 function failureText(failure: unknown) {
   return failure instanceof Error ? failure.message : 'Не удалось выполнить действие. Попробуйте ещё раз.';
 }
-function updateUrl() {
+function updateUrl(push = false) {
   const url = new URL(window.location.href);
   const values = {
     tab: tab.value === 'practices' ? '' : tab.value,
     q: query.value,
     archive: archive.value === 'active' ? '' : archive.value,
     page: page.value > 1 ? String(page.value) : '',
-    folder: folderId.value,
+    folder: categoryIds.value.length === 1 ? categoryIds.value[0] : '',
     sort: sort.value === 'updated_desc' ? '' : sort.value,
     view: view.value === 'list' ? 'list' : '',
     include_cycle_documents: includeCycleDocuments.value ? '1' : '',
   };
   for (const [key, value] of Object.entries(values))
     value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
-  window.history.replaceState(window.history.state, '', url);
+  url.searchParams.delete('folders[]');
+  if (categoryIds.value.length > 1) {
+    for (const id of categoryIds.value) url.searchParams.append('folders[]', id);
+  }
+  if (url.href === window.location.href) return;
+  if (push) window.history.pushState(window.history.state, '', url);
+  else window.history.replaceState(window.history.state, '', url);
 }
 async function load() {
   const request = ++sequence;
@@ -195,10 +212,21 @@ async function load() {
   error.value = '';
   updateUrl();
   const endpoint = rowTab.value ? '/api/row-templates' : '/api/practices';
+  const params = new URLSearchParams({
+    kind: kind.value,
+    q: query.value,
+    archive: archive.value,
+    sort: sort.value,
+    page: String(page.value),
+    include_cycle_documents: includeCycleDocuments.value ? '1' : '0',
+  });
+  if (tab.value === 'practices') {
+    for (const id of categoryIds.value) params.append('folder_ids[]', id);
+  } else if (!rowTab.value && categoryIds.value.length === 1) {
+    params.set('folder_id', categoryIds.value[0]);
+  }
   try {
-    const response = await api<Page<PracticeListItem>>(
-      `${endpoint}?${new URLSearchParams({ kind: kind.value, q: query.value, archive: archive.value, sort: sort.value, page: String(page.value), folder_id: folderId.value, include_cycle_documents: includeCycleDocuments.value ? '1' : '0' })}`,
-    );
+    const response = await api<Page<PracticeListItem>>(`${endpoint}?${params}`);
     if (request === sequence) {
       if (page.value > response.last_page) {
         page.value = Math.max(1, response.last_page);
@@ -219,13 +247,23 @@ watch(query, () => {
     void load();
   }, 250);
 });
-watch([tab, archive, folderId, includeCycleDocuments, sort], () => {
+watch([tab, archive, includeCycleDocuments, sort], () => {
   if (restoringUrl) return;
   page.value = 1;
   result.value = null;
   success.value = '';
   void load();
 });
+function applyCategories(ids: string[]) {
+  if (ids.length === categoryIds.value.length && ids.every((id) => categoryIds.value.includes(id))) return;
+  clearTimeout(timer);
+  categoryIds.value = ids;
+  page.value = 1;
+  result.value = null;
+  success.value = '';
+  updateUrl(true);
+  void load();
+}
 watch(view, () => {
   if (!restoringUrl) updateUrl();
 });
@@ -238,7 +276,7 @@ async function restoreUrl() {
     nextTab === 'templates' || nextTab === 'rows' || nextTab === 'transitions' ? nextTab : 'practices';
   query.value = params.get('q') || '';
   archive.value = params.get('archive') === 'archived' ? 'archived' : 'active';
-  folderId.value = params.get('folder') || '';
+  categoryIds.value = categoriesFromUrl(params);
   includeCycleDocuments.value = params.get('include_cycle_documents') === '1';
   sort.value = normalizedSort(params.get('sort'));
   view.value = params.get('view') === 'list' ? 'list' : 'grid';
@@ -455,7 +493,13 @@ async function saveName() {
     @choose="addExistingPractice"
   />
   <PortableImportDialog :open="importOpen" @close="importOpen = false" />
-  <Modal :open="foldersOpen" title="Категории практик" @close="foldersOpen = false">
+  <PracticeCategoryDialog
+    v-if="categoryPractice"
+    :practice="categoryPractice"
+    @close="categoryPractice = null"
+    @changed="load"
+  />
+  <Modal :open="foldersOpen" title="Категории выбранных практик" @close="foldersOpen = false">
     <PracticeFolders :documents="selectedDocuments" @changed="load" />
     <template #footer><button class="btn btn-primary" @click="foldersOpen = false">Готово</button></template>
   </Modal>
@@ -475,26 +519,32 @@ async function saveName() {
         </button>
         <ActionMenu label="Действия со списком практик">
           <button @click="importOpen = true">Импорт JSON</button>
-          <button @click="includeCycleDocuments = !includeCycleDocuments">
+          <button v-if="!categoryIds.length" @click="includeCycleDocuments = !includeCycleDocuments">
             {{ includeCycleDocuments ? 'Скрыть занятия внутри циклов' : 'Показывать занятия внутри циклов' }}
           </button>
-          <button v-if="folderId" @click="folderId = ''">Все категории</button>
           <button v-if="selection.size" @click="foldersOpen = true">
             Категории выбранных ({{ selection.size }})
           </button>
         </ActionMenu>
       </div>
     </PageHeading>
-    <PracticeNavigation :active="folderId ? 'categories' : 'all'" />
+    <PracticeNavigation active="all" />
     <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
     <div class="card practices-toolbar">
-      <div class="practice-search">
-        <Search :size="19" /><input
-          v-model="query"
-          class="input"
-          :placeholder="rowTab ? 'Найти строку по названию или теме' : 'Найти по названию или теме'"
-          aria-label="Поиск документов"
-        /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
+      <div class="practice-search-row">
+        <PracticeCategoryFilter
+          v-if="tab === 'practices'"
+          :model-value="categoryIds"
+          @update:model-value="applyCategories"
+        />
+        <div class="practice-search">
+          <Search :size="19" /><input
+            v-model="query"
+            class="input"
+            :placeholder="rowTab ? 'Найти строку по названию или теме' : 'Найти по названию или теме'"
+            aria-label="Поиск документов"
+          /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
+        </div>
       </div>
       <AppSelect v-model="archive" class="select" aria-label="Состояние документов">
         <option value="active">Активные</option>
@@ -537,13 +587,7 @@ async function saveName() {
         <div class="practice-card-menu">
           <ActionMenu :label="`Действия: ${item.title}`">
             <template v-if="!item.archived_at">
-              <button
-                v-if="!rowTab"
-                @click="
-                  selection = new Map([[item.id, item]]);
-                  foldersOpen = true;
-                "
-              >
+              <button v-if="tab === 'practices' && !item.cycles?.length" @click="categoryPractice = item">
                 Добавить в категорию
               </button>
               <Link :href="editUrl(item)">Редактировать</Link>
@@ -553,7 +597,7 @@ async function saveName() {
               <button v-if="tab === 'practices'" @click="openName(item, 'template')">
                 Сохранить как шаблон
               </button>
-              <button v-if="!rowTab" @click="toggleSelection(item)">
+              <button v-if="tab === 'practices' && !item.cycles?.length" @click="toggleSelection(item)">
                 {{ selection.has(item.id) ? 'Снять выбор' : 'Выбрать для нескольких категорий' }}
               </button>
               <button :disabled="busy" @click="changeArchive(item)">Удалить в архив</button>
@@ -609,16 +653,12 @@ async function saveName() {
               >{{ cycle.title }} · занятие {{ cycle.position + 1 }}</Link
             >
           </div>
-          <div v-if="item.folders?.length" class="cycle-context">
-            <button
-              v-for="folder in item.folders"
-              :key="folder.id"
-              class="btn btn-ghost"
-              @click="folderId = folder.id"
-            >
-              {{ folder.name }}
-            </button>
-          </div>
+          <p
+            v-if="tab === 'practices' && !item.cycles?.length && item.folders?.length"
+            class="practice-category-names"
+          >
+            {{ item.folders.map((folder) => folder.name).join(' · ') }}
+          </p>
           <p v-if="item.duration_seconds" class="muted">{{ Math.ceil(item.duration_seconds / 60) }} мин</p>
           <p
             class="practice-difficulty"
@@ -665,7 +705,7 @@ async function saveName() {
       </div>
       <h2>
         {{
-          query
+          query || categoryIds.length
             ? 'Ничего не нашлось'
             : archive === 'archived'
               ? 'В архиве пока пусто'
@@ -678,19 +718,24 @@ async function saveName() {
       </h2>
       <p>
         {{
-          query
-            ? 'Попробуйте другое название или тему.'
-            : archive === 'archived'
-              ? 'Нет удаленных элементов.'
-              : rowTab
-                ? 'Создайте строку с нуля или сохраните удачное сочетание из практики. Готовую строку можно вставлять в другие практики.'
-                : tab === 'templates'
-                  ? 'Сохраните готовую практику как шаблон или создайте основу с нуля.'
-                  : 'Создайте первый лист и наполните его асанами из вашей библиотеки.'
+          categoryIds.length
+            ? 'Попробуйте изменить поиск или выбор категорий.'
+            : query
+              ? 'Попробуйте другое название или тему.'
+              : archive === 'archived'
+                ? 'Нет удаленных элементов.'
+                : rowTab
+                  ? 'Создайте строку с нуля или сохраните удачное сочетание из практики. Готовую строку можно вставлять в другие практики.'
+                  : tab === 'templates'
+                    ? 'Сохраните готовую практику как шаблон или создайте основу с нуля.'
+                    : 'Создайте первый лист и наполните его асанами из вашей библиотеки.'
         }}
       </p>
-      <button v-if="query" class="btn btn-secondary" @click="query = ''">Очистить поиск</button
-      ><button
+      <button v-if="query" class="btn btn-secondary" @click="query = ''">Очистить поиск</button>
+      <button v-else-if="categoryIds.length" class="btn btn-secondary" @click="applyCategories([])">
+        Сбросить категории
+      </button>
+      <button
         v-else-if="archive === 'active'"
         class="btn btn-primary"
         @click="openCreate(undefined, tab === 'templates')"
@@ -886,15 +931,28 @@ async function saveName() {
   font-size: 13px;
   margin: 8px 0;
 }
+.practice-category-names {
+  margin: 8px 0;
+  color: var(--accent-dark);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
 .practices-toolbar > .select {
   width: 160px;
   flex: none;
 }
+.practice-search-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+  min-width: min(100%, 340px);
+}
 .practice-search {
   position: relative;
   flex: 1;
-  max-width: none;
-  min-width: min(100%, 220px);
+  min-width: min(100%, 170px);
 }
 .practice-search > svg {
   position: absolute;
@@ -1263,7 +1321,7 @@ async function saveName() {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 12px;
   }
-  .practices-toolbar .practice-search {
+  .practices-toolbar .practice-search-row {
     grid-column: 1 / -1;
   }
   .practices-toolbar > .select {
@@ -1301,10 +1359,6 @@ async function saveName() {
   }
   .practices-toolbar {
     flex-wrap: wrap;
-  }
-  .practice-search {
-    min-width: 100%;
-    max-width: none;
   }
   .document-count {
     font-size: 0.73rem;
