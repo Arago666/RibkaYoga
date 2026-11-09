@@ -266,9 +266,11 @@ function adopt(remote: ExecutionSession, local?: StoredDraft) {
   session.value = remote;
   plan.value = remote.plan;
   const liveSettings = remote.progress.metronome;
-  metronome.value = normalizeMetronome(liveSettings ?? remote.plan.metronome);
+  const recoveredSettings =
+    local?.sessionRevision === remote.revision ? local?.progress?.metronome : undefined;
+  metronome.value = normalizeMetronome(recoveredSettings ?? liveSettings ?? remote.plan.metronome);
   // Old runs could restore a hidden tempo ramp. Require explicit opt-in in this player.
-  if (!liveSettings && local) metronome.value.automator.enabled = false;
+  if (!liveSettings && !recoveredSettings && local) metronome.value.automator.enabled = false;
   mode.value = remote.mode;
   pendingStartId = remote.id;
   active.value = remote.active_seconds;
@@ -336,9 +338,8 @@ function adopt(remote: ExecutionSession, local?: StoredDraft) {
         completed: [...new Set([...remote.progress.completed, ...candidate.completed])].filter(
           (index) => Number.isInteger(index) && index >= 0 && index < count,
         ),
-        metronome: candidate.metronome ?? liveSettings,
+        metronome: recoveredSettings ?? liveSettings,
       };
-      if (candidate.metronome) metronome.value = normalizeMetronome(candidate.metronome);
       active.value = Math.max(
         localTime,
         [...merged, ...mergedRest].reduce((sum, value) => sum + value, 0),
