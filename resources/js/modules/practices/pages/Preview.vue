@@ -3,6 +3,7 @@ import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import AppShell from '@/shared/AppShell.vue';
+import SheetViewport from '@/shared/SheetViewport.vue';
 import { api } from '@/shared/api';
 import PublicationDialog from '../components/PublicationDialog.vue';
 import type { Practice } from '../types';
@@ -187,21 +188,23 @@ onMounted(load);
     </div>
     <p v-if="preferencesMessage" class="success-banner" role="status">{{ preferencesMessage }}</p>
     <div v-if="practice" class="sheet-region">
-      <iframe
-        ref="frame"
-        :key="sheetUrl"
-        :src="sheetUrl"
-        class="sheet-frame"
-        :class="orientation"
-        :style="{ height: `${frameHeight}px` }"
-        title="Готовый лист практики"
-        sandbox="allow-same-origin allow-modals"
-        @load="loadedSheet"
-      />
+      <SheetViewport :width="orientation === 'landscape' ? 1050 : 730" :height="frameHeight">
+        <iframe
+          ref="frame"
+          :key="sheetUrl"
+          :src="sheetUrl"
+          class="sheet-frame"
+          :class="orientation"
+          :style="{ height: `${frameHeight}px` }"
+          title="Готовый лист практики"
+          sandbox="allow-same-origin allow-modals"
+          @load="loadedSheet"
+        />
+      </SheetViewport>
     </div>
     <p v-if="practice" class="muted output-hint">
-      На узком экране лист прокручивается по горизонтали. Просмотр и скачиваемый PDF используют один макет;
-      исходные изображения остаются в базе.
+      «Весь лист» подстраивает просмотр под экран, «100%» позволяет рассмотреть детали с прокруткой. Просмотр
+      и скачиваемый PDF используют один макет; исходные изображения остаются в базе.
     </p>
     <PublicationDialog
       v-if="practice"

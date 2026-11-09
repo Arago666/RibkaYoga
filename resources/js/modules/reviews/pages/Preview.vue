@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import { Download, ExternalLink, Printer } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import SheetViewport from '@/shared/SheetViewport.vue';
 import { api } from '@/shared/api';
 import type { Review } from '../types';
 const props = defineProps<{ reviewId: string }>();
@@ -135,21 +136,27 @@ onMounted(load);
       ><span class="muted" role="status">{{ ready ? 'Лист готов' : 'Подготавливаем страницы…' }}</span>
     </div>
     <div v-if="review" class="review-preview-region">
-      <iframe
-        ref="frame"
-        :key="`${sheetUrl}:${generation}`"
-        :src="sheetUrl"
-        title="Разбор с комментариями, группами и стрелками"
-        class="review-preview-frame"
-        :class="orientation"
-        :style="{ height: `${height}px` }"
-        sandbox="allow-same-origin allow-modals"
-        @load="loaded"
-      />
+      <SheetViewport
+        :width="orientation === 'landscape' ? 1120 : 800"
+        :height="height"
+        label="Лист разбора с комментариями"
+      >
+        <iframe
+          ref="frame"
+          :key="`${sheetUrl}:${generation}`"
+          :src="sheetUrl"
+          title="Разбор с комментариями, группами и стрелками"
+          class="review-preview-frame"
+          :class="orientation"
+          :style="{ height: `${height}px` }"
+          sandbox="allow-same-origin allow-modals"
+          @load="loaded"
+        />
+      </SheetViewport>
     </div>
     <p v-if="review" class="preview-hint muted">
-      Комментарии и стрелки включены в лист. Предпросмотр и PDF используют один макет; на телефоне лист
-      прокручивается внутри области просмотра.
+      Комментарии и стрелки включены в лист. Предпросмотр и PDF используют один макет; на телефоне лист можно
+      подогнать по ширине или рассмотреть в масштабе 100% с прокруткой.
     </p>
   </AppShell>
 </template>

@@ -377,6 +377,11 @@ onBeforeUnmount(() => {
   font-size: 12px;
   resize: vertical;
 }
+@media (max-width: 760px) {
+  .demo-review-note textarea {
+    font-size: 16px;
+  }
+}
 .demo-review-note p {
   margin-top: 7px;
   font-size: 10px;

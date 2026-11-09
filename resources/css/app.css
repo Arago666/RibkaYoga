@@ -877,7 +877,7 @@ input[type='file']::file-selector-button:hover {
     --page-gutter: 16px;
     --panel-padding: 20px;
     --section-gap: 20px;
-    --page-title-size: 32px;
+    --page-title-size: clamp(26px, 8.2vw, 32px);
   }
   .app-header {
     min-height: 68px;
@@ -973,6 +973,56 @@ input[type='file']::file-selector-button:hover {
   }
   .app-footer > span {
     display: none;
+  }
+}
+@media screen and (max-width: 760px) {
+  .btn {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-height: 44px;
+  }
+  .icon-btn {
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px !important;
+  }
+  .modal-content {
+    width: calc(100% - 16px);
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+  }
+  .modal-header {
+    gap: 10px;
+  }
+  .modal-title {
+    font-size: 20px;
+    min-width: 0;
+  }
+  .modal-body {
+    overscroll-behavior: contain;
+    overflow-wrap: anywhere;
+  }
+  .modal-footer > .btn {
+    flex: 1 1 auto;
+  }
+  .field,
+  .check-label {
+    min-width: 0;
+  }
+  .check-label {
+    min-height: 44px;
+  }
+  input[type='range'] {
+    min-height: 36px;
+  }
+  input[type='file'] {
+    max-width: 100%;
+    min-width: 0;
   }
 }
 @media (max-width: 350px) {
@@ -1164,5 +1214,14 @@ input[type='file']::file-selector-button:hover {
   }
   .app-select-chevron {
     transition: none;
+  }
+}
+
+/* Keep text entry readable without focus zoom on phones and tablets. */
+@media screen and (min-width: 761px) and (max-width: 1000px) {
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px !important;
   }
 }

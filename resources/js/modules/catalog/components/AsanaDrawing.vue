@@ -24,6 +24,8 @@ import {
   FlipHorizontal2,
   ImagePlus,
   Layers,
+  SlidersHorizontal,
+  X,
 } from '@lucide/vue';
 import {
   selectionBounds,
@@ -82,6 +84,7 @@ const props = withDefaults(
   }>(),
   { disabled: false, initialDrawing: null, draftKey: '', active: true, sketchbook: false },
 );
+const propertiesOpen = ref(!window.matchMedia('(max-width: 760px)').matches);
 const emit = defineEmits<{
   image: [file: File, drawing: DrawingDocument];
   change: [drawing: DrawingDocument];
@@ -1867,11 +1870,12 @@ onBeforeUnmount(() => {
                 <button
                   v-if="!sketchbook"
                   type="button"
-                  class="btn btn-ghost"
+                  class="btn btn-ghost drawing-close"
+                  aria-label="Закрыть редактор рисунка"
                   :disabled="locked || interacting"
                   @click="close"
                 >
-                  Закрыть
+                  <X :size="18" /><span>Закрыть</span>
                 </button>
               </div>
             </header>
@@ -1932,130 +1936,267 @@ onBeforeUnmount(() => {
                   @change="addPhoto"
                 />
               </div>
-              <div class="settings-row">
-                <label
-                  >Цвет<input
-                    type="color"
-                    :value="brushColor"
-                    aria-label="Цвет штриха и выделенных элементов"
-                    @change="setColor"
-                /></label>
-                <label
-                  >Толщина <output>{{ brushWidth }}</output
-                  ><input v-model.number="brushWidth" type="range" min="1" max="25" @change="commit()"
-                /></label>
-                <label
-                  >Сглаживание <output>{{ drawing.smoothing }}%</output
-                  ><input
-                    v-model.number="drawing.smoothing"
-                    type="range"
-                    min="0"
-                    max="100"
-                    @input="scheduleRender"
-                    @change="commit()"
-                /></label>
-                <label
-                  >Прозрачность <output>{{ 100 - opacityValue }}%</output
-                  ><input
-                    type="range"
-                    min="0"
-                    max="100"
-                    :value="100 - opacityValue"
-                    aria-label="Прозрачность выделенных элементов и новых штрихов"
-                    @input="setOpacity(100 - Number(($event.target as HTMLInputElement).value))"
-                    @change="commit()"
-                /></label>
-                <div class="toolbar history-tools">
+            </fieldset>
+            <details
+              class="disclosure drawing-properties"
+              :open="propertiesOpen"
+              @toggle="propertiesOpen = ($event.target as HTMLDetailsElement).open"
+            >
+              <summary>
+                <span class="disclosure-icon"><SlidersHorizontal /></span
+                ><span class="disclosure-copy"><strong>Параметры и слои</strong></span>
+              </summary>
+              <div class="disclosure-body drawing-properties-body">
+                <fieldset class="drawing-controls" :disabled="locked || interacting">
+                  <div class="settings-row">
+                    <label
+                      >Цвет<input
+                        type="color"
+                        :value="brushColor"
+                        aria-label="Цвет штриха и выделенных элементов"
+                        @change="setColor"
+                    /></label>
+                    <label
+                      >Толщина <output>{{ brushWidth }}</output
+                      ><input v-model.number="brushWidth" type="range" min="1" max="25" @change="commit()"
+                    /></label>
+                    <label
+                      >Сглаживание <output>{{ drawing.smoothing }}%</output
+                      ><input
+                        v-model.number="drawing.smoothing"
+                        type="range"
+                        min="0"
+                        max="100"
+                        @input="scheduleRender"
+                        @change="commit()"
+                    /></label>
+                    <label
+                      >Прозрачность <output>{{ 100 - opacityValue }}%</output
+                      ><input
+                        type="range"
+                        min="0"
+                        max="100"
+                        :value="100 - opacityValue"
+                        aria-label="Прозрачность выделенных элементов и новых штрихов"
+                        @input="setOpacity(100 - Number(($event.target as HTMLInputElement).value))"
+                        @change="commit()"
+                    /></label>
+                  </div>
+                  <label class="snap-setting"
+                    ><input v-model="snapping" type="checkbox" /> Привязка к осям и углам 90°
+                    <span class="muted">Alt — временно отключить</span>
+                  </label>
+                </fieldset>
+                <fieldset class="paper-tools" :disabled="locked || interacting">
+                  <legend><Layers :size="17" /> Слои</legend>
+                  <label
+                    >Подложка листа<AppSelect
+                      class="select"
+                      :value="paper.style"
+                      @change="
+                        updatePaper({
+                          style: ($event.target as HTMLSelectElement).value as 'blank' | 'ruled' | 'grid',
+                        })
+                      "
+                    >
+                      <option value="blank">Без линий</option>
+                      <option value="ruled">Линейка</option>
+                      <option value="grid">Клетка</option>
+                    </AppSelect></label
+                  >
+                  <label v-if="paper.style !== 'blank'"
+                    >Яркость линий<input
+                      type="range"
+                      min="5"
+                      max="70"
+                      :value="paper.opacity * 100"
+                      @change="
+                        updatePaper({ opacity: Number(($event.target as HTMLInputElement).value) / 100 })
+                      "
+                  /></label>
+                  <label v-if="paper.style !== 'blank'" class="check-label"
+                    ><input
+                      type="checkbox"
+                      :checked="paper.print"
+                      @change="updatePaper({ print: ($event.target as HTMLInputElement).checked })"
+                    />Подложка в PNG и печати</label
+                  >
+                  <label class="check-label"
+                    ><input v-model="fixedSheet" type="checkbox" @change="resetView" />Закрепить лист</label
+                  >
                   <button
                     type="button"
                     class="btn btn-secondary"
-                    title="Отменить (Ctrl / ⌘ Z)"
-                    aria-label="Отменить изменение"
-                    :disabled="!undoStack.length"
-                    @click="undo"
+                    :disabled="!selectedElements.length"
+                    @click="orderSelection(false)"
                   >
-                    <Undo2 :size="19" /><span>Отменить</span>
+                    На задний план
                   </button>
                   <button
                     type="button"
                     class="btn btn-secondary"
-                    title="Повторить (Ctrl / ⌘ Shift Z)"
-                    aria-label="Повторить изменение"
-                    :disabled="!redoStack.length"
-                    @click="redo"
+                    :disabled="!selectedElements.length"
+                    @click="orderSelection(true)"
                   >
-                    <Redo2 :size="19" /><span>Повторить</span>
+                    На передний план
+                  </button>
+                </fieldset>
+                <label v-if="drawing.elements.length && showSelection" class="element-choice">
+                  Выбрать элемент
+                  <AppSelect
+                    class="select"
+                    :value="additiveSelection ? '' : selectedId || ''"
+                    :disabled="locked || interacting"
+                    @change="selectElement"
+                  >
+                    <option value="">Ничего не выбрано</option>
+                    <option
+                      v-for="(element, index) in drawing.elements"
+                      :key="element.id"
+                      :value="element.id"
+                    >
+                      {{ index + 1 }}. {{ kindNames[element.kind] }}
+                    </option>
+                  </AppSelect>
+                </label>
+                <div v-if="showSelection && drawing.elements.length" class="toolbar selection-actions">
+                  <button
+                    type="button"
+                    class="btn btn-ghost"
+                    :disabled="locked || interacting || !drawing.elements.length"
+                    @click="setSelection(drawing.elements.map((e) => e.id))"
+                  >
+                    Выбрать всё
                   </button>
                   <button
                     type="button"
-                    class="icon-btn"
-                    title="Очистить лист — действие можно отменить"
-                    aria-label="Очистить рисунок"
-                    :disabled="!drawing.elements.length"
-                    @click="clear"
+                    class="btn btn-ghost"
+                    :disabled="locked || interacting || !selectedElements.length"
+                    @click="setSelection([])"
                   >
-                    <Trash2 :size="18" />
+                    Снять выделение
+                  </button>
+                  <label
+                    ><input
+                      v-model="additiveSelection"
+                      type="checkbox"
+                      :disabled="locked || interacting"
+                    />Добавлять к выбору</label
+                  >
+                  <span v-if="selectedElements.length">Выбрано: {{ selectedElements.length }}</span>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting || selectedElements.length < 2"
+                    @click="groupSelected"
+                  >
+                    Группировать
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting || !selectedElements.some((e) => e.group_id)"
+                    @click="ungroupSelected"
+                  >
+                    Разгруппировать
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting || !selectedElements.length"
+                    @click="mirrorSelected"
+                  >
+                    Отразить
+                  </button>
+                </div>
+                <div v-if="multiple && showSelection" class="toolbar selection-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting"
+                    @click="duplicateSelected"
+                  >
+                    Копировать выбранное</button
+                  ><button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting"
+                    @click="turnSelected"
+                  >
+                    Повернуть на 15°</button
+                  ><button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="locked || interacting"
+                    @click="removeSelected"
+                  >
+                    Удалить выбранное
+                  </button>
+                  <button
+                    type="button"
+                    class="nudge-button"
+                    aria-label="Сдвинуть выбранное влево"
+                    @click="nudge(-5, 0)"
+                  >
+                    ←</button
+                  ><button
+                    type="button"
+                    class="nudge-button"
+                    aria-label="Сдвинуть выбранное вверх"
+                    @click="nudge(0, -5)"
+                  >
+                    ↑</button
+                  ><button
+                    type="button"
+                    class="nudge-button"
+                    aria-label="Сдвинуть выбранное вниз"
+                    @click="nudge(0, 5)"
+                  >
+                    ↓</button
+                  ><button
+                    type="button"
+                    class="nudge-button"
+                    aria-label="Сдвинуть выбранное вправо"
+                    @click="nudge(5, 0)"
+                  >
+                    →
                   </button>
                 </div>
               </div>
-              <label class="snap-setting"
-                ><input v-model="snapping" type="checkbox" /> Привязка к осям и углам 90°
-                <span class="muted">Alt — временно отключить</span>
-              </label>
-            </fieldset>
-            <fieldset class="paper-tools" :disabled="locked || interacting">
-              <legend><Layers :size="17" /> Слои</legend>
-              <label
-                >Подложка листа<AppSelect
-                  class="select"
-                  :value="paper.style"
-                  @change="
-                    updatePaper({
-                      style: ($event.target as HTMLSelectElement).value as 'blank' | 'ruled' | 'grid',
-                    })
-                  "
-                >
-                  <option value="blank">Без линий</option>
-                  <option value="ruled">Линейка</option>
-                  <option value="grid">Клетка</option>
-                </AppSelect></label
-              >
-              <label v-if="paper.style !== 'blank'"
-                >Яркость линий<input
-                  type="range"
-                  min="5"
-                  max="70"
-                  :value="paper.opacity * 100"
-                  @change="updatePaper({ opacity: Number(($event.target as HTMLInputElement).value) / 100 })"
-              /></label>
-              <label v-if="paper.style !== 'blank'" class="check-label"
-                ><input
-                  type="checkbox"
-                  :checked="paper.print"
-                  @change="updatePaper({ print: ($event.target as HTMLInputElement).checked })"
-                />Подложка в PNG и печати</label
-              >
-              <label class="check-label"
-                ><input v-model="fixedSheet" type="checkbox" @change="resetView" />Закрепить лист</label
-              >
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="!selectedElements.length"
-                @click="orderSelection(false)"
-              >
-                На задний план
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="!selectedElements.length"
-                @click="orderSelection(true)"
-              >
-                На передний план
-              </button>
-            </fieldset>
+            </details>
             <div class="view-tools toolbar">
+              <div class="toolbar history-tools">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  title="Отменить (Ctrl / ⌘ Z)"
+                  aria-label="Отменить изменение"
+                  :disabled="locked || interacting || !undoStack.length"
+                  @click="undo"
+                >
+                  <Undo2 :size="19" /><span>Отменить</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  title="Повторить (Ctrl / ⌘ Shift Z)"
+                  aria-label="Повторить изменение"
+                  :disabled="locked || interacting || !redoStack.length"
+                  @click="redo"
+                >
+                  <Redo2 :size="19" /><span>Повторить</span>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Очистить лист — действие можно отменить"
+                  aria-label="Очистить рисунок"
+                  :disabled="locked || interacting || !drawing.elements.length"
+                  @click="clear"
+                >
+                  <Trash2 :size="18" />
+                </button>
+              </div>
               <button
                 type="button"
                 class="icon-btn"
@@ -2092,123 +2233,6 @@ onBeforeUnmount(() => {
                     ? 'Рисунок применён'
                     : 'Пустой лист'
               }}</span>
-            </div>
-            <label v-if="drawing.elements.length && showSelection" class="element-choice">
-              Выбрать элемент
-              <AppSelect
-                class="select"
-                :value="additiveSelection ? '' : selectedId || ''"
-                :disabled="locked || interacting"
-                @change="selectElement"
-              >
-                <option value="">Ничего не выбрано</option>
-                <option v-for="(element, index) in drawing.elements" :key="element.id" :value="element.id">
-                  {{ index + 1 }}. {{ kindNames[element.kind] }}
-                </option>
-              </AppSelect>
-            </label>
-            <div v-if="showSelection" class="toolbar selection-actions">
-              <button
-                type="button"
-                class="btn btn-ghost"
-                :disabled="locked || interacting || !drawing.elements.length"
-                @click="setSelection(drawing.elements.map((e) => e.id))"
-              >
-                Выбрать всё
-              </button>
-              <button
-                type="button"
-                class="btn btn-ghost"
-                :disabled="locked || interacting || !selectedElements.length"
-                @click="setSelection([])"
-              >
-                Снять выделение
-              </button>
-              <label
-                ><input
-                  v-model="additiveSelection"
-                  type="checkbox"
-                  :disabled="locked || interacting"
-                />Добавлять к выбору</label
-              >
-              <span v-if="selectedElements.length">Выбрано: {{ selectedElements.length }}</span>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting || selectedElements.length < 2"
-                @click="groupSelected"
-              >
-                Группировать
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting || !selectedElements.some((e) => e.group_id)"
-                @click="ungroupSelected"
-              >
-                Разгруппировать
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting || !selectedElements.length"
-                @click="mirrorSelected"
-              >
-                Отразить
-              </button>
-            </div>
-            <div v-if="multiple && showSelection" class="toolbar selection-actions">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting"
-                @click="duplicateSelected"
-              >
-                Копировать выбранное</button
-              ><button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting"
-                @click="turnSelected"
-              >
-                Повернуть на 15°</button
-              ><button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="locked || interacting"
-                @click="removeSelected"
-              >
-                Удалить выбранное
-              </button>
-              <button
-                type="button"
-                class="nudge-button"
-                aria-label="Сдвинуть выбранное влево"
-                @click="nudge(-5, 0)"
-              >
-                ←</button
-              ><button
-                type="button"
-                class="nudge-button"
-                aria-label="Сдвинуть выбранное вверх"
-                @click="nudge(0, -5)"
-              >
-                ↑</button
-              ><button
-                type="button"
-                class="nudge-button"
-                aria-label="Сдвинуть выбранное вниз"
-                @click="nudge(0, 5)"
-              >
-                ↓</button
-              ><button
-                type="button"
-                class="nudge-button"
-                aria-label="Сдвинуть выбранное вправо"
-                @click="nudge(5, 0)"
-              >
-                →
-              </button>
             </div>
             <div
               ref="viewport"
@@ -2647,6 +2671,10 @@ onBeforeUnmount(() => {
   min-width: 0;
   width: 100%;
 }
+.drawing-properties-body {
+  display: grid;
+  gap: 16px;
+}
 .asana-drawing {
   border: 1px solid var(--line);
   border-radius: var(--panel-radius);
@@ -2665,6 +2693,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 7px;
   flex-wrap: wrap;
+}
+.asana-drawing .toolbar {
+  margin-bottom: 0;
 }
 .drawing-header {
   justify-content: space-between;
@@ -3003,11 +3034,17 @@ canvas:focus-visible {
   }
   .tools {
     gap: 5px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    overscroll-behavior-x: contain;
   }
   .tool-button {
     min-width: 48px;
     padding: 6px;
     min-height: 48px;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .settings-row {
     grid-template-columns: 1fr 1fr;
@@ -3026,7 +3063,58 @@ canvas:focus-visible {
     grid-column: 1 / -1;
   }
   .fullscreen {
-    inset: 5px;
+    inset: max(5px, env(safe-area-inset-top)) max(5px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left));
+  }
+  .drawing-header {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .drawing-title {
+    min-width: 0;
+    font-size: 16px;
+    gap: 5px;
+  }
+  .drawing-header > .toolbar {
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  .drawing-close {
+    padding: 0;
+    width: 44px;
+    min-width: 44px;
+  }
+  .drawing-close > span,
+  .history-tools .btn > span {
+    display: none;
+  }
+  .history-tools .btn {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+  .drawing-properties > summary {
+    min-height: 44px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .drawing-properties .disclosure-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .view-tools {
+    gap: 2px;
+  }
+  .view-tools .history-tools {
+    margin-right: auto;
+  }
+  .fullscreen .drawing-viewport {
+    width: min(100%, 40dvh);
+  }
+  .asana-drawing.fullscreen {
+    padding: 14px;
+    gap: 10px;
   }
 }
 </style>

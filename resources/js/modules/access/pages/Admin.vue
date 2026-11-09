@@ -157,12 +157,12 @@ onBeforeUnmount(() => {
         </thead>
         <tbody>
           <tr v-for="user in data.users.data" :key="user.id">
-            <td>
+            <td data-label="Пользователь">
               <strong>{{ user.name }}</strong
               ><small>{{ user.login }} <span v-if="user.is_admin">· администратор</span></small>
             </td>
-            <td>{{ user.email }}</td>
-            <td>
+            <td data-label="Контакты">{{ user.email }}</td>
+            <td data-label="Доступ">
               <strong>{{ user.subscription?.plan_name || 'Нет пространства' }}</strong
               ><small>{{
                 user.subscription
@@ -170,8 +170,8 @@ onBeforeUnmount(() => {
                   : ''
               }}</small>
             </td>
-            <td>{{ user.subscription ? localDate(user.subscription.ends_at) : '—' }}</td>
-            <td>
+            <td data-label="Срок">{{ user.subscription ? localDate(user.subscription.ends_at) : '—' }}</td>
+            <td class="user-actions">
               <button
                 v-if="user.workspace_id"
                 type="button"
@@ -338,7 +338,61 @@ td .btn {
 }
 @media (max-width: 450px) {
   .admin-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .admin-stats article {
+    padding: 16px;
+  }
+  .admin-stats strong {
+    font-size: 23px;
+  }
+}
+@media (max-width: 600px) {
+  .users-table {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  table,
+  tbody {
+    display: block;
+    width: 100%;
+  }
+  thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  tbody {
+    display: grid;
+    gap: 14px;
+  }
+  tr {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 14px 18px;
+    background: white;
+  }
+  td {
+    display: block;
+    padding: 8px 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+  .user-actions .btn {
+    width: 100%;
   }
 }
 </style>

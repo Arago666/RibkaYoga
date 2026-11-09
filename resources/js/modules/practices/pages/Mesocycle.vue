@@ -731,6 +731,9 @@ onBeforeUnmount(() => {
       <div
         ref="weeksBoard"
         class="weeks-board"
+        role="region"
+        aria-label="Занятия мезоцикла. Прокрутите по горизонтали, чтобы перейти к следующему занятию"
+        tabindex="0"
         :style="{ '--visible-weeks': Math.min(5, visibleWeeks.length) }"
       >
         <section
@@ -1193,6 +1196,50 @@ onBeforeUnmount(() => {
   }
   .cycle-cloud > header > span {
     margin-left: 0;
+  }
+  .cycle-cloud {
+    padding: 12px;
+    max-height: min(240px, 44dvh);
+  }
+  .cycle-cloud > header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    margin-bottom: 4px;
+  }
+  .cycle-cloud > header > strong {
+    font-size: 15px;
+  }
+  .cycle-cloud > header > span {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+  .cycle-cloud > header > .btn {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .cycle-cloud > p.muted {
+    display: none;
+  }
+  .cloud-target {
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+  .cloud-help {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .weeks-board {
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+  .week-column {
+    scroll-snap-align: start;
   }
 }
 </style>

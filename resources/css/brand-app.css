@@ -476,6 +476,45 @@
     font-size: 11px;
   }
 }
+@media (max-width: 600px) {
+  .brand-login-page {
+    padding: 12px 12px 20px;
+  }
+  .brand-login-header {
+    margin-bottom: 16px;
+  }
+  .brand-login-visual {
+    min-height: 0;
+  }
+  .brand-login-caption {
+    width: 100%;
+    padding: 20px 22px;
+  }
+  .brand-login-caption h2 {
+    margin: 12px 0 0;
+    font-size: 25px;
+    line-height: 1.05;
+  }
+  .brand-login-caption p {
+    display: none;
+  }
+  .brand-login-form-panel {
+    padding: 26px 22px 20px;
+  }
+  .brand-login-intro {
+    margin-bottom: 20px;
+    overflow-wrap: anywhere;
+  }
+  .brand-login-form-inner h1 {
+    font-size: 30px;
+  }
+  .brand-login-form-inner .eyebrow {
+    margin-bottom: 10px;
+  }
+  .brand-login-footnote {
+    padding-top: 20px;
+  }
+}
 @media print {
   .app-ambient,
   .brand-login-motif {

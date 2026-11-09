@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/shared/AppShell.vue';
+import SheetViewport from '@/shared/SheetViewport.vue';
 import { api } from '@/shared/api';
 import { uid, type Practice } from '../types';
 const props = defineProps<{ token: string }>();
@@ -88,14 +89,16 @@ onMounted(load);
       </div>
     </header>
     <div v-if="data" class="published-sheet">
-      <iframe
-        ref="frame"
-        :src="`/api/published/${token}/sheet`"
-        :style="{ height: `${height}px` }"
-        title="Опубликованный лист"
-        sandbox="allow-same-origin allow-modals"
-        @load="frameLoaded"
-      />
+      <SheetViewport :width="1050" :height="height" label="Опубликованный лист">
+        <iframe
+          ref="frame"
+          :src="`/api/published/${token}/sheet`"
+          :style="{ height: `${height}px` }"
+          title="Опубликованный лист"
+          sandbox="allow-same-origin allow-modals"
+          @load="frameLoaded"
+        />
+      </SheetViewport>
     </div>
     <p v-if="data" class="muted">
       Без входа выполнение остаётся на этом устройстве и не записывается в личную историю на сервере. Автор

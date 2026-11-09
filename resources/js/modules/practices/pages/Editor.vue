@@ -3158,5 +3158,15 @@ onBeforeUnmount(() => {
   .conflict-banner .btn {
     width: 100%;
   }
+  .embedded-editor .editor-actions .btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .embedded-editor .save-toolbar .btn {
+    min-height: 44px;
+  }
+  .embedded-editor .history-buttons .icon-btn {
+    width: 44px;
+  }
 }
 </style>

@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { uid } from '../types';
 import { ArrowLeft, RefreshCw, MessageSquare, Pencil, Trash2, CornerDownRight } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import SheetViewport from '@/shared/SheetViewport.vue';
 import { api, ApiError } from '@/shared/api';
 import type { PracticeComment, SharedPracticeData } from '../sharing-types';
 const props = defineProps<{ documentId: string }>();
@@ -211,15 +212,17 @@ onMounted(load);
           Печать / PDF браузера
         </button>
         <div class="shared-renderer">
-          <iframe
-            ref="frame"
-            :key="`${state.document.revision}:${showNames}`"
-            :src="`/api/shared-practices/${documentId}/sheet?show_names=${showNames ? 1 : 0}`"
-            :style="{ height: `${frameHeight}px` }"
-            title="Лист практики"
-            sandbox="allow-same-origin allow-modals"
-            @load="sheetLoaded"
-          />
+          <SheetViewport :width="1050" :height="frameHeight">
+            <iframe
+              ref="frame"
+              :key="`${state.document.revision}:${showNames}`"
+              :src="`/api/shared-practices/${documentId}/sheet?show_names=${showNames ? 1 : 0}`"
+              :style="{ height: `${frameHeight}px` }"
+              title="Лист практики"
+              sandbox="allow-same-origin allow-modals"
+              @load="sheetLoaded"
+            />
+          </SheetViewport>
         </div>
       </section>
       <aside class="card shared-comments">

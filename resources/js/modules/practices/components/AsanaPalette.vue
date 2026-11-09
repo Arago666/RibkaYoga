@@ -580,10 +580,19 @@ onBeforeUnmount(() => {
     left: 0;
     right: 0;
     top: auto;
-    z-index: 70;
+    z-index: 80;
     border-radius: var(--panel-radius) var(--panel-radius) 0 0;
-    max-height: 68dvh;
+    max-height: calc(100dvh - max(72px, env(safe-area-inset-top)));
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -10px 60px color-mix(in srgb, var(--text) 13%, transparent);
+  }
+  .mobile-open .palette-grid {
+    flex: 1 1 auto;
+    min-height: 100px;
+  }
+  .mobile-open .palette-footer {
+    flex-shrink: 0;
   }
   .close-palette {
     display: inline-flex;
