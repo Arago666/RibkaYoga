@@ -156,6 +156,7 @@ let pendingStatus: string | null = null,
   persistJob: Promise<void> | null = null,
   closing = false,
   disposed = false;
+let playbackRequested = false;
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
     .toString()
@@ -414,7 +415,7 @@ async function persist(status = 'paused') {
   }
 }
 async function begin() {
-  if (!plan.value?.steps.length || starting.value || running.value || closing) return;
+  if (!plan.value?.steps.length || starting.value || running.value || closing || !playbackRequested) return;
   starting.value = true;
   error.value = '';
   try {
@@ -444,7 +445,7 @@ async function begin() {
       if (finished.value) return;
     }
     if (disposed) return;
-    if (document.hidden || !navigator.onLine) {
+    if (document.hidden || !navigator.onLine || !playbackRequested) {
       notice.value = 'Практика готова. Вернитесь на страницу и нажмите «Продолжить».';
       await persist('paused');
       return;
@@ -457,7 +458,7 @@ async function begin() {
         notice.value = 'Метроном недоступен. Таймер практики продолжит работать.';
       }
     }
-    if (disposed || document.hidden || !navigator.onLine) {
+    if (disposed || document.hidden || !navigator.onLine || !playbackRequested) {
       metronomeEngine.stop();
       if (!disposed) await persist('paused');
       return;
@@ -485,6 +486,7 @@ async function begin() {
 }
 async function start() {
   if (starting.value || closing || running.value || !plan.value?.steps.length) return;
+  playbackRequested = true;
   notice.value = '';
   immersive.value = true;
   await Promise.all([
@@ -495,6 +497,7 @@ async function start() {
         })
       : Promise.resolve(),
   ]);
+  if (!playbackRequested || disposed) return;
   if (preparing.value && prepPaused.value) {
     prepDeadline = performance.now() + prepLeft.value * 1000;
     prepPaused.value = false;
@@ -531,6 +534,7 @@ function accrue(now = performance.now()): boolean {
   return true;
 }
 function pause() {
+  playbackRequested = false;
   if (preparing.value) {
     if (!prepPaused.value) prepLeft.value = Math.max(0, (prepDeadline - performance.now()) / 1000);
     prepPaused.value = true;
@@ -592,6 +596,7 @@ function move(delta: number, complete = false) {
 }
 async function finish(complete: boolean) {
   if (closing || !started.value) return;
+  playbackRequested = false;
   closing = true;
   accrue();
   running.value = false;
@@ -666,14 +671,17 @@ function fullscreen() {
   immersive.value = true;
 }
 function closeWindow() {
+  playbackRequested = false;
   if (running.value || preparing.value) pause();
   immersive.value = false;
 }
 function openSettings() {
+  playbackRequested = false;
   if (running.value || preparing.value) pause();
   settingsOpen.value = true;
 }
 function openMetronome() {
+  playbackRequested = false;
   if (running.value || preparing.value) pause();
   metronomeOpen.value = true;
 }

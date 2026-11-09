@@ -78,6 +78,7 @@ let operation: Promise<void> = Promise.resolve();
 let intervalIndex = 0;
 let breathPhase = '';
 let disposed = false;
+let playbackRequested = false;
 let startId: string | null = null;
 let wakeLock: { release(): Promise<void> } | null = null;
 const timeZones = Intl as typeof Intl & { supportedValuesOf?: (key: 'timeZone') => string[] };
@@ -305,7 +306,7 @@ async function screenAwake(): Promise<void> {
   }
 }
 async function beginSession(): Promise<void> {
-  if (requestBusy.value || disposed) return;
+  if (requestBusy.value || disposed || !playbackRequested) return;
   requestBusy.value = true;
   error.value = '';
   startId ??= uid();
@@ -317,6 +318,10 @@ async function beginSession(): Promise<void> {
     adopt(result.data);
     localPause.value = false;
     preparing.value = false;
+    if (!playbackRequested || disposed) {
+      void command('pause');
+      return;
+    }
     intervalIndex = Math.floor(activeMs.value / 1000 / (result.data.settings.interval_seconds || Infinity));
     await sound();
     engine.signal(result.data.settings.start_signal, result.data.settings.signal_volume);
@@ -341,6 +346,7 @@ async function beginSession(): Promise<void> {
 }
 async function start(): Promise<void> {
   if (!terminal.value || preparing.value || requestBusy.value) return;
+  playbackRequested = true;
   immersive.value = true;
   error.value = '';
   notice.value = '';
@@ -351,6 +357,7 @@ async function start(): Promise<void> {
   } catch {
     notice.value = 'Звук недоступен; можно продолжить в тишине.';
   }
+  if (!playbackRequested || disposed) return;
   startId = null;
   if (config.preparation_seconds > 0) {
     preparing.value = true;
@@ -362,10 +369,12 @@ async function start(): Promise<void> {
 function togglePreparation(): void {
   if (!preparing.value) return;
   preparationPaused.value = !preparationPaused.value;
+  playbackRequested = !preparationPaused.value;
   if (!preparationPaused.value) preparationDeadline = performance.now() + preparationLeft.value * 1000;
 }
 async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | 'interrupt'): Promise<void> {
   if (!session.value) return;
+  if (action !== 'heartbeat') playbackRequested = action === 'resume';
   if (action !== 'heartbeat' && action !== 'resume') freeze();
   operation = operation
     .catch(() => {})
@@ -383,6 +392,12 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
         );
         adopt(result.data);
         if (action === 'resume' && result.data.status === 'running') {
+          if (!playbackRequested || disposed) {
+            localPause.value = true;
+            engine.pause();
+            void command('pause');
+            return;
+          }
           localPause.value = false;
           await sound();
           await screenAwake();
@@ -563,6 +578,7 @@ function fullscreen(): void {
   immersive.value = true;
 }
 function closeWindow(): void {
+  playbackRequested = false;
   if (preparing.value && !preparationPaused.value) togglePreparation();
   if (running.value) void command('pause');
   immersive.value = false;
