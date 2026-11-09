@@ -16,11 +16,14 @@ import {
   Timer,
   Volume2,
   VolumeX,
+  X,
 } from '@lucide/vue';
 import { notifyMeditationCompleted, uiPreferencesKey } from '@/shared/uiPreferences';
 import AppShell from '@/shared/AppShell.vue';
 import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
+import PlayerWindow from '@/shared/PlayerWindow.vue';
+import CountdownRing from '@/shared/CountdownRing.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import { MeditationAudio } from '../audioEngine';
@@ -38,6 +41,7 @@ import {
 
 const uiKey = uiPreferencesKey(usePage().props.auth);
 const config = reactive<MeditationConfig>({ ...defaults });
+const immersive = ref(false);
 const revision = ref(1),
   ready = ref(false),
   error = ref(''),
@@ -337,6 +341,7 @@ async function beginSession(): Promise<void> {
 }
 async function start(): Promise<void> {
   if (!terminal.value || preparing.value || requestBusy.value) return;
+  immersive.value = true;
   error.value = '';
   notice.value = '';
   frozen.value = 0;
@@ -555,14 +560,12 @@ async function renameAudio(item: PersonalAudio): Promise<void> {
   }
 }
 function fullscreen(): void {
-  if (!document.fullscreenElement)
-    void document
-      .querySelector('.meditation-timer')
-      ?.requestFullscreen?.()
-      .catch(() => {
-        notice.value = 'Полный экран недоступен; таймер работает в обычном режиме.';
-      });
-  else void document.exitFullscreen();
+  immersive.value = true;
+}
+function closeWindow(): void {
+  if (preparing.value && !preparationPaused.value) togglePreparation();
+  if (running.value) void command('pause');
+  immersive.value = false;
 }
 watch(muted, (value) => engine.setMuted(value));
 watch(period, () => {
@@ -763,103 +766,154 @@ onBeforeUnmount(() => {
               Сохранить мои настройки
             </button>
           </div>
-          <section
-            class="card meditation-timer"
-            :class="{ 'is-active': locked }"
-            aria-label="Таймер медитации"
-          >
-            <div class="meditation-emblem" aria-hidden="true"><Leaf /></div>
-            <p class="meditation-kicker">
-              {{ preparing ? 'Подготовка' : kindNames[session && !terminal ? session.kind : config.kind] }}
-            </p>
-            <div class="meditation-clock" role="timer" aria-atomic="true">
-              {{
-                preparing
-                  ? time(preparationLeft)
-                  : session && !terminal
-                    ? time(shownSeconds)
-                    : time(config.duration_seconds ?? 0)
-              }}
-            </div>
-            <p>
-              {{
-                preparing
-                  ? preparationPaused
-                    ? 'Подготовка на паузе'
-                    : 'Устройтесь удобно'
-                  : running
-                    ? 'Идёт сессия'
-                    : session && !terminal
-                      ? 'Пауза — нажмите «Продолжить»'
-                      : session?.status === 'completed'
-                        ? 'Завершено'
-                        : session?.status === 'interrupted'
-                          ? 'Прервано'
-                          : config.duration_seconds === null
-                            ? 'Свободный отсчёт'
-                            : 'Устройтесь удобно и начните'
-              }}
-            </p>
-            <p v-if="session && !terminal" class="muted small">Активное время: {{ time(activeMs / 1000) }}</p>
-            <div
-              v-if="breath && !terminal"
-              class="breathing-guide"
-              :style="{ '--breath-scale': breath.scale }"
+          <PlayerWindow :open="immersive" title="Медитация" @close="closeWindow"
+            ><section
+              class="card meditation-timer"
+              :class="{ 'is-active': locked, 'meditation-immersive': immersive }"
+              aria-label="Таймер медитации"
             >
-              <div class="breathing-orb" aria-hidden="true"></div>
-              <div class="breathing-label">
-                <strong>{{ breath.name }}</strong
-                ><span v-if="breath.remaining">{{ breath.remaining }}</span
-                ><small>Цикл {{ breath.cycle }} из {{ session?.settings.breathing_cycles }}</small>
-              </div>
-            </div>
-            <div class="meditation-actions">
-              <template v-if="preparing"
-                ><button class="btn" @click="togglePreparation">
-                  {{ preparationPaused ? 'Продолжить подготовку' : 'Пауза' }}</button
-                ><button class="btn" @click="preparing = false">Отменить подготовку</button></template
-              >
-              <button
-                v-else-if="terminal"
-                class="btn btn-primary meditation-start"
-                :disabled="requestBusy || uploading"
-                @click="start"
-              >
-                <Play :size="18" fill="currentColor" aria-hidden="true" />
-                {{ session ? 'Начать снова' : 'Начать' }}
-              </button>
-              <template v-else
+              <header v-if="immersive" class="meditation-window-header">
+                <strong>Медитация</strong
                 ><button
-                  class="btn btn-primary"
-                  :disabled="requestBusy"
-                  @click="command(running ? 'pause' : 'resume')"
+                  class="icon-btn"
+                  aria-label="Свернуть медитацию и поставить на паузу"
+                  @click="closeWindow"
                 >
-                  {{ running ? 'Пауза' : 'Продолжить' }}</button
-                ><button class="btn" :disabled="requestBusy" @click="command('complete')">Завершить</button
-                ><button class="btn" :disabled="requestBusy" @click="command('interrupt')">
-                  Прервать
-                </button></template
+                  <X />
+                </button>
+              </header>
+              <p v-if="immersive && error" class="alert" role="alert">{{ error }}</p>
+              <p v-if="immersive && notice" class="success-banner" role="status">{{ notice }}</p>
+              <img
+                v-if="immersive"
+                class="meditation-window-figure"
+                src="/images/brand/poses/seated.svg"
+                alt="Поза для медитации"
+              />
+              <div v-else class="meditation-emblem" aria-hidden="true"><Leaf /></div>
+              <p class="meditation-kicker">
+                {{ preparing ? 'Подготовка' : kindNames[session && !terminal ? session.kind : config.kind] }}
+              </p>
+              <CountdownRing
+                v-if="immersive"
+                :seconds="
+                  preparing
+                    ? preparationLeft
+                    : session && !terminal
+                      ? shownSeconds
+                      : (config.duration_seconds ?? 0)
+                "
+                :total="
+                  preparing
+                    ? config.preparation_seconds
+                    : session && !terminal
+                      ? session.settings.duration_seconds
+                      : config.duration_seconds
+                "
+                :label="
+                  preparing
+                    ? 'Подготовка'
+                    : !terminal && !running
+                      ? 'На паузе'
+                      : (session && !terminal
+                            ? session.settings.duration_seconds
+                            : config.duration_seconds) === null
+                        ? 'Прошло'
+                        : 'Осталось'
+                "
+                :paused="(!running && !preparing) || preparationPaused"
+              />
+              <div v-else class="meditation-clock" role="timer" aria-atomic="true">
+                {{
+                  preparing
+                    ? time(preparationLeft)
+                    : session && !terminal
+                      ? time(shownSeconds)
+                      : time(config.duration_seconds ?? 0)
+                }}
+              </div>
+              <p>
+                {{
+                  preparing
+                    ? preparationPaused
+                      ? 'Подготовка на паузе'
+                      : 'Устройтесь удобно'
+                    : running
+                      ? 'Идёт сессия'
+                      : session && !terminal
+                        ? 'Пауза — нажмите «Продолжить»'
+                        : session?.status === 'completed'
+                          ? 'Завершено'
+                          : session?.status === 'interrupted'
+                            ? 'Прервано'
+                            : config.duration_seconds === null
+                              ? 'Свободный отсчёт'
+                              : 'Устройтесь удобно и начните'
+                }}
+              </p>
+              <p v-if="session && !terminal" class="muted small">
+                Активное время: {{ time(activeMs / 1000) }}
+              </p>
+              <div
+                v-if="breath && !terminal"
+                class="breathing-guide"
+                :style="{ '--breath-scale': breath.scale }"
               >
-            </div>
-            <div class="meditation-utilities">
-              <button class="btn" @click="muted = !muted" :aria-pressed="muted">
-                <VolumeX v-if="muted" :size="17" aria-hidden="true" /><Volume2
-                  v-else
-                  :size="17"
-                  aria-hidden="true"
-                />
-                {{ muted ? 'Звук выключен' : 'Звук включён' }}
-              </button>
-              <button class="btn" @click="fullscreen">
-                <Expand :size="17" aria-hidden="true" />На весь экран
-              </button>
-              <button v-if="running" class="btn" @click="sound">Возобновить звук</button>
-            </div>
-            <p class="muted small">
-              При сворачивании страницы, блокировке или потере связи таймер ставится на паузу. Вернувшись,
-              продолжите явно.
-            </p>
-          </section>
+                <div class="breathing-orb" aria-hidden="true"></div>
+                <div class="breathing-label">
+                  <strong>{{ breath.name }}</strong
+                  ><span v-if="breath.remaining">{{ breath.remaining }}</span
+                  ><small>Цикл {{ breath.cycle }} из {{ session?.settings.breathing_cycles }}</small>
+                </div>
+              </div>
+              <div class="meditation-actions">
+                <template v-if="preparing"
+                  ><button class="btn" @click="togglePreparation">
+                    {{ preparationPaused ? 'Продолжить подготовку' : 'Пауза' }}</button
+                  ><button class="btn" @click="preparing = false">Отменить подготовку</button></template
+                >
+                <button
+                  v-else-if="terminal"
+                  class="btn btn-primary meditation-start"
+                  :disabled="requestBusy || uploading"
+                  @click="start"
+                >
+                  <Play :size="18" fill="currentColor" aria-hidden="true" />
+                  {{ session ? 'Начать снова' : 'Начать' }}
+                </button>
+                <template v-else
+                  ><button
+                    class="btn btn-primary"
+                    :disabled="requestBusy"
+                    @click="command(running ? 'pause' : 'resume')"
+                  >
+                    {{ running ? 'Пауза' : 'Продолжить' }}</button
+                  ><button class="btn" :disabled="requestBusy" @click="command('complete')">Завершить</button
+                  ><button class="btn" :disabled="requestBusy" @click="command('interrupt')">
+                    Прервать
+                  </button></template
+                >
+              </div>
+              <div class="meditation-utilities">
+                <button class="btn" @click="muted = !muted" :aria-pressed="muted">
+                  <VolumeX v-if="muted" :size="17" aria-hidden="true" /><Volume2
+                    v-else
+                    :size="17"
+                    aria-hidden="true"
+                  />
+                  {{ muted ? 'Звук выключен' : 'Звук включён' }}
+                </button>
+                <button v-if="!immersive" class="btn" @click="fullscreen">
+                  <Expand :size="17" aria-hidden="true" />На весь экран
+                </button>
+                <button v-if="running" class="btn" @click="sound">Возобновить звук</button>
+              </div>
+              <p class="muted small">
+                При сворачивании страницы, блокировке или потере связи таймер ставится на паузу. Вернувшись,
+                продолжите явно.
+              </p>
+            </section></PlayerWindow
+          >
         </div>
         <div class="meditation-extras">
           <details class="disclosure meditation-extra">
@@ -1719,18 +1773,75 @@ onBeforeUnmount(() => {
   max-width: 280px;
   font-size: 11px;
 }
-.meditation-timer:fullscreen {
+.meditation-timer.meditation-immersive {
   position: static;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  background: white;
+  width: min(100%, 620px);
+  min-height: 100%;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
   border-radius: 0;
+  gap: 12px;
 }
-.meditation-timer:fullscreen > .meditation-actions {
-  min-width: 280px;
+.meditation-immersive > .meditation-actions {
+  width: min(100%, 340px);
+  margin-top: 8px;
+  justify-content: center;
+}
+.meditation-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+}
+.meditation-window-header strong {
+  font-size: 20px;
+  font-weight: 550;
+}
+.meditation-window-header .icon-btn {
+  background: white;
+  border-radius: 50%;
+  color: var(--accent-dark);
+  width: 44px;
+  height: 44px;
+}
+.meditation-window-figure {
+  width: min(100%, 340px);
+  height: clamp(120px, 25dvh, 280px);
+  object-fit: contain;
+}
+.meditation-immersive .meditation-utilities {
+  margin-block: 0;
+}
+.meditation-immersive > .small:last-child {
+  max-width: 360px;
+  margin-top: 0;
+}
+.meditation-immersive .breathing-guide {
+  margin: 0 auto;
+}
+@media (max-width: 500px) {
+  .meditation-immersive {
+    --countdown-size: 156px;
+  }
+  .meditation-timer.meditation-immersive {
+    gap: 10px;
+  }
+}
+@media (max-height: 700px) {
+  .meditation-immersive {
+    --countdown-size: 130px;
+  }
+  .meditation-window-figure {
+    height: 110px;
+  }
 }
 .meditation-extras {
   display: grid;

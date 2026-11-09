@@ -60,7 +60,7 @@ class SessionController
 
     public function update(Request $request, string $id)
     {
-        $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'status' => ['required', Rule::in(['running', 'paused', 'completed', 'interrupted'])], 'active_seconds' => 'required|integer|min:0|max:86400', 'progress' => 'required|array:step,seconds_by_step,rest_seconds_by_step,completed,phase,phase_elapsed', 'progress.phase' => 'sometimes|required|in:pose,rest', 'progress.phase_elapsed' => 'sometimes|required|integer|min:0|max:86400', 'progress.rest_seconds_by_step' => 'sometimes|array|list|max:10000', 'progress.rest_seconds_by_step.*' => 'integer|min:0|max:86400', 'progress.step' => 'required|integer|min:0|max:9999', 'progress.seconds_by_step' => 'present|array|list|max:10000', 'progress.seconds_by_step.*' => 'integer|min:0|max:86400', 'progress.completed' => 'present|array|list|max:10000', 'progress.completed.*' => 'integer|distinct|min:0|max:9999']);
+        $input = $request->validate(MetronomeSettings::rules('progress.metronome.', false) + ['progress.metronome' => 'sometimes|required|array', 'expected_revision' => 'required|integer|min:1', 'status' => ['required', Rule::in(['running', 'paused', 'completed', 'interrupted'])], 'active_seconds' => 'required|integer|min:0|max:86400', 'progress' => 'required|array:step,seconds_by_step,rest_seconds_by_step,completed,phase,phase_elapsed,metronome', 'progress.phase' => 'sometimes|required|in:pose,rest', 'progress.phase_elapsed' => 'sometimes|required|integer|min:0|max:86400', 'progress.rest_seconds_by_step' => 'sometimes|array|list|max:10000', 'progress.rest_seconds_by_step.*' => 'integer|min:0|max:86400', 'progress.step' => 'required|integer|min:0|max:9999', 'progress.seconds_by_step' => 'present|array|list|max:10000', 'progress.seconds_by_step.*' => 'integer|min:0|max:86400', 'progress.completed' => 'present|array|list|max:10000', 'progress.completed.*' => 'integer|distinct|min:0|max:9999']);
         $row = DB::transaction(function () use ($id, $input) {
             $row = $this->owned()->where('id', $id)->lockForUpdate()->first();
             abort_unless($row, 404);
@@ -72,6 +72,12 @@ class SessionController
             $count = count($plan['steps']);
             $previousProgress = json_decode($row->progress, true);
             $progress = $input['progress'];
+            // Live settings belong to this run; the source document and plan remain immutable.
+            if (array_key_exists('metronome', $progress)) {
+                $progress['metronome'] = MetronomeSettings::values($progress['metronome']);
+            } elseif (array_key_exists('metronome', $previousProgress)) {
+                $progress['metronome'] = $previousProgress['metronome'];
+            }
             $sameStep = (int) $progress['step'] === (int) ($previousProgress['step'] ?? 0);
             $previousPhase = $previousProgress['phase'] ?? 'pose';
             $progress['rest_seconds_by_step'] ??= $previousProgress['rest_seconds_by_step'] ?? [];

@@ -29,6 +29,7 @@ export interface ExecutionProgress {
   phase?: 'pose' | 'rest';
   phase_elapsed?: number;
   rest_seconds_by_step?: number[];
+  metronome?: MetronomeSettings;
 }
 export interface ExecutionSession {
   id: string;

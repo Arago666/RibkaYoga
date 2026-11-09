@@ -110,9 +110,11 @@ async function preview() {
   }
 }
 function changeBpm(delta: number) {
+  form.value.automator.enabled = false;
   form.value.bpm = Math.max(20, Math.min(300, (Number(form.value.bpm) || 120) + delta));
 }
 function tap() {
+  form.value.automator.enabled = false;
   const now = performance.now();
   if (taps.length && now - taps[taps.length - 1] > 3000) taps = [];
   taps.push(now);
@@ -222,6 +224,7 @@ onBeforeUnmount(() => {
               type="number"
               min="20"
               max="300"
+              @input="form.automator.enabled = false"
           /></label>
           <button class="btn" aria-label="Увеличить темп на 1 BPM" @click="changeBpm(1)">
             <Plus :size="20" />
@@ -234,7 +237,18 @@ onBeforeUnmount(() => {
           type="range"
           min="20"
           max="300"
+          @input="form.automator.enabled = false"
         />
+        <label class="check-label"
+          ><input v-model="form.automator.enabled" type="checkbox" /> Автоматически менять темп</label
+        >
+        <p class="muted metronome-help">
+          {{
+            form.automator.enabled
+              ? `Темп будет меняться до ${form.automator.target_bpm} BPM. Параметры — ниже.`
+              : `Постоянный темп ${form.bpm} BPM — сам не меняется.`
+          }}
+        </p>
         <div class="metronome-beats" aria-label="Рисунок такта">
           <button
             v-for="(kind, index) in form.pattern"
@@ -380,9 +394,6 @@ onBeforeUnmount(() => {
           <span class="disclosure-copy"><strong>Автоизменение темпа</strong></span>
         </summary>
         <div class="metronome-detail-body disclosure-body">
-          <label class="check-label"
-            ><input v-model="form.automator.enabled" type="checkbox" /> Менять темп по тактам</label
-          >
           <div v-if="form.automator.enabled" class="metronome-grid">
             <label class="field"
               ><span class="label">Изменять на BPM</span

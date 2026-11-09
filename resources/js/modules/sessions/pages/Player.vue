@@ -2,8 +2,21 @@
 import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Activity } from '@lucide/vue';
+import {
+  Activity,
+  SlidersHorizontal,
+  X,
+  Maximize2,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Music2,
+} from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
+import PlayerWindow from '@/shared/PlayerWindow.vue';
+import CountdownRing from '@/shared/CountdownRing.vue';
+import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import BodyCoverage from '../BodyCoverage.vue';
@@ -21,6 +34,8 @@ const props = defineProps<{ documentId?: string; publicToken?: string }>();
 const page = usePage();
 const metronome = ref<MetronomeSettings>(defaultMetronome());
 const metronomeOpen = ref(false);
+const settingsOpen = ref(false);
+const immersive = ref(false);
 const metronomeState = ref<MetronomeState | null>(null);
 const metronomeEngine = new MetronomeEngine((state) => (metronomeState.value = state));
 const metronomeStarted = ref(false);
@@ -84,7 +99,9 @@ const baseTarget = computed(() =>
     ? current.value.duration_seconds
     : current.value?.advance_mode === 'breaths' && breathSeconds.value > 0
       ? (current.value.breath_count || 0) * breathSeconds.value
-      : null,
+      : current.value?.advance_mode === 'breaths'
+        ? null
+        : (current.value?.duration_seconds ?? 60),
 );
 const target = computed(() =>
   resting.value
@@ -93,6 +110,19 @@ const target = computed(() =>
 );
 const remaining = computed(() =>
   target.value !== null ? Math.max(0, Math.ceil(target.value - phaseSeconds.value)) : null,
+);
+const timerLabel = computed(() =>
+  preparing.value
+    ? prepPaused.value
+      ? 'Подготовка · пауза'
+      : 'Подготовка'
+    : !running.value && started.value
+      ? 'На паузе'
+      : resting.value
+        ? 'Отдых · осталось'
+        : remaining.value === null
+          ? 'Прошло'
+          : 'Осталось',
 );
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 const auth = page.props.auth as { user?: { id: number }; workspace?: { id: string } } | undefined;
@@ -145,7 +175,9 @@ const planned = computed(() => {
         ? step.duration_seconds
         : step.advance_mode === 'breaths' && breathSeconds.value > 0 && step.breath_count
           ? step.breath_count * breathSeconds.value
-          : null;
+          : step.advance_mode === 'breaths'
+            ? null
+            : (step.duration_seconds ?? 60);
     if (seconds === null) unknownTimeCount++;
     else total += seconds;
     if (!step.anatomy.length) {
@@ -220,6 +252,7 @@ function draft(force = false) {
   }
 }
 function localState(): StoredDraft {
+  progress.value.metronome = normalizeMetronome(metronome.value);
   return {
     sessionId: session.value?.id,
     sessionRevision: session.value?.revision,
@@ -232,7 +265,10 @@ function localState(): StoredDraft {
 function adopt(remote: ExecutionSession, local?: StoredDraft) {
   session.value = remote;
   plan.value = remote.plan;
-  metronome.value = normalizeMetronome(remote.plan.metronome);
+  const liveSettings = remote.progress.metronome;
+  metronome.value = normalizeMetronome(liveSettings ?? remote.plan.metronome);
+  // Old runs could restore a hidden tempo ramp. Require explicit opt-in in this player.
+  if (!liveSettings && local) metronome.value.automator.enabled = false;
   mode.value = remote.mode;
   pendingStartId = remote.id;
   active.value = remote.active_seconds;
@@ -300,7 +336,9 @@ function adopt(remote: ExecutionSession, local?: StoredDraft) {
         completed: [...new Set([...remote.progress.completed, ...candidate.completed])].filter(
           (index) => Number.isInteger(index) && index >= 0 && index < count,
         ),
+        metronome: candidate.metronome ?? liveSettings,
       };
+      if (candidate.metronome) metronome.value = normalizeMetronome(candidate.metronome);
       active.value = Math.max(
         localTime,
         [...merged, ...mergedRest].reduce((sum, value) => sum + value, 0),
@@ -344,6 +382,7 @@ async function persist(status = 'paused') {
                 ),
                 phase: resting.value ? 'rest' : 'pose',
                 phase_elapsed: Math.floor(phaseSeconds.value),
+                metronome: normalizeMetronome(metronome.value),
               },
             }),
             keepalive: nextStatus === 'paused',
@@ -445,6 +484,8 @@ async function begin() {
 }
 async function start() {
   if (starting.value || closing || running.value || !plan.value?.steps.length) return;
+  notice.value = '';
+  immersive.value = true;
   await Promise.all([
     unlockSound(),
     metronome.value.enabled
@@ -501,12 +542,6 @@ function pause() {
   wake = null;
   void audio?.suspend();
   void persist('paused');
-}
-function extend() {
-  if (mode.value !== 'teach' || !started.value) return;
-  const targets = resting.value ? restTargets : teacherTargets;
-  targets.value[progress.value.step] = Math.max(target.value ?? 0, phaseSeconds.value) + 30;
-  draft(true);
 }
 function adjustTime(seconds: number) {
   if (!started.value || preparing.value || finished.value) return;
@@ -611,6 +646,8 @@ function leaving() {
 }
 function keydown(event: KeyboardEvent) {
   if (
+    metronomeOpen.value ||
+    settingsOpen.value ||
     (event.target as HTMLElement).matches('input,select,textarea,button') ||
     event.ctrlKey ||
     event.metaKey ||
@@ -624,11 +661,29 @@ function keydown(event: KeyboardEvent) {
   if (started.value && event.key === 'ArrowRight') move(1, true);
   if (started.value && event.key === 'ArrowLeft') move(-1);
 }
-async function fullscreen() {
-  try {
-    await document.documentElement.requestFullscreen();
-  } catch {
-    notice.value = 'Полный экран недоступен; можно продолжить в обычном режиме.';
+function fullscreen() {
+  immersive.value = true;
+}
+function closeWindow() {
+  if (running.value || preparing.value) pause();
+  immersive.value = false;
+}
+function openSettings() {
+  if (running.value || preparing.value) pause();
+  settingsOpen.value = true;
+}
+function openMetronome() {
+  if (running.value || preparing.value) pause();
+  metronomeOpen.value = true;
+}
+function applyMetronome(settings: MetronomeSettings) {
+  metronome.value = normalizeMetronome(settings);
+  progress.value.metronome = normalizeMetronome(settings);
+  metronomeEngine.update(metronome.value);
+  draft(true);
+  if (started.value && !finished.value) {
+    notice.value = 'Ритм обновлён. Нажмите «Продолжить» — текущая асана и её время сохранены.';
+    void persist('paused');
   }
 }
 async function restart() {
@@ -710,7 +765,10 @@ onMounted(async () => {
     breathSeconds.value = Math.max(0, Math.min(60, stored?.breathSeconds ?? 0));
     teacherTargets.value = stored?.teacherTargets ?? {};
     restTargets.value = stored?.restTargets ?? {};
-    if (!session.value) metronome.value = normalizeMetronome(stored?.metronome ?? plan.value?.metronome);
+    if (!session.value) {
+      metronome.value = normalizeMetronome(stored?.metronome ?? plan.value?.metronome);
+      if (!started.value) metronome.value.automator.enabled = false;
+    }
   } catch (failure) {
     error.value =
       failure instanceof Error
@@ -745,70 +803,267 @@ watch(running, (value) => {
 watch(metronome, () => draft(true), { deep: true });
 </script>
 <template>
-  <AppShell section="practices"
-    ><Head :title="plan?.title || 'Выполнение практики'" />
+  <AppShell section="practices">
+    <Head :title="plan?.title || 'Выполнение практики'" />
     <header class="page-header player-heading">
       <div>
         <h1 class="page-title">{{ plan?.title || 'Практика' }}</h1>
       </div>
       <div class="player-header-actions">
-        <Link
-          class="btn btn-secondary"
-          :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
+        <Link class="btn" :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
           >← К листу</Link
         >
-        <Link class="btn btn-secondary" v-if="!publicToken" href="/practice-history">История</Link>
+        <Link v-if="!publicToken" class="btn" href="/practice-history">История</Link>
       </div>
     </header>
     <p v-if="loading" class="muted" role="status">Загружаем план…</p>
-    <p v-if="error" class="alert" role="alert">{{ error }}</p>
-    <p v-if="notice" class="player-notice" role="status">{{ notice }}</p>
+    <p v-if="error && !immersive" class="alert" role="alert">{{ error }}</p>
     <template v-if="plan && !loading">
-      <div class="player-settings">
-        <label class="player-field"
-          >Режим
-          <AppSelect class="select" v-model="mode" :disabled="started || starting || preparing">
-            <option value="teach">Вести занятие</option>
-            <option value="practice">Практиковать</option>
-          </AppSelect></label
-        ><label class="check-label"><input v-model="sound" type="checkbox" /> Сигнал</label
-        ><label class="check-label"><input v-model="showNames" type="checkbox" /> Названия</label
-        ><label class="check-label" v-if="mode === 'practice'"
-          ><input v-model="auto" type="checkbox" /> Переход по параметрам</label
-        ><button class="btn btn-secondary" @click="fullscreen">Полный экран</button>
-        <label class="player-field preparation-field"
-          >Подготовка перед стартом, секунд<input
-            class="input"
-            v-model.number="preparationSeconds"
-            type="number"
-            min="0"
-            max="120"
-            :disabled="started || starting || preparing"
-        /></label>
-      </div>
-      <div v-if="userId" class="player-settings">
-        <Link href="/practices" class="btn btn-secondary">Создать мою практику</Link
-        ><Link
-          :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
-          class="btn btn-secondary"
-          >Лист и разрешённое копирование</Link
-        ><span class="muted">Копия создаётся в вашем пространстве только при разрешении автора.</span>
-      </div>
+      <PlayerWindow :open="immersive" :title="plan.title" @close="closeWindow">
+        <section
+          v-if="current && !finished"
+          class="pose-stage"
+          :class="{ immersive }"
+          aria-label="Плеер практики"
+        >
+          <header class="stage-header">
+            <div class="stage-heading">
+              <p>{{ plan.title }}</p>
+              <span
+                >Асана {{ progress.step + 1 }} из {{ plan.steps.length
+                }}<template v-if="resting"> · Отдых</template
+                ><template v-if="current.side">
+                  · {{ current.side === 'left' ? 'Левая сторона' : 'Правая сторона' }}</template
+                ><template v-if="current.repeat > 1"> · Повтор {{ current.repeat }}</template></span
+              >
+            </div>
+            <button class="icon-btn" aria-label="Настройки плеера" @click="openSettings">
+              <SlidersHorizontal :size="22" />
+            </button>
+            <button
+              v-if="immersive"
+              class="icon-btn"
+              aria-label="Свернуть плеер и поставить на паузу"
+              @click="closeWindow"
+            >
+              <X :size="23" />
+            </button>
+            <button v-else class="icon-btn" aria-label="На весь экран" @click="fullscreen">
+              <Maximize2 :size="21" />
+            </button>
+          </header>
+          <p v-if="error" class="alert" role="alert">{{ error }}</p>
+          <p v-if="notice" class="player-notice" role="status">{{ notice }}</p>
+          <div class="stage-figure">
+            <img v-if="stagePose?.image_url" :src="stagePose.image_url" :alt="stagePose.name" />
+            <div v-else class="text-pose">{{ stagePose?.name }}</div>
+          </div>
+          <div class="stage-name">
+            <h2 v-if="resting">Отдых</h2>
+            <h2 v-else-if="showNames">{{ current.name }}</h2>
+            <p v-if="!resting && mode === 'teach' && current.note" class="stage-note">{{ current.note }}</p>
+          </div>
+          <div class="stage-timing">
+            <CountdownRing
+              :seconds="preparing ? prepLeft : (remaining ?? phaseSeconds)"
+              :total="preparing ? preparationSeconds : target"
+              :label="timerLabel"
+              :paused="(!running && !preparing) || prepPaused"
+            />
+            <div class="time-adjustments" v-if="started && !preparing">
+              <button class="btn" @click="adjustTime(-15)" aria-label="Уменьшить текущее время на 15 секунд">
+                −15 с
+              </button>
+              <span
+                >{{ resting ? 'Отдых' : 'Асана' }} ·
+                {{ target === null ? 'по дыханию' : clock(target) }}</span
+              >
+              <button class="btn" @click="adjustTime(15)" aria-label="Добавить 15 секунд к текущему времени">
+                +15 с
+              </button>
+            </div>
+            <p v-if="!preparing" class="advance-label">
+              {{
+                mode === 'practice' && auto && target !== null
+                  ? 'Следующая асана — автоматически'
+                  : 'Ручной переход'
+              }}
+            </p>
+            <label v-if="!resting && current.advance_mode === 'breaths'" class="breath-setting"
+              >Секунд на дыхательный цикл<input
+                class="input"
+                v-model.number="breathSeconds"
+                type="number"
+                min="0"
+                max="60"
+              />
+              · {{ current.breath_count }} циклов</label
+            >
+            <p v-if="!resting && current.advance_mode === 'breaths' && breathSeconds <= 0" class="muted">
+              Укажите темп дыхания для автоматического перехода.
+            </p>
+          </div>
+          <button
+            class="practice-metronome"
+            type="button"
+            aria-label="Настроить метроном во время практики"
+            aria-haspopup="dialog"
+            :disabled="starting"
+            @click="openMetronome"
+          >
+            <div v-if="metronome.enabled" class="metronome-dots" aria-hidden="true">
+              <span
+                v-for="(beat, index) in metronome.pattern"
+                :key="index"
+                :class="[
+                  'metronome-dot',
+                  beat,
+                  { current: running && metronomeState?.running && metronomeState.beat === index },
+                ]"
+                :title="metronomeBeatLabels[beat]"
+                >{{ beat === 'strong' ? '›' : beat === 'accent' ? '·' : '' }}</span
+              >
+            </div>
+            <div class="metronome-summary">
+              <Music2 :size="17" /><strong>{{
+                metronome.enabled
+                  ? `${metronomeStarted && metronomeState ? metronomeState.bpm : metronome.bpm} BPM · ${metronome.beats}/${metronome.beat_unit}`
+                  : 'Добавить метроном'
+              }}</strong
+              ><SlidersHorizontal :size="16" />
+            </div>
+            <small v-if="metronome.enabled"
+              >{{
+                metronome.automator.enabled
+                  ? `Автоизменение темпа до ${metronome.automator.target_bpm} BPM`
+                  : 'Постоянный темп'
+              }}
+              · изменить</small
+            >
+            <small v-if="metronome.enabled && metronome.tracker.mode !== 'off'"
+              >Метроном · {{ metronomeTrackerValue }}</small
+            >
+            <small v-if="metronomeState?.reason === 'limit'"
+              >Ритм завершён, таймер практики продолжается</small
+            >
+          </button>
+          <div class="next-pose" v-if="next">
+            <span>ДАЛЕЕ</span
+            ><img
+              v-if="next.image_url"
+              :src="next.image_url"
+              :alt="showNames ? next.name : 'Следующая поза'"
+            />
+            <p>{{ showNames ? next.name : 'Следующая поза' }}</p>
+          </div>
+          <div v-else class="next-pose"><p>Последняя асана</p></div>
+          <div class="stage-navigation">
+            <div class="player-controls">
+              <button
+                class="transport"
+                aria-label="Предыдущая асана"
+                :disabled="!started || starting || preparing || (progress.step === 0 && !resting)"
+                @click="move(-1)"
+              >
+                <SkipBack :size="28" fill="currentColor" />
+              </button>
+              <button
+                class="transport transport-main"
+                :disabled="starting || closing"
+                :aria-label="
+                  running || (preparing && !prepPaused)
+                    ? 'Пауза'
+                    : started || preparing
+                      ? 'Продолжить'
+                      : 'Начать'
+                "
+                @click="running || (preparing && !prepPaused) ? pause() : start()"
+              >
+                <Pause v-if="running || (preparing && !prepPaused)" :size="30" fill="currentColor" /><Play
+                  v-else
+                  :size="30"
+                  fill="currentColor"
+                />
+              </button>
+              <button
+                class="transport"
+                :aria-label="
+                  resting
+                    ? 'Пропустить отдых'
+                    : progress.step === plan.steps.length - 1
+                      ? 'Завершить практику'
+                      : 'Следующая асана'
+                "
+                :disabled="!started || starting || closing || preparing"
+                @click="move(1, true)"
+              >
+                <SkipForward :size="28" fill="currentColor" />
+              </button>
+            </div>
+            <p class="transport-status" role="status">
+              {{
+                starting
+                  ? 'Запускаем…'
+                  : preparing
+                    ? prepPaused
+                      ? 'Подготовка на паузе'
+                      : 'Устройтесь удобно'
+                    : running
+                      ? 'Практика идёт'
+                      : started
+                        ? 'Нажмите, чтобы продолжить'
+                        : 'Начать практику'
+              }}
+            </p>
+            <footer class="stage-footer">
+              <span>Активное время: {{ clock(active) }}{{ saving ? ' · сохраняется…' : '' }}</span
+              ><button v-if="started" class="btn btn-ghost" @click="finish(false)">Закончить досрочно</button
+              ><button
+                v-if="preparing"
+                class="btn"
+                @click="
+                  preparing = false;
+                  prepPaused = false;
+                "
+              >
+                Отменить подготовку
+              </button>
+            </footer>
+          </div>
+        </section>
+        <section v-else-if="finished" class="pose-stage completed-stage" :class="{ immersive }">
+          <button
+            v-if="immersive"
+            class="icon-btn completed-close"
+            aria-label="Свернуть плеер"
+            @click="closeWindow"
+          >
+            <X />
+          </button>
+          <h2>{{ publicToken ? 'Практика завершена' : 'Сессия сохранена' }}</h2>
+          <p>Активное время {{ clock(active) }}. Выполнено {{ progress.completed.length }} асан.</p>
+          <Link v-if="!publicToken" class="btn btn-primary" href="/practice-history"
+            >Посмотреть сводку зон</Link
+          ><button class="btn" :disabled="starting" @click="restart">Подготовить новый запуск</button>
+        </section>
+        <p v-else>В этой практике нет заполненных шагов. Добавьте асаны или текст в редакторе.</p>
+      </PlayerWindow>
       <details v-if="!started" class="planned-coverage disclosure">
         <summary>
-          <span class="disclosure-icon"><Activity aria-hidden="true" /></span>
-          <span class="disclosure-copy"><strong>Плановые зоны и длительность</strong></span>
+          <span class="disclosure-icon"><Activity aria-hidden="true" /></span
+          ><span class="disclosure-copy"><strong>Плановые зоны и длительность</strong></span>
         </summary>
         <div class="coverage-body disclosure-body">
           <p>
             Шагов: {{ plan.steps.length }}.
             {{
               planned.total === null
-                ? 'Общая длительность не задана для всех шагов.'
+                ? 'Для шагов по дыханию укажите темп дыхания.'
                 : `По заданным параметрам: ${clock(planned.total)}.`
             }}
           </p>
-          <p v-if="planned.rest">В том числе отдых между асанами: {{ clock(planned.rest) }}.</p>
+          <p>Асаны без заданного времени — по 60 секунд. Время можно менять в плеере.</p>
+          <p v-if="planned.rest">Отдых между асанами: {{ clock(planned.rest) }}.</p>
           <BodyCoverage
             :zones="planned.zones"
             :total="planned.total"
@@ -820,217 +1075,251 @@ watch(metronome, () => draft(true), { deep: true });
           />
         </div>
       </details>
-      <p v-if="publicToken" class="muted">Прогресс этой публикации хранится только на устройстве.</p>
-      <div v-if="current && !finished" class="pose-stage">
-        <p>
-          Шаг {{ progress.step + 1 }} из {{ plan.steps.length }}
-          <span v-if="resting"> · Отдых</span>
-          <span v-if="current.side">· {{ current.side === 'left' ? 'Левая сторона' : 'Правая сторона' }}</span
-          ><span v-if="current.repeat > 1"> · Повтор {{ current.repeat }}</span>
-        </p>
-        <img v-if="stagePose?.image_url" :src="stagePose.image_url" :alt="stagePose.name" />
-        <div v-else class="text-pose">{{ stagePose?.name }}</div>
-        <h2 v-if="resting">Отдых</h2>
-        <h2 v-else-if="showNames">{{ current.name }}</h2>
-        <p v-if="resting && showNames">Далее — {{ next?.name }}</p>
-        <p v-if="!resting && mode === 'teach' && current.note">{{ current.note }}</p>
-        <div v-if="preparing" class="timer" role="timer">{{ clock(Math.ceil(prepLeft)) }}</div>
-        <p v-if="preparing">
-          {{
-            prepPaused ? 'Подготовка на паузе' : 'Устройтесь удобно — подготовка не входит в активное время'
-          }}
-        </p>
-        <div v-else class="timer" aria-live="off">
-          {{ remaining === null ? clock(phaseSeconds) : clock(remaining) }}
-        </div>
-        <p v-if="!preparing && target !== null" class="phase-duration">
-          {{ resting ? 'Отдых' : 'Асана' }} · {{ clock(target) }}
-        </p>
-        <p v-if="!resting && (current.advance_mode === 'manual' || target === null)">Ручной переход</p>
-        <label class="breath-setting" v-if="!resting && current.advance_mode === 'breaths'"
-          >Секунд на дыхательный цикл
-          <input class="input" v-model.number="breathSeconds" type="number" min="0" max="60" /> ·
-          {{ current.breath_count }} циклов
-          <span v-if="running && breathSeconds > 0">{{
-            stepSeconds % breathSeconds < breathSeconds / 2 ? 'Вдох' : 'Выдох'
-          }}</span></label
-        >
-        <p v-if="!resting && current.advance_mode === 'breaths' && breathSeconds <= 0" class="muted">
-          Темп дыхания не выбран. Переход ручной; секунды не угадываются.
-        </p>
-        <div v-if="metronome.enabled" class="practice-metronome" aria-label="Метроном практики">
-          <div class="metronome-dots" aria-hidden="true">
-            <span
-              v-for="(beat, index) in metronome.pattern"
-              :key="index"
-              :class="[
-                'metronome-dot',
-                beat,
-                { current: running && metronomeState?.running && metronomeState.beat === index },
-              ]"
-              :title="metronomeBeatLabels[beat]"
-              >{{ beat === 'strong' ? '›' : beat === 'accent' ? '·' : '' }}</span
-            >
-          </div>
-          <p>
-            <strong>{{ metronomeStarted && metronomeState ? metronomeState.bpm : metronome.bpm }} BPM</strong>
-            · {{ metronome.beats }}/{{ metronome.beat_unit }}
-            <span v-if="metronomeState?.countingIn"> · Предварительный отсчёт</span>
-          </p>
-          <p v-if="metronome.tracker.mode !== 'off'">Метроном · {{ metronomeTrackerValue }}</p>
-          <p v-if="metronomeState?.reason === 'limit'" class="muted">
-            Метроном завершил отсчёт. Практика продолжается.
-          </p>
-        </div>
-        <div class="player-controls">
-          <button
-            class="btn btn-secondary"
-            :disabled="!started || (progress.step === 0 && !resting)"
-            @click="move(-1)"
-          >
-            ← Назад
-          </button>
-          <button
-            v-if="started && !preparing"
-            class="btn btn-secondary adjust-time"
-            @click="adjustTime(-15)"
-            aria-label="Уменьшить текущее время на 15 секунд"
-          >
-            −15 с
-          </button>
-          <button
-            v-if="!running && (!preparing || prepPaused)"
-            class="btn btn-primary"
-            :disabled="starting || closing"
-            @click="start"
-          >
-            {{ starting ? 'Запускаем…' : started || preparing ? 'Продолжить' : 'Начать' }}</button
-          ><button v-else class="btn btn-primary" @click="pause">Пауза</button>
-          <button
-            v-if="started && !preparing"
-            class="btn btn-secondary adjust-time"
-            @click="adjustTime(15)"
-            aria-label="Добавить 15 секунд к текущему времени"
-          >
-            +15 с
-          </button>
-          <button
-            class="btn btn-secondary"
-            :disabled="!started || starting || closing || preparing"
-            @click="move(1, true)"
-          >
-            {{
-              resting
-                ? 'Пропустить отдых →'
-                : progress.step === plan.steps.length - 1
-                  ? 'Завершить'
-                  : 'Далее →'
-            }}
-          </button>
-          <button v-if="mode === 'teach' && started" class="btn btn-secondary" @click="extend">
-            +30 секунд к таймеру
-          </button>
-          <button
-            v-if="preparing"
-            class="btn btn-secondary"
-            @click="
-              preparing = false;
-              prepPaused = false;
-            "
-          >
-            Отменить подготовку
-          </button>
-        </div>
-        <button
-          v-if="!started && !preparing"
-          class="btn btn-secondary metronome-trigger"
-          :disabled="starting"
-          @click="metronomeOpen = true"
-        >
-          {{ metronome.enabled ? 'Настроить метроном' : '+ Добавить метроном' }}
-        </button>
-        <div v-if="next" class="next-pose">
-          <img
-            v-if="next.image_url"
-            :src="next.image_url"
-            :alt="showNames ? next.name : 'Следующая поза'"
-          /><span>{{ showNames ? `Далее: ${next.name}` : 'Следующая поза' }}</span>
-        </div>
-        <p>
-          Активное время: {{ clock(active) }} <span class="muted">{{ saving ? '· сохраняется…' : '' }}</span>
-        </p>
-        <button v-if="started" class="btn btn-ghost" @click="finish(false)">Закончить досрочно</button>
-      </div>
-      <section v-else-if="finished" class="pose-stage">
-        <h2>Сессия сохранена</h2>
-        <p>Активное время {{ clock(active) }}. Выполнено {{ progress.completed.length }} шагов.</p>
-        <Link v-if="!publicToken" class="btn btn-primary" href="/practice-history"
-          >Посмотреть сводку зон</Link
-        >
-        <button class="btn btn-secondary" :disabled="starting" @click="restart">
-          Подготовить новый запуск
-        </button>
-      </section>
-      <p v-else>В этой практике нет заполненных шагов. Добавьте асаны или текст в редакторе.</p>
-      <p class="muted">
-        При уходе приложения в фон включается пауза. Таймер учитывает работу с приложением, а не измеряет
-        движения или дыхание.
+      <p class="muted player-background-hint">
+        При сворачивании страницы таймер и звук ставятся на паузу. Вернувшись, продолжите явно.
       </p>
+      <p v-if="publicToken" class="muted">Прогресс этой публикации хранится только на устройстве.</p>
+      <div v-if="userId" class="player-header-actions player-context-actions">
+        <Link href="/practices" class="btn">Мои практики</Link>
+        <Link :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`" class="btn"
+          >Лист и разрешённое копирование</Link
+        >
+      </div>
     </template>
+    <Modal :open="settingsOpen" title="Настройки плеера" @close="settingsOpen = false">
+      <div class="player-options">
+        <label class="field"
+          ><span class="label">Режим</span
+          ><AppSelect v-model="mode" :disabled="started || starting || preparing"
+            ><option value="teach">Вести занятие</option>
+            <option value="practice">Практиковать</option></AppSelect
+          ></label
+        >
+        <label class="check-label"
+          ><input v-model="sound" type="checkbox" /> Звуковой сигнал при смене асаны</label
+        >
+        <label class="check-label"><input v-model="showNames" type="checkbox" /> Показывать названия</label>
+        <label v-if="mode === 'practice'" class="check-label"
+          ><input v-model="auto" type="checkbox" /> Автоматически переключать асаны по таймеру</label
+        >
+        <label class="field"
+          ><span class="label">Подготовка перед стартом, секунд</span
+          ><input
+            class="input"
+            v-model.number="preparationSeconds"
+            type="number"
+            min="0"
+            max="120"
+            :disabled="started || starting || preparing"
+        /></label>
+        <button
+          class="btn"
+          @click="
+            settingsOpen = false;
+            openMetronome();
+          "
+        >
+          <Music2 :size="18" /> Настроить метроном
+        </button>
+        <p class="muted">
+          Изменения относятся к текущему запуску. Длительность асан можно менять кнопками −15 / +15 секунд.
+        </p>
+      </div>
+      <template #footer
+        ><button class="btn btn-primary" @click="settingsOpen = false">Готово</button></template
+      >
+    </Modal>
     <MetronomeDialog
       :open="metronomeOpen"
-      v-model="metronome"
+      :model-value="metronome"
       :authenticated="Boolean(userId)"
+      @update:model-value="applyMetronome"
       @close="metronomeOpen = false"
     />
   </AppShell>
 </template>
 <style scoped>
 .player-heading,
-.player-settings,
-.player-controls {
+.player-header-actions {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
 }
-.phase-duration {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 5px 14px;
-  background: var(--surface-soft);
+.player-heading {
+  justify-content: space-between;
+}
+.player-heading > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.pose-stage {
+  width: 100%;
+  max-width: 760px;
+  margin: auto;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--panel-shadow);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pose-stage.immersive {
+  min-height: 100%;
+  max-width: 940px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.stage-heading {
+  flex: 1;
+  min-width: 0;
+}
+.stage-heading p {
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.stage-heading span {
+  display: block;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.stage-header .icon-btn {
+  flex-shrink: 0;
+  background: rgb(255 255 255 / 75%);
+  color: var(--accent-dark);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+}
+.stage-figure {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+.stage-figure img {
+  display: block;
+  width: min(100%, 400px);
+  height: 260px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.immersive .stage-figure img {
+  height: clamp(140px, 29dvh, 380px);
+  width: min(100%, 500px);
+}
+.text-pose {
+  padding: 32px 12px;
+  font-size: clamp(24px, 4vw, 38px);
+}
+.stage-name {
+  width: 100%;
+  margin: 8px 0 12px;
+}
+.stage-name h2 {
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 550;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #29492f;
+}
+.stage-note {
+  max-width: 600px;
+  font-size: 14px;
+  margin: 8px auto;
+  padding: 12px;
+  border-radius: 16px;
+  background: white;
+  line-height: 1.5;
+}
+.stage-timing {
+  width: 100%;
+}
+.time-adjustments {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 5px;
+}
+.time-adjustments > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.time-adjustments .btn {
+  font-size: 12px;
+  min-height: 36px;
+  padding: 6px 13px;
+}
+.advance-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 7px 0;
 }
 .practice-metronome {
-  margin: 20px auto;
-  max-width: 520px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface-soft);
-  font-size: 14px;
-  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: 10px auto;
+  width: min(100%, 360px);
+  border: 1px solid #dbe5d2;
+  background: rgb(255 255 255 / 80%);
+  color: var(--accent-dark);
+  border-radius: 22px;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+.practice-metronome:hover {
+  border-color: var(--accent-dark);
+}
+.metronome-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 13px;
+}
+.practice-metronome small {
+  font-size: 11px;
 }
 .metronome-dots {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
 }
 .metronome-dot {
-  width: 26px;
-  height: 26px;
+  width: 16px;
+  height: 16px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
   background: #eaf1e1;
   border: 1px solid #dbe5d2;
-  font-size: 25px;
+  font-size: 18px;
   line-height: 1;
-  color: var(--accent-dark);
 }
 .metronome-dot.mute {
   background: transparent;
@@ -1042,186 +1331,261 @@ watch(metronome, () => draft(true), { deep: true });
 }
 .metronome-dot.current {
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 0 4px rgb(42 196 90 / 14%);
+  color: white;
 }
-.metronome-trigger {
-  margin: -4px 0 16px;
-}
-.player-heading {
-  justify-content: space-between;
-}
-.player-heading h1 {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  color: #203d2c;
-  font-weight: 550;
-}
-.player-settings {
-  background: white;
-  padding: var(--panel-padding);
-  border: 1px solid var(--line);
-  border-radius: var(--panel-radius);
-  margin: var(--section-gap) 0;
-  box-shadow: var(--panel-shadow);
-}
-.player-settings label {
+.next-pose {
   display: flex;
   align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  min-width: 0;
-  font-size: 14px;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  max-width: 100%;
+  color: var(--muted);
 }
-.player-settings .player-field {
-  display: grid;
-  flex: 0 1 220px;
+.next-pose > span {
+  font-size: 10px;
+  letter-spacing: 0.08em;
 }
-.player-settings .preparation-field {
-  flex-basis: 270px;
+.next-pose > p {
+  font-size: 12px;
+  text-align: left;
 }
-.player-settings input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent-dark);
-}
-.pose-stage {
-  text-align: center;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: var(--panel-radius);
-  padding: var(--panel-padding);
-  max-width: none;
-  margin: auto;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  box-shadow: var(--panel-shadow);
-  width: 100%;
-}
-.pose-stage > p {
-  margin: 12px 0;
-  line-height: 1.6;
-}
-.pose-stage h2 {
-  font-size: 19px;
-  margin: 16px 0;
-  font-weight: 550;
-  color: #29492f;
-  letter-spacing: -0.025em;
-}
-.pose-stage img {
-  display: block;
-  width: min(100%, 420px);
-  height: 350px;
+.next-pose img {
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  margin: auto;
-}
-.text-pose {
-  font-size: 2rem;
-  padding: 80px 10px;
-}
-.timer {
-  font-size: clamp(54px, 6.4vw, 78px);
-  font-weight: 400;
-  letter-spacing: -0.055em;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
+  mix-blend-mode: multiply;
+  flex-shrink: 0;
 }
 .player-controls {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  margin: 20px 0;
+  gap: 36px;
+  margin: 10px 0 6px;
+}
+.transport {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.transport-main {
+  width: 70px;
+  height: 70px;
+  color: white;
+  background: var(--accent-dark);
+  box-shadow: 0 6px 20px rgb(38 82 52 / 15%);
+}
+.transport:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.transport-status {
+  font-size: 11px;
+  color: var(--muted);
+}
+.stage-navigation {
+  width: 100%;
+  flex-shrink: 0;
+}
+.stage-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.stage-footer .btn {
+  font-size: 11px;
+  padding: 6px 10px;
+  min-height: 36px;
 }
 .muted {
-  font-size: 0.85rem;
+  font-size: 13px;
   color: var(--muted);
 }
 .alert {
   color: #992c28;
   background: #fff0ee;
   padding: 12px;
-  border-radius: var(--field-radius);
+  border-radius: 12px;
+  font-size: 13px;
+  width: 100%;
 }
 .player-notice {
   background: var(--accent-soft);
-  padding: 12px;
-  border-radius: var(--field-radius);
-  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin: 8px 0;
+  font-size: 12px;
+  width: 100%;
 }
 .planned-coverage {
   margin: var(--section-gap) 0;
 }
-.coverage-body {
+.coverage-body,
+.player-options {
   display: grid;
   gap: 16px;
 }
-.coverage-body > p {
-  line-height: 1.6;
-}
-.next-pose {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 12px 0;
-  color: var(--muted);
-}
-.pose-stage .next-pose img {
-  width: 76px;
-  height: 76px;
-  object-fit: contain;
-  margin: 0;
-}
-.pose-stage input[type='number'] {
-  width: 80px;
+.player-background-hint {
+  margin-block: 16px;
 }
 .breath-setting {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 16px 0;
+  font-size: 12px;
+}
+.breath-setting input {
+  width: 72px;
+}
+.completed-stage {
+  position: relative;
+  gap: 20px;
+  min-height: 300px;
+}
+.completed-stage h2 {
+  font-size: 28px;
+}
+.completed-stage > .btn {
+  margin: 10px;
+}
+.completed-close {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 @media (max-width: 500px) {
   .pose-stage {
-    padding: var(--panel-padding);
+    padding: 16px;
   }
-  .pose-stage img {
-    height: 260px;
+  .stage-figure img {
+    height: 220px;
   }
-  .player-heading > div:first-child {
-    flex: 1 1 100%;
+  .immersive .stage-figure img {
+    height: clamp(120px, 25dvh, 280px);
   }
-  .player-header-actions {
-    width: 100%;
+  .stage-name h2 {
+    font-size: 22px;
   }
-  .player-settings {
-    padding: var(--panel-padding);
-    gap: 10px 16px;
+  .stage-timing {
+    --countdown-size: 144px;
   }
-  .player-settings .player-field,
-  .player-settings > .btn {
-    flex: 1 1 100%;
+  .stage-header {
+    margin-bottom: 4px;
   }
-  .player-settings .btn,
-  .player-controls .btn {
-    white-space: normal;
+  .stage-name {
+    margin-block: 4px 8px;
+  }
+  .stage-heading p {
+    font-size: 16px;
+  }
+  .stage-heading span {
+    font-size: 11px;
+  }
+  .practice-metronome {
+    margin-block: 6px;
+    padding: 9px 12px;
   }
   .player-controls {
-    gap: 7px;
+    gap: 34px;
+    margin-block: 6px;
   }
-  .player-controls .btn {
-    flex: 1;
+  .transport-main {
+    width: 62px;
+    height: 62px;
+  }
+  .stage-footer {
+    margin-top: 4px;
+    gap: 0 8px;
   }
 }
-.player-header-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+@media (max-height: 740px) {
+  .immersive {
+    --countdown-size: 124px;
+  }
+  .immersive .stage-figure img {
+    height: clamp(100px, 21dvh, 180px);
+  }
+  .immersive .stage-name h2 {
+    font-size: 20px;
+  }
+  .immersive .stage-header {
+    margin-bottom: 0;
+  }
+  .immersive .stage-navigation {
+    position: sticky;
+    bottom: -12px;
+    z-index: 1;
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+    background: rgb(248 250 247 / 96%);
+  }
 }
-.player-heading > div:first-child {
-  flex: 1;
-  min-width: 0;
+@media (max-height: 500px) and (min-width: 600px) {
+  .pose-stage.immersive {
+    display: grid;
+    --countdown-size: 110px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px 24px;
+  }
+  .immersive .stage-header,
+  .immersive .stage-navigation,
+  .immersive .alert,
+  .immersive .player-notice {
+    grid-column: 1 / -1;
+  }
+  .immersive .stage-figure {
+    grid-column: 1;
+    grid-row: 2 / 4;
+  }
+  .immersive .stage-figure img {
+    height: 175px;
+  }
+  .immersive .stage-name,
+  .immersive .stage-timing,
+  .immersive .practice-metronome,
+  .immersive .next-pose,
+  .immersive .player-controls,
+  .immersive .transport-status {
+    grid-column: 2;
+  }
+  .immersive .stage-name {
+    grid-row: 2;
+  }
+  .immersive .stage-timing {
+    grid-row: 3;
+  }
+  .immersive .practice-metronome {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  .immersive .next-pose {
+    grid-column: 1;
+    grid-row: 5;
+  }
+  .immersive .stage-navigation {
+    grid-column: 2;
+    grid-row: 4 / 6;
+    position: static;
+    padding: 0;
+    background: transparent;
+  }
+  .immersive .transport-main {
+    width: 54px;
+    height: 54px;
+  }
 }
 </style>

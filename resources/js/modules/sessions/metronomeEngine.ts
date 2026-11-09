@@ -166,9 +166,11 @@ export class MetronomeEngine {
     const structureChanged =
       old.beats !== this.settings.beats || old.subdivision !== this.settings.subdivision;
     if (structureChanged) this.reset();
-    else if (old.bpm !== this.settings.bpm) this.bpm = this.settings.bpm;
+    else if (old.bpm !== this.settings.bpm || !this.settings.automator.enabled) this.bpm = this.settings.bpm;
+    // Discard the old tempo's remaining beat when applying a new fixed rhythm.
+    this.delay = 0.05;
     this.emit();
-    if (wasRunning) void this.start(this.settings, true).catch(() => this.stop());
+    if (wasRunning && this.settings.enabled) void this.start(this.settings, true).catch(() => this.stop());
   }
   stop(reset = false) {
     ++this.generation;
