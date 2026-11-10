@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AppSelect from '@/shared/AppSelect.vue';
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Minus, Plus, Play, Square, RotateCcw, Volume2, Timer, SlidersHorizontal } from '@lucide/vue';
-import Modal from '@/shared/Modal.vue';
+import MetronomeSurface from './MetronomeSurface.vue';
 import { api } from '@/shared/api';
 import { uid } from '@/shared/uuid';
 import {
@@ -21,6 +21,7 @@ const props = defineProps<{
   open: boolean;
   modelValue: MetronomeSettings;
   authenticated?: boolean;
+  standalone?: boolean;
 }>();
 const emit = defineEmits<{
   close: [];
@@ -81,6 +82,9 @@ async function loadPresets() {
 function stopPreview(reset = false) {
   engine.stop(reset);
   if (reset) previewStarted = false;
+}
+function pauseOnPageHide() {
+  stopPreview();
 }
 function close() {
   stopPreview(true);
@@ -196,17 +200,21 @@ watch(
 watch(
   form,
   (value) => {
-    engine.update(normalizeMetronome(value));
+    const settings = normalizeMetronome(value);
+    engine.update(settings);
+    if (props.standalone) emit('update:modelValue', settings);
   },
   { deep: true },
 );
+onMounted(() => window.addEventListener('pagehide', pauseOnPageHide));
 onBeforeUnmount(() => {
   disposed = true;
+  window.removeEventListener('pagehide', pauseOnPageHide);
   engine.dispose();
 });
 </script>
 <template>
-  <Modal :open="open" title="Метроном" @close="close">
+  <MetronomeSurface :open="open" :standalone="standalone" @close="close">
     <div class="metronome-settings">
       <p v-if="error" class="alert" role="alert">{{ error }}</p>
       <p v-if="notice" class="metronome-notice" role="status">{{ notice }}</p>
@@ -278,8 +286,12 @@ onBeforeUnmount(() => {
                 : previewState.running
                   ? 'Пауза'
                   : previewStarted
-                    ? 'Продолжить прослушивание'
-                    : 'Послушать'
+                    ? standalone
+                      ? 'Продолжить'
+                      : 'Продолжить прослушивание'
+                    : standalone
+                      ? 'Запустить'
+                      : 'Послушать'
             }}
           </button>
           <button class="btn" aria-label="Сбросить счётчик метронома" @click="stopPreview(true)">
@@ -293,7 +305,11 @@ onBeforeUnmount(() => {
               ? `${previewState.bpm} BPM`
               : previewState.reason === 'limit'
                 ? 'Лимит достигнут'
-                : 'Предпрослушивание'
+                : standalone
+                  ? previewStarted
+                    ? 'Пауза'
+                    : 'Готов к запуску'
+                  : 'Предпрослушивание'
           }}</span
           ><strong>{{ trackerValue }}</strong>
         </div>
@@ -382,7 +398,7 @@ onBeforeUnmount(() => {
             <label v-if="form.tracker.mode === 'bars' && !form.tracker.countdown" class="check-label"
               ><input v-model="form.tracker.start_from_one" type="checkbox" /> Считать такты с 1</label
             >
-            <p class="muted metronome-help">
+            <p v-if="!standalone" class="muted metronome-help">
               Лимит останавливает только метроном. Практика продолжается по своему таймеру.
             </p>
           </template>
@@ -461,7 +477,7 @@ onBeforeUnmount(() => {
         </template>
         <p v-else class="muted">Войдите в аккаунт, чтобы сохранять настройки и выбирать их по названию.</p>
       </section>
-      <label class="check-label"
+      <label v-if="!standalone" class="check-label"
         ><input v-model="form.enabled" type="checkbox" /> Использовать метроном в практике</label
       >
     </div>
@@ -469,7 +485,7 @@ onBeforeUnmount(() => {
       ><button class="btn" @click="close">Отмена</button
       ><button class="btn btn-primary" @click="apply">Применить</button></template
     >
-  </Modal>
+  </MetronomeSurface>
 </template>
 <style scoped>
 .metronome-settings {

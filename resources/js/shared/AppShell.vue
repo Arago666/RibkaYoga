@@ -12,13 +12,15 @@ import {
   Menu,
   Settings,
   ScanText,
+  AudioLines,
 } from '@lucide/vue';
 import { computed } from 'vue';
 import { dismissMenu as vDismissMenu } from './dismissMenu';
 import BrandMotif from './BrandMotif.vue';
 import '../../css/brand-app.css';
 defineProps<{
-  section: 'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews';
+  section:
+    'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews' | 'metronome';
   wide?: boolean;
 }>();
 const page = usePage();
@@ -72,12 +74,20 @@ const user = computed(
         >
         <details
           v-dismiss-menu
-          :class="['more-nav', { 'contains-active': section === 'templates' || section === 'reviews' }]"
+          :class="[
+            'more-nav',
+            {
+              'contains-active': section === 'templates' || section === 'reviews' || section === 'metronome',
+            },
+          ]"
         >
-          <summary :class="['nav-link', { active: section === 'account' }]">
+          <summary :class="['nav-link', { active: section === 'account' || section === 'metronome' }]">
             <Menu :size="18" /><span>Ещё</span>
           </summary>
           <div id="more-navigation" class="more-links">
+            <Link href="/metronome" :aria-current="section === 'metronome' ? 'page' : undefined"
+              ><AudioLines :size="17" />Метроном</Link
+            >
             <Link href="/templates"><BookOpen :size="17" />Шаблоны</Link>
             <Link href="/practice-reviews"><ScanText :size="17" />Разбор практики</Link>
             <Link href="/mesocycles">Программы и циклы</Link>
@@ -165,7 +175,8 @@ const user = computed(
   color: var(--text);
   font-size: 14px;
 }
-.more-links a:hover {
+.more-links a:hover,
+.more-links a[aria-current='page'] {
   background: var(--accent-soft);
 }
 .account-profile {

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/metronome', fn () => Inertia::render('sessions/Metronome'));
     Route::get('/practices/{id}/run', fn (string $id) => Inertia::render('sessions/Player', ['documentId' => $id]))->whereUuid('id');
     Route::get('/practice-history', fn () => Inertia::render('sessions/History'));
     Route::get('/api/metronome-presets', [MetronomePresetController::class, 'index']);
