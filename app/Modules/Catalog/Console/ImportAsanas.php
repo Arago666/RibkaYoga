@@ -82,14 +82,16 @@ class ImportAsanas extends Command
         }
         $data = Validator::make($manifest, [
             'source' => ['required', 'string', 'max:255'],
+            'collection_name' => ['sometimes', 'string', 'max:160', 'regex:/\S/u'],
             'items' => ['required', 'array', 'list', 'min:1', 'max:500'],
-            'items.*' => ['required', 'array:source_key,name,description,aliases,image,alternate_name,information_description,teacher_cues,benefits,equipment,precautions,editorial,sanskrit_cyrillic,sanskrit_latin,classification_status,facet_keys'],
+            'items.*' => ['required', 'array:source_key,name,description,aliases,image,image_sha256,alternate_name,information_description,teacher_cues,benefits,equipment,precautions,editorial,sanskrit_cyrillic,sanskrit_latin,classification_status,facet_keys'],
             'items.*.source_key' => ['required', 'string', 'max:190', 'distinct:strict', 'regex:~^[A-Za-z0-9][A-Za-z0-9_.:/-]*$~'],
             'items.*.name' => ['required', 'string', 'max:160'],
             'items.*.description' => ['nullable', 'string', 'max:4000'],
             'items.*.aliases' => ['sometimes', 'array', 'list', 'max:20'],
             'items.*.aliases.*' => ['required', 'string', 'max:160'],
             'items.*.image' => ['required', 'string', 'max:500'],
+            'items.*.image_sha256' => ['sometimes', 'string', 'regex:/^[a-f0-9]{64}$/D'],
             'items.*.alternate_name' => ['sometimes', 'nullable', 'string', 'max:160'],
             'items.*.information_description' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'items.*.sanskrit_cyrillic' => ['sometimes', 'nullable', 'string', 'max:160'],
@@ -169,6 +171,9 @@ class ImportAsanas extends Command
                     continue;
                 }
                 $path = $this->imagePath($directory, $item['image']);
+                if (isset($item['image_sha256']) && ! hash_equals($item['image_sha256'], hash_file('sha256', $path))) {
+                    throw ValidationException::withMessages(['image' => 'Контрольная сумма рисунка не совпадает с манифестом.']);
+                }
                 if ($this->option('dry-run')) {
                     $ready++;
 
@@ -180,7 +185,8 @@ class ImportAsanas extends Command
                 DB::transaction(function () use ($item, $manifest, $workspace, $asset, $collections, $facets) {
                     // Collection locks precede card creation, matching interactive uploads.
                     $collections->lockWorkspace();
-                    $collectionId = $collections->starterCollection();
+                    $collectionId = isset($manifest['collection_name'])
+                        ? $collections->importCollection($manifest['collection_name']) : $collections->starterCollection();
                     $facets->ensure($workspace->id());
                     $assignments = $this->facetAssignments($item['facet_keys'] ?? [], $workspace->id(), $facets);
                     $name = trim($item['name']);

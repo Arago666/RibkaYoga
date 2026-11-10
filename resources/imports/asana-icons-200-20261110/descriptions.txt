@@ -1,0 +1,1399 @@
+001. Сукхасана — удобная поза
+Easy Pose
+Sukhasana
+Сидя со скрещёнными голенями: корпус вертикален, руки лежат на коленях.
+Источник сведений: https://www.yoga-sequencing.com/poses/seated-meditation
+Изображение: images/01-sukhasana.png
+
+002. Тадасана — поза горы
+Mountain Pose
+Tadasana
+Стойка с прямыми ногами и вертикальным корпусом; руки свободно опущены вдоль тела.
+Источник сведений: https://www.yoga-sequencing.com/poses/mountain-pose-tadasana
+Изображение: images/02-tadasana.png
+
+003. Врикшасана — поза дерева
+Tree Pose
+Vrksasana
+Баланс на одной ноге. Стопа другой ноги у внутренней поверхности опорной ноги, колено раскрыто в сторону; ладони соединены над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/tree-pose-vrksasana
+Изображение: images/03-vrikshasana.png
+
+004. Уткатасана — поза стула
+Chair Pose
+Utkatasana
+Колени согнуты, таз отведён назад, корпус слегка наклонён вперёд; руки подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/chair-pose
+Изображение: images/04-utkatasana.png
+
+005. Вирабхадрасана I — воин I
+Warrior I
+Virabhadrasana I
+Широкий шаг: переднее колено согнуто, задняя нога прямая. Корпус вертикален, руки подняты вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/warrior-i
+Изображение: images/05-warrior-i.png
+
+006. Вирабхадрасана II — воин II
+Warrior II
+Virabhadrasana II
+Переднее колено согнуто, задняя нога прямая; руки раскрыты в стороны на уровне плеч.
+Источник сведений: https://www.yoga-sequencing.com/poses/warrior-ii
+Изображение: images/06-warrior-ii.png
+
+007. Вирабхадрасана III — воин III
+Warrior III
+Virabhadrasana III
+Баланс на одной ноге: корпус наклонён вперёд, другая нога вытянута назад, руки направлены вперёд.
+Источник сведений: https://www.yoga-sequencing.com/poses/warrior-iii
+Изображение: images/07-warrior-iii.png
+
+008. Триконасана — поза треугольника
+Triangle Pose
+Trikonasana
+Ноги широко расставлены и выпрямлены. Корпус наклонён в сторону; нижняя рука у голени, другая поднята вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/triangle-pose
+Изображение: images/08-trikonasana.png
+
+009. Уттхита Паршваконасана — вытянутый боковой угол
+Extended Side Angle Pose
+Utthita Parsvakonasana
+Переднее колено согнуто, задняя нога прямая. Нижняя рука направлена к полу, верхняя вытянута над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/extended-side-angle
+Изображение: images/09-side-angle.png
+
+010. Уттанасана — наклон стоя
+Standing Forward Fold
+Uttanasana
+Ноги выпрямлены, корпус опущен к ногам; руки направлены к полу рядом со стопами.
+Источник сведений: https://www.yoga-sequencing.com/poses/standing-forward-fold
+Изображение: images/10-uttanasana.png
+
+011. Адхо Мукха Шванасана — собака мордой вниз
+Downward Facing Dog
+Adho Mukha Svanasana
+Опора на ладони и стопы, таз поднят; спина и ноги образуют перевёрнутую букву V.
+Источник сведений: https://www.yoga-sequencing.com/poses/downward-facing-dog-classic
+Изображение: images/11-downward-dog.png
+
+012. Ваджрасана — алмазная поза
+Thunderbolt Pose
+Vajrasana
+Сидя на пятках: колени и голени на полу, корпус вертикален, кисти лежат на бёдрах.
+Источник сведений: https://www.yoga-sequencing.com/poses/hero-pose-vajrasana
+Изображение: images/12-vajrasana.png
+
+013. Бхуджангасана — поза кобры
+Cobra Pose
+Bhujangasana
+Лёжа на животе, ноги вытянуты назад. Грудная клетка приподнята; ладони у корпуса, локти согнуты.
+Источник сведений: https://www.yoga-sequencing.com/poses/cobra-pose
+Изображение: images/13-bhujangasana.png
+
+014. Баласана — поза ребёнка
+Child's Pose
+Balasana
+Корпус сложен над бёдрами, таз направлен к пяткам; руки расположены перед головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/childs-pose
+Изображение: images/14-balasana.png
+
+015. Марджариасана — поза кошки
+Cat Pose
+Marjaryasana
+На четвереньках: спина округлена вверх, голова опущена; ладони под плечами, колени под тазом.
+Источник сведений: https://www.yoga-sequencing.com/poses/cat-pose-marjaryasana
+Изображение: images/15-marjaryasana.png
+
+016. Битиласана — поза коровы
+Cow Pose
+Bitilasana
+На четвереньках: спина мягко прогнута вниз, грудная клетка и голова приподняты; ладони и колени сохраняют опору.
+Источник сведений: https://www.yoga-sequencing.com/poses/cow-pose-bitilasana
+Изображение: images/16-bitilasana.png
+
+017. Дандасана — поза посоха
+Staff Pose
+Dandasana
+Сидя, обе ноги вытянуты вперёд, стопы направлены вверх. Корпус вертикален, руки опираются рядом с тазом.
+Источник сведений: https://www.yoga-sequencing.com/poses/dandasana-staff
+Изображение: images/17-dandasana.png
+
+018. Пашчимоттанасана — наклон сидя
+Seated Forward Fold
+Paschimottanasana
+Сидя с прямыми ногами, корпус наклонён к ним; руки вытянуты к стопам.
+Источник сведений: https://www.yoga-sequencing.com/poses/seated-forward-fold
+Изображение: images/18-paschimottanasana.png
+
+019. Навасана — поза лодки
+Boat Pose
+Navasana
+Равновесие на тазу: корпус отклонён назад, прямые ноги подняты вперёд и вверх; руки тянутся к стопам.
+Источник сведений: https://www.yoga-sequencing.com/poses/boat-pose-basic
+Изображение: images/19-navasana.png
+
+020. Сету Бандха Сарвангасана — поза моста
+Bridge Pose
+Setu Bandha Sarvangasana
+Из положения лёжа на спине с согнутыми коленями таз поднят; стопы и плечи остаются на полу, руки вытянуты вдоль тела.
+Источник сведений: https://www.yoga-sequencing.com/poses/bridge-pose
+Изображение: images/20-bridge.png
+
+021. Планка
+Plank Pose
+Phalakasana
+Упор на прямые руки и носки; корпус и ноги вытянуты в одну линию.
+Источник сведений: https://www.yoga-sequencing.com/poses/plank-pose
+Изображение: images/21-plank.png
+
+022. Чатуранга Дандасана
+Low Chaturanga
+Chaturanga Dandasana
+Низкий упор: локти согнуты, корпус и прямые ноги удерживаются над полом.
+Источник сведений: https://www.yoga-sequencing.com/poses/low-chaturanga
+Изображение: images/22-chaturanga.png
+
+023. Урдхва Мукха Шванасана — собака мордой вверх
+Upward Facing Dog
+Urdhva Mukha Svanasana
+Грудная клетка поднята, руки прямые; таз и бёдра приподняты, опора на ладони и подъёмы стоп.
+Источник сведений: https://www.yoga-sequencing.com/poses/upward-facing-dog
+Изображение: images/23-upward-dog.png
+
+024. Бхарманасана — стол
+Table Top Pose
+Bharmanasana
+На четвереньках: ладони под плечами, колени под тазом, спина ровная.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/table-top-pose/
+Изображение: images/24-tabletop.png
+
+025. Анахатасана — вытяжение щенка
+Extended Puppy Pose
+Anahatasana
+Таз остаётся над коленями; грудная клетка и вытянутые вперёд руки опускаются к полу.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/extended-puppy/
+Изображение: images/25-puppy.png
+
+026. Поза дельфина
+Dolphin Pose
+Ardha Pincha Mayurasana
+Таз поднят, ноги вытянуты; опора на предплечья и стопы.
+Источник сведений: https://www.yoga-sequencing.com/poses/dolphin-pose
+Изображение: images/26-dolphin.png
+
+027. Планка на предплечьях
+Forearm Plank
+Makara Adho Mukha Svanasana
+Корпус и ноги вытянуты; опора на предплечья и носки.
+Источник сведений: https://www.yoga-sequencing.com/poses/forearm-plank
+Изображение: images/27-forearm-plank.png
+
+028. Васиштхасана — боковая планка
+Side Plank
+Vasisthasana
+Боковой упор на одну прямую руку и стопы; свободная рука направлена вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/side-plank
+Изображение: images/28-side-plank.png
+
+029. Пурвоттанасана — обратная планка
+Reverse Plank
+Purvottanasana
+Таз поднят, ноги прямые; опора на ладони позади корпуса и стопы.
+Источник сведений: https://www.yoga-sequencing.com/poses/reverse-plank
+Изображение: images/29-reverse-plank.png
+
+030. Ардха Пурвоттанасана — обратный стол
+Reverse Table Top Pose
+Ardha Purvottanasana
+В обратном упоре таз поднят; колени согнуты, ладони и стопы на полу.
+Источник сведений: https://www.tummee.com/yoga-poses/baptiste-yoga-poses
+Изображение: images/30-reverse-table.png
+
+031. Поза сфинкса
+Sphinx Pose
+Salamba Bhujangasana
+Лёжа на животе, грудная клетка приподнята; локти под плечами, предплечья на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/sphinx-pose
+Изображение: images/31-sphinx.png
+
+032. Шалабхасана — поза саранчи
+Locust Pose
+Salabhasana
+Из положения лёжа на животе грудная клетка и прямые ноги подняты; руки вытянуты назад.
+Источник сведений: https://www.yoga-sequencing.com/poses/locust-pose-2
+Изображение: images/32-locust.png
+
+033. Дханурасана — поза лука
+Bow Pose
+Dhanurasana
+Лёжа на животе, колени согнуты; руки удерживают лодыжки, грудная клетка и бёдра подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/bow-pose
+Изображение: images/33-bow.png
+
+034. Уштрасана — поза верблюда
+Camel Pose
+Ustrasana
+Прогиб из стойки на коленях: таз над коленями, руки направлены к пяткам.
+Источник сведений: https://www.yoga-sequencing.com/poses/camel-pose-hands-heels
+Изображение: images/34-camel.png
+
+035. Ардха Уштрасана — половина верблюда
+Half Camel Pose
+Ardha Ustrasana
+Прогиб на коленях: одна рука у пятки, другая вытянута вверх.
+Источник сведений: https://studio.yoga.org/poses/half-camel
+Изображение: images/35-half-camel.png
+
+036. Урдхва Дханурасана — поза колеса
+Full Wheel Pose
+Urdhva Dhanurasana
+Глубокий прогиб с опорой на ладони и стопы; таз и грудная клетка подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/full-wheel-pose
+Изображение: images/36-wheel.png
+
+037. Матсиасана — поза рыбы
+Fish Pose
+Matsyasana
+Лёжа на спине, грудная клетка поднята в прогибе; ноги вытянуты, макушка направлена к опоре.
+Источник сведений: https://www.yoga-sequencing.com/poses/fish-pose
+Изображение: images/37-fish.png
+
+038. Шавасана — поза отдыха
+Corpse Pose
+Savasana
+Лёжа на спине: ноги вытянуты и слегка разведены, руки свободно лежат в стороне от корпуса.
+Источник сведений: https://www.yoga-sequencing.com/poses/corpse-pose-relaxation
+Изображение: images/38-corpse.png
+
+039. Отдых с согнутыми коленями
+Constructive Rest Pose
+
+Лёжа на спине: колени согнуты, обе стопы стоят на полу, руки вдоль тела.
+Источник сведений: https://www.tummee.com/yoga-poses/backmitra-yoga-poses
+Изображение: images/39-constructive-rest.png
+
+040. Випарита Карани — ноги у стены
+Legs Up the Wall
+Viparita Karani
+Лёжа на спине, таз у стены; прямые ноги подняты вдоль стены, руки лежат вдоль корпуса.
+Источник сведений: https://www.yoga-sequencing.com/poses/legs-up-the-wall
+Изображение: images/40-legs-up-wall.png
+
+041. Баддха Конасана — связанный угол
+Bound Angle Pose
+Baddha Konasana
+Сидя, подошвы соединены перед тазом, колени раскрыты в стороны; руки удерживают стопы.
+Источник сведений: https://www.yoga-sequencing.com/poses/bound-angle-pose
+Изображение: images/41-bound-angle.png
+
+042. Упавишта Конасана — широкий угол сидя
+Seated Wide Angle Pose
+Upavistha Konasana
+Сидя с широко разведёнными прямыми ногами; корпус вертикален, кисти у таза.
+Источник сведений: https://www.yoga-sequencing.com/poses/seated-wide-angle
+Изображение: images/42-wide-angle.png
+
+043. Джану Ширшасана — наклон к одной ноге
+Head to Knee Forward Bend Pose
+Janu Sirsasana
+Одна нога вытянута, другая согнута и раскрыта в сторону; корпус наклонён к прямой ноге.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/head-to-knee-forward-bend/
+Изображение: images/43-janu-sirsasana.png
+
+044. Ардха Матсиендрасана — скручивание сидя
+Half Lord Of The Fishes Pose
+Ardha Matsyendrasana
+Сидя, одна стопа поставлена за противоположное бедро; корпус развёрнут к согнутому колену.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/half-lord-of-the-fishes/
+Изображение: images/44-seated-twist.png
+
+045. Гомукхасана — поза коровьей головы
+Cow Face Pose
+Gomukhasana
+Сидя, колени расположены одно над другим; одна рука за спиной сверху, другая снизу.
+Источник сведений: https://www.yoga-sequencing.com/poses/cow-face-pose
+Изображение: images/45-cow-face.png
+
+046. Падмасана — поза лотоса
+Lotus Pose
+Padmasana
+Сидя, стопы размещены на противоположных бёдрах; корпус вертикален, руки на коленях.
+Источник сведений: https://studio.yoga.org/poses/padmasana
+Изображение: images/46-lotus.png
+
+047. Ардха Падмасана — полулотос
+Half Lotus Pose
+Ardha Padmasana
+Сидя, одна стопа на противоположном бедре, другая нога сложена перед тазом; руки на коленях.
+Источник сведений: https://studio.yoga.org/poses/ardha-padmasana
+Изображение: images/47-half-lotus.png
+
+048. Агни Стамбхасана — поза поленьев
+Fire Log Pose
+Agni Stambhasana
+Сидя, согнутые голени расположены одна над другой; лодыжки находятся над противоположными коленями.
+Источник сведений: https://www.yoga-sequencing.com/poses/fire-log-pose
+Изображение: images/48-fire-log.png
+
+049. Вирасана — поза героя
+Hero Pose
+Virasana
+Сидя между пятками: колени направлены вперёд, стопы лежат снаружи от таза; руки на бёдрах.
+Источник сведений: https://www.yoga-sequencing.com/poses/hero-pose
+Изображение: images/49-hero.png
+
+050. Супта Вирасана — герой лёжа
+Reclining Hero Pose
+Supta Virasana
+Из положения героя корпус отклонён назад до пола; колени согнуты, голени сложены рядом с тазом.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/reclining-hero/
+Изображение: images/50-reclined-hero.png
+
+051. Супта Баддха Конасана — связанный угол лёжа
+Reclined Bound Angle Pose
+Supta Baddha Konasana
+Лёжа на спине: подошвы соединены, колени раскрыты в стороны, руки свободно лежат рядом.
+Источник сведений: https://www.yoga-sequencing.com/poses/reclined-bound-angle
+Изображение: images/51-reclined-bound-angle.png
+
+052. Скручивание лёжа
+Supine Spinal Twist
+Supta Matsyendrasana
+Лёжа на спине, согнутые колени опущены в сторону; руки раскрыты на уровне плеч.
+Источник сведений: https://www.yoga-sequencing.com/poses/supine-spinal-twist
+Изображение: images/52-supine-twist.png
+
+053. Апанасана — колени к груди
+Wind Release Pose
+Apanasana
+Лёжа на спине, обе ноги согнуты к туловищу; руки обхватывают колени или голени.
+Источник сведений: https://www.tummee.com/yoga-poses/basic-yoga-poses
+Изображение: images/53-knees-to-chest.png
+
+054. Подтягивание одного колена лёжа
+Half Wind Release Pose
+Ardha Pavanamuktasana
+Лёжа на спине, одно колено подтянуто к туловищу, другая нога вытянута по полу.
+Источник сведений: https://www.tummee.com/yoga-poses/gentle-yoga-poses
+Изображение: images/54-one-knee-to-chest.png
+
+055. Ананда Баласана — счастливый ребёнок
+Happy Baby Pose
+Ananda Balasana
+Лёжа на спине, колени согнуты и разведены к туловищу; руки удерживают поднятые стопы.
+Источник сведений: https://www.yoga-sequencing.com/poses/happy-baby
+Изображение: images/55-happy-baby.png
+
+056. Голубь лёжа — четвёрка
+Reclined Pigeon Pose
+Sucirandhrasana
+Лёжа на спине, одна лодыжка лежит поперёк противоположного бедра; другая стопа остаётся на опоре.
+Источник сведений: https://studio.yoga.org/poses/reclined-pigeon
+Изображение: images/56-reclined-pigeon.png
+
+057. Супта Падангуштхасана
+Reclining Hand-to-Big-Toe Pose
+Supta Padangusthasana
+Лёжа на спине, одна прямая нога поднята и поддерживается рукой; другая вытянута по полу.
+Источник сведений: https://studio.yoga.org/poses/reclined-hand-to-big-toe
+Изображение: images/57-reclining-hand-to-toe.png
+
+058. Анантасана — вытяжение лёжа на боку
+Side-Reclining Leg Lift
+Anantasana
+Лёжа на боку, нижняя рука поддерживает голову; верхняя рука удерживает стопу поднятой ноги.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/side-reclining-leg-lift/
+Изображение: images/58-anantasana.png
+
+059. Бананасана — боковое вытяжение лёжа
+Banana Pose
+Bananasana
+Лёжа на спине, руки вытянуты за голову; верх корпуса и стопы смещены в одну сторону.
+Источник сведений: https://www.yoga-sequencing.com/poses/banana-pose
+Изображение: images/59-banana.png
+
+060. Макарасана — поза крокодила
+Crocodile Pose
+Makarasana
+Лёжа на животе, ноги вытянуты; голова лежит на сложенных перед собой руках.
+Источник сведений: https://www.tummee.com/yoga-poses/ananda-yoga-poses
+Изображение: images/60-crocodile.png
+
+061. Сукхасана лёжа
+Reclined Easy Pose
+Supta Sukhasana
+Лёжа на спине, голени свободно скрещены; руки лежат рядом с корпусом.
+Источник сведений: https://www.tummee.com/yoga-poses/reclined-easy-pose-blankets
+Изображение: images/61-reclined-easy.png
+
+062. Гарудасана — поза орла
+Eagle Pose
+Garudasana
+Баланс на согнутой ноге; другая нога обвивает её, предплечья переплетены перед грудью.
+Источник сведений: https://www.yoga-sequencing.com/poses/eagle-pose
+Изображение: images/62-eagle.png
+
+063. Натараджасана — поза танцора
+Dancer Pose
+Natarajasana
+Баланс на одной ноге: другая согнута назад, рука удерживает стопу; свободная рука вытянута вперёд.
+Источник сведений: https://www.yoga-sequencing.com/poses/dancer-pose
+Изображение: images/63-dancer.png
+
+064. Паршвоттанасана — поза пирамиды
+Pyramid Pose
+Parsvottanasana
+В разножке обе ноги прямые; корпус наклонён к передней ноге, руки направлены к полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/pyramid-pose
+Изображение: images/64-pyramid.png
+
+065. Прасарита Падоттанасана
+Wide Legged Forward Fold
+Prasarita Padottanasana
+Из широкой стойки корпус опущен вниз; ноги прямые, кисти на полу между стопами.
+Источник сведений: https://www.yoga-sequencing.com/poses/wide-forward-fold
+Изображение: images/65-wide-forward-fold.png
+
+066. Ардха Уттанасана — половинный наклон
+Half Forward Fold
+Ardha Uttanasana
+Стоя с прямыми ногами, корпус вытянут вперёд почти параллельно полу; руки у голеней.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-forward-fold
+Изображение: images/66-half-forward-fold.png
+
+067. Утката Конасана — поза богини
+Goddess Pose
+Utkata Konasana
+Широкий присед с раскрытыми в стороны коленями; локти согнуты, предплечья подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/goddess-pose
+Изображение: images/67-goddess.png
+
+068. Поза пятиконечной звезды
+Five Pointed Star Pose
+Utthita Tadasana
+Широкая стойка с прямыми ногами; руки раскрыты в стороны на уровне плеч.
+Источник сведений: https://www.tummee.com/yoga-poses/basic-yoga-poses
+Изображение: images/68-star.png
+
+069. Скандасана — боковой присед
+Side Lunge Pose
+Skandasana
+Одна нога глубоко согнута, другая вытянута в сторону; ладони перед грудью.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/side-lunge-pose/
+Изображение: images/69-side-lunge.png
+
+070. Высокий выпад
+High Lunge
+Utthita Ashwa Sanchalanasana
+Переднее колено согнуто, заднее поднято над полом; руки вытянуты вверх.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/high-lunge/
+Изображение: images/70-high-lunge.png
+
+071. Анджанеясана — низкий выпад
+Low Lunge
+Anjaneyasana
+Переднее колено согнуто, заднее на полу; корпус поднят, руки вытянуты вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/low-lunge-anjaneyasana
+Изображение: images/71-low-lunge.png
+
+072. Уттхан Приштхасана — поза ящерицы
+Lizard Pose
+Utthan Pristhasana
+В низком выпаде передняя стопа снаружи от рук; кисти опираются на пол с внутренней стороны ноги.
+Источник сведений: https://www.yoga-sequencing.com/poses/lizard-pose
+Изображение: images/72-lizard.png
+
+073. Ардха Хануманасана — половина шпагата
+Half Split Pose
+Ardha Hanumanasana
+Опора на одно колено; другая нога вытянута вперёд, стопа направлена вверх, корпус наклонён к ней.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-split-kneeling
+Изображение: images/73-half-split.png
+
+074. Хануманасана — продольный шпагат
+Monkey Pose
+Hanumanasana
+Продольный шпагат: одна нога вытянута вперёд, другая назад; корпус поднят, ладони соединены у груди.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/monkey-pose/
+Изображение: images/74-split.png
+
+075. Эка Пада Раджакапотасана — подготовка
+Half Pigeon Pose
+Eka Pada Rajakapotasana
+Передняя нога согнута перед тазом, задняя вытянута назад; корпус поднят, руки у таза.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-pigeon-upright
+Изображение: images/75-pigeon.png
+
+076. Голубь с наклоном вперёд
+Sleeping Pigeon Pose
+
+В положении голубя корпус опущен над передней согнутой ногой; руки вытянуты вперёд.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-pigeon-resting
+Изображение: images/76-sleeping-pigeon.png
+
+077. Эка Пада Раджакапотасана — захват стопы
+One Legged King Pigeon Pose
+Eka Pada Rajakapotasana
+Передняя нога сложена перед тазом; заднее колено согнуто, стопа поднята и удерживается руками над головой.
+Источник сведений: https://studio.yoga.org/poses/king-pigeon-full
+Изображение: images/77-king-pigeon.png
+
+078. Поза русалки
+Mermaid Pose
+
+В положении голубя задняя стопа удерживается сгибом локтя; другая рука образует замок над головой.
+Источник сведений: https://studio.yoga.org/poses/mermaid-pose
+Изображение: images/78-mermaid.png
+
+079. Паригхасана — поза ворот
+Gate Pose
+Parighasana
+Опора на одно колено; другая нога вытянута в сторону, корпус наклонён к ней, верхняя рука над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/gate-pose
+Изображение: images/79-gate.png
+
+080. Ардха Чандрасана — полумесяц
+Half Moon Pose
+Ardha Chandrasana
+Баланс на одной ноге с наклонённым корпусом; другая нога поднята назад, одна рука у пола, другая вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-moon-pose
+Изображение: images/80-half-moon.png
+
+081. Паривритта Триконасана
+Revolved Triangle Pose
+Parivrtta Trikonasana
+В разножке ноги прямые; корпус наклонён и развёрнут, нижняя рука у противоположной стопы, другая вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/revolved-triangle-pose
+Изображение: images/81-revolved-triangle.png
+
+082. Паривритта Уткатасана
+Revolved Chair Pose
+Parivrtta Utkatasana
+Колени согнуты, таз отведён назад; корпус развёрнут, ладони соединены перед грудью, локоть у противоположного бедра.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/revolved-chair-pose/
+Изображение: images/82-revolved-chair.png
+
+083. Паривритта Паршваконасана
+Revolved Extended Side Angle
+Parivrtta Parsvakonasana
+В широком выпаде корпус развёрнут над передним бедром; нижняя рука снаружи передней стопы, другая над головой.
+Источник сведений: https://studio.yoga.org/poses/parivrtta-parsvakonasana
+Изображение: images/83-revolved-side-angle.png
+
+084. Обратный воин
+Reverse Warrior Pose
+Viparita Virabhadrasana
+Из стойки воина II корпус вытянут назад; передняя рука поднята, другая лежит на задней ноге.
+Источник сведений: https://www.yoga-sequencing.com/poses/reverse-warrior
+Изображение: images/84-reverse-warrior.png
+
+085. Смиренный воин
+Humble Warrior Pose
+Baddha Virabhadrasana
+В стойке воина корпус наклонён к внутренней стороне переднего бедра; руки соединены за спиной и подняты.
+Источник сведений: https://yoga.dasa.ncsu.edu/asana/standing-poses/
+Изображение: images/85-humble-warrior.png
+
+086. Ардха Чандра Чапасана
+Sugarcane Pose
+Ardha Chandra Chapasana
+В полумесяце поднятая нога согнута; верхняя рука удерживает её стопу, нижняя опирается на пол.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/sugarcane-pose/
+Изображение: images/86-sugarcane.png
+
+087. Баланс на четвереньках
+Bird Dog
+Dandayamana Bharmanasana
+Из положения на четвереньках одна рука вытянута вперёд, противоположная нога назад; вторая рука и колено на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/bird-dog
+Изображение: images/87-bird-dog.png
+
+088. Вьягхрасана — поза тигра
+Tiger Pose
+Vyaghrasana
+На четвереньках одна нога поднята назад и согнута в колене; обе руки сохраняют опору.
+Источник сведений: https://www.tummee.com/yoga-poses/satyananda-yoga-poses
+Изображение: images/88-tiger.png
+
+089. Нить в иголку
+Thread The Needle Pose
+
+Из положения на четвереньках одна рука проведена под корпусом; плечо и голова опущены к полу, другая рука в опоре.
+Источник сведений: https://www.yoga-sequencing.com/poses/thread-the-needle-19
+Изображение: images/89-thread-needle.png
+
+090. Симхасана — поза льва
+Lion Pose
+Simhasana
+Сидя на пятках, колени разведены; корпус вытянут, кисти на коленях.
+Источник сведений: https://www.yoga-sequencing.com/poses/lion-pose
+Изображение: images/90-lion.png
+
+091. Мандукасана — поза лягушки
+Frog Pose
+Mandukasana
+Колени широко разведены, голени направлены назад; корпус опущен вперёд с опорой на ладони.
+Источник сведений: https://www.tummee.com/yoga-poses/yin-yoga-poses
+Изображение: images/91-frog.png
+
+092. Краунчасана — поза цапли
+Heron Pose
+Krounchasana
+Сидя, одна нога сложена рядом с тазом; другая выпрямлена вверх и удерживается руками за стопу.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/heron-pose/
+Изображение: images/92-heron.png
+
+093. Паривритта Сурья Янтрасана — компас
+Compass Pose
+Parivrtta Surya Yantrasana
+Сидя, одна нога поднята и вытянута рядом с плечом; противоположная рука удерживает стопу над головой.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/compass-pose/
+Изображение: images/93-compass.png
+
+094. Титтибхасана — поза светлячка
+Firefly Pose
+Tittibhasana
+Равновесие на кистях: таз поднят, обе ноги выпрямлены вперёд и в стороны над руками.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/firefly/
+Изображение: images/94-firefly.png
+
+095. Какасана — поза вороны
+Crow Pose
+Kakasana
+Баланс на согнутых руках; колени у верхней части рук, обе стопы подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/crow-pose-basic
+Изображение: images/95-crow.png
+
+096. Бакасана — поза журавля
+Crane Pose
+Bakasana
+Баланс на выпрямленных руках; колени подтянуты к плечам, стопы подняты.
+Источник сведений: https://studio.yoga.org/poses/bakasana
+Изображение: images/96-crane.png
+
+097. Паршва Бакасана — боковая ворона
+Side Crow Pose
+Parsva Bakasana
+Боковое равновесие на кистях: согнутые ноги направлены в одну сторону от корпуса.
+Источник сведений: https://www.yoga-sequencing.com/poses/crow-pose-side-angle
+Изображение: images/97-side-crow.png
+
+098. Толасана — поза весов
+Scale Pose
+Tolasana
+Сидя в лотосе, таз и сложенные ноги подняты над полом за счёт опоры на прямые руки.
+Источник сведений: https://www.tummee.com/yoga-poses/scale-pose
+Изображение: images/98-scale.png
+
+099. Лоласана — поза подвески
+Pendant Pose
+Lolasana
+Опора на прямые руки; таз поднят, колени подтянуты, голени скрещены под корпусом.
+Источник сведений: https://www.tummee.com/yoga-poses/jivamukti-yoga-poses
+Изображение: images/99-pendant.png
+
+100. Маюрасана — поза павлина
+Peacock Pose
+Mayurasana
+Равновесие на кистях: согнутые локти поддерживают живот, корпус и прямые ноги удерживаются горизонтально.
+Источник сведений: https://studio.yoga.org/poses/peacock-pose
+Изображение: images/100-peacock.png
+
+101. Эка Хаста Бхуджасана
+Elephant Trunk Pose
+Eka Hasta Bhujasana
+Опора на прямые руки; одна нога закинута на плечо, другая вытянута вперёд, таз над полом.
+Источник сведений: https://studio.yoga.org/poses/elephant-trunk-pose
+Изображение: images/101-elephant.png
+
+102. Аштавакрасана — восемь углов
+Eight Angle Pose
+Astavakrasana
+Баланс на согнутых руках; обе ноги вытянуты в сторону и обхватывают одну руку, стопы скрещены.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/eight-angle-pose/
+Изображение: images/102-eight-angle.png
+
+103. Эка Пада Каундиниасана I
+Pose Dedicated to the Sage Koundinya I
+Eka Pada Koundinyasana I
+В скручивании на согнутых руках одна прямая нога направлена в сторону, другая назад; обе стопы подняты.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/pose-dedicated-sage-koundinya/
+Изображение: images/103-koundinya-i.png
+
+104. Сварга Двиджасана — райская птица
+Bird of Paradise
+Svarga Dvijasana
+Баланс на одной ноге: другая выпрямлена вверх и в сторону; руки соединены за бедром поднятой ноги.
+Источник сведений: https://studio.yoga.org/poses/bird-of-paradise
+Изображение: images/104-bird-paradise.png
+
+105. Уттхита Хаста Падангуштхасана I
+Extended Hand to Big Toe Pose
+Utthita Hasta Padangusthasana I
+Баланс на одной прямой ноге; другая прямая нога вытянута вперёд и вверх, кисть держит её стопу, свободная рука у таза.
+Источник сведений: https://www.yoga-sequencing.com/poses/extended-hand-to-big-toe-utthita-hasta-padangusthasana
+Изображение: images/105-standing-hand-to-toe.png
+
+106. Уттхита Хаста Падангуштхасана II
+Standing Hand to Big Toe Pose Side
+Utthita Hasta Padangusthasana II
+Баланс стоя: поднятая прямая нога отведена в сторону, рука удерживает стопу; другая рука на талии.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/extended-hand-to-big-toe-pose-variation/
+Изображение: images/106-standing-hand-to-toe-side.png
+
+107. Подтягивание колена стоя
+Standing Knee Hug
+
+Баланс на одной прямой ноге; другое колено поднято к туловищу и обхвачено руками.
+Источник сведений: https://www.yoga-sequencing.com/poses/standing-knee-hug
+Изображение: images/107-standing-knee-hug.png
+
+108. Урдхва Прасарита Эка Падасана
+Standing Split
+Urdhva Prasarita Eka Padasana
+Наклон к опорной ноге; другая прямая нога поднята вверх и назад, кисти на полу.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/standing-split-pose/
+Изображение: images/108-standing-split.png
+
+109. Паривритта Ардха Чандрасана
+Revolved Half Moon Pose
+Parivrtta Ardha Chandrasana
+Баланс с наклонённым корпусом и поднятой назад ногой; грудная клетка развёрнута, противоположная рука у пола.
+Источник сведений: https://studio.yoga.org/poses/parivrtta-ardha-chandrasana
+Изображение: images/109-revolved-half-moon.png
+
+110. Баддха Триконасана
+Bound Triangle Pose
+Baddha Trikonasana
+В широкой стойке с прямыми ногами корпус наклонён в сторону; руки образуют захват вокруг переднего бедра.
+Источник сведений: https://www.tummee.com/yoga-poses/binding-yoga-poses
+Изображение: images/110-bound-triangle.png
+
+111. Баддха Паршваконасана
+Bound Extended Side Angle Pose
+Baddha Parsvakonasana
+Переднее колено согнуто, задняя нога прямая; руки соединены за спиной, одна проведена под передним бедром.
+Источник сведений: https://www.tummee.com/yoga-poses/anusara-yoga-poses
+Изображение: images/111-bound-side-angle.png
+
+112. Маласана — поза гирлянды
+Garland Pose
+Malasana
+Глубокий присед: стопы на полу, колени разведены, ладони перед грудью; локти у внутренних сторон коленей.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/garland-pose/
+Изображение: images/112-garland.png
+
+113. Бхарадваджасана
+Bharadvaja Twist
+Bharadvajasana
+Сидя, обе ноги согнуты и сложены сбоку от таза; корпус развёрнут, одна рука на колене, другая позади.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/bharadvajas-twist/
+Изображение: images/113-bharadvaja.png
+
+114. Акарна Дханурасана — поза лучника
+Archer Pose
+Akarna Dhanurasana
+Сидя, одна нога вытянута вперёд; стопа другой ноги подтянута рукой к голове, вторая рука у передней стопы.
+Источник сведений: https://ihanuman.com/asana/akarna-dhanurasana
+Изображение: images/114-archer.png
+
+115. Курмасана — поза черепахи
+Tortoise Pose
+Kurmasana
+Сидя с разведёнными ногами, корпус опущен вперёд; руки проведены под бёдрами и вытянуты в стороны.
+Источник сведений: https://www.tummee.com/yoga-poses/sivananda-yoga-poses
+Изображение: images/115-tortoise.png
+
+116. Эка Пада Каундиниасана II
+Flying Splits II
+Eka Pada Koundinyasana II
+Баланс на согнутых руках: одна прямая нога вытянута вперёд над рукой, другая назад; обе стопы подняты.
+Источник сведений: https://studio.yoga.org/poses/eka-pada-koundinyasana-ii
+Изображение: images/116-koundinya-ii.png
+
+117. Саламба Ширшасана — стойка на голове
+Headstand
+Salamba Sirsasana
+Перевёрнутое положение: голова и предплечья на опоре, корпус и прямые ноги вытянуты вверх.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/headstand/
+Изображение: images/117-headstand.png
+
+118. Ширшасана II — стойка на трёх опорах
+Tripod Headstand
+Sirsasana II
+Опора на голову и ладони; локти согнуты, корпус и прямые ноги направлены вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/tripod-headstand-variation
+Изображение: images/118-tripod-headstand.png
+
+119. Пинча Маюрасана — стойка на предплечьях
+Forearm Stand
+Pincha Mayurasana
+Равновесие на предплечьях: таз над плечами, прямые ноги вытянуты вверх; голова над полом.
+Источник сведений: https://studio.yoga.org/poses/pincha-mayurasana
+Изображение: images/119-forearm-stand.png
+
+120. Адхо Мукха Врикшасана — стойка на руках
+Handstand
+Adho Mukha Vrksasana
+Опора на прямые руки; корпус и ноги вытянуты вверх, голова между руками над полом.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/hand-stand/
+Изображение: images/120-handstand.png
+
+121. Саламба Сарвангасана
+Shoulderstand
+Salamba Sarvangasana
+Опора на плечевой пояс; руки поддерживают спину, корпус и прямые ноги вытянуты вверх.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/shoulderstand/
+Изображение: images/121-shoulderstand.png
+
+122. Халасана — поза плуга
+Plow Pose
+Halasana
+Из перевёрнутого положения прямые ноги опущены за голову; плечи и руки остаются на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/plow-pose
+Изображение: images/122-plow.png
+
+123. Карнапидасана
+Ear Pressure Pose
+Karnapidasana
+В положении плуга колени согнуты и расположены рядом с головой; руки вытянуты по полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/ear-pressure-pose
+Изображение: images/123-ear-pressure.png
+
+124. Вришчикасана — поза скорпиона
+Scorpion Pose
+Vrischikasana
+Перевёрнутое равновесие на предплечьях; спина прогнута, колени согнуты, стопы направлены к голове.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/scorpion-pose/
+Изображение: images/124-scorpion.png
+
+125. Матсиасана с ногами в лотосе
+Fish Pose Lotus Legs
+Matsyasana Padmasana
+Прогиб лёжа с приподнятой грудной клеткой; ноги сложены в лотос, макушка направлена к опоре.
+Источник сведений: https://www.tummee.com/yoga-poses/sivananda-yoga-poses
+Изображение: images/125-fish-lotus.png
+
+126. Ардха Навасана — половинная лодка
+Half Boat Pose
+
+Туловище и прямые ноги опущены ближе к полу; руки вытянуты вперёд.
+Источник сведений: https://studio.yoga.org/poses/half-boat
+Изображение: images/126-half-boat.png
+
+127. Навасана с согнутыми коленями
+Boat Pose Bent Knees
+
+Баланс на седалищных костях: колени согнуты, голени почти горизонтальны, руки вперёд.
+Источник сведений: https://www.tummee.com/yoga-poses/baptiste-yoga-poses
+Изображение: images/127-boat-bent-knees.png
+
+128. Навасана с руками вверх
+Boat Pose Arms Up
+
+Из положения лодки с прямыми ногами обе руки подняты над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/boat-pose-arms-up
+Изображение: images/128-boat-arms-up.png
+
+129. Чаматкарасана — дикая вещь
+Wild Thing
+Camatkarasana
+Опора на одну ладонь и обе стопы; таз поднят, грудь раскрыта вверх, свободная рука вытянута за голову.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/wild-thing/
+Изображение: images/129-wild-thing.png
+
+130. Пашасана — поза петли
+Noose Pose
+Pasasana
+Глубокий присед с коленями вместе; корпус развёрнут, руки обхватывают голени и соединяются за спиной.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/noose-pose/
+Изображение: images/130-noose.png
+
+131. Лодка с разведёнными ногами
+Wide Legged Boat Pose
+
+Баланс сидя: прямые ноги подняты и разведены, руки направлены к стопам.
+Источник сведений: https://www.yoga-sequencing.com/poses/boat-wide-legs
+Изображение: images/131-wide-boat.png
+
+132. Мост с одной поднятой ногой
+One Legged Bridge Pose
+
+Из моста одна нога выпрямлена вверх; опора остаётся на плечи и другую стопу.
+Источник сведений: https://www.yoga-sequencing.com/poses/one-leg-bridge
+Изображение: images/132-one-leg-bridge.png
+
+133. Мост с блоком под тазом
+Supported Bridge Pose Block
+
+Таз приподнят на блоке; плечи и стопы остаются на полу.
+Источник сведений: https://studio.yoga.org/poses/supported-setu-bandha
+Изображение: images/133-supported-bridge.png
+
+134. Мост с руками за головой
+Bridge Pose Arms Overhead
+
+В мосте руки лежат на полу за головой, стопы и плечи служат опорой.
+Источник сведений: https://www.tummee.com/yoga-poses/bridge-pose-variation-hands/how-to-do/
+Изображение: images/134-bridge-arms-overhead.png
+
+135. Собака мордой вниз с поднятой ногой
+Three Legged Downward Facing Dog
+
+Из собаки мордой вниз одна прямая нога продолжает линию корпуса вверх.
+Источник сведений: https://www.tummee.com/yoga-poses/backmitra-yoga-poses
+Изображение: images/135-three-legged-dog.png
+
+136. Собака с раскрытым тазом и согнутой ногой
+Three Legged Dog Bent Knee
+
+Опорная нога остаётся на полу, поднятая нога согнута в колене.
+Источник сведений: https://www.yoga-sequencing.com/poses/three-legged-dog
+Изображение: images/136-dog-open-hip.png
+
+137. Скручивание в собаке мордой вниз
+Revolved Downward Facing Dog
+
+Одна ладонь остаётся на полу, другая рука тянется к противоположной голени.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/revolved-downward-facing-dog/
+Изображение: images/137-revolved-dog.png
+
+138. Собака мордой вниз с согнутыми коленями
+Downward Facing Dog Bent Knees
+
+Таз направлен вверх, колени согнуты, руки вытянуты к полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/downward-dog-bent-knees
+Изображение: images/138-dog-bent-knees.png
+
+139. Собака с опорой ладонями на стул
+Downward Facing Dog Chair
+
+Ладони лежат на сиденье стула, ноги на полу, спина вытянута от таза к рукам.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-poses-for-beginners
+Изображение: images/139-dog-chair.png
+
+140. Дельфин с поднятой ногой
+One Legged Dolphin Pose
+
+Опора на предплечья и одну стопу; другая нога выпрямлена вверх.
+Источник сведений: https://www.tummee.com/yoga-poses/sivananda-yoga-poses
+Изображение: images/140-one-leg-dolphin.png
+
+141. Планка с поднятой ногой
+Plank Pose One Leg Raised
+
+В упоре на прямые руки одна прямая нога приподнята над полом.
+Источник сведений: https://www.yoga-sequencing.com/poses/three-legged-plank
+Изображение: images/141-plank-leg-up.png
+
+142. Планка с коленями на полу
+Kneeling Plank Pose
+
+Руки прямые, корпус вытянут от плеч до коленей; колени служат опорой.
+Источник сведений: https://www.tummee.com/yoga-poses/kneeling-yoga-poses
+Изображение: images/142-kneeling-plank.png
+
+143. Патита Триконасана — упавший треугольник
+Fallen Triangle Pose
+
+Опора на ладонь и стопы; одна прямая нога проведена под корпусом в сторону, свободная рука поднята.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-poses-for-arms
+Изображение: images/143-fallen-triangle.png
+
+144. Планка с противоположными рукой и ногой
+Plank Pose Opposite Arm And Leg
+
+В планке подняты противоположные рука и нога, оставшиеся ладонь и стопа на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/one-arm-three-legged-plank
+Изображение: images/144-plank-opposite-limbs.png
+
+145. Планка на предплечьях с поднятой ногой
+Forearm Plank One Leg Raised
+
+В планке на предплечьях одна нога приподнята, другая опирается носком.
+Источник сведений: https://www.yoga-sequencing.com/poses/forearm-plank-leg-lift
+Изображение: images/145-forearm-plank-leg-up.png
+
+146. Боковая планка с коленом на полу
+Side Plank Knee Down
+
+Опора на ладонь и нижнее колено; верхняя нога прямая, свободная рука поднята.
+Источник сведений: https://www.yoga-sequencing.com/poses/side-plank-knee-bent
+Изображение: images/146-side-plank-knee-down.png
+
+147. Боковая планка с поднятой ногой
+Side Plank Top Leg Lifted
+
+В боковой планке верхняя нога отведена вверх, свободная рука поднята.
+Источник сведений: https://www.yoga-sequencing.com/poses/side-plank-leg-lift
+Изображение: images/147-side-plank-leg-lift.png
+
+148. Боковая планка с ногой в дереве
+Side Plank Tree Leg
+
+Верхнее колено отведено, стопа верхней ноги лежит у внутренней стороны опорного бедра.
+Источник сведений: https://www.tummee.com/yoga-poses/arm-balance-yoga-poses
+Изображение: images/148-side-plank-tree.png
+
+149. Боковая планка с рукой за головой
+Side Plank Arm Overhead
+
+Верхняя рука вытянута над головой и продолжает боковую линию корпуса.
+Источник сведений: https://www.tummee.com/yoga-poses/arm-balance-yoga-poses
+Изображение: images/149-side-plank-arm-overhead.png
+
+150. Боковая планка на предплечье
+Forearm Side Plank
+
+Нижнее предплечье и стопы служат опорой, свободная рука направлена вверх.
+Источник сведений: https://www.yoga-sequencing.com/poses/forearm-side-plank
+Изображение: images/150-forearm-side-plank.png
+
+151. Обратная планка с поднятой ногой
+Reverse Plank One Leg Raised
+
+В обратной планке одна прямая нога поднята; ладони и другая стопа на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/reverse-plank
+Изображение: images/151-reverse-plank-leg-up.png
+
+152. Обратный стол с поднятой ногой
+Reverse Tabletop One Leg Raised
+
+В обратном столе одна нога вытянута вверх, другая согнута и опирается стопой.
+Источник сведений: https://www.tummee.com/yoga-poses/viniyoga-yoga-poses
+Изображение: images/152-reverse-table-leg-up.png
+
+153. Шалабхасана с руками вперёд
+Locust Pose Arms Forward
+
+Лёжа на животе, грудь и прямые ноги приподняты, руки вытянуты вперёд.
+Источник сведений: https://www.yoga-sequencing.com/poses/locust-pose
+Изображение: images/153-locust-arms-forward.png
+
+154. Шалабхасана с замком за спиной
+Locust Pose Hands Clasped
+
+Грудь и ноги приподняты, прямые руки отведены назад и соединены за спиной.
+Источник сведений: https://www.tummee.com/yoga-poses/baptiste-yoga-poses
+Изображение: images/154-locust-hands-bound.png
+
+155. Ардха Шалабхасана — половинная саранча
+Half Locust Pose
+
+Лёжа на животе, одна прямая нога поднята, другая остаётся на полу.
+Источник сведений: https://www.yoga-sequencing.com/poses/half-locust-pose
+Изображение: images/155-half-locust.png
+
+156. Ардха Бхекасана — половинная лягушка
+Half Frog
+Ardha Bhekasana
+Лёжа на животе с опорой на предплечье, другая рука держит стопу согнутой ноги; вторая нога вытянута.
+Источник сведений: https://studio.yoga.org/poses/half-frog
+Изображение: images/156-half-frog.png
+
+157. Кобра с приподнятыми ладонями
+Cobra Pose Hands Lifted
+
+Прогиб лёжа на животе; согнутые руки и ладони оторваны от пола.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/cobra-pose-bhujangasana/
+Изображение: images/157-cobra-hands-hover.png
+
+158. Бхекасана — лягушка с захватом стоп
+Frog Pose Bhekasana
+Bhekasana
+Лёжа на животе, обе ноги согнуты; ладони держат стопы возле таза, грудь приподнята.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/frog-pose/
+Изображение: images/158-frog-backbend.png
+
+159. Ардха Дханурасана — половинный лук
+Half Bow Pose
+
+Лёжа на животе, одна рука держит согнутую с той же стороны ногу; другая нога вытянута.
+Источник сведений: https://www.tummee.com/yoga-poses/sivananda-yoga-poses
+Изображение: images/159-half-bow.png
+
+160. Голубь с захватом задней стопы
+Pigeon Pose Quadriceps Stretch
+
+Передняя нога согнута на полу, заднее колено согнуто, одна рука держит заднюю стопу.
+Источник сведений: https://www.yoga-sequencing.com/poses/pigeon-pose
+Изображение: images/160-pigeon-foot-catch.png
+
+161. Уштрасана с ладонями на тазу
+Camel Pose Hands On Hips
+
+В прогибе на коленях ладони поддерживают область таза, бёдра остаются почти вертикальными.
+Источник сведений: https://www.yoga-sequencing.com/poses/camel-pose-hands-hips
+Изображение: images/161-camel-hands-hips.png
+
+162. Сиддхасана — совершенная поза
+Adept's Pose
+Siddhasana
+Сидя с согнутыми разведёнными коленями: одна пятка перед тазом, другая стопа у противоположной лодыжки; руки на коленях.
+Источник сведений: https://studio.yoga.org/poses/siddhasana
+Изображение: images/162-siddhasana.png
+
+163. Наклон сидя с ремнём
+Seated Forward Bend With Strap
+
+Корпус наклонён к прямым ногам, кисти держат ремень, перекинутый через стопы.
+Источник сведений: https://www.tummee.com/yoga-poses/supported-yoga-poses
+Изображение: images/163-seated-fold-strap.png
+
+164. Наклон вперёд с широко разведёнными ногами
+Seated Wide Legged Forward Bend
+
+Сидя с прямыми разведёнными ногами, корпус наклонён вперёд, руки на полу.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/wide-angle-seated-forward-bend-upavistha-konasana/
+Изображение: images/164-wide-seated-fold.png
+
+165. Паривритта Джану Ширшасана
+Revolved Head To Knee Pose
+
+Одна нога прямая, другая согнута; корпус наклонён боком к прямой ноге, верхняя рука над головой.
+Источник сведений: https://www.yogaclassplan.com/yoga-pose/revolved-head-to-knee-pose/
+Изображение: images/165-revolved-janu.png
+
+166. Боковой наклон сидя с разведёнными ногами
+Seated Wide Angle Side Bend
+
+Обе ноги прямые и разведены, корпус наклонён к одной ноге, верхняя рука над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/seated-wide-angle
+Изображение: images/166-wide-seat-side-bend.png
+
+167. Скручивание сидя со скрещёнными ногами
+Easy Pose Twist
+
+В положении со скрещёнными голенями корпус развёрнут, одна рука у колена, другая позади таза.
+Источник сведений: https://studio.yoga.org/poses/parivrtta-sukhasana
+Изображение: images/167-easy-seat-twist.png
+
+168. Наклон из простого сидения
+Easy Pose Forward Bend
+
+Из сидения со скрещёнными голенями корпус наклонён вперёд, руки вытянуты по полу.
+Источник сведений: https://www.tummee.com/yoga-poses/yin-yoga-poses
+Изображение: images/168-easy-seat-fold.png
+
+169. Простое сидение с руками вверх
+Easy Pose Arms Raised
+
+Скрещённые голени на полу, корпус вертикальный, обе руки подняты.
+Источник сведений: https://www.tummee.com/yoga-poses/easy-pose-variation-arms-up
+Изображение: images/169-easy-seat-arms-up.png
+
+170. Боковой наклон в простом сидении
+Easy Pose Side Bend
+
+Из сидения со скрещёнными ногами корпус наклонён в сторону; одна рука на полу, другая над головой.
+Источник сведений: https://www.tummee.com/yoga-poses/hatha-yoga-poses
+Изображение: images/170-easy-seat-side-bend.png
+
+171. Йога Мудра в лотосе
+Lotus Pose Forward Bend
+
+Сохраняя лотос, корпус наклонён вперёд; руки отведены за спину.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-mudrasana/steps
+Изображение: images/171-lotus-forward-fold.png
+
+172. Баддха Падмасана — связанный лотос
+Bound Lotus Pose
+
+В лотосе руки заведены за спину и направлены к стопам на противоположных бёдрах.
+Источник сведений: https://usayoga.org/wp-content/uploads/2024/08/Posture-Guidelines-2021-2022-FINAL.pdf
+Изображение: images/172-bound-lotus.png
+
+173. Пранамасана — молитвенная поза
+Prayer Pose
+Pranamasana
+Стоя на двух прямых ногах, корпус вертикальный, ладони соединены перед грудью.
+Источник сведений: https://www.yoga-sequencing.com/poses/prayer-pose
+Изображение: images/173-prayer-standing.png
+
+174. Вирасана с руками гомукхасаны
+Hero Pose Cow Face Arms
+
+Сидя между пятками, одна рука сверху и другая снизу соединяются за спиной.
+Источник сведений: https://www.tummee.com/yoga-poses/anusara-yoga-poses
+Изображение: images/174-hero-cow-face-arms.png
+
+175. Баласана с руками вдоль тела
+Child Pose Arms Back
+
+Корпус сложен к бёдрам, лоб опущен; руки лежат вдоль тела к стопам.
+Источник сведений: https://www.yoga-sequencing.com/poses/childs-pose
+Изображение: images/175-child-arms-back.png
+
+176. Баласана с широко разведёнными коленями
+Wide Knee Child Pose
+
+Колени разведены, таз у пяток, корпус опущен между бёдрами, руки вперёд.
+Источник сведений: https://www.tummee.com/yoga-poses/basic-yoga-poses
+Изображение: images/176-wide-child.png
+
+177. Баласана с боковым вытяжением
+Child Pose Side Stretch
+
+В позе ребёнка обе руки смещены в одну сторону, бок корпуса вытянут.
+Источник сведений: https://www.tummee.com/yoga-poses/yin-yoga-poses
+Изображение: images/177-child-side-stretch.png
+
+178. Щенок с опорой на предплечья
+Puppy Pose On Forearms
+
+Таз остаётся над коленями, грудь опущена, предплечья лежат на полу.
+Источник сведений: https://www.tummee.com/yoga-poses/anahatasana-on-elbows/how-to-do
+Изображение: images/178-puppy-forearms.png
+
+179. Щенок с опорой на стул
+Puppy Pose With Chair
+
+Стоя на коленях, предплечья или локти опираются на сиденье стула, корпус вытянут к нему.
+Источник сведений: https://www.tummee.com/yoga-poses/prone-yoga-poses
+Изображение: images/179-puppy-chair.png
+
+180. Скручивание в низком выпаде
+Low Lunge Twist
+
+Заднее колено на полу, одна рука у передней стопы, другая раскрыта вверх.
+Источник сведений: https://www.tummee.com/yoga-poses/kneeling-yoga-poses
+Изображение: images/180-low-lunge-twist.png
+
+181. Низкий выпад с захватом задней стопы
+Low Lunge Quadriceps Stretch
+
+Заднее колено на полу, голень поднята, одна рука держит заднюю стопу.
+Источник сведений: https://www.yoga-sequencing.com/poses/low-lunge-quad-stretch
+Изображение: images/181-low-lunge-foot-catch.png
+
+182. Низкий выпад с боковым наклоном
+Low Lunge Side Bend
+
+В низком выпаде корпус наклонён в сторону, одна рука вытянута над головой.
+Источник сведений: https://www.tummee.com/yoga-poses/kneeling-yoga-poses
+Изображение: images/182-low-lunge-side-bend.png
+
+183. Низкий выпад с ладонями у груди
+Low Lunge Prayer Hands
+
+Заднее колено опирается на пол, корпус поднят, ладони соединены перед грудью.
+Источник сведений: https://www.tummee.com/yoga-poses/kneeling-yoga-poses
+Изображение: images/183-low-lunge-prayer.png
+
+184. Скручивание в высоком выпаде
+High Lunge Twist
+
+Заднее колено поднято, корпус развёрнут, руки раскрыты в противоположные стороны.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-poses-for-knees
+Изображение: images/184-high-lunge-twist.png
+
+185. Высокий выпад с наклоном вперёд
+High Lunge Forward Fold
+
+В высоком выпаде корпус наклонён к переднему бедру, руки отведены назад.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-poses-for-knees
+Изображение: images/185-high-lunge-fold.png
+
+186. Воин III с руками назад
+Warrior Three Airplane Arms
+
+Баланс на одной ноге; корпус и поднятая нога почти горизонтальны, руки вдоль корпуса.
+Источник сведений: https://www.yoga-sequencing.com/poses/warrior-iii
+Изображение: images/186-warrior-iii-airplane.png
+
+187. Воин II с руками орла
+Warrior Two Eagle Arms
+
+Сохраняя ноги воина II, руки согнуты и переплетены перед грудью.
+Источник сведений: https://www.tummee.com/yoga-poses/gentle-yoga-poses
+Изображение: images/187-warrior-ii-eagle-arms.png
+
+188. Уткатасана с ладонями у груди
+Chair Pose Prayer Hands
+
+В приседе позы стула ладони соединены перед грудью.
+Источник сведений: https://www.tummee.com/yoga-poses/pelvic-yoga
+Изображение: images/188-chair-prayer.png
+
+189. Уткатасана с руками орла
+Chair Pose Eagle Arms
+
+Ноги согнуты как в позе стула, руки переплетены перед грудью.
+Источник сведений: https://www.yoga-sequencing.com/poses/chair-eagle-pose
+Изображение: images/189-chair-eagle-arms.png
+
+190. Уткатасана на носках
+Chair Pose On Tiptoes
+
+Согнутые ноги сохраняют позу стула, обе пятки подняты.
+Источник сведений: https://www.yoga-sequencing.com/poses/chair-pose
+Изображение: images/190-chair-on-toes.png
+
+191. Врикшасана с ладонями у груди
+Tree Pose Prayer Hands
+
+Баланс на одной ноге, другая стопа у внутренней стороны бедра; ладони перед грудью.
+Источник сведений: https://www.yoga-sequencing.com/poses/tree-pose-prayer-hands
+Изображение: images/191-tree-prayer.png
+
+192. Врикшасана с боковым наклоном
+Tree Pose Side Bend
+
+Сохраняя ногу в дереве, корпус и поднятые руки мягко отклонены в сторону.
+Источник сведений: https://www.tummee.com/yoga-poses/uncommon-yoga-poses
+Изображение: images/192-tree-side-bend.png
+
+193. Урдхва Хастасана — руки вверх
+Upward Salute
+
+Стоя на двух прямых ногах, обе руки вытянуты над головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/upward-salute
+Изображение: images/193-mountain-arms-up.png
+
+194. Боковой наклон стоя
+Standing Side Bend
+
+Обе стопы на полу, корпус наклонён в сторону, руки вытянуты над головой.
+Источник сведений: https://www.tummee.com/yoga-poses/core-yoga-poses
+Изображение: images/194-standing-side-bend.png
+
+195. Прогиб стоя
+Standing Backbend
+
+Стоя на двух ногах, корпус прогнут назад, руки вытянуты за головой.
+Источник сведений: https://www.yoga-sequencing.com/poses/standing-backbend
+Изображение: images/195-standing-backbend.png
+
+196. Наклон стоя со скрещёнными ногами
+Standing Forward Bend Crossed Legs
+
+Прямые ноги перекрещены, корпус опущен к ним, руки к полу.
+Источник сведений: https://www.tummee.com/yoga-poses/inversion-yoga-poses
+Изображение: images/196-standing-fold-crossed-legs.png
+
+197. Наклон стоя с согнутыми коленями
+Standing Forward Bend Bent Knees
+
+Колени согнуты, живот приближен к бёдрам, голова и руки опущены.
+Источник сведений: https://www.tummee.com/yoga-poses/inversion-yoga-poses
+Изображение: images/197-standing-fold-bent-knees.png
+
+198. Широкий наклон с замком за спиной
+Wide Legged Forward Bend Hands Clasped
+
+Ноги широко и прямо, корпус опущен, соединённые руки подняты за спиной.
+Источник сведений: https://www.yoga-sequencing.com/poses/wide-forward-fold-fingers-interlaced
+Изображение: images/198-wide-fold-hands-bound.png
+
+199. Скрутка лёжа с ногами орла
+Supine Twist Eagle Legs
+
+Лёжа на спине с руками в стороны, согнутые переплетённые ноги опущены вбок.
+Источник сведений: https://www.tummee.com/yoga-poses/yoga-poses-for-gluteus
+Изображение: images/199-supine-twist-eagle-legs.png
+
+200. Половинная поза счастливого ребёнка
+Half Happy Baby Pose
+
+Лёжа на спине, одна рука держит стопу согнутой ноги, другая нога вытянута по полу.
+Источник сведений: https://www.tummee.com/yoga-poses/yin-yoga-poses
+Изображение: images/200-half-happy-baby.png

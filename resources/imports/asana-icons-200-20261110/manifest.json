@@ -1,0 +1,3806 @@
+{
+  "source": "RibkaYoga — оригинальные чёрные иконки асан и вариантов, 2026-11-10",
+  "collection_name": "Иконки асан — 200",
+  "items": [
+    {
+      "source_key": "ribka-icons-200-20261110:01-sukhasana",
+      "name": "Сукхасана — удобная поза",
+      "alternate_name": "Easy Pose",
+      "aliases": [],
+      "information_description": "Сидя со скрещёнными голенями: корпус вертикален, руки лежат на коленях.",
+      "image": "images/01-sukhasana.png",
+      "image_sha256": "0efe7ae0e0128f62a5d1184c63aeaca079edfc05cd72ea2d4460d7df9e310cda",
+      "sanskrit_latin": "Sukhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/seated-meditation",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:02-tadasana",
+      "name": "Тадасана — поза горы",
+      "alternate_name": "Mountain Pose",
+      "aliases": [],
+      "information_description": "Стойка с прямыми ногами и вертикальным корпусом; руки свободно опущены вдоль тела.",
+      "image": "images/02-tadasana.png",
+      "image_sha256": "2d8e83076f44a73659420e54d2412a0ddc5a8b1bf5bb6292add12e32483fb095",
+      "sanskrit_latin": "Tadasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/mountain-pose-tadasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:03-vrikshasana",
+      "name": "Врикшасана — поза дерева",
+      "alternate_name": "Tree Pose",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге. Стопа другой ноги у внутренней поверхности опорной ноги, колено раскрыто в сторону; ладони соединены над головой.",
+      "image": "images/03-vrikshasana.png",
+      "image_sha256": "7f6ea5415eea110b1b02fe638d747257c52ea67519acb255c913351e377c2c3e",
+      "sanskrit_latin": "Vrksasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/tree-pose-vrksasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:04-utkatasana",
+      "name": "Уткатасана — поза стула",
+      "alternate_name": "Chair Pose",
+      "aliases": [],
+      "information_description": "Колени согнуты, таз отведён назад, корпус слегка наклонён вперёд; руки подняты.",
+      "image": "images/04-utkatasana.png",
+      "image_sha256": "d1b06119eaf5541ab9f7d9a4d3456f76613502aa83512d4f1455c0ac9abb112c",
+      "sanskrit_latin": "Utkatasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/chair-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:05-warrior-i",
+      "name": "Вирабхадрасана I — воин I",
+      "alternate_name": "Warrior I",
+      "aliases": [],
+      "information_description": "Широкий шаг: переднее колено согнуто, задняя нога прямая. Корпус вертикален, руки подняты вверх.",
+      "image": "images/05-warrior-i.png",
+      "image_sha256": "c0ada2b280c84a469e1fbe4190cba0c83b593128bb3e6f7e04ca128f11d21f6f",
+      "sanskrit_latin": "Virabhadrasana I",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/warrior-i",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:06-warrior-ii",
+      "name": "Вирабхадрасана II — воин II",
+      "alternate_name": "Warrior II",
+      "aliases": [],
+      "information_description": "Переднее колено согнуто, задняя нога прямая; руки раскрыты в стороны на уровне плеч.",
+      "image": "images/06-warrior-ii.png",
+      "image_sha256": "28b1be68816aaa15c0c06e8a5a465a55f51d190fc18de4b0f2362ee83d5f8f1f",
+      "sanskrit_latin": "Virabhadrasana II",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/warrior-ii",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:07-warrior-iii",
+      "name": "Вирабхадрасана III — воин III",
+      "alternate_name": "Warrior III",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге: корпус наклонён вперёд, другая нога вытянута назад, руки направлены вперёд.",
+      "image": "images/07-warrior-iii.png",
+      "image_sha256": "f7704663c0ee7e332fa430e57e378ab3e24e8734aa49907b29a1d09cf30abc7c",
+      "sanskrit_latin": "Virabhadrasana III",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/warrior-iii",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:08-trikonasana",
+      "name": "Триконасана — поза треугольника",
+      "alternate_name": "Triangle Pose",
+      "aliases": [],
+      "information_description": "Ноги широко расставлены и выпрямлены. Корпус наклонён в сторону; нижняя рука у голени, другая поднята вверх.",
+      "image": "images/08-trikonasana.png",
+      "image_sha256": "6beaa2886994e50a30ca777b84a9643ad12f9475f443b2b4f18f3d80fa20c1eb",
+      "sanskrit_latin": "Trikonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/triangle-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:09-side-angle",
+      "name": "Уттхита Паршваконасана — вытянутый боковой угол",
+      "alternate_name": "Extended Side Angle Pose",
+      "aliases": [],
+      "information_description": "Переднее колено согнуто, задняя нога прямая. Нижняя рука направлена к полу, верхняя вытянута над головой.",
+      "image": "images/09-side-angle.png",
+      "image_sha256": "1ff62b8814d527261ec343c6f7ca43c8b60aeb188a52a9661bc39a64c9a10baf",
+      "sanskrit_latin": "Utthita Parsvakonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/extended-side-angle",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:10-uttanasana",
+      "name": "Уттанасана — наклон стоя",
+      "alternate_name": "Standing Forward Fold",
+      "aliases": [],
+      "information_description": "Ноги выпрямлены, корпус опущен к ногам; руки направлены к полу рядом со стопами.",
+      "image": "images/10-uttanasana.png",
+      "image_sha256": "4a385de1e9b24afb7dc26d37e429603867c968163de4c74e62dc4356200bd250",
+      "sanskrit_latin": "Uttanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/standing-forward-fold",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:11-downward-dog",
+      "name": "Адхо Мукха Шванасана — собака мордой вниз",
+      "alternate_name": "Downward Facing Dog",
+      "aliases": [],
+      "information_description": "Опора на ладони и стопы, таз поднят; спина и ноги образуют перевёрнутую букву V.",
+      "image": "images/11-downward-dog.png",
+      "image_sha256": "8a51d2a59bef5b42187454dd927c902f855584656c75e52113e4c3b8e3f9ac54",
+      "sanskrit_latin": "Adho Mukha Svanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/downward-facing-dog-classic",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:12-vajrasana",
+      "name": "Ваджрасана — алмазная поза",
+      "alternate_name": "Thunderbolt Pose",
+      "aliases": [],
+      "information_description": "Сидя на пятках: колени и голени на полу, корпус вертикален, кисти лежат на бёдрах.",
+      "image": "images/12-vajrasana.png",
+      "image_sha256": "25a028f4271d577611b9282ba01400c75c3ed5c9d6ed7c17e2ab6b4909bfcf59",
+      "sanskrit_latin": "Vajrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/hero-pose-vajrasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:13-bhujangasana",
+      "name": "Бхуджангасана — поза кобры",
+      "alternate_name": "Cobra Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, ноги вытянуты назад. Грудная клетка приподнята; ладони у корпуса, локти согнуты.",
+      "image": "images/13-bhujangasana.png",
+      "image_sha256": "f51d16d237638426c59c017a03abbc3086e070830b13ee5f1d955cf7119043a3",
+      "sanskrit_latin": "Bhujangasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/cobra-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:14-balasana",
+      "name": "Баласана — поза ребёнка",
+      "alternate_name": "Child's Pose",
+      "aliases": [],
+      "information_description": "Корпус сложен над бёдрами, таз направлен к пяткам; руки расположены перед головой.",
+      "image": "images/14-balasana.png",
+      "image_sha256": "f4b3585db4590d4683664b8bfac842baa69fb25672cace75642e3010e303c140",
+      "sanskrit_latin": "Balasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/childs-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:15-marjaryasana",
+      "name": "Марджариасана — поза кошки",
+      "alternate_name": "Cat Pose",
+      "aliases": [],
+      "information_description": "На четвереньках: спина округлена вверх, голова опущена; ладони под плечами, колени под тазом.",
+      "image": "images/15-marjaryasana.png",
+      "image_sha256": "9d38dcfe69e69a5d35b48ec3e95f3ae7123da17462b0d3f53b6b73479196b709",
+      "sanskrit_latin": "Marjaryasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/cat-pose-marjaryasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:16-bitilasana",
+      "name": "Битиласана — поза коровы",
+      "alternate_name": "Cow Pose",
+      "aliases": [],
+      "information_description": "На четвереньках: спина мягко прогнута вниз, грудная клетка и голова приподняты; ладони и колени сохраняют опору.",
+      "image": "images/16-bitilasana.png",
+      "image_sha256": "b718e5f2b692780ab285c71037dccf6cfe9d226640c596bd4125890c51330988",
+      "sanskrit_latin": "Bitilasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/cow-pose-bitilasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:17-dandasana",
+      "name": "Дандасана — поза посоха",
+      "alternate_name": "Staff Pose",
+      "aliases": [],
+      "information_description": "Сидя, обе ноги вытянуты вперёд, стопы направлены вверх. Корпус вертикален, руки опираются рядом с тазом.",
+      "image": "images/17-dandasana.png",
+      "image_sha256": "75324e93ac7d1a21974426c2cc004a60d5b36908f3f391af517a048ae502fbb3",
+      "sanskrit_latin": "Dandasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/dandasana-staff",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:18-paschimottanasana",
+      "name": "Пашчимоттанасана — наклон сидя",
+      "alternate_name": "Seated Forward Fold",
+      "aliases": [],
+      "information_description": "Сидя с прямыми ногами, корпус наклонён к ним; руки вытянуты к стопам.",
+      "image": "images/18-paschimottanasana.png",
+      "image_sha256": "760628bfa99846ff496a490260e00c7f50583c4bbef045eae51c57e3c1b14652",
+      "sanskrit_latin": "Paschimottanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/seated-forward-fold",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:19-navasana",
+      "name": "Навасана — поза лодки",
+      "alternate_name": "Boat Pose",
+      "aliases": [],
+      "information_description": "Равновесие на тазу: корпус отклонён назад, прямые ноги подняты вперёд и вверх; руки тянутся к стопам.",
+      "image": "images/19-navasana.png",
+      "image_sha256": "ebf131958041090578731eecdacfc439fe133fd9cf70ca4e7f07a8bc2a86871d",
+      "sanskrit_latin": "Navasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/boat-pose-basic",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:20-bridge",
+      "name": "Сету Бандха Сарвангасана — поза моста",
+      "alternate_name": "Bridge Pose",
+      "aliases": [],
+      "information_description": "Из положения лёжа на спине с согнутыми коленями таз поднят; стопы и плечи остаются на полу, руки вытянуты вдоль тела.",
+      "image": "images/20-bridge.png",
+      "image_sha256": "8c98d6461ca4479599bbb979d5077f111070a55a9101dd886c6780038f565935",
+      "sanskrit_latin": "Setu Bandha Sarvangasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/bridge-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:21-plank",
+      "name": "Планка",
+      "alternate_name": "Plank Pose",
+      "aliases": [],
+      "information_description": "Упор на прямые руки и носки; корпус и ноги вытянуты в одну линию.",
+      "image": "images/21-plank.png",
+      "image_sha256": "898248ef2cf44c95ab54c794fc2bc9394bbb24543fba60b1b065d82a3dd21b7b",
+      "sanskrit_latin": "Phalakasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/plank-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:22-chaturanga",
+      "name": "Чатуранга Дандасана",
+      "alternate_name": "Low Chaturanga",
+      "aliases": [],
+      "information_description": "Низкий упор: локти согнуты, корпус и прямые ноги удерживаются над полом.",
+      "image": "images/22-chaturanga.png",
+      "image_sha256": "7c844572f6a02a1c6b99c95a42fa7e12f943c2d17eeef74d88938b382b9fd919",
+      "sanskrit_latin": "Chaturanga Dandasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/low-chaturanga",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:23-upward-dog",
+      "name": "Урдхва Мукха Шванасана — собака мордой вверх",
+      "alternate_name": "Upward Facing Dog",
+      "aliases": [],
+      "information_description": "Грудная клетка поднята, руки прямые; таз и бёдра приподняты, опора на ладони и подъёмы стоп.",
+      "image": "images/23-upward-dog.png",
+      "image_sha256": "8798b1eb538ce90efc27dad5eca68a2f6e484967a92167b8e5de71d2c93fca49",
+      "sanskrit_latin": "Urdhva Mukha Svanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/upward-facing-dog",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:24-tabletop",
+      "name": "Бхарманасана — стол",
+      "alternate_name": "Table Top Pose",
+      "aliases": [],
+      "information_description": "На четвереньках: ладони под плечами, колени под тазом, спина ровная.",
+      "image": "images/24-tabletop.png",
+      "image_sha256": "d26bf87920aa80656d9a4d6dc90bc7fc3cd58336c5826176530c86475b349904",
+      "sanskrit_latin": "Bharmanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/table-top-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:25-puppy",
+      "name": "Анахатасана — вытяжение щенка",
+      "alternate_name": "Extended Puppy Pose",
+      "aliases": [],
+      "information_description": "Таз остаётся над коленями; грудная клетка и вытянутые вперёд руки опускаются к полу.",
+      "image": "images/25-puppy.png",
+      "image_sha256": "2ee7d38a28a0449c07b1c188e5ed4bfc082e41cdd5443074ee326185d782c784",
+      "sanskrit_latin": "Anahatasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/extended-puppy/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:26-dolphin",
+      "name": "Поза дельфина",
+      "alternate_name": "Dolphin Pose",
+      "aliases": [],
+      "information_description": "Таз поднят, ноги вытянуты; опора на предплечья и стопы.",
+      "image": "images/26-dolphin.png",
+      "image_sha256": "d2f560b014d4a095946779d0bc07dc968431de173689592415867df9dbc7e5b0",
+      "sanskrit_latin": "Ardha Pincha Mayurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/dolphin-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:27-forearm-plank",
+      "name": "Планка на предплечьях",
+      "alternate_name": "Forearm Plank",
+      "aliases": [],
+      "information_description": "Корпус и ноги вытянуты; опора на предплечья и носки.",
+      "image": "images/27-forearm-plank.png",
+      "image_sha256": "10026c20cf7becad4b2e253f24d84c4d8a2f1d8ce61383b636468867b2e63dc3",
+      "sanskrit_latin": "Makara Adho Mukha Svanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/forearm-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:28-side-plank",
+      "name": "Васиштхасана — боковая планка",
+      "alternate_name": "Side Plank",
+      "aliases": [],
+      "information_description": "Боковой упор на одну прямую руку и стопы; свободная рука направлена вверх.",
+      "image": "images/28-side-plank.png",
+      "image_sha256": "dd51f3e92b0ef45ad1de2af8bd2da3deb134703c01c02cd9c0335a123154c29b",
+      "sanskrit_latin": "Vasisthasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/side-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:29-reverse-plank",
+      "name": "Пурвоттанасана — обратная планка",
+      "alternate_name": "Reverse Plank",
+      "aliases": [],
+      "information_description": "Таз поднят, ноги прямые; опора на ладони позади корпуса и стопы.",
+      "image": "images/29-reverse-plank.png",
+      "image_sha256": "04ccaa8e1c02edfb6aa57ca430426a565d306a9ac56414704fc06a2750960911",
+      "sanskrit_latin": "Purvottanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/reverse-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:30-reverse-table",
+      "name": "Ардха Пурвоттанасана — обратный стол",
+      "alternate_name": "Reverse Table Top Pose",
+      "aliases": [],
+      "information_description": "В обратном упоре таз поднят; колени согнуты, ладони и стопы на полу.",
+      "image": "images/30-reverse-table.png",
+      "image_sha256": "4e0efd1af1ea2fe64f9b38c7495277e8db6e9c0dd7b21c8834de13f766e7f019",
+      "sanskrit_latin": "Ardha Purvottanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/baptiste-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:31-sphinx",
+      "name": "Поза сфинкса",
+      "alternate_name": "Sphinx Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, грудная клетка приподнята; локти под плечами, предплечья на полу.",
+      "image": "images/31-sphinx.png",
+      "image_sha256": "2416b8d745763a9ee37c1b2d2572a9c04419177405820caa993282c14a6a0bc1",
+      "sanskrit_latin": "Salamba Bhujangasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/sphinx-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:32-locust",
+      "name": "Шалабхасана — поза саранчи",
+      "alternate_name": "Locust Pose",
+      "aliases": [],
+      "information_description": "Из положения лёжа на животе грудная клетка и прямые ноги подняты; руки вытянуты назад.",
+      "image": "images/32-locust.png",
+      "image_sha256": "8cc058c572c40866a6f4b7b2069834de67f1fd4dfb3c69a3e1b466cdfc23df7c",
+      "sanskrit_latin": "Salabhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/locust-pose-2",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:33-bow",
+      "name": "Дханурасана — поза лука",
+      "alternate_name": "Bow Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, колени согнуты; руки удерживают лодыжки, грудная клетка и бёдра подняты.",
+      "image": "images/33-bow.png",
+      "image_sha256": "72a393390e7c8e84314a51327d76b5d77ace901d8b47ac89d955e2212cf7133a",
+      "sanskrit_latin": "Dhanurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/bow-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:34-camel",
+      "name": "Уштрасана — поза верблюда",
+      "alternate_name": "Camel Pose",
+      "aliases": [],
+      "information_description": "Прогиб из стойки на коленях: таз над коленями, руки направлены к пяткам.",
+      "image": "images/34-camel.png",
+      "image_sha256": "6bf7ac8c63fb1c8afcb79fad2aa6c8e394bb8b9d824261e66f7b8bec3349c48f",
+      "sanskrit_latin": "Ustrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/camel-pose-hands-heels",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:35-half-camel",
+      "name": "Ардха Уштрасана — половина верблюда",
+      "alternate_name": "Half Camel Pose",
+      "aliases": [],
+      "information_description": "Прогиб на коленях: одна рука у пятки, другая вытянута вверх.",
+      "image": "images/35-half-camel.png",
+      "image_sha256": "40076442f6371af331acd3f144146841038f95efbe6285e2a2160ff6e427f174",
+      "sanskrit_latin": "Ardha Ustrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/half-camel",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:36-wheel",
+      "name": "Урдхва Дханурасана — поза колеса",
+      "alternate_name": "Full Wheel Pose",
+      "aliases": [],
+      "information_description": "Глубокий прогиб с опорой на ладони и стопы; таз и грудная клетка подняты.",
+      "image": "images/36-wheel.png",
+      "image_sha256": "0d3d88e997ee62e0dd29b5170e016fce8a225e139d1feb5cd20eeee1748c05ac",
+      "sanskrit_latin": "Urdhva Dhanurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/full-wheel-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:37-fish",
+      "name": "Матсиасана — поза рыбы",
+      "alternate_name": "Fish Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, грудная клетка поднята в прогибе; ноги вытянуты, макушка направлена к опоре.",
+      "image": "images/37-fish.png",
+      "image_sha256": "545f0e3ba70542adf3c14e29a85a2490258ef8234526b19abf13c9e0bc74462d",
+      "sanskrit_latin": "Matsyasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/fish-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:38-corpse",
+      "name": "Шавасана — поза отдыха",
+      "alternate_name": "Corpse Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине: ноги вытянуты и слегка разведены, руки свободно лежат в стороне от корпуса.",
+      "image": "images/38-corpse.png",
+      "image_sha256": "967036dbc4a99c2354c3f1cfc9c8f7679f4b0bcb738068a67e64a2c4b75b7f33",
+      "sanskrit_latin": "Savasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/corpse-pose-relaxation",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:39-constructive-rest",
+      "name": "Отдых с согнутыми коленями",
+      "alternate_name": "Constructive Rest Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине: колени согнуты, обе стопы стоят на полу, руки вдоль тела.",
+      "image": "images/39-constructive-rest.png",
+      "image_sha256": "963f9c2870eed560732bb46c03a973f57475abd8803d1159abc884c4d5844089",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/backmitra-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:40-legs-up-wall",
+      "name": "Випарита Карани — ноги у стены",
+      "alternate_name": "Legs Up the Wall",
+      "aliases": [],
+      "information_description": "Лёжа на спине, таз у стены; прямые ноги подняты вдоль стены, руки лежат вдоль корпуса.",
+      "image": "images/40-legs-up-wall.png",
+      "image_sha256": "e75236597089197c4d6b35e7c62aacce32f3890e153a731da231cf29c3bcb607",
+      "sanskrit_latin": "Viparita Karani",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/legs-up-the-wall",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:41-bound-angle",
+      "name": "Баддха Конасана — связанный угол",
+      "alternate_name": "Bound Angle Pose",
+      "aliases": [],
+      "information_description": "Сидя, подошвы соединены перед тазом, колени раскрыты в стороны; руки удерживают стопы.",
+      "image": "images/41-bound-angle.png",
+      "image_sha256": "641ff42e4f08f7b876e4c608005be736a0ad16b3f6620e77e98e1f3e7700fe3e",
+      "sanskrit_latin": "Baddha Konasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/bound-angle-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:42-wide-angle",
+      "name": "Упавишта Конасана — широкий угол сидя",
+      "alternate_name": "Seated Wide Angle Pose",
+      "aliases": [],
+      "information_description": "Сидя с широко разведёнными прямыми ногами; корпус вертикален, кисти у таза.",
+      "image": "images/42-wide-angle.png",
+      "image_sha256": "657c3471e6c6dce46518755c002023521a36cc9e2d3ff6a0befafd175be668f8",
+      "sanskrit_latin": "Upavistha Konasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/seated-wide-angle",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:43-janu-sirsasana",
+      "name": "Джану Ширшасана — наклон к одной ноге",
+      "alternate_name": "Head to Knee Forward Bend Pose",
+      "aliases": [],
+      "information_description": "Одна нога вытянута, другая согнута и раскрыта в сторону; корпус наклонён к прямой ноге.",
+      "image": "images/43-janu-sirsasana.png",
+      "image_sha256": "f0b1d7dca2f8b02d52d7e88f43838c8e4b430e14510fc7426291e10cbe376b0f",
+      "sanskrit_latin": "Janu Sirsasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/head-to-knee-forward-bend/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:44-seated-twist",
+      "name": "Ардха Матсиендрасана — скручивание сидя",
+      "alternate_name": "Half Lord Of The Fishes Pose",
+      "aliases": [],
+      "information_description": "Сидя, одна стопа поставлена за противоположное бедро; корпус развёрнут к согнутому колену.",
+      "image": "images/44-seated-twist.png",
+      "image_sha256": "11196f1aca915ef393f0d39d15c0c5b5bcb0dc2f48a7f158f94fe5bf52011833",
+      "sanskrit_latin": "Ardha Matsyendrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/half-lord-of-the-fishes/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:45-cow-face",
+      "name": "Гомукхасана — поза коровьей головы",
+      "alternate_name": "Cow Face Pose",
+      "aliases": [],
+      "information_description": "Сидя, колени расположены одно над другим; одна рука за спиной сверху, другая снизу.",
+      "image": "images/45-cow-face.png",
+      "image_sha256": "670aefd1166478933b68eb1a3049f61379f99359b0c2f733b0d973c79fd71c57",
+      "sanskrit_latin": "Gomukhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/cow-face-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:46-lotus",
+      "name": "Падмасана — поза лотоса",
+      "alternate_name": "Lotus Pose",
+      "aliases": [],
+      "information_description": "Сидя, стопы размещены на противоположных бёдрах; корпус вертикален, руки на коленях.",
+      "image": "images/46-lotus.png",
+      "image_sha256": "15d29dc2aa82d23671113403a8f359f34e40ed9418a5b6d9caa7e5050ec95fda",
+      "sanskrit_latin": "Padmasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/padmasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:47-half-lotus",
+      "name": "Ардха Падмасана — полулотос",
+      "alternate_name": "Half Lotus Pose",
+      "aliases": [],
+      "information_description": "Сидя, одна стопа на противоположном бедре, другая нога сложена перед тазом; руки на коленях.",
+      "image": "images/47-half-lotus.png",
+      "image_sha256": "e5c9943cbc868380687320f76b704d6b75e0e9d4186f414cc6983b141be15987",
+      "sanskrit_latin": "Ardha Padmasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/ardha-padmasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:48-fire-log",
+      "name": "Агни Стамбхасана — поза поленьев",
+      "alternate_name": "Fire Log Pose",
+      "aliases": [],
+      "information_description": "Сидя, согнутые голени расположены одна над другой; лодыжки находятся над противоположными коленями.",
+      "image": "images/48-fire-log.png",
+      "image_sha256": "3e36333381153936a9cd7fce80c4b88e6c7e14320d8156abb68b7e6dc43d7a16",
+      "sanskrit_latin": "Agni Stambhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/fire-log-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:49-hero",
+      "name": "Вирасана — поза героя",
+      "alternate_name": "Hero Pose",
+      "aliases": [],
+      "information_description": "Сидя между пятками: колени направлены вперёд, стопы лежат снаружи от таза; руки на бёдрах.",
+      "image": "images/49-hero.png",
+      "image_sha256": "89ecadae7410d3f50c9f39ab47c378ace6ec488f551f1177bfcc2c1ac5aa7d96",
+      "sanskrit_latin": "Virasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/hero-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:50-reclined-hero",
+      "name": "Супта Вирасана — герой лёжа",
+      "alternate_name": "Reclining Hero Pose",
+      "aliases": [],
+      "information_description": "Из положения героя корпус отклонён назад до пола; колени согнуты, голени сложены рядом с тазом.",
+      "image": "images/50-reclined-hero.png",
+      "image_sha256": "dae441a305a9ee23247b9737cf0fa5540fac1a7f3fb1e3a800144c831cc78849",
+      "sanskrit_latin": "Supta Virasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/reclining-hero/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:51-reclined-bound-angle",
+      "name": "Супта Баддха Конасана — связанный угол лёжа",
+      "alternate_name": "Reclined Bound Angle Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине: подошвы соединены, колени раскрыты в стороны, руки свободно лежат рядом.",
+      "image": "images/51-reclined-bound-angle.png",
+      "image_sha256": "3fed2a1118716b69e78bac2db12be9c654388d2fbda9cb2b0560dd0f8304c188",
+      "sanskrit_latin": "Supta Baddha Konasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/reclined-bound-angle",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:52-supine-twist",
+      "name": "Скручивание лёжа",
+      "alternate_name": "Supine Spinal Twist",
+      "aliases": [],
+      "information_description": "Лёжа на спине, согнутые колени опущены в сторону; руки раскрыты на уровне плеч.",
+      "image": "images/52-supine-twist.png",
+      "image_sha256": "ab97e3f86dfcb06f35a2a7ea5fcc78ce60d6be8facbe324507a2ad11eb5ffa94",
+      "sanskrit_latin": "Supta Matsyendrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/supine-spinal-twist",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:53-knees-to-chest",
+      "name": "Апанасана — колени к груди",
+      "alternate_name": "Wind Release Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, обе ноги согнуты к туловищу; руки обхватывают колени или голени.",
+      "image": "images/53-knees-to-chest.png",
+      "image_sha256": "ef2e183e727d61a3dbf5ddb7a24a939da57f51c1dc7d655ae1ffb9ae64e9223f",
+      "sanskrit_latin": "Apanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/basic-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:54-one-knee-to-chest",
+      "name": "Подтягивание одного колена лёжа",
+      "alternate_name": "Half Wind Release Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, одно колено подтянуто к туловищу, другая нога вытянута по полу.",
+      "image": "images/54-one-knee-to-chest.png",
+      "image_sha256": "caffa80f71c1c6258d36caf62061fffa2e71a058e5fc8125c50158a4cf53cece",
+      "sanskrit_latin": "Ardha Pavanamuktasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/gentle-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:55-happy-baby",
+      "name": "Ананда Баласана — счастливый ребёнок",
+      "alternate_name": "Happy Baby Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, колени согнуты и разведены к туловищу; руки удерживают поднятые стопы.",
+      "image": "images/55-happy-baby.png",
+      "image_sha256": "ca0e00618ff941785fd12792d725d7e372343a3733609c965377ca1740acca15",
+      "sanskrit_latin": "Ananda Balasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/happy-baby",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:56-reclined-pigeon",
+      "name": "Голубь лёжа — четвёрка",
+      "alternate_name": "Reclined Pigeon Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, одна лодыжка лежит поперёк противоположного бедра; другая стопа остаётся на опоре.",
+      "image": "images/56-reclined-pigeon.png",
+      "image_sha256": "5e7b316d64abf202fd64b384515d1c98b5acbbd37db91e5f7a875a231d511d14",
+      "sanskrit_latin": "Sucirandhrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/reclined-pigeon",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:57-reclining-hand-to-toe",
+      "name": "Супта Падангуштхасана",
+      "alternate_name": "Reclining Hand-to-Big-Toe Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, одна прямая нога поднята и поддерживается рукой; другая вытянута по полу.",
+      "image": "images/57-reclining-hand-to-toe.png",
+      "image_sha256": "289d3ff9de4b02e96ff67769d3ba99bf545ade6418c15e0c8b3a4b498b701d44",
+      "sanskrit_latin": "Supta Padangusthasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/reclined-hand-to-big-toe",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:58-anantasana",
+      "name": "Анантасана — вытяжение лёжа на боку",
+      "alternate_name": "Side-Reclining Leg Lift",
+      "aliases": [],
+      "information_description": "Лёжа на боку, нижняя рука поддерживает голову; верхняя рука удерживает стопу поднятой ноги.",
+      "image": "images/58-anantasana.png",
+      "image_sha256": "dcc87bde47a86d9f6d3c02012a0ffc1604f0ca73f759b458a552634d1ad507b7",
+      "sanskrit_latin": "Anantasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/side-reclining-leg-lift/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:59-banana",
+      "name": "Бананасана — боковое вытяжение лёжа",
+      "alternate_name": "Banana Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, руки вытянуты за голову; верх корпуса и стопы смещены в одну сторону.",
+      "image": "images/59-banana.png",
+      "image_sha256": "6c7b26f22f28edb5a8ca1bb641b5c6b4a6bd40476d38fa80972a125d0bc069b1",
+      "sanskrit_latin": "Bananasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/banana-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:60-crocodile",
+      "name": "Макарасана — поза крокодила",
+      "alternate_name": "Crocodile Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, ноги вытянуты; голова лежит на сложенных перед собой руках.",
+      "image": "images/60-crocodile.png",
+      "image_sha256": "011543db653be463b9baed1cccbcaafd41ae1c2fa6533cc79b9b2afe442ad459",
+      "sanskrit_latin": "Makarasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/ananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:61-reclined-easy",
+      "name": "Сукхасана лёжа",
+      "alternate_name": "Reclined Easy Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, голени свободно скрещены; руки лежат рядом с корпусом.",
+      "image": "images/61-reclined-easy.png",
+      "image_sha256": "a97489764996e5cc8de19f4c78b0f8660d167157f8d42430cc0c705982dbfd5e",
+      "sanskrit_latin": "Supta Sukhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/reclined-easy-pose-blankets",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:62-eagle",
+      "name": "Гарудасана — поза орла",
+      "alternate_name": "Eagle Pose",
+      "aliases": [],
+      "information_description": "Баланс на согнутой ноге; другая нога обвивает её, предплечья переплетены перед грудью.",
+      "image": "images/62-eagle.png",
+      "image_sha256": "4a663f3832946bb243c8e78ad7f75e0f5808080b9c8d5edb282a2ff4280e4435",
+      "sanskrit_latin": "Garudasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/eagle-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:63-dancer",
+      "name": "Натараджасана — поза танцора",
+      "alternate_name": "Dancer Pose",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге: другая согнута назад, рука удерживает стопу; свободная рука вытянута вперёд.",
+      "image": "images/63-dancer.png",
+      "image_sha256": "6812b702e98947d03c98900bdc3b446ca7748da6d8c979b624bd4f1f2172a30c",
+      "sanskrit_latin": "Natarajasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/dancer-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:64-pyramid",
+      "name": "Паршвоттанасана — поза пирамиды",
+      "alternate_name": "Pyramid Pose",
+      "aliases": [],
+      "information_description": "В разножке обе ноги прямые; корпус наклонён к передней ноге, руки направлены к полу.",
+      "image": "images/64-pyramid.png",
+      "image_sha256": "5c8bddf5cc48153187998ae2491297675a70e486ab9de943ee7e865a3cfbef2f",
+      "sanskrit_latin": "Parsvottanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/pyramid-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:65-wide-forward-fold",
+      "name": "Прасарита Падоттанасана",
+      "alternate_name": "Wide Legged Forward Fold",
+      "aliases": [],
+      "information_description": "Из широкой стойки корпус опущен вниз; ноги прямые, кисти на полу между стопами.",
+      "image": "images/65-wide-forward-fold.png",
+      "image_sha256": "ad930e1fb8514e10f87eeb4d3df97d6aa697006eb3a75ead57b78e7a4c495125",
+      "sanskrit_latin": "Prasarita Padottanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/wide-forward-fold",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:66-half-forward-fold",
+      "name": "Ардха Уттанасана — половинный наклон",
+      "alternate_name": "Half Forward Fold",
+      "aliases": [],
+      "information_description": "Стоя с прямыми ногами, корпус вытянут вперёд почти параллельно полу; руки у голеней.",
+      "image": "images/66-half-forward-fold.png",
+      "image_sha256": "22308c9842bd1594c1feff207d50aabcfc66eaffc7ad65bb50dc1a41c1a58147",
+      "sanskrit_latin": "Ardha Uttanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-forward-fold",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:67-goddess",
+      "name": "Утката Конасана — поза богини",
+      "alternate_name": "Goddess Pose",
+      "aliases": [],
+      "information_description": "Широкий присед с раскрытыми в стороны коленями; локти согнуты, предплечья подняты.",
+      "image": "images/67-goddess.png",
+      "image_sha256": "d71ee1a64c5f9a1a8b05c1e05bb4d705b9e8c85c6d5268f15c916dfc1e1d0977",
+      "sanskrit_latin": "Utkata Konasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/goddess-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:68-star",
+      "name": "Поза пятиконечной звезды",
+      "alternate_name": "Five Pointed Star Pose",
+      "aliases": [],
+      "information_description": "Широкая стойка с прямыми ногами; руки раскрыты в стороны на уровне плеч.",
+      "image": "images/68-star.png",
+      "image_sha256": "1a065ba98e631677db41889b12f4d6ec79d3065ec93a1a9a7c41aec3c2a6622f",
+      "sanskrit_latin": "Utthita Tadasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/basic-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:69-side-lunge",
+      "name": "Скандасана — боковой присед",
+      "alternate_name": "Side Lunge Pose",
+      "aliases": [],
+      "information_description": "Одна нога глубоко согнута, другая вытянута в сторону; ладони перед грудью.",
+      "image": "images/69-side-lunge.png",
+      "image_sha256": "9e7c0550baa7d970bbd815b293b05d0170d4ff375f84b6038a94df57758a134c",
+      "sanskrit_latin": "Skandasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/side-lunge-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:70-high-lunge",
+      "name": "Высокий выпад",
+      "alternate_name": "High Lunge",
+      "aliases": [],
+      "information_description": "Переднее колено согнуто, заднее поднято над полом; руки вытянуты вверх.",
+      "image": "images/70-high-lunge.png",
+      "image_sha256": "01f2b78ed3ab455349bcff9c624664589db40764489b557852818f43bbe513ac",
+      "sanskrit_latin": "Utthita Ashwa Sanchalanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/high-lunge/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:71-low-lunge",
+      "name": "Анджанеясана — низкий выпад",
+      "alternate_name": "Low Lunge",
+      "aliases": [],
+      "information_description": "Переднее колено согнуто, заднее на полу; корпус поднят, руки вытянуты вверх.",
+      "image": "images/71-low-lunge.png",
+      "image_sha256": "e5af261733510063be305835c02925897d7b08e41bde488bca395c06c917602a",
+      "sanskrit_latin": "Anjaneyasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/low-lunge-anjaneyasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:72-lizard",
+      "name": "Уттхан Приштхасана — поза ящерицы",
+      "alternate_name": "Lizard Pose",
+      "aliases": [],
+      "information_description": "В низком выпаде передняя стопа снаружи от рук; кисти опираются на пол с внутренней стороны ноги.",
+      "image": "images/72-lizard.png",
+      "image_sha256": "f07b7e89885d6aec0be161fcedf35945eed0eb3824a9c577538481f746baa70b",
+      "sanskrit_latin": "Utthan Pristhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/lizard-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:73-half-split",
+      "name": "Ардха Хануманасана — половина шпагата",
+      "alternate_name": "Half Split Pose",
+      "aliases": [],
+      "information_description": "Опора на одно колено; другая нога вытянута вперёд, стопа направлена вверх, корпус наклонён к ней.",
+      "image": "images/73-half-split.png",
+      "image_sha256": "b315a8c3475abbb38f5e1d2e8ba1086c3f9b15ebe734e3f4e9e7c17fd5cb99b9",
+      "sanskrit_latin": "Ardha Hanumanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-split-kneeling",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:74-split",
+      "name": "Хануманасана — продольный шпагат",
+      "alternate_name": "Monkey Pose",
+      "aliases": [],
+      "information_description": "Продольный шпагат: одна нога вытянута вперёд, другая назад; корпус поднят, ладони соединены у груди.",
+      "image": "images/74-split.png",
+      "image_sha256": "1b84837043d6fc189f59c7fc17f140fdcc9d5509f198be84fa953fb2201c4109",
+      "sanskrit_latin": "Hanumanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/monkey-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:75-pigeon",
+      "name": "Эка Пада Раджакапотасана — подготовка",
+      "alternate_name": "Half Pigeon Pose",
+      "aliases": [],
+      "information_description": "Передняя нога согнута перед тазом, задняя вытянута назад; корпус поднят, руки у таза.",
+      "image": "images/75-pigeon.png",
+      "image_sha256": "7d87710314171198c0fef77ddc4c5adf5aa8781ab199f45f2bcb352f798f1488",
+      "sanskrit_latin": "Eka Pada Rajakapotasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-pigeon-upright",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:76-sleeping-pigeon",
+      "name": "Голубь с наклоном вперёд",
+      "alternate_name": "Sleeping Pigeon Pose",
+      "aliases": [],
+      "information_description": "В положении голубя корпус опущен над передней согнутой ногой; руки вытянуты вперёд.",
+      "image": "images/76-sleeping-pigeon.png",
+      "image_sha256": "8bc7f191ff302941e207c0bc115e499361d084d5ff16c2c3206c8255a4dd6bac",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-pigeon-resting",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:77-king-pigeon",
+      "name": "Эка Пада Раджакапотасана — захват стопы",
+      "alternate_name": "One Legged King Pigeon Pose",
+      "aliases": [],
+      "information_description": "Передняя нога сложена перед тазом; заднее колено согнуто, стопа поднята и удерживается руками над головой.",
+      "image": "images/77-king-pigeon.png",
+      "image_sha256": "a0a7f596c24ef16cbdcf007c63787793ad5dbcf59c2eec55d050248b559edaaf",
+      "sanskrit_latin": "Eka Pada Rajakapotasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/king-pigeon-full",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:78-mermaid",
+      "name": "Поза русалки",
+      "alternate_name": "Mermaid Pose",
+      "aliases": [],
+      "information_description": "В положении голубя задняя стопа удерживается сгибом локтя; другая рука образует замок над головой.",
+      "image": "images/78-mermaid.png",
+      "image_sha256": "dbb4aa9b42f09987ab5eef362a3826f7fdae9b62dd7a1678a7bf0db2939dd6c1",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/mermaid-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:79-gate",
+      "name": "Паригхасана — поза ворот",
+      "alternate_name": "Gate Pose",
+      "aliases": [],
+      "information_description": "Опора на одно колено; другая нога вытянута в сторону, корпус наклонён к ней, верхняя рука над головой.",
+      "image": "images/79-gate.png",
+      "image_sha256": "12fc5d7a8ccd02933606ee7ec6e49149087ba2abcb34e99c30566a5717a74db5",
+      "sanskrit_latin": "Parighasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/gate-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:80-half-moon",
+      "name": "Ардха Чандрасана — полумесяц",
+      "alternate_name": "Half Moon Pose",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге с наклонённым корпусом; другая нога поднята назад, одна рука у пола, другая вверх.",
+      "image": "images/80-half-moon.png",
+      "image_sha256": "76c6019ed1ab7f342c7c161d2ee7a6e98d0f20d737e9ebf090389dc8ae6c0520",
+      "sanskrit_latin": "Ardha Chandrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-moon-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:81-revolved-triangle",
+      "name": "Паривритта Триконасана",
+      "alternate_name": "Revolved Triangle Pose",
+      "aliases": [],
+      "information_description": "В разножке ноги прямые; корпус наклонён и развёрнут, нижняя рука у противоположной стопы, другая вверх.",
+      "image": "images/81-revolved-triangle.png",
+      "image_sha256": "ab5c932454fc2c3f73c726a0068c4e253cac768ae91b031d01124c878e70144e",
+      "sanskrit_latin": "Parivrtta Trikonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/revolved-triangle-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:82-revolved-chair",
+      "name": "Паривритта Уткатасана",
+      "alternate_name": "Revolved Chair Pose",
+      "aliases": [],
+      "information_description": "Колени согнуты, таз отведён назад; корпус развёрнут, ладони соединены перед грудью, локоть у противоположного бедра.",
+      "image": "images/82-revolved-chair.png",
+      "image_sha256": "585fef3122b9f55d7fdc9696c6943402284bf4fcc83013ccfc93d716dca67658",
+      "sanskrit_latin": "Parivrtta Utkatasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/revolved-chair-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:83-revolved-side-angle",
+      "name": "Паривритта Паршваконасана",
+      "alternate_name": "Revolved Extended Side Angle",
+      "aliases": [],
+      "information_description": "В широком выпаде корпус развёрнут над передним бедром; нижняя рука снаружи передней стопы, другая над головой.",
+      "image": "images/83-revolved-side-angle.png",
+      "image_sha256": "28d8b6c81bed0fbefc13006c036b4cf24d20c57be549c80c1d70718edb1c77f3",
+      "sanskrit_latin": "Parivrtta Parsvakonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/parivrtta-parsvakonasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:84-reverse-warrior",
+      "name": "Обратный воин",
+      "alternate_name": "Reverse Warrior Pose",
+      "aliases": [],
+      "information_description": "Из стойки воина II корпус вытянут назад; передняя рука поднята, другая лежит на задней ноге.",
+      "image": "images/84-reverse-warrior.png",
+      "image_sha256": "daec9bd78e598780cfb3cd7fbe0d7b69e0d02d58524afb74e9184818235743fe",
+      "sanskrit_latin": "Viparita Virabhadrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/reverse-warrior",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:85-humble-warrior",
+      "name": "Смиренный воин",
+      "alternate_name": "Humble Warrior Pose",
+      "aliases": [],
+      "information_description": "В стойке воина корпус наклонён к внутренней стороне переднего бедра; руки соединены за спиной и подняты.",
+      "image": "images/85-humble-warrior.png",
+      "image_sha256": "9217374437f4491b566fd3adbd9877837971db9ad4ba1106affa05d09b7a9320",
+      "sanskrit_latin": "Baddha Virabhadrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://yoga.dasa.ncsu.edu/asana/standing-poses/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:86-sugarcane",
+      "name": "Ардха Чандра Чапасана",
+      "alternate_name": "Sugarcane Pose",
+      "aliases": [],
+      "information_description": "В полумесяце поднятая нога согнута; верхняя рука удерживает её стопу, нижняя опирается на пол.",
+      "image": "images/86-sugarcane.png",
+      "image_sha256": "b2b40eda93c7a5435d006324f2e56330cfde015b9a5e9b0a466cade55d858d50",
+      "sanskrit_latin": "Ardha Chandra Chapasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/sugarcane-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:87-bird-dog",
+      "name": "Баланс на четвереньках",
+      "alternate_name": "Bird Dog",
+      "aliases": [],
+      "information_description": "Из положения на четвереньках одна рука вытянута вперёд, противоположная нога назад; вторая рука и колено на полу.",
+      "image": "images/87-bird-dog.png",
+      "image_sha256": "a4eb2711e3a6f2f7c6ee422a39dc19f05c121e2036b8bf246779488ff594fe7b",
+      "sanskrit_latin": "Dandayamana Bharmanasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/bird-dog",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:88-tiger",
+      "name": "Вьягхрасана — поза тигра",
+      "alternate_name": "Tiger Pose",
+      "aliases": [],
+      "information_description": "На четвереньках одна нога поднята назад и согнута в колене; обе руки сохраняют опору.",
+      "image": "images/88-tiger.png",
+      "image_sha256": "c0be45599b57324fa4dd4ed707e1a3776d3da48a276cac8f748ba4479cf30331",
+      "sanskrit_latin": "Vyaghrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/satyananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:89-thread-needle",
+      "name": "Нить в иголку",
+      "alternate_name": "Thread The Needle Pose",
+      "aliases": [],
+      "information_description": "Из положения на четвереньках одна рука проведена под корпусом; плечо и голова опущены к полу, другая рука в опоре.",
+      "image": "images/89-thread-needle.png",
+      "image_sha256": "12f6008fb1293201e10109a1b45ec2e485ee9dcd834841d8c38266cb06e18438",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/thread-the-needle-19",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:90-lion",
+      "name": "Симхасана — поза льва",
+      "alternate_name": "Lion Pose",
+      "aliases": [],
+      "information_description": "Сидя на пятках, колени разведены; корпус вытянут, кисти на коленях.",
+      "image": "images/90-lion.png",
+      "image_sha256": "6ebceb60be0582a3c1dfdd2772d6b54865107c7dac8f9167a56d6da40e633417",
+      "sanskrit_latin": "Simhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/lion-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:91-frog",
+      "name": "Мандукасана — поза лягушки",
+      "alternate_name": "Frog Pose",
+      "aliases": [],
+      "information_description": "Колени широко разведены, голени направлены назад; корпус опущен вперёд с опорой на ладони.",
+      "image": "images/91-frog.png",
+      "image_sha256": "595e065b043fb18e800567c926c90eb59884688c90c4b6c8ca4f1b75adf0e779",
+      "sanskrit_latin": "Mandukasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yin-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:92-heron",
+      "name": "Краунчасана — поза цапли",
+      "alternate_name": "Heron Pose",
+      "aliases": [],
+      "information_description": "Сидя, одна нога сложена рядом с тазом; другая выпрямлена вверх и удерживается руками за стопу.",
+      "image": "images/92-heron.png",
+      "image_sha256": "6c7d95223423e0e1bf3c703cb303b31160b9ce08b6031d222c280c321b51f20a",
+      "sanskrit_latin": "Krounchasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/heron-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:93-compass",
+      "name": "Паривритта Сурья Янтрасана — компас",
+      "alternate_name": "Compass Pose",
+      "aliases": [],
+      "information_description": "Сидя, одна нога поднята и вытянута рядом с плечом; противоположная рука удерживает стопу над головой.",
+      "image": "images/93-compass.png",
+      "image_sha256": "ddbb45459cbd6d418cfcae74e27113562ec8f6c31fcf28452bf98b1fd7d2f156",
+      "sanskrit_latin": "Parivrtta Surya Yantrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/compass-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:94-firefly",
+      "name": "Титтибхасана — поза светлячка",
+      "alternate_name": "Firefly Pose",
+      "aliases": [],
+      "information_description": "Равновесие на кистях: таз поднят, обе ноги выпрямлены вперёд и в стороны над руками.",
+      "image": "images/94-firefly.png",
+      "image_sha256": "47d39351ba5aa9797247a10d0ba551ef7b1b8dd73dca5a85d6182ccbe7ac725a",
+      "sanskrit_latin": "Tittibhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/firefly/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:95-crow",
+      "name": "Какасана — поза вороны",
+      "alternate_name": "Crow Pose",
+      "aliases": [],
+      "information_description": "Баланс на согнутых руках; колени у верхней части рук, обе стопы подняты.",
+      "image": "images/95-crow.png",
+      "image_sha256": "1aa74a5eaa7558e23938dcdb7f170e24b0510831c18622121f83e5dd2b88adb2",
+      "sanskrit_latin": "Kakasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/crow-pose-basic",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:96-crane",
+      "name": "Бакасана — поза журавля",
+      "alternate_name": "Crane Pose",
+      "aliases": [],
+      "information_description": "Баланс на выпрямленных руках; колени подтянуты к плечам, стопы подняты.",
+      "image": "images/96-crane.png",
+      "image_sha256": "8538b97eff6e1fe02e60269be1ab81e3b9c71d8330cc1f96218d80021c0c038d",
+      "sanskrit_latin": "Bakasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/bakasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:97-side-crow",
+      "name": "Паршва Бакасана — боковая ворона",
+      "alternate_name": "Side Crow Pose",
+      "aliases": [],
+      "information_description": "Боковое равновесие на кистях: согнутые ноги направлены в одну сторону от корпуса.",
+      "image": "images/97-side-crow.png",
+      "image_sha256": "ef2a3fc6de4baccaf6589d2aaebb7dcdcef4693974b908da417e44a6f366ac09",
+      "sanskrit_latin": "Parsva Bakasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/crow-pose-side-angle",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:98-scale",
+      "name": "Толасана — поза весов",
+      "alternate_name": "Scale Pose",
+      "aliases": [],
+      "information_description": "Сидя в лотосе, таз и сложенные ноги подняты над полом за счёт опоры на прямые руки.",
+      "image": "images/98-scale.png",
+      "image_sha256": "4ba49d49f9c23613ab28d2b5c7f32340504fb3305d21f02941e8189bedccf1aa",
+      "sanskrit_latin": "Tolasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/scale-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:99-pendant",
+      "name": "Лоласана — поза подвески",
+      "alternate_name": "Pendant Pose",
+      "aliases": [],
+      "information_description": "Опора на прямые руки; таз поднят, колени подтянуты, голени скрещены под корпусом.",
+      "image": "images/99-pendant.png",
+      "image_sha256": "7b64796a5712fb2fd1a7af34b5f697eef50ccd178b074f160d44c452ac9b4659",
+      "sanskrit_latin": "Lolasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/jivamukti-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:100-peacock",
+      "name": "Маюрасана — поза павлина",
+      "alternate_name": "Peacock Pose",
+      "aliases": [],
+      "information_description": "Равновесие на кистях: согнутые локти поддерживают живот, корпус и прямые ноги удерживаются горизонтально.",
+      "image": "images/100-peacock.png",
+      "image_sha256": "581a01d17503ce4dd5d188a4d850f2f73557f512241e844a7a296d3228fd2505",
+      "sanskrit_latin": "Mayurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/peacock-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:101-elephant",
+      "name": "Эка Хаста Бхуджасана",
+      "alternate_name": "Elephant Trunk Pose",
+      "aliases": [],
+      "information_description": "Опора на прямые руки; одна нога закинута на плечо, другая вытянута вперёд, таз над полом.",
+      "image": "images/101-elephant.png",
+      "image_sha256": "b753341e95def44d7aa93d367cfc3a2cff12a3f1d564210beedd66f66cb0897e",
+      "sanskrit_latin": "Eka Hasta Bhujasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/elephant-trunk-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:102-eight-angle",
+      "name": "Аштавакрасана — восемь углов",
+      "alternate_name": "Eight Angle Pose",
+      "aliases": [],
+      "information_description": "Баланс на согнутых руках; обе ноги вытянуты в сторону и обхватывают одну руку, стопы скрещены.",
+      "image": "images/102-eight-angle.png",
+      "image_sha256": "c480d40d2fb7307c49f1bf2889255e14e09698175d5b37b13436a4d238e529c2",
+      "sanskrit_latin": "Astavakrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/eight-angle-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:103-koundinya-i",
+      "name": "Эка Пада Каундиниасана I",
+      "alternate_name": "Pose Dedicated to the Sage Koundinya I",
+      "aliases": [],
+      "information_description": "В скручивании на согнутых руках одна прямая нога направлена в сторону, другая назад; обе стопы подняты.",
+      "image": "images/103-koundinya-i.png",
+      "image_sha256": "97fb017e1a7cdc8dc0a5e9279dc92e9492854ed31d49b3f34a04385cd608ac46",
+      "sanskrit_latin": "Eka Pada Koundinyasana I",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/pose-dedicated-sage-koundinya/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:104-bird-paradise",
+      "name": "Сварга Двиджасана — райская птица",
+      "alternate_name": "Bird of Paradise",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге: другая выпрямлена вверх и в сторону; руки соединены за бедром поднятой ноги.",
+      "image": "images/104-bird-paradise.png",
+      "image_sha256": "c21934567883e5685f5fad14d7dac356de599366862401741e17e2b758db9dae",
+      "sanskrit_latin": "Svarga Dvijasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/bird-of-paradise",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:105-standing-hand-to-toe",
+      "name": "Уттхита Хаста Падангуштхасана I",
+      "alternate_name": "Extended Hand to Big Toe Pose",
+      "aliases": [],
+      "information_description": "Баланс на одной прямой ноге; другая прямая нога вытянута вперёд и вверх, кисть держит её стопу, свободная рука у таза.",
+      "image": "images/105-standing-hand-to-toe.png",
+      "image_sha256": "53cde3510540a557d11ffcbdc070bd5cb64fd38bf2ddc7a9b2abc6bec2ba70d2",
+      "sanskrit_latin": "Utthita Hasta Padangusthasana I",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/extended-hand-to-big-toe-utthita-hasta-padangusthasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:106-standing-hand-to-toe-side",
+      "name": "Уттхита Хаста Падангуштхасана II",
+      "alternate_name": "Standing Hand to Big Toe Pose Side",
+      "aliases": [],
+      "information_description": "Баланс стоя: поднятая прямая нога отведена в сторону, рука удерживает стопу; другая рука на талии.",
+      "image": "images/106-standing-hand-to-toe-side.png",
+      "image_sha256": "b02be469c9c27ad3912854d278975b0f4d6fba78bbeff61bf09f82caad2a5e7f",
+      "sanskrit_latin": "Utthita Hasta Padangusthasana II",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/extended-hand-to-big-toe-pose-variation/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:107-standing-knee-hug",
+      "name": "Подтягивание колена стоя",
+      "alternate_name": "Standing Knee Hug",
+      "aliases": [],
+      "information_description": "Баланс на одной прямой ноге; другое колено поднято к туловищу и обхвачено руками.",
+      "image": "images/107-standing-knee-hug.png",
+      "image_sha256": "429f99fbb441268a737fc2b37273265e4babf39cd56a6a1e8de4b873acb423fd",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/standing-knee-hug",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:108-standing-split",
+      "name": "Урдхва Прасарита Эка Падасана",
+      "alternate_name": "Standing Split",
+      "aliases": [],
+      "information_description": "Наклон к опорной ноге; другая прямая нога поднята вверх и назад, кисти на полу.",
+      "image": "images/108-standing-split.png",
+      "image_sha256": "1996bbbbe08ce4403d2864a33c75132b52f05d495a3c10f001e693b072b265e2",
+      "sanskrit_latin": "Urdhva Prasarita Eka Padasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/standing-split-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:109-revolved-half-moon",
+      "name": "Паривритта Ардха Чандрасана",
+      "alternate_name": "Revolved Half Moon Pose",
+      "aliases": [],
+      "information_description": "Баланс с наклонённым корпусом и поднятой назад ногой; грудная клетка развёрнута, противоположная рука у пола.",
+      "image": "images/109-revolved-half-moon.png",
+      "image_sha256": "a73ee948386457825d27bcd7bac97973355f1fc73bb40dba6bffcdbdc66c6aec",
+      "sanskrit_latin": "Parivrtta Ardha Chandrasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/parivrtta-ardha-chandrasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:110-bound-triangle",
+      "name": "Баддха Триконасана",
+      "alternate_name": "Bound Triangle Pose",
+      "aliases": [],
+      "information_description": "В широкой стойке с прямыми ногами корпус наклонён в сторону; руки образуют захват вокруг переднего бедра.",
+      "image": "images/110-bound-triangle.png",
+      "image_sha256": "1cc222fd68966d24d6bb879d82687b5cc3acb6f50ce579281f8c9b622f269b83",
+      "sanskrit_latin": "Baddha Trikonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/binding-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:111-bound-side-angle",
+      "name": "Баддха Паршваконасана",
+      "alternate_name": "Bound Extended Side Angle Pose",
+      "aliases": [],
+      "information_description": "Переднее колено согнуто, задняя нога прямая; руки соединены за спиной, одна проведена под передним бедром.",
+      "image": "images/111-bound-side-angle.png",
+      "image_sha256": "121298efb1c88dfa2d58be03388ab36aeda1dcbcb28835d55f107332b9f6ed7a",
+      "sanskrit_latin": "Baddha Parsvakonasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/anusara-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:112-garland",
+      "name": "Маласана — поза гирлянды",
+      "alternate_name": "Garland Pose",
+      "aliases": [],
+      "information_description": "Глубокий присед: стопы на полу, колени разведены, ладони перед грудью; локти у внутренних сторон коленей.",
+      "image": "images/112-garland.png",
+      "image_sha256": "a57aaeb5723c08bfbf9ed17cc1bb5c69a55161dcd85af8d361bd5fdefdcf17fd",
+      "sanskrit_latin": "Malasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/garland-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:113-bharadvaja",
+      "name": "Бхарадваджасана",
+      "alternate_name": "Bharadvaja Twist",
+      "aliases": [],
+      "information_description": "Сидя, обе ноги согнуты и сложены сбоку от таза; корпус развёрнут, одна рука на колене, другая позади.",
+      "image": "images/113-bharadvaja.png",
+      "image_sha256": "970f362a3f9366b1dda8927b4176aac085b48d30e14b0248b033e76f40a0f206",
+      "sanskrit_latin": "Bharadvajasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/bharadvajas-twist/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:114-archer",
+      "name": "Акарна Дханурасана — поза лучника",
+      "alternate_name": "Archer Pose",
+      "aliases": [],
+      "information_description": "Сидя, одна нога вытянута вперёд; стопа другой ноги подтянута рукой к голове, вторая рука у передней стопы.",
+      "image": "images/114-archer.png",
+      "image_sha256": "76621523a395a9fbcfb28c5ce65175a305c3ddefa2c4691aa7332842ec6f875f",
+      "sanskrit_latin": "Akarna Dhanurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://ihanuman.com/asana/akarna-dhanurasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:115-tortoise",
+      "name": "Курмасана — поза черепахи",
+      "alternate_name": "Tortoise Pose",
+      "aliases": [],
+      "information_description": "Сидя с разведёнными ногами, корпус опущен вперёд; руки проведены под бёдрами и вытянуты в стороны.",
+      "image": "images/115-tortoise.png",
+      "image_sha256": "0bf1a99c286b8ffea0b65e1d8fb57f6728f76f68b9273a09b8f767933dc477ee",
+      "sanskrit_latin": "Kurmasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/sivananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:116-koundinya-ii",
+      "name": "Эка Пада Каундиниасана II",
+      "alternate_name": "Flying Splits II",
+      "aliases": [],
+      "information_description": "Баланс на согнутых руках: одна прямая нога вытянута вперёд над рукой, другая назад; обе стопы подняты.",
+      "image": "images/116-koundinya-ii.png",
+      "image_sha256": "8efffd9cbd64d715b17653c71323a10c6805dfe904be7dae552c3dfb0905dc3d",
+      "sanskrit_latin": "Eka Pada Koundinyasana II",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/eka-pada-koundinyasana-ii",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:117-headstand",
+      "name": "Саламба Ширшасана — стойка на голове",
+      "alternate_name": "Headstand",
+      "aliases": [],
+      "information_description": "Перевёрнутое положение: голова и предплечья на опоре, корпус и прямые ноги вытянуты вверх.",
+      "image": "images/117-headstand.png",
+      "image_sha256": "af7a4969bc3e9ee5c7d0172068ea614018c08a7a6b2d53b4d53d37bc778a9daf",
+      "sanskrit_latin": "Salamba Sirsasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/headstand/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:118-tripod-headstand",
+      "name": "Ширшасана II — стойка на трёх опорах",
+      "alternate_name": "Tripod Headstand",
+      "aliases": [],
+      "information_description": "Опора на голову и ладони; локти согнуты, корпус и прямые ноги направлены вверх.",
+      "image": "images/118-tripod-headstand.png",
+      "image_sha256": "b84b448d4ba818b73a38965e585109af3d0ff2b62f9bc3603d0b5d942c490ca7",
+      "sanskrit_latin": "Sirsasana II",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/tripod-headstand-variation",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:119-forearm-stand",
+      "name": "Пинча Маюрасана — стойка на предплечьях",
+      "alternate_name": "Forearm Stand",
+      "aliases": [],
+      "information_description": "Равновесие на предплечьях: таз над плечами, прямые ноги вытянуты вверх; голова над полом.",
+      "image": "images/119-forearm-stand.png",
+      "image_sha256": "bfdc5e5f9d226c71a181b639be2e4ef572041e5dd854ff5719e711280c4f40dc",
+      "sanskrit_latin": "Pincha Mayurasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/pincha-mayurasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:120-handstand",
+      "name": "Адхо Мукха Врикшасана — стойка на руках",
+      "alternate_name": "Handstand",
+      "aliases": [],
+      "information_description": "Опора на прямые руки; корпус и ноги вытянуты вверх, голова между руками над полом.",
+      "image": "images/120-handstand.png",
+      "image_sha256": "69bc713649e40bf3f08d5b89f9c2fd5f2d60af630e896e76798ba0057e752012",
+      "sanskrit_latin": "Adho Mukha Vrksasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/hand-stand/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:121-shoulderstand",
+      "name": "Саламба Сарвангасана",
+      "alternate_name": "Shoulderstand",
+      "aliases": [],
+      "information_description": "Опора на плечевой пояс; руки поддерживают спину, корпус и прямые ноги вытянуты вверх.",
+      "image": "images/121-shoulderstand.png",
+      "image_sha256": "8729c58caa7f022ce4d8a047ee7177bca576fe2d66509c82f84bbde621cc072d",
+      "sanskrit_latin": "Salamba Sarvangasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/shoulderstand/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:122-plow",
+      "name": "Халасана — поза плуга",
+      "alternate_name": "Plow Pose",
+      "aliases": [],
+      "information_description": "Из перевёрнутого положения прямые ноги опущены за голову; плечи и руки остаются на полу.",
+      "image": "images/122-plow.png",
+      "image_sha256": "c885b3874192579a92f96f4a8867ef254cce5f19ce77f91402531052896a20ce",
+      "sanskrit_latin": "Halasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/plow-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:123-ear-pressure",
+      "name": "Карнапидасана",
+      "alternate_name": "Ear Pressure Pose",
+      "aliases": [],
+      "information_description": "В положении плуга колени согнуты и расположены рядом с головой; руки вытянуты по полу.",
+      "image": "images/123-ear-pressure.png",
+      "image_sha256": "e10c76c1afd53ae8b7a5d4e7db2d936114b6f192ed51717cd517c3bb3bb1f5bf",
+      "sanskrit_latin": "Karnapidasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/ear-pressure-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:124-scorpion",
+      "name": "Вришчикасана — поза скорпиона",
+      "alternate_name": "Scorpion Pose",
+      "aliases": [],
+      "information_description": "Перевёрнутое равновесие на предплечьях; спина прогнута, колени согнуты, стопы направлены к голове.",
+      "image": "images/124-scorpion.png",
+      "image_sha256": "9d852cbf1db99ed96cfc78b0bdb3809696d0ae50d715bf9ead44dba61946e46b",
+      "sanskrit_latin": "Vrischikasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/scorpion-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:125-fish-lotus",
+      "name": "Матсиасана с ногами в лотосе",
+      "alternate_name": "Fish Pose Lotus Legs",
+      "aliases": [],
+      "information_description": "Прогиб лёжа с приподнятой грудной клеткой; ноги сложены в лотос, макушка направлена к опоре.",
+      "image": "images/125-fish-lotus.png",
+      "image_sha256": "569858a819f2a872ff3dbe210d2f023a51f4934527c4f81a4a19a77202396b6e",
+      "sanskrit_latin": "Matsyasana Padmasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/sivananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:126-half-boat",
+      "name": "Ардха Навасана — половинная лодка",
+      "alternate_name": "Half Boat Pose",
+      "aliases": [],
+      "information_description": "Туловище и прямые ноги опущены ближе к полу; руки вытянуты вперёд.",
+      "image": "images/126-half-boat.png",
+      "image_sha256": "4af04d2d395359c0396133a21c5e72dfa33dc8b2b47dda4979f522f462c7e46f",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/half-boat",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:127-boat-bent-knees",
+      "name": "Навасана с согнутыми коленями",
+      "alternate_name": "Boat Pose Bent Knees",
+      "aliases": [],
+      "information_description": "Баланс на седалищных костях: колени согнуты, голени почти горизонтальны, руки вперёд.",
+      "image": "images/127-boat-bent-knees.png",
+      "image_sha256": "b5aea0a84bb1d1e082e29b1818be70305f3ac42e34f4f8268affb3b12d7bb190",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/baptiste-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:128-boat-arms-up",
+      "name": "Навасана с руками вверх",
+      "alternate_name": "Boat Pose Arms Up",
+      "aliases": [],
+      "information_description": "Из положения лодки с прямыми ногами обе руки подняты над головой.",
+      "image": "images/128-boat-arms-up.png",
+      "image_sha256": "8634ddf7946387177273c8d107a714b0eacd5ee451b5c7fea39e2a94a89c8c87",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/boat-pose-arms-up",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:129-wild-thing",
+      "name": "Чаматкарасана — дикая вещь",
+      "alternate_name": "Wild Thing",
+      "aliases": [],
+      "information_description": "Опора на одну ладонь и обе стопы; таз поднят, грудь раскрыта вверх, свободная рука вытянута за голову.",
+      "image": "images/129-wild-thing.png",
+      "image_sha256": "25b7acec1724d9333dc059387574e932f3a54183c53835878e5429bfb16255d2",
+      "sanskrit_latin": "Camatkarasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/wild-thing/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:130-noose",
+      "name": "Пашасана — поза петли",
+      "alternate_name": "Noose Pose",
+      "aliases": [],
+      "information_description": "Глубокий присед с коленями вместе; корпус развёрнут, руки обхватывают голени и соединяются за спиной.",
+      "image": "images/130-noose.png",
+      "image_sha256": "dec650c3d59a7b2d3a2591aa0c888bc92269999a6d2a1978776cec09d8439799",
+      "sanskrit_latin": "Pasasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/noose-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:131-wide-boat",
+      "name": "Лодка с разведёнными ногами",
+      "alternate_name": "Wide Legged Boat Pose",
+      "aliases": [],
+      "information_description": "Баланс сидя: прямые ноги подняты и разведены, руки направлены к стопам.",
+      "image": "images/131-wide-boat.png",
+      "image_sha256": "c0ed3d5240877dbc666425376f22592fcd585287cdf089eb64ac8ed92ba39d52",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/boat-wide-legs",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:132-one-leg-bridge",
+      "name": "Мост с одной поднятой ногой",
+      "alternate_name": "One Legged Bridge Pose",
+      "aliases": [],
+      "information_description": "Из моста одна нога выпрямлена вверх; опора остаётся на плечи и другую стопу.",
+      "image": "images/132-one-leg-bridge.png",
+      "image_sha256": "4bef262dc63526c68cd8e00f4c6fdb3c5b9bf03b7c80daac6bd7483981449961",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/one-leg-bridge",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:133-supported-bridge",
+      "name": "Мост с блоком под тазом",
+      "alternate_name": "Supported Bridge Pose Block",
+      "aliases": [],
+      "information_description": "Таз приподнят на блоке; плечи и стопы остаются на полу.",
+      "image": "images/133-supported-bridge.png",
+      "image_sha256": "a2e0441396dcbed879545578b4271acfc45cd5d2db7cd4e3a9d20c84821a0d71",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/supported-setu-bandha",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:134-bridge-arms-overhead",
+      "name": "Мост с руками за головой",
+      "alternate_name": "Bridge Pose Arms Overhead",
+      "aliases": [],
+      "information_description": "В мосте руки лежат на полу за головой, стопы и плечи служат опорой.",
+      "image": "images/134-bridge-arms-overhead.png",
+      "image_sha256": "bf7e260245bf106af229157d28df1cdb51289143f3ebd4796df740c9a0489779",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/bridge-pose-variation-hands/how-to-do/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:135-three-legged-dog",
+      "name": "Собака мордой вниз с поднятой ногой",
+      "alternate_name": "Three Legged Downward Facing Dog",
+      "aliases": [],
+      "information_description": "Из собаки мордой вниз одна прямая нога продолжает линию корпуса вверх.",
+      "image": "images/135-three-legged-dog.png",
+      "image_sha256": "553a1a87444cee256c9c1c82aebe66895fa7ca933772a975bc664dbb86af9a08",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/backmitra-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:136-dog-open-hip",
+      "name": "Собака с раскрытым тазом и согнутой ногой",
+      "alternate_name": "Three Legged Dog Bent Knee",
+      "aliases": [],
+      "information_description": "Опорная нога остаётся на полу, поднятая нога согнута в колене.",
+      "image": "images/136-dog-open-hip.png",
+      "image_sha256": "c3f1c6957d925df1d16b3bb135819c6c6b708b445893118958c671ee19a5c816",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/three-legged-dog",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:137-revolved-dog",
+      "name": "Скручивание в собаке мордой вниз",
+      "alternate_name": "Revolved Downward Facing Dog",
+      "aliases": [],
+      "information_description": "Одна ладонь остаётся на полу, другая рука тянется к противоположной голени.",
+      "image": "images/137-revolved-dog.png",
+      "image_sha256": "46c3cbfbec8a5ebafe9a031e787d2252337b0585e7f516dc188f4eacc5bdce56",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/revolved-downward-facing-dog/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:138-dog-bent-knees",
+      "name": "Собака мордой вниз с согнутыми коленями",
+      "alternate_name": "Downward Facing Dog Bent Knees",
+      "aliases": [],
+      "information_description": "Таз направлен вверх, колени согнуты, руки вытянуты к полу.",
+      "image": "images/138-dog-bent-knees.png",
+      "image_sha256": "76a629bccd53abd4635797d09bd5a17932e343a23f470380114dc5f9e51b600a",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/downward-dog-bent-knees",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:139-dog-chair",
+      "name": "Собака с опорой ладонями на стул",
+      "alternate_name": "Downward Facing Dog Chair",
+      "aliases": [],
+      "information_description": "Ладони лежат на сиденье стула, ноги на полу, спина вытянута от таза к рукам.",
+      "image": "images/139-dog-chair.png",
+      "image_sha256": "a56a2eb4da71c6607ee6c29f0c2ea992afb83776e24cc401eaa846d3fd90c419",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-poses-for-beginners",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:140-one-leg-dolphin",
+      "name": "Дельфин с поднятой ногой",
+      "alternate_name": "One Legged Dolphin Pose",
+      "aliases": [],
+      "information_description": "Опора на предплечья и одну стопу; другая нога выпрямлена вверх.",
+      "image": "images/140-one-leg-dolphin.png",
+      "image_sha256": "0691f0b48b3b095303c28296fe063a688e982bc2f3f8a806b8c722ae77b22389",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/sivananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:141-plank-leg-up",
+      "name": "Планка с поднятой ногой",
+      "alternate_name": "Plank Pose One Leg Raised",
+      "aliases": [],
+      "information_description": "В упоре на прямые руки одна прямая нога приподнята над полом.",
+      "image": "images/141-plank-leg-up.png",
+      "image_sha256": "8158a66c0097c2216a552c2839414aff995ce17b47a3d8721542decd82cb32e2",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/three-legged-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:142-kneeling-plank",
+      "name": "Планка с коленями на полу",
+      "alternate_name": "Kneeling Plank Pose",
+      "aliases": [],
+      "information_description": "Руки прямые, корпус вытянут от плеч до коленей; колени служат опорой.",
+      "image": "images/142-kneeling-plank.png",
+      "image_sha256": "25331e57e868d98d4e97fb7af7d80857886b59ed5dd1822a2bef592c0fbaa024",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/kneeling-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:143-fallen-triangle",
+      "name": "Патита Триконасана — упавший треугольник",
+      "alternate_name": "Fallen Triangle Pose",
+      "aliases": [],
+      "information_description": "Опора на ладонь и стопы; одна прямая нога проведена под корпусом в сторону, свободная рука поднята.",
+      "image": "images/143-fallen-triangle.png",
+      "image_sha256": "dadcf99c98b02ca01edd074eaa342859011705ebf0e933c10a559abaa7c72787",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-poses-for-arms",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:144-plank-opposite-limbs",
+      "name": "Планка с противоположными рукой и ногой",
+      "alternate_name": "Plank Pose Opposite Arm And Leg",
+      "aliases": [],
+      "information_description": "В планке подняты противоположные рука и нога, оставшиеся ладонь и стопа на полу.",
+      "image": "images/144-plank-opposite-limbs.png",
+      "image_sha256": "ea6600f363d22439a1fecf40b5403952b13f3696c5be4782079890c847cd10db",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/one-arm-three-legged-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:145-forearm-plank-leg-up",
+      "name": "Планка на предплечьях с поднятой ногой",
+      "alternate_name": "Forearm Plank One Leg Raised",
+      "aliases": [],
+      "information_description": "В планке на предплечьях одна нога приподнята, другая опирается носком.",
+      "image": "images/145-forearm-plank-leg-up.png",
+      "image_sha256": "e5ac6d3320882c3a2b392415c9f394f0f561bfa25e160c50b08d25c12890fff2",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/forearm-plank-leg-lift",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:146-side-plank-knee-down",
+      "name": "Боковая планка с коленом на полу",
+      "alternate_name": "Side Plank Knee Down",
+      "aliases": [],
+      "information_description": "Опора на ладонь и нижнее колено; верхняя нога прямая, свободная рука поднята.",
+      "image": "images/146-side-plank-knee-down.png",
+      "image_sha256": "3f95f0258cf7cf881008f286318b011f6678e7914dea9604eb000b676e16ae6e",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/side-plank-knee-bent",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:147-side-plank-leg-lift",
+      "name": "Боковая планка с поднятой ногой",
+      "alternate_name": "Side Plank Top Leg Lifted",
+      "aliases": [],
+      "information_description": "В боковой планке верхняя нога отведена вверх, свободная рука поднята.",
+      "image": "images/147-side-plank-leg-lift.png",
+      "image_sha256": "dda1c46e0237299d4494726d8d4e3656d3a3ef1520a7e6171ce1b8f5a9e55efc",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/side-plank-leg-lift",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:148-side-plank-tree",
+      "name": "Боковая планка с ногой в дереве",
+      "alternate_name": "Side Plank Tree Leg",
+      "aliases": [],
+      "information_description": "Верхнее колено отведено, стопа верхней ноги лежит у внутренней стороны опорного бедра.",
+      "image": "images/148-side-plank-tree.png",
+      "image_sha256": "c89b3cd26da3b4f97d12ab1fcf41171accf2b8a7dce147ef2bf867f4e3f9333c",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/arm-balance-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:149-side-plank-arm-overhead",
+      "name": "Боковая планка с рукой за головой",
+      "alternate_name": "Side Plank Arm Overhead",
+      "aliases": [],
+      "information_description": "Верхняя рука вытянута над головой и продолжает боковую линию корпуса.",
+      "image": "images/149-side-plank-arm-overhead.png",
+      "image_sha256": "b4737197dac2f402a80f520bec6436ad9807961e2ce58c6db2ef09245d3e5f73",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/arm-balance-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:150-forearm-side-plank",
+      "name": "Боковая планка на предплечье",
+      "alternate_name": "Forearm Side Plank",
+      "aliases": [],
+      "information_description": "Нижнее предплечье и стопы служат опорой, свободная рука направлена вверх.",
+      "image": "images/150-forearm-side-plank.png",
+      "image_sha256": "e7869731df9853b91e0dfa5cbb5b89fd76ef5cdd9c5f870fc5569c714663fa1f",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.arm_balance"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/forearm-side-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:151-reverse-plank-leg-up",
+      "name": "Обратная планка с поднятой ногой",
+      "alternate_name": "Reverse Plank One Leg Raised",
+      "aliases": [],
+      "information_description": "В обратной планке одна прямая нога поднята; ладони и другая стопа на полу.",
+      "image": "images/151-reverse-plank-leg-up.png",
+      "image_sha256": "d635368bdcdffb4ea90a55152be5ce1fd9c3ee92eb183d8e32d4bb92cc6b7145",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/reverse-plank",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:152-reverse-table-leg-up",
+      "name": "Обратный стол с поднятой ногой",
+      "alternate_name": "Reverse Tabletop One Leg Raised",
+      "aliases": [],
+      "information_description": "В обратном столе одна нога вытянута вверх, другая согнута и опирается стопой.",
+      "image": "images/152-reverse-table-leg-up.png",
+      "image_sha256": "92bad9bef1f63b2d88931554ec1e3e3129b2377d77761a2c868b9d6a95d2ff67",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/viniyoga-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:153-locust-arms-forward",
+      "name": "Шалабхасана с руками вперёд",
+      "alternate_name": "Locust Pose Arms Forward",
+      "aliases": [],
+      "information_description": "Лёжа на животе, грудь и прямые ноги приподняты, руки вытянуты вперёд.",
+      "image": "images/153-locust-arms-forward.png",
+      "image_sha256": "7a7d8bc8b940b762915f85b38a63c6a9427678aa477c5473a20163456da9baec",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/locust-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:154-locust-hands-bound",
+      "name": "Шалабхасана с замком за спиной",
+      "alternate_name": "Locust Pose Hands Clasped",
+      "aliases": [],
+      "information_description": "Грудь и ноги приподняты, прямые руки отведены назад и соединены за спиной.",
+      "image": "images/154-locust-hands-bound.png",
+      "image_sha256": "8975c6883a37fecaa1e27420be0268f9a771e8c1bc695c4d98beec50218b6263",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/baptiste-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:155-half-locust",
+      "name": "Ардха Шалабхасана — половинная саранча",
+      "alternate_name": "Half Locust Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, одна прямая нога поднята, другая остаётся на полу.",
+      "image": "images/155-half-locust.png",
+      "image_sha256": "5d4ba473bcb174486f98a522aab5869225c46a0f0c2f42ae372f40f409d21a2b",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/half-locust-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:156-half-frog",
+      "name": "Ардха Бхекасана — половинная лягушка",
+      "alternate_name": "Half Frog",
+      "aliases": [],
+      "information_description": "Лёжа на животе с опорой на предплечье, другая рука держит стопу согнутой ноги; вторая нога вытянута.",
+      "image": "images/156-half-frog.png",
+      "image_sha256": "6ce6a978aa2744cadc94f960086723ce4858781f2283fa53de574a5805e68535",
+      "sanskrit_latin": "Ardha Bhekasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/half-frog",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:157-cobra-hands-hover",
+      "name": "Кобра с приподнятыми ладонями",
+      "alternate_name": "Cobra Pose Hands Lifted",
+      "aliases": [],
+      "information_description": "Прогиб лёжа на животе; согнутые руки и ладони оторваны от пола.",
+      "image": "images/157-cobra-hands-hover.png",
+      "image_sha256": "e11b4485acb698971ed8b68546722959bc9b259d7f2b1ca70415878b7ad2be02",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/cobra-pose-bhujangasana/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:158-frog-backbend",
+      "name": "Бхекасана — лягушка с захватом стоп",
+      "alternate_name": "Frog Pose Bhekasana",
+      "aliases": [],
+      "information_description": "Лёжа на животе, обе ноги согнуты; ладони держат стопы возле таза, грудь приподнята.",
+      "image": "images/158-frog-backbend.png",
+      "image_sha256": "4a1a7313629b3169b17b101ef0a9cd437af1b574e386e0860a367dc70b9044b7",
+      "sanskrit_latin": "Bhekasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/frog-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:159-half-bow",
+      "name": "Ардха Дханурасана — половинный лук",
+      "alternate_name": "Half Bow Pose",
+      "aliases": [],
+      "information_description": "Лёжа на животе, одна рука держит согнутую с той же стороны ногу; другая нога вытянута.",
+      "image": "images/159-half-bow.png",
+      "image_sha256": "d764a3b040fa0b91f59e8fd64ae25a2c5b7718829bfd81c99e8240272125500e",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.prone"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/sivananda-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:160-pigeon-foot-catch",
+      "name": "Голубь с захватом задней стопы",
+      "alternate_name": "Pigeon Pose Quadriceps Stretch",
+      "aliases": [],
+      "information_description": "Передняя нога согнута на полу, заднее колено согнуто, одна рука держит заднюю стопу.",
+      "image": "images/160-pigeon-foot-catch.png",
+      "image_sha256": "9720096c3990c67c3e8995819839298ba4d484704948a6193a6aa08c8e0c910a",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.floor_reclining"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/pigeon-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:161-camel-hands-hips",
+      "name": "Уштрасана с ладонями на тазу",
+      "alternate_name": "Camel Pose Hands On Hips",
+      "aliases": [],
+      "information_description": "В прогибе на коленях ладони поддерживают область таза, бёдра остаются почти вертикальными.",
+      "image": "images/161-camel-hands-hips.png",
+      "image_sha256": "dc990ee48881b94804671e4d6b3b5c0f9b6abffa78ae5b05f8364ad459a9a6e0",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/camel-pose-hands-hips",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:162-siddhasana",
+      "name": "Сиддхасана — совершенная поза",
+      "alternate_name": "Adept's Pose",
+      "aliases": [],
+      "information_description": "Сидя с согнутыми разведёнными коленями: одна пятка перед тазом, другая стопа у противоположной лодыжки; руки на коленях.",
+      "image": "images/162-siddhasana.png",
+      "image_sha256": "696be0a0a599d7286c4edd791e67e5daf63279f5d95611a93d81e1463fa26f6d",
+      "sanskrit_latin": "Siddhasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/siddhasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:163-seated-fold-strap",
+      "name": "Наклон сидя с ремнём",
+      "alternate_name": "Seated Forward Bend With Strap",
+      "aliases": [],
+      "information_description": "Корпус наклонён к прямым ногам, кисти держат ремень, перекинутый через стопы.",
+      "image": "images/163-seated-fold-strap.png",
+      "image_sha256": "6fbbc8fa0977f60bbfeda6b96c23f3f2d6b43924e20c22bede11a8af93d48800",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/supported-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:164-wide-seated-fold",
+      "name": "Наклон вперёд с широко разведёнными ногами",
+      "alternate_name": "Seated Wide Legged Forward Bend",
+      "aliases": [],
+      "information_description": "Сидя с прямыми разведёнными ногами, корпус наклонён вперёд, руки на полу.",
+      "image": "images/164-wide-seated-fold.png",
+      "image_sha256": "db5f01114acb1a7b809c0beaae807fc471e08b58b3fd66bcfe32c414439cfc8e",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/wide-angle-seated-forward-bend-upavistha-konasana/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:165-revolved-janu",
+      "name": "Паривритта Джану Ширшасана",
+      "alternate_name": "Revolved Head To Knee Pose",
+      "aliases": [],
+      "information_description": "Одна нога прямая, другая согнута; корпус наклонён боком к прямой ноге, верхняя рука над головой.",
+      "image": "images/165-revolved-janu.png",
+      "image_sha256": "f0ab33952d6862afa7c6e6231d0c1aa950dbd44ecdcde2f74b1115b2d800c835",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yogaclassplan.com/yoga-pose/revolved-head-to-knee-pose/",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:166-wide-seat-side-bend",
+      "name": "Боковой наклон сидя с разведёнными ногами",
+      "alternate_name": "Seated Wide Angle Side Bend",
+      "aliases": [],
+      "information_description": "Обе ноги прямые и разведены, корпус наклонён к одной ноге, верхняя рука над головой.",
+      "image": "images/166-wide-seat-side-bend.png",
+      "image_sha256": "9e79a580509e869419e0fefb1458aebc7f390854cb0d0cbe572736a46347d67a",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/seated-wide-angle",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:167-easy-seat-twist",
+      "name": "Скручивание сидя со скрещёнными ногами",
+      "alternate_name": "Easy Pose Twist",
+      "aliases": [],
+      "information_description": "В положении со скрещёнными голенями корпус развёрнут, одна рука у колена, другая позади таза.",
+      "image": "images/167-easy-seat-twist.png",
+      "image_sha256": "0e328dfeecfe297eec9aae06b037bbe33accfdd0d23c397099dcdf1c8f2c3f37",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://studio.yoga.org/poses/parivrtta-sukhasana",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:168-easy-seat-fold",
+      "name": "Наклон из простого сидения",
+      "alternate_name": "Easy Pose Forward Bend",
+      "aliases": [],
+      "information_description": "Из сидения со скрещёнными голенями корпус наклонён вперёд, руки вытянуты по полу.",
+      "image": "images/168-easy-seat-fold.png",
+      "image_sha256": "15acff96ba42b0b58d2cf2d1a0db71dab8e7f03319341941980d219a77da08b4",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yin-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:169-easy-seat-arms-up",
+      "name": "Простое сидение с руками вверх",
+      "alternate_name": "Easy Pose Arms Raised",
+      "aliases": [],
+      "information_description": "Скрещённые голени на полу, корпус вертикальный, обе руки подняты.",
+      "image": "images/169-easy-seat-arms-up.png",
+      "image_sha256": "2a9b12f805b6eda90d2395265fdd5572cad28e090fe938cfd6e7779ebc8a6b30",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/easy-pose-variation-arms-up",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:170-easy-seat-side-bend",
+      "name": "Боковой наклон в простом сидении",
+      "alternate_name": "Easy Pose Side Bend",
+      "aliases": [],
+      "information_description": "Из сидения со скрещёнными ногами корпус наклонён в сторону; одна рука на полу, другая над головой.",
+      "image": "images/170-easy-seat-side-bend.png",
+      "image_sha256": "13f89f4a8b2ce9a0d1233211dcb2bb6e68a642eb1237f3f102431bde672fe1ee",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/hatha-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:171-lotus-forward-fold",
+      "name": "Йога Мудра в лотосе",
+      "alternate_name": "Lotus Pose Forward Bend",
+      "aliases": [],
+      "information_description": "Сохраняя лотос, корпус наклонён вперёд; руки отведены за спину.",
+      "image": "images/171-lotus-forward-fold.png",
+      "image_sha256": "be82487a16af2bb97ff63fe0bf0c2ffaaa0486a484ab3f9ae08fa004cb5edbdf",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-mudrasana/steps",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:172-bound-lotus",
+      "name": "Баддха Падмасана — связанный лотос",
+      "alternate_name": "Bound Lotus Pose",
+      "aliases": [],
+      "information_description": "В лотосе руки заведены за спину и направлены к стопам на противоположных бёдрах.",
+      "image": "images/172-bound-lotus.png",
+      "image_sha256": "d031598e566e841e11331689049493de2b804edf00824c3bc514a718a0c95729",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.seated"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://usayoga.org/wp-content/uploads/2024/08/Posture-Guidelines-2021-2022-FINAL.pdf",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:173-prayer-standing",
+      "name": "Пранамасана — молитвенная поза",
+      "alternate_name": "Prayer Pose",
+      "aliases": [],
+      "information_description": "Стоя на двух прямых ногах, корпус вертикальный, ладони соединены перед грудью.",
+      "image": "images/173-prayer-standing.png",
+      "image_sha256": "c19b2e090121ed53938f9069432a8fdde99f4a099087bc70faf972934c68daa7",
+      "sanskrit_latin": "Pranamasana",
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/prayer-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:174-hero-cow-face-arms",
+      "name": "Вирасана с руками гомукхасаны",
+      "alternate_name": "Hero Pose Cow Face Arms",
+      "aliases": [],
+      "information_description": "Сидя между пятками, одна рука сверху и другая снизу соединяются за спиной.",
+      "image": "images/174-hero-cow-face-arms.png",
+      "image_sha256": "8326d9271090791f26248610d27e153c7356043a534df030dcfa8958b2945aba",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/anusara-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:175-child-arms-back",
+      "name": "Баласана с руками вдоль тела",
+      "alternate_name": "Child Pose Arms Back",
+      "aliases": [],
+      "information_description": "Корпус сложен к бёдрам, лоб опущен; руки лежат вдоль тела к стопам.",
+      "image": "images/175-child-arms-back.png",
+      "image_sha256": "2e492f753098bb73c2661d1defb91cad2f05dc4ec97dd4164a943b4dc40efca0",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/childs-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:176-wide-child",
+      "name": "Баласана с широко разведёнными коленями",
+      "alternate_name": "Wide Knee Child Pose",
+      "aliases": [],
+      "information_description": "Колени разведены, таз у пяток, корпус опущен между бёдрами, руки вперёд.",
+      "image": "images/176-wide-child.png",
+      "image_sha256": "b8aa390b44622745564dd06e7c67955e00ae94c57f455ce764910c0f8a675ea7",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/basic-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:177-child-side-stretch",
+      "name": "Баласана с боковым вытяжением",
+      "alternate_name": "Child Pose Side Stretch",
+      "aliases": [],
+      "information_description": "В позе ребёнка обе руки смещены в одну сторону, бок корпуса вытянут.",
+      "image": "images/177-child-side-stretch.png",
+      "image_sha256": "b3f348ebc953478434183881c0881c67891136b98ab19b67d848e329fbac509a",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yin-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:178-puppy-forearms",
+      "name": "Щенок с опорой на предплечья",
+      "alternate_name": "Puppy Pose On Forearms",
+      "aliases": [],
+      "information_description": "Таз остаётся над коленями, грудь опущена, предплечья лежат на полу.",
+      "image": "images/178-puppy-forearms.png",
+      "image_sha256": "464a633f55e969694ba1e27283508780266749e8812310d29c069b0e0a1da83c",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/anahatasana-on-elbows/how-to-do",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:179-puppy-chair",
+      "name": "Щенок с опорой на стул",
+      "alternate_name": "Puppy Pose With Chair",
+      "aliases": [],
+      "information_description": "Стоя на коленях, предплечья или локти опираются на сиденье стула, корпус вытянут к нему.",
+      "image": "images/179-puppy-chair.png",
+      "image_sha256": "cba55172b79b7fb28c63ff64e0a64714aea8a7368b5bed1492d900ad8bd30d4b",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.kneeling"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/prone-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:180-low-lunge-twist",
+      "name": "Скручивание в низком выпаде",
+      "alternate_name": "Low Lunge Twist",
+      "aliases": [],
+      "information_description": "Заднее колено на полу, одна рука у передней стопы, другая раскрыта вверх.",
+      "image": "images/180-low-lunge-twist.png",
+      "image_sha256": "63c2ea41744b4526ef47d4e06ab44285fd25bf16bb98e6b32aaec5371e452994",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/kneeling-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:181-low-lunge-foot-catch",
+      "name": "Низкий выпад с захватом задней стопы",
+      "alternate_name": "Low Lunge Quadriceps Stretch",
+      "aliases": [],
+      "information_description": "Заднее колено на полу, голень поднята, одна рука держит заднюю стопу.",
+      "image": "images/181-low-lunge-foot-catch.png",
+      "image_sha256": "1d1465baab9f34744c0d68a17e1f5d2f281b14235ddac68c3aa982f3f21ec422",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/low-lunge-quad-stretch",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:182-low-lunge-side-bend",
+      "name": "Низкий выпад с боковым наклоном",
+      "alternate_name": "Low Lunge Side Bend",
+      "aliases": [],
+      "information_description": "В низком выпаде корпус наклонён в сторону, одна рука вытянута над головой.",
+      "image": "images/182-low-lunge-side-bend.png",
+      "image_sha256": "31e9b2bb991b5f963a6b071973c86f8e4811a4b5ed69a4f24bc5ed452a84753f",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/kneeling-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:183-low-lunge-prayer",
+      "name": "Низкий выпад с ладонями у груди",
+      "alternate_name": "Low Lunge Prayer Hands",
+      "aliases": [],
+      "information_description": "Заднее колено опирается на пол, корпус поднят, ладони соединены перед грудью.",
+      "image": "images/183-low-lunge-prayer.png",
+      "image_sha256": "c0d4db296c506524e7421ef35a8922402551a4d26172397fff241a6b4757d8c1",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/kneeling-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:184-high-lunge-twist",
+      "name": "Скручивание в высоком выпаде",
+      "alternate_name": "High Lunge Twist",
+      "aliases": [],
+      "information_description": "Заднее колено поднято, корпус развёрнут, руки раскрыты в противоположные стороны.",
+      "image": "images/184-high-lunge-twist.png",
+      "image_sha256": "579feb3476e9cb62c78b55c278de58ab191a2010605ddc73cb5db8be3c12584f",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-poses-for-knees",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:185-high-lunge-fold",
+      "name": "Высокий выпад с наклоном вперёд",
+      "alternate_name": "High Lunge Forward Fold",
+      "aliases": [],
+      "information_description": "В высоком выпаде корпус наклонён к переднему бедру, руки отведены назад.",
+      "image": "images/185-high-lunge-fold.png",
+      "image_sha256": "4d00ac1bc0a328e3e6949d0a25d9c970a3841bb8d00c29b35b440ed72b13385d",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-poses-for-knees",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:186-warrior-iii-airplane",
+      "name": "Воин III с руками назад",
+      "alternate_name": "Warrior Three Airplane Arms",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге; корпус и поднятая нога почти горизонтальны, руки вдоль корпуса.",
+      "image": "images/186-warrior-iii-airplane.png",
+      "image_sha256": "103bb33a32eccbe6157e9bab4b056fd3664e46e61eadfc60c10351e617d036be",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/warrior-iii",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:187-warrior-ii-eagle-arms",
+      "name": "Воин II с руками орла",
+      "alternate_name": "Warrior Two Eagle Arms",
+      "aliases": [],
+      "information_description": "Сохраняя ноги воина II, руки согнуты и переплетены перед грудью.",
+      "image": "images/187-warrior-ii-eagle-arms.png",
+      "image_sha256": "4af3a8cf913f0565a37f18928869b741f52f93353203c4de876f871640d02863",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.lunge"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/gentle-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:188-chair-prayer",
+      "name": "Уткатасана с ладонями у груди",
+      "alternate_name": "Chair Pose Prayer Hands",
+      "aliases": [],
+      "information_description": "В приседе позы стула ладони соединены перед грудью.",
+      "image": "images/188-chair-prayer.png",
+      "image_sha256": "ee1087f5acf3cd163d7041c37fc1cf838da3fae0a4c111c20430a98a497d0aad",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/pelvic-yoga",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:189-chair-eagle-arms",
+      "name": "Уткатасана с руками орла",
+      "alternate_name": "Chair Pose Eagle Arms",
+      "aliases": [],
+      "information_description": "Ноги согнуты как в позе стула, руки переплетены перед грудью.",
+      "image": "images/189-chair-eagle-arms.png",
+      "image_sha256": "5b2e594798e3d22b25b44c037bbe159e15abd66e318aead88282665a69fd17ea",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/chair-eagle-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:190-chair-on-toes",
+      "name": "Уткатасана на носках",
+      "alternate_name": "Chair Pose On Tiptoes",
+      "aliases": [],
+      "information_description": "Согнутые ноги сохраняют позу стула, обе пятки подняты.",
+      "image": "images/190-chair-on-toes.png",
+      "image_sha256": "4ac9afcf1608c6ab8455e72ebdad659d695f263e1986f49b6e1f765f19a954b9",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.squat"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/chair-pose",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:191-tree-prayer",
+      "name": "Врикшасана с ладонями у груди",
+      "alternate_name": "Tree Pose Prayer Hands",
+      "aliases": [],
+      "information_description": "Баланс на одной ноге, другая стопа у внутренней стороны бедра; ладони перед грудью.",
+      "image": "images/191-tree-prayer.png",
+      "image_sha256": "5867d20160fbedd0729f37a21fd252d485fe4b89c996a1c617f10f83b205eb1e",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/tree-pose-prayer-hands",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:192-tree-side-bend",
+      "name": "Врикшасана с боковым наклоном",
+      "alternate_name": "Tree Pose Side Bend",
+      "aliases": [],
+      "information_description": "Сохраняя ногу в дереве, корпус и поднятые руки мягко отклонены в сторону.",
+      "image": "images/192-tree-side-bend.png",
+      "image_sha256": "c60e8063b7bc15b5eb55b7967cbee880fa9231ff8b74b90785b76ed897288d89",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/uncommon-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:193-mountain-arms-up",
+      "name": "Урдхва Хастасана — руки вверх",
+      "alternate_name": "Upward Salute",
+      "aliases": [],
+      "information_description": "Стоя на двух прямых ногах, обе руки вытянуты над головой.",
+      "image": "images/193-mountain-arms-up.png",
+      "image_sha256": "e73b7165309ec351801eaf0c884d16835b74c2d6b2f259b3b0d146029bb90799",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/upward-salute",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:194-standing-side-bend",
+      "name": "Боковой наклон стоя",
+      "alternate_name": "Standing Side Bend",
+      "aliases": [],
+      "information_description": "Обе стопы на полу, корпус наклонён в сторону, руки вытянуты над головой.",
+      "image": "images/194-standing-side-bend.png",
+      "image_sha256": "d848f6cd6c656a92f93095462b97e3b2289807d423fbc5dc63eac225e07c15ef",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/core-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:195-standing-backbend",
+      "name": "Прогиб стоя",
+      "alternate_name": "Standing Backbend",
+      "aliases": [],
+      "information_description": "Стоя на двух ногах, корпус прогнут назад, руки вытянуты за головой.",
+      "image": "images/195-standing-backbend.png",
+      "image_sha256": "aaaf5cc73cee1bc40fa0d8915c200b1f073e1edaf35e9d1512a9408c81dfb466",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/standing-backbend",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:196-standing-fold-crossed-legs",
+      "name": "Наклон стоя со скрещёнными ногами",
+      "alternate_name": "Standing Forward Bend Crossed Legs",
+      "aliases": [],
+      "information_description": "Прямые ноги перекрещены, корпус опущен к ним, руки к полу.",
+      "image": "images/196-standing-fold-crossed-legs.png",
+      "image_sha256": "2d88b6f7cb8b35120ab4a4a196205c8050c41af90fd1abcf69e442e14cbab4ec",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/inversion-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:197-standing-fold-bent-knees",
+      "name": "Наклон стоя с согнутыми коленями",
+      "alternate_name": "Standing Forward Bend Bent Knees",
+      "aliases": [],
+      "information_description": "Колени согнуты, живот приближен к бёдрам, голова и руки опущены.",
+      "image": "images/197-standing-fold-bent-knees.png",
+      "image_sha256": "3501f1c73f1c08d9279a61c05f1cc1afb186cec1244ab398e73e758f0c0624f8",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/inversion-yoga-poses",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:198-wide-fold-hands-bound",
+      "name": "Широкий наклон с замком за спиной",
+      "alternate_name": "Wide Legged Forward Bend Hands Clasped",
+      "aliases": [],
+      "information_description": "Ноги широко и прямо, корпус опущен, соединённые руки подняты за спиной.",
+      "image": "images/198-wide-fold-hands-bound.png",
+      "image_sha256": "be35f449d9a88e10c92ba059b786999981309c7469012b6c05fa543253459604",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.standing"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.yoga-sequencing.com/poses/wide-forward-fold-fingers-interlaced",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:199-supine-twist-eagle-legs",
+      "name": "Скрутка лёжа с ногами орла",
+      "alternate_name": "Supine Twist Eagle Legs",
+      "aliases": [],
+      "information_description": "Лёжа на спине с руками в стороны, согнутые переплетённые ноги опущены вбок.",
+      "image": "images/199-supine-twist-eagle-legs.png",
+      "image_sha256": "d5b8613ceaab2e0a323000ebd379e625bbb1a94d895c3aa40f61c77041031e15",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yoga-poses-for-gluteus",
+        "reviewed": false
+      }
+    },
+    {
+      "source_key": "ribka-icons-200-20261110:200-half-happy-baby",
+      "name": "Половинная поза счастливого ребёнка",
+      "alternate_name": "Half Happy Baby Pose",
+      "aliases": [],
+      "information_description": "Лёжа на спине, одна рука держит стопу согнутой ноги, другая нога вытянута по полу.",
+      "image": "images/200-half-happy-baby.png",
+      "image_sha256": "3d031be59ad811cf826adc2c29e2fdb4c8a59324427072a45847f1320f5d955f",
+      "sanskrit_latin": null,
+      "classification_status": "partial",
+      "facet_keys": [
+        "position.supine"
+      ],
+      "editorial": {
+        "author": "RibkaYoga",
+        "source": "https://www.tummee.com/yoga-poses/yin-yoga-poses",
+        "reviewed": false
+      }
+    }
+  ]
+}

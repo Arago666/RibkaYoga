@@ -48,6 +48,28 @@ class CollectionMembership
         });
     }
 
+    /** Administrative additive imports keep their cards separate from the user's existing collections. */
+    public function importCollection(string $name): string
+    {
+        $name = trim($name);
+        abort_if($name === '' || mb_strlen($name) > 160, 422, 'Укажите название подборки до 160 символов.');
+
+        return DB::transaction(function () use ($name) {
+            $this->tree->lock();
+            $collection = AsanaCollection::where('workspace_id', $this->workspace->id())
+                ->whereNull('archived_at')->where('name', $name)->orderBy('id')->lockForUpdate()->first();
+            if (! $collection) {
+                $collection = AsanaCollection::create([
+                    'workspace_id' => $this->workspace->id(), 'name' => $name,
+                    'description' => null, 'folder_id' => null, 'revision' => 1,
+                    'created_by' => $this->workspace->userId(), 'updated_by' => $this->workspace->userId(),
+                ]);
+            }
+
+            return $collection->id;
+        });
+    }
+
     /** Append without overwriting existing items; lock in stable order for parallel uploads. */
     public function addAsana(string $asanaId, array $collectionIds): void
     {

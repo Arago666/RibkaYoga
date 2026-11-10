@@ -1,0 +1,31 @@
+{
+  "tool": "built-in image_gen",
+  "common": "Use case: logo-brand. Create ONE polished minimalist yoga pose logo. The attached image is a POSE reference only from the user's own catalog. Redraw it cleanly as an extremely simple recognizable black stick human made from a few confident smooth uniform thick black lines, rounded linecaps and one solid black circular head. Match the reference body orientation, joint positions and essential pose, while removing scan noise and awkward duplicate contours. Flat pure black (#000000) on pure white. Center one figure generously within a square image, figure about 65–75% of canvas, balanced negative space, all limbs fully inside frame. It must work as a tiny clear pictogram or logo, with graceful proportions and minimal line count. No detailed anatomy, no muscles, no clothing, no facial features, no hands/fingers or toes, no shadows, no gray, no gradients, no 3D, no scenery, no floor line, no lotus symbol, no decorative shapes, no lettering, no watermark. Exactly one human and one head, no extra limbs.",
+  "poses": [
+    {
+      "file": "01-sukhasana",
+      "name": "Сукхасана",
+      "reference": "134",
+      "pose": "Front view, seated cross-legged, straight upright torso, both arms slope down symmetrically with hands resting on knees. Clear crossed folded legs, one simple circular head."
+    },
+    {
+      "file": "02-vrikshasana",
+      "name": "Врикшасана",
+      "reference": "023",
+      "pose": "Front view, standing on one straight leg, the other knee bends out to the right with its foot resting on the supporting inner thigh. Both arms extend up around the head and join overhead. Preserve this exact tree-pose arrangement."
+    },
+    {
+      "file": "03-navasana",
+      "name": "Навасана",
+      "reference": "039",
+      "pose": "Side view, balancing on the pelvis in a V-shaped boat pose, torso leans back left, both straight legs raised diagonally up right, arms reach forward towards the raised feet as in the reference. Circle head above the left end of torso."
+    },
+    {
+      "file": "04-downward-dog",
+      "name": "Адхо Мукха Шванасана",
+      "reference": "001",
+      "pose": "Side view facing right, downward-facing dog, hips are the apex of an inverted V, straight legs slope down left to feet, spine and straight arms slope down right to hands, round head hangs just below the shoulder segment. Preserve the reference pose."
+    }
+  ],
+  "balasana": "Use case: logo-brand. Make one minimalist black yoga stick-figure logo of Balasana (child's pose), using the attached user's catalog drawing as the pose reference. Side view facing right. The figure is kneeling with folded legs beneath the body, hips resting back toward the heels on the left, back gently rounded forward, both arms reaching along the ground toward the right, a simple round head leaning forward at the right of the back. Preserve the compact folded posture and the reference orientation. Draw a few clean, bold uniform black strokes with round ends and one solid black circular head. A leg or arm seen in perfect overlap may use one stroke. Match a simple pictogram family: flat pure black on pure white, no anatomy detail, no clothing, no face, no fingers, no shadows, no gray, no 3D, no lettering, no decorative circles, no floor line, no watermark. One figure centered in a square image with generous whitespace, clear at small size."
+}
