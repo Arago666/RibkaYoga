@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -233,18 +234,16 @@ onMounted(load);
         load();
       "
     >
-      <input
-        v-model="query"
-        class="input"
-        placeholder="Название или тема"
-        aria-label="Поиск программ"
-      /><AppSelect v-model="type" class="select" aria-label="Вид документа">
-        <option value="all">Все документы</option>
-        <option value="cycle">Мезоциклы</option>
-        <option value="practice">Последовательности</option></AppSelect
-      ><AppSelect v-model="archive" class="select" aria-label="Архив программ">
-        <option value="active">Активные</option>
-        <option value="archived">В архиве</option></AppSelect
+      <input v-model="query" class="input" placeholder="Название или тема" aria-label="Поиск программ" />
+      <ResponsivePanel title="Фильтры программ" :active="type !== 'all' || archive !== 'active'">
+        <AppSelect v-model="type" class="select" aria-label="Вид документа">
+          <option value="all">Все документы</option>
+          <option value="cycle">Мезоциклы</option>
+          <option value="practice">Последовательности</option></AppSelect
+        ><AppSelect v-model="archive" class="select" aria-label="Архив программ">
+          <option value="active">Активные</option>
+          <option value="archived">В архиве</option></AppSelect
+        ></ResponsivePanel
       ><button class="btn btn-secondary">Найти</button>
     </form>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
@@ -489,6 +488,28 @@ onMounted(load);
 @media (prefers-reduced-motion: reduce) {
   .cycle-card {
     transition: none;
+  }
+}
+@media screen and (max-width: 760px) {
+  .program-header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .cycle-filters.card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 14px;
+  }
+  .cycle-filters.card > .input {
+    min-width: 0;
+    width: 100%;
+  }
+  .cycle-filters.card > .btn {
+    grid-column: 1 / -1;
+  }
+  .folder-context p {
+    font-size: 14px;
   }
 }
 @media (max-width: 600px) {

@@ -542,6 +542,20 @@ function closeMenu(event: MouseEvent) {
 .sequence-cell.pending:not(.grouped) {
   background: var(--surface-soft);
 }
+@media screen and (max-width: 760px) {
+  .cells-scroll {
+    overscroll-behavior-x: contain;
+  }
+  .sequence-cell {
+    flex-basis: 76px;
+    width: 76px;
+  }
+  .append-cell {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
 @media (max-width: 600px) {
   .row-caption {
     display: none;

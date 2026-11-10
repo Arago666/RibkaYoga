@@ -111,4 +111,11 @@ function select(dimension: Dimension, id: string) {
   width: 100%;
   margin-top: 10px;
 }
+@media screen and (max-width: 760px) {
+  .facet-values button {
+    font-size: 14px;
+    min-height: 48px;
+    line-height: 1.4;
+  }
+}
 </style>

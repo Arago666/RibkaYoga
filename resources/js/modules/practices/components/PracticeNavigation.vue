@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
+
+const navigation = ref<HTMLElement | null>(null);
+onMounted(() => {
+  const active = navigation.value?.querySelector<HTMLElement>('[aria-current="page"]');
+  if (active && navigation.value)
+    navigation.value.scrollLeft = active.offsetLeft - navigation.value.offsetLeft - 6;
+});
 
 defineProps<{ active: 'all' | 'programs' | 'categories' | 'shared' }>();
 
@@ -12,7 +20,7 @@ const sections = [
 </script>
 
 <template>
-  <nav class="tabs practice-navigation" aria-label="Разделы практик">
+  <nav ref="navigation" class="tabs practice-navigation" aria-label="Разделы практик">
     <Link
       v-for="section in sections"
       :key="section.key"
@@ -33,19 +41,26 @@ const sections = [
 .practice-navigation .tab {
   min-height: var(--control-height);
 }
-@media (max-width: 650px) {
+@media screen and (max-width: 760px) {
   .practice-navigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px 8px;
-    overflow: visible;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    padding: 5px;
+    gap: 4px;
+  }
+  .practice-navigation::-webkit-scrollbar {
+    display: none;
   }
   .practice-navigation .tab {
-    justify-content: center;
-    text-align: center;
-    white-space: normal;
-    padding: 12px 6px;
-    font-size: 13px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 12px 16px;
+    font-size: 14px;
+    scroll-snap-align: start;
   }
 }
 </style>

@@ -256,10 +256,18 @@ button:focus-visible {
 }
 @media (max-width: 700px) {
   .asana-image {
-    height: 164px;
+    height: auto;
+    aspect-ratio: 1;
+    padding: 24px 12px 12px;
+  }
+  .asana-info {
+    padding: 14px 12px;
   }
   .asana-info h3 {
-    font-size: 18px;
+    font-size: 17px;
+    -webkit-line-clamp: 3;
+    min-height: 4.05em;
+    overflow-wrap: anywhere;
   }
 }
 @media (hover: hover) and (pointer: fine) {

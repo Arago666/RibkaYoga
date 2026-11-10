@@ -95,14 +95,19 @@ defineProps<{ eyebrow: string; title: string; description?: string }>();
 @media (max-width: 760px) {
   .workspace-heading {
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    gap: 14px;
     min-height: 0;
-    padding-bottom: 22px;
-    margin-bottom: 22px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
   }
   .page-description {
-    font-size: 13px;
-    line-height: 22px;
+    font-size: 15px;
+    line-height: 23px;
     min-height: 0;
     margin-top: 10px;
   }

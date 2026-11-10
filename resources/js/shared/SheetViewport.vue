@@ -28,6 +28,7 @@ onBeforeUnmount(() => observer?.disconnect());
       </button>
       <span>{{ Math.round(scale * 100) }}%</span>
     </div>
+    <p class="sheet-phone-hint">Для крупных рисунков выберите «100%» и сдвигайте лист пальцем.</p>
     <div
       ref="viewport"
       class="sheet-viewport"
@@ -50,6 +51,9 @@ onBeforeUnmount(() => observer?.disconnect());
   </div>
 </template>
 <style scoped>
+.sheet-phone-hint {
+  display: none;
+}
 .sheet-viewer {
   min-width: 0;
   width: 100%;
@@ -100,6 +104,18 @@ onBeforeUnmount(() => observer?.disconnect());
   width: 100%;
   display: block;
   border: 0;
+}
+@media screen and (max-width: 760px) {
+  .sheet-phone-hint {
+    display: block;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .sheet-zoom .btn {
+    font-size: 15px;
+  }
 }
 @media print {
   .sheet-zoom {

@@ -220,7 +220,7 @@ onMounted(load);
   }
   .preview-actions > .btn {
     flex: 1;
-    font-size: 12px;
+    font-size: 14px;
   }
   .preview-settings {
     align-items: flex-start;

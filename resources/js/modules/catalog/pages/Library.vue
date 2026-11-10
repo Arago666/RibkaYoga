@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
@@ -268,26 +269,20 @@ async function taxonomyChanged() {
     </div>
     <template v-if="tab === 'asanas'">
       <section class="card catalog-controls" aria-label="Поиск и фильтры асан">
-        <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
         <div class="library-tools">
           <div class="library-search">
             <Search :size="19" /><input
               v-model="query"
               class="input"
-              placeholder="Название асаны или другое название"
+              placeholder="Поиск асан"
               aria-label="Поиск асан"
             /><button v-if="query" class="search-clear" aria-label="Очистить поиск" @click="query = ''">
               <X :size="16" />
             </button>
           </div>
         </div>
-        <div class="library-subtools">
-          <div class="library-result-count">
-            <span v-if="result">{{ cardCount(result.total) }}</span
-            ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
-              Сбросить фильтры <X :size="14" />
-            </button>
-          </div>
+        <ResponsivePanel title="Категории и фильтры асан" :active="hasFilters">
+          <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
           <div class="sort-controls">
             <AppSelect v-model="archive" class="select small-select" aria-label="Активные или архивные асаны">
               <option value="active">Активные</option>
@@ -298,6 +293,14 @@ async function taxonomyChanged() {
               <option value="recent">Недавно добавленные</option>
               <option value="used_recently">Недавно использованные</option>
             </AppSelect>
+          </div>
+        </ResponsivePanel>
+        <div class="library-subtools">
+          <div class="library-result-count">
+            <span v-if="result">{{ cardCount(result.total) }}</span
+            ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
+              Сбросить фильтры <X :size="14" />
+            </button>
           </div>
         </div>
       </section>
@@ -734,25 +737,37 @@ async function taxonomyChanged() {
 .catalog-controls {
   display: grid;
   grid-template-columns: fit-content(280px) minmax(0, 1fr);
+  grid-template-areas: 'facets search' 'count sort';
   align-items: start;
   gap: 20px;
   margin-bottom: var(--section-gap);
 }
 .catalog-controls :deep(.catalog-facets) {
+  grid-area: facets;
   min-width: 0;
   margin: 0;
 }
 .catalog-controls .library-tools {
+  grid-area: search;
   min-width: 0;
 }
 .catalog-controls .library-subtools {
-  grid-column: 1 / -1;
+  grid-area: count;
   margin: 0;
 }
-@media (max-width: 700px) {
+.catalog-controls :deep(.sort-controls) {
+  grid-area: sort;
+  justify-self: end;
+}
+@media (max-width: 760px) {
   .catalog-controls {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'search filters' 'count count';
+    gap: 12px;
+    padding: 14px;
+  }
+  .catalog-controls :deep(.responsive-panel-trigger) {
+    grid-area: filters;
   }
   .sort-controls {
     width: 100%;

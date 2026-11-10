@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import {
@@ -694,93 +695,101 @@ onBeforeUnmount(() => {
                 Его можно изменить в дополнительных настройках.
               </p>
             </section>
-            <section class="card meditation-sounds">
-              <h2><Volume2 aria-hidden="true" />Звуки</h2>
-              <fieldset :disabled="locked || requestBusy" class="sound-switches">
-                <div class="sound-row">
-                  <span class="sound-icon"><BellRing aria-hidden="true" /></span>
-                  <div class="sound-label">
-                    <span id="start-gong-label">Гонг в начале</span>
-                    <small v-if="!['none', 'gong'].includes(config.start_signal)"
-                      >Сохранённый сигнал: {{ signalNames[config.start_signal] }}</small
-                    >
-                  </div>
-                  <button
-                    type="button"
-                    class="meditation-switch"
-                    role="switch"
-                    :aria-checked="config.start_signal !== 'none'"
-                    aria-labelledby="start-gong-label"
-                    @click="toggleGong('start_signal')"
-                  >
-                    <span />
-                  </button>
-                </div>
-                <div class="sound-row">
-                  <span class="sound-icon"><Bell aria-hidden="true" /></span>
-                  <div class="sound-label">
-                    <span id="end-gong-label">Гонг в конце</span>
-                    <small v-if="!['none', 'gong'].includes(config.end_signal)"
-                      >Сохранённый сигнал: {{ signalNames[config.end_signal] }}</small
-                    >
-                  </div>
-                  <button
-                    type="button"
-                    class="meditation-switch"
-                    role="switch"
-                    :aria-checked="config.end_signal !== 'none'"
-                    aria-labelledby="end-gong-label"
-                    @click="toggleGong('end_signal')"
-                  >
-                    <span />
-                  </button>
-                </div>
-              </fieldset>
-            </section>
-            <section class="card meditation-background">
-              <fieldset :disabled="locked || requestBusy" class="sound-switches">
-                <div class="sound-row">
-                  <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
-                  <h2 id="background-label">Фоновый звук</h2>
-                  <button
-                    type="button"
-                    class="meditation-switch"
-                    role="switch"
-                    :aria-checked="backgroundEnabled"
-                    aria-labelledby="background-label"
-                    @click="backgroundEnabled = !backgroundEnabled"
-                  >
-                    <span />
-                  </button>
-                </div>
-                <template v-if="backgroundEnabled">
-                  <div class="ambience-options" aria-label="Выбор фонового звука">
+            <ResponsivePanel title="Звуки медитации" label="Звуки и настройки">
+              <section class="card meditation-sounds">
+                <h2><Volume2 aria-hidden="true" />Звуки</h2>
+                <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                  <div class="sound-row">
+                    <span class="sound-icon"><BellRing aria-hidden="true" /></span>
+                    <div class="sound-label">
+                      <span id="start-gong-label">Гонг в начале</span>
+                      <small v-if="!['none', 'gong'].includes(config.start_signal)"
+                        >Сохранённый сигнал: {{ signalNames[config.start_signal] }}</small
+                      >
+                    </div>
                     <button
-                      v-for="(item, key) in soundManifest.ambience"
-                      :key="key"
                       type="button"
-                      class="btn"
-                      :class="{ 'ambience-selected': config.ambience === key }"
-                      :aria-pressed="config.ambience === key"
-                      @click="config.ambience = key"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="config.start_signal !== 'none'"
+                      aria-labelledby="start-gong-label"
+                      @click="toggleGong('start_signal')"
                     >
-                      {{ item.name }}
+                      <span />
                     </button>
                   </div>
-                  <label class="background-volume"
-                    >Громкость
-                    <input v-model.number="config.ambience_volume" type="range" min="0" max="1" step="0.01" />
-                  </label>
-                  <p v-if="config.audio_asset_id" class="muted small">
-                    Также выбрана личная запись. Управление — в разделе «Моё аудио».
-                  </p>
-                  <p class="muted small">Лес, дождь и волны — синтез звуков природы.</p>
-                </template>
-              </fieldset>
-            </section>
-            <button class="btn save-preferences" :disabled="locked || requestBusy" @click="saveSettings">
-              Сохранить мои настройки
-            </button>
+                  <div class="sound-row">
+                    <span class="sound-icon"><Bell aria-hidden="true" /></span>
+                    <div class="sound-label">
+                      <span id="end-gong-label">Гонг в конце</span>
+                      <small v-if="!['none', 'gong'].includes(config.end_signal)"
+                        >Сохранённый сигнал: {{ signalNames[config.end_signal] }}</small
+                      >
+                    </div>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="config.end_signal !== 'none'"
+                      aria-labelledby="end-gong-label"
+                      @click="toggleGong('end_signal')"
+                    >
+                      <span />
+                    </button>
+                  </div>
+                </fieldset>
+              </section>
+              <section class="card meditation-background">
+                <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                  <div class="sound-row">
+                    <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
+                    <h2 id="background-label">Фоновый звук</h2>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="backgroundEnabled"
+                      aria-labelledby="background-label"
+                      @click="backgroundEnabled = !backgroundEnabled"
+                    >
+                      <span />
+                    </button>
+                  </div>
+                  <template v-if="backgroundEnabled">
+                    <div class="ambience-options" aria-label="Выбор фонового звука">
+                      <button
+                        v-for="(item, key) in soundManifest.ambience"
+                        :key="key"
+                        type="button"
+                        class="btn"
+                        :class="{ 'ambience-selected': config.ambience === key }"
+                        :aria-pressed="config.ambience === key"
+                        @click="config.ambience = key"
+                      >
+                        {{ item.name }}
+                      </button>
+                    </div>
+                    <label class="background-volume"
+                      >Громкость
+                      <input
+                        v-model.number="config.ambience_volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                      />
+                    </label>
+                    <p v-if="config.audio_asset_id" class="muted small">
+                      Также выбрана личная запись. Управление — в разделе «Моё аудио».
+                    </p>
+                    <p class="muted small">Лес, дождь и волны — синтез звуков природы.</p>
+                  </template>
+                </fieldset>
+              </section>
+              <button class="btn save-preferences" :disabled="locked || requestBusy" @click="saveSettings">
+                Сохранить мои настройки
+              </button>
+            </ResponsivePanel>
           </div>
           <PlayerWindow :open="immersive" title="Медитация" @close="closeWindow"
             ><section

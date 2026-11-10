@@ -1600,6 +1600,28 @@
     transform: none;
   }
 }
+@media screen and (max-width: 760px) {
+  .landing :is(.hero-description, .workflow-grid p, .paper-copy p, .cta-inner > p) {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .landing :is(.landing-button, .landing-watch, .cta-button, .landing-login) {
+    font-size: 15px;
+    min-height: 48px;
+  }
+  .landing .landing-faq-list :is(.disclosure > summary, .disclosure-body) {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .landing .landing-footer-top > div a {
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .landing .landing-footer-bottom {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+}
 @media print {
   .landing-nav,
   .landing-hero,

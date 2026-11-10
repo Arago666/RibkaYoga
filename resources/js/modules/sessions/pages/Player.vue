@@ -1597,4 +1597,18 @@ watch(metronome, () => draft(true), { deep: true });
     height: 54px;
   }
 }
+@media screen and (max-width: 760px) {
+  .player-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .player-heading > div:first-child {
+    flex: none;
+    width: 100%;
+  }
+  .player-header-actions {
+    justify-content: flex-start;
+  }
+}
 </style>

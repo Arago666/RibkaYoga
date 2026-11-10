@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -1685,33 +1686,43 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="editor-actions">
-          <ActionMenu v-if="!embedded" label="Настройки практики">
-            <a href="/settings">Настройки отображения</a>
-          </ActionMenu>
-          <button
-            v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
-            class="btn btn-secondary"
-            :disabled="pending > 0 || navigating"
-            @click="go(`/practices/${doc.id}/run?mode=teach`)"
-          >
-            Вести занятие
-          </button>
-          <button
-            v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
-            class="btn btn-secondary"
-            :disabled="pending > 0 || navigating"
-            @click="go(`/practices/${doc.id}/run?mode=practice`)"
-          >
-            Практиковать
-          </button>
-          <button
-            v-if="!rowMode && !embedded"
-            class="btn btn-secondary"
-            :disabled="saving || pending > 0 || dirty"
-            @click="sharingOpen = true"
-          >
-            <UserPlus :size="16" />Дать доступ
-          </button>
+          <ResponsivePanel title="Действия с практикой" label="Действия">
+            <ActionMenu v-if="!embedded" label="Настройки практики">
+              <a href="/settings">Настройки отображения</a>
+            </ActionMenu>
+            <button
+              v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
+              class="btn btn-secondary"
+              :disabled="pending > 0 || navigating"
+              @click="go(`/practices/${doc.id}/run?mode=teach`)"
+            >
+              Вести занятие
+            </button>
+            <button
+              v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
+              class="btn btn-secondary"
+              :disabled="pending > 0 || navigating"
+              @click="go(`/practices/${doc.id}/run?mode=practice`)"
+            >
+              Практиковать
+            </button>
+            <button
+              v-if="!rowMode && !embedded"
+              class="btn btn-secondary"
+              :disabled="saving || pending > 0 || dirty"
+              @click="sharingOpen = true"
+            >
+              <UserPlus :size="16" />Дать доступ
+            </button>
+            <button
+              v-if="!rowMode"
+              class="btn btn-secondary mobile-print"
+              :disabled="pending > 0 || navigating"
+              @click="go(`/practices/${doc.id}/print`)"
+            >
+              <Printer :size="19" />Печать практики
+            </button>
+          </ResponsivePanel>
           <button class="btn btn-secondary" :disabled="saving || pending > 0 || locked" @click="editor.save">
             <Save :size="16" />Сохранить</button
           ><button
@@ -1723,7 +1734,7 @@ onBeforeUnmount(() => {
             <Eye :size="17" />Просмотр</button
           ><button
             v-if="!rowMode"
-            class="icon-btn"
+            class="icon-btn desktop-print"
             :disabled="pending > 0 || navigating"
             title="Печать"
             aria-label="Печать практики"
@@ -1733,6 +1744,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </header>
+      <p class="mobile-save-status" role="status">{{ status }}</p>
       <p v-if="pendingLibraryAsana" class="success-banner">
         Выберите ячейку для асаны из библиотеки.
         <button class="btn btn-ghost" @click="pendingLibraryAsana = null">Отменить вставку</button>
@@ -1741,28 +1753,32 @@ onBeforeUnmount(() => {
         Выбрано рисунков: {{ pendingDrawings.length }}. Нажмите первую целевую ячейку.
         <button class="btn btn-ghost" @click="pendingDrawings = []">Отменить</button>
       </p>
-      <div class="document-meta">
-        <div class="theme-field">
-          <span>Тема</span
-          ><input
-            :value="doc.theme"
-            class="input"
-            placeholder="Например, мобильность плеч"
-            maxlength="240"
-            :disabled="locked"
-            aria-label="Тема практики"
-            @input="
-              edit(
-                (document) => (document.theme = ($event.target as HTMLInputElement).value || null),
-                'theme',
-              )
-            "
-            @blur="editor.endGroup"
-          />
-        </div>
-        <button v-if="!rowMode && !readOnly" class="btn btn-ghost" @click="saveTemplate">
-          <Bookmark :size="16" />Как шаблон
-        </button>
+      <div class="document-meta-settings">
+        <ResponsivePanel title="Тема и шаблон" label="Тема и шаблон">
+          <div class="document-meta">
+            <div class="theme-field">
+              <span>Тема</span
+              ><input
+                :value="doc.theme"
+                class="input"
+                placeholder="Например, мобильность плеч"
+                maxlength="240"
+                :disabled="locked"
+                aria-label="Тема практики"
+                @input="
+                  edit(
+                    (document) => (document.theme = ($event.target as HTMLInputElement).value || null),
+                    'theme',
+                  )
+                "
+                @blur="editor.endGroup"
+              />
+            </div>
+            <button v-if="!rowMode && !readOnly" class="btn btn-ghost" @click="saveTemplate">
+              <Bookmark :size="16" />Как шаблон
+            </button>
+          </div>
+        </ResponsivePanel>
       </div>
       <div
         ref="toolbarElement"
@@ -2602,6 +2618,16 @@ onBeforeUnmount(() => {
   font-size: 10px;
   padding: 3px;
 }
+.mobile-print,
+.mobile-save-status {
+  display: none;
+}
+.document-meta-settings {
+  display: contents;
+}
+.embedded-editor .document-meta-settings {
+  display: none;
+}
 .editor-toolbar {
   position: sticky;
   top: 0;
@@ -3093,6 +3119,85 @@ onBeforeUnmount(() => {
     padding: 0 var(--panel-padding);
   }
 }
+@media screen and (max-width: 760px) {
+  .document-meta-settings {
+    display: block;
+    margin-bottom: 16px;
+  }
+  .document-meta-settings :deep(.responsive-panel-trigger) {
+    width: 100%;
+  }
+  .editor-toolbar {
+    padding: 10px;
+    border-radius: 20px;
+  }
+  .save-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 6px;
+  }
+  .save-toolbar > * {
+    flex-shrink: 0;
+  }
+  .save-toolbar .btn {
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .history-buttons .btn {
+    font-size: 0;
+    padding: 10px;
+    min-width: 44px;
+  }
+  .save-toolbar .save-status {
+    display: none;
+  }
+  .editor-actions {
+    gap: 8px;
+  }
+  .editor-actions :deep(.responsive-panel-trigger) {
+    font-size: 14px;
+  }
+  .editor-actions > .btn {
+    flex: 1;
+  }
+  .editor-header .editor-actions > .btn {
+    flex: 0 1 auto;
+  }
+  .editor-actions {
+    flex-wrap: nowrap;
+  }
+  .editor-actions > .icon-btn {
+    width: 44px;
+  }
+  .editor-actions > .btn {
+    padding-inline: 12px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .editor-actions :deep(.responsive-panel-trigger) {
+    width: 48px;
+    padding: 0;
+  }
+  .editor-actions :deep(.responsive-panel-trigger > span) {
+    display: none;
+  }
+  .desktop-print {
+    display: none;
+  }
+  .mobile-print {
+    display: flex;
+  }
+  .mobile-save-status {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin: -6px 0 14px;
+  }
+  .save-toolbar .mobile-picker {
+    order: -1;
+  }
+}
 @media (max-width: 600px) {
   .editor-header {
     flex-wrap: wrap;
@@ -3167,6 +3272,11 @@ onBeforeUnmount(() => {
   }
   .embedded-editor .history-buttons .icon-btn {
     width: 44px;
+  }
+}
+@media screen and (max-width: 370px) {
+  .editor-actions > .btn svg {
+    display: none;
   }
 }
 </style>

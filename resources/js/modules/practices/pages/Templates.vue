@@ -439,4 +439,22 @@ const labels: Record<string, string> = {
     width: auto;
   }
 }
+@media screen and (max-width: 760px) {
+  .starter-grid {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(84%, 320px);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    padding: 3px 2px 12px;
+  }
+  .starter-grid > article {
+    scroll-snap-align: start;
+  }
+  .template-filters {
+    gap: 10px;
+  }
+}
 </style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -512,10 +513,17 @@ async function saveName() {
     >
       <div class="practice-header-actions">
         <button class="btn btn-primary" @click="openCreate(undefined, tab === 'templates')">
-          <Plus :size="19" /> {{ createLabel }}
+          <Plus :size="19" /><span class="add-label-desktop">{{ createLabel }}</span
+          ><span class="add-label-mobile">{{ tab === 'practices' ? 'Создать' : createLabel }}</span>
         </button>
-        <button v-if="!rowTab" class="btn btn-secondary" @click="addPracticeOpen = true">
-          <Plus :size="18" />Добавить практику
+        <button
+          v-if="!rowTab"
+          class="btn btn-secondary"
+          aria-label="Добавить практику"
+          @click="addPracticeOpen = true"
+        >
+          <Plus :size="18" /><span class="add-label-desktop">Добавить практику</span
+          ><span class="add-label-mobile">Добавить</span>
         </button>
         <ActionMenu label="Действия со списком практик">
           <button @click="importOpen = true">Импорт JSON</button>
@@ -532,40 +540,42 @@ async function saveName() {
     <p v-if="insertAsana" class="success-banner">Выберите практику, затем ячейку для выбранной асаны.</p>
     <div class="card practices-toolbar">
       <div class="practice-search-row">
+        <div class="practice-search">
+          <Search :size="19" /><input
+            v-model="query"
+            class="input"
+            :placeholder="rowTab ? 'Поиск строк' : 'Поиск практик'"
+            aria-label="Поиск документов"
+          /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
+        </div>
+      </div>
+      <ResponsivePanel :active="categoryIds.length > 0 || archive !== 'active' || sort !== 'updated_desc'">
         <PracticeCategoryFilter
           v-if="tab === 'practices'"
           :model-value="categoryIds"
           @update:model-value="applyCategories"
         />
-        <div class="practice-search">
-          <Search :size="19" /><input
-            v-model="query"
-            class="input"
-            :placeholder="rowTab ? 'Найти строку по названию или теме' : 'Найти по названию или теме'"
-            aria-label="Поиск документов"
-          /><button v-if="query" aria-label="Очистить поиск" @click="query = ''"><X :size="16" /></button>
-        </div>
-      </div>
-      <AppSelect v-model="archive" class="select" aria-label="Состояние документов">
-        <option value="active">Активные</option>
-        <option value="archived">В архиве</option>
-      </AppSelect>
-      <label class="practice-sort"
-        ><span>Сортировка</span>
-        <AppSelect v-model="sort" class="select">
-          <option v-for="option in sortOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
+        <AppSelect v-model="archive" class="select" aria-label="Состояние документов">
+          <option value="active">Активные</option>
+          <option value="archived">В архиве</option>
         </AppSelect>
-      </label>
-      <div class="view-switch" role="group" aria-label="Вид практик">
-        <button class="btn btn-ghost" :aria-pressed="view === 'grid'" @click="view = 'grid'">
-          <LayoutGrid :size="18" />Карточки
-        </button>
-        <button class="btn btn-ghost" :aria-pressed="view === 'list'" @click="view = 'list'">
-          <List :size="18" />Список
-        </button>
-      </div>
+        <label class="practice-sort"
+          ><span>Сортировка</span>
+          <AppSelect v-model="sort" class="select">
+            <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </AppSelect>
+        </label>
+        <div class="view-switch" role="group" aria-label="Вид практик">
+          <button class="btn btn-ghost" :aria-pressed="view === 'grid'" @click="view = 'grid'">
+            <LayoutGrid :size="18" />Карточки
+          </button>
+          <button class="btn btn-ghost" :aria-pressed="view === 'list'" @click="view = 'list'">
+            <List :size="18" />Список
+          </button>
+        </div>
+      </ResponsivePanel>
       <span v-if="result && !loading" class="document-count">{{ resultCount }}</span>
     </div>
     <div v-if="success" class="success-banner" role="status">{{ success }}</div>
@@ -890,6 +900,9 @@ async function saveName() {
   font-size: 13px;
   color: var(--muted);
 }
+.add-label-mobile {
+  display: none;
+}
 .practice-header-actions {
   display: flex;
   justify-content: flex-end;
@@ -937,7 +950,7 @@ async function saveName() {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
-.practices-toolbar > .select {
+.practices-toolbar :deep(.responsive-panel > .select) {
   width: 160px;
   flex: none;
 }
@@ -1302,46 +1315,38 @@ async function saveName() {
     gap: 6px;
   }
 }
-@media (max-width: 680px) {
+@media screen and (max-width: 760px) {
+  .add-label-desktop {
+    display: none;
+  }
+  .add-label-mobile {
+    display: inline;
+  }
   .practice-header-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--control-height);
+    grid-template-columns: minmax(0, 1fr) auto var(--control-height);
     max-width: none;
     width: 100%;
   }
-  .practice-header-actions > .btn-primary {
-    grid-column: 1 / -1;
-  }
+
   .practice-header-actions > .btn {
     width: 100%;
     white-space: normal;
   }
   .practices-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
+    padding: 14px;
   }
-  .practices-toolbar .practice-search-row {
-    grid-column: 1 / -1;
-  }
-  .practices-toolbar > .select {
-    width: 100%;
-    align-self: end;
-  }
-  .practice-sort .select {
-    min-width: 0;
-    width: 100%;
-  }
-  .practice-sort {
+  .practice-search-row {
     min-width: 0;
   }
-  .view-switch {
-    grid-column: 1 / -1;
-    flex-wrap: nowrap;
+  .practice-search {
+    min-width: 0;
   }
-  .view-switch .btn {
-    padding-inline: 10px;
-    font-size: 12px;
+  .document-count {
+    margin-left: 0;
   }
   .practice-list .practice-card {
     grid-template-columns: 1fr;
@@ -1365,9 +1370,24 @@ async function saveName() {
     grid-column: 1 / -1;
   }
   .practice-cover {
-    height: 150px;
+    height: 136px;
+  }
+  .practice-content {
+    padding: 18px;
+  }
+  .practice-theme {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .practice-meta,
+  .practice-difficulty {
+    font-size: 14px;
+  }
+  .cover-kind {
+    font-size: 11px;
   }
   .practice-title {
+    font-size: 21px;
     min-height: auto;
   }
   .practices-empty {
@@ -1375,6 +1395,20 @@ async function saveName() {
   }
   .practices-empty h2 {
     font-size: 1.2rem;
+  }
+}
+@media screen and (max-width: 370px) {
+  .practice-header-actions {
+    grid-template-columns: minmax(0, 1fr) 48px 44px;
+  }
+  .practice-header-actions > .btn-secondary .add-label-mobile {
+    display: none;
+  }
+  .practice-header-actions > .btn-secondary {
+    padding: 0;
+  }
+  .practice-header-actions > .btn-primary {
+    white-space: nowrap;
   }
 }
 @media (hover: hover) and (pointer: fine) {

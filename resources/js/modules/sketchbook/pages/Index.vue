@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { onMounted, ref } from 'vue';
@@ -70,20 +71,22 @@ onMounted(load);
       title="Скетчбук"
       description="Рисуйте свои асаны и целые строки на свободном листе. Исходники остаются редактируемыми."
     />
-    <form class="toolbar sketch-create card" @submit.prevent="create">
-      <input
-        class="input"
-        v-model="title"
-        placeholder="Название нового листа"
-        aria-label="Название нового листа"
-        required
-        maxlength="160"
-      /><AppSelect class="select" v-model="format" aria-label="Формат">
-        <option value="square">Свободный квадратный лист</option>
-        <option value="a4-portrait">A4 — книжная печать</option>
-        <option value="a4-landscape">A4 — альбомная печать</option></AppSelect
-      ><button class="btn btn-primary" :disabled="busy">Создать лист</button>
-    </form>
+    <ResponsivePanel title="Новый лист скетчбука" label="Создать лист" :done-label="false">
+      <form class="toolbar sketch-create card" @submit.prevent="create">
+        <input
+          class="input"
+          v-model="title"
+          placeholder="Название нового листа"
+          aria-label="Название нового листа"
+          required
+          maxlength="160"
+        /><AppSelect class="select" v-model="format" aria-label="Формат">
+          <option value="square">Свободный квадратный лист</option>
+          <option value="a4-portrait">A4 — книжная печать</option>
+          <option value="a4-landscape">A4 — альбомная печать</option></AppSelect
+        ><button class="btn btn-primary" :disabled="busy">Создать лист</button>
+      </form>
+    </ResponsivePanel>
     <form
       class="toolbar sketch-search"
       @submit.prevent="
@@ -225,10 +228,21 @@ onMounted(load);
 .sketch-grid .toolbar {
   margin-bottom: 0;
 }
-@media (max-width: 700px) {
-  .sketch-create,
+@media screen and (max-width: 760px) {
   .sketch-search {
+    grid-template-columns: minmax(0, 1fr) minmax(100px, 0.55fr);
+    gap: 10px;
+  }
+  .sketch-search .btn {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 700px) {
+  .sketch-create {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .sketch-search {
+    grid-template-columns: minmax(0, 1fr) minmax(100px, 0.55fr);
   }
   .sketch-create {
     padding: var(--panel-padding);

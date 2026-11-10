@@ -69,4 +69,16 @@ summary::-webkit-details-marker {
   opacity: 0.5;
   cursor: default;
 }
+@media screen and (max-width: 760px) {
+  .action-options {
+    max-height: min(60dvh, 480px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .action-options :deep(button),
+  .action-options :deep(a) {
+    font-size: 15px;
+    min-height: 48px;
+  }
+}
 </style>

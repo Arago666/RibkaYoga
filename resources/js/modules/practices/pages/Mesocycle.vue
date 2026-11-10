@@ -958,7 +958,7 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 900px) {
   .weeks-board {
-    grid-template-columns: repeat(5, 280px) !important;
+    grid-template-columns: repeat(var(--visible-weeks), minmax(280px, min(86vw, 420px))) !important;
     overflow-x: auto;
   }
 }

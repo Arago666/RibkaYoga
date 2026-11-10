@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" data-inertia="description" content="{{ request()->routeIs('home') ? 'От замысла до занятия: собирайте последовательности асан, ведите практику с таймером, делайте личные разборы и печатайте готовые листы в RibkaYoga.' : 'Ваша библиотека асан и конструктор практик. Собирайте, сохраняйте и печатайте последовательности.' }}">
     @if(request()->routeIs('home'))

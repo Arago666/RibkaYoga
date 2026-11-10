@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -153,38 +154,45 @@ onMounted(load);
       </div>
       <div class="output-actions">
         <button class="btn btn-primary" :disabled="!printReady" @click="printSheet">
-          Печать / PDF браузера</button
+          <span class="print-desktop-label">Печать / PDF браузера</span
+          ><span class="print-phone-label">Печать</span></button
         ><a class="btn btn-secondary" :href="pdfUrl" :aria-disabled="!practice" target="_blank" rel="noopener"
           >Скачать PDF</a
-        ><a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
-          >Экспорт JSON с рисунками</a
-        ><button class="btn btn-secondary" :disabled="!practice" @click="sharing = true">
-          Поделиться по ссылке
-        </button>
+        ><ResponsivePanel title="Действия с листом" label="Ещё">
+          <a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
+            >Экспорт JSON с рисунками</a
+          ><button class="btn btn-secondary" :disabled="!practice" @click="sharing = true">
+            Поделиться по ссылке
+          </button>
+        </ResponsivePanel>
       </div>
     </header>
     <p v-if="error" class="error-banner" role="alert">
       {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
     </p>
     <p v-if="loading" class="muted" role="status">Открываем лист…</p>
-    <div v-if="practice" class="card output-settings">
-      <label class="field"
-        ><span class="label">Преднастройка</span
-        ><AppSelect v-model="preset" class="select" @change="choosePreset">
-          <option value="clean">Чистый лист</option>
-          <option value="names">С названиями</option>
-          <option value="teach">Для проведения</option>
-        </AppSelect></label
-      ><label class="field"
-        ><span class="label">Ориентация A4</span
-        ><AppSelect v-model="orientation" class="select">
-          <option value="landscape">Альбомная</option>
-          <option value="portrait">Книжная</option>
-        </AppSelect></label
-      ><label class="check-label"
-        ><input v-model="showNames" type="checkbox" :disabled="preset === 'clean'" />Названия асан</label
-      ><button class="btn btn-ghost" @click="savePreferences">Запомнить настройки</button
-      ><span class="muted" role="status">{{ printReady ? 'Лист готов' : 'Загружаем рисунки…' }}</span>
+    <div v-if="practice" class="output-settings-toggle">
+      <ResponsivePanel title="Вид готового листа" label="Настройки листа">
+        <div v-if="practice" class="card output-settings">
+          <label class="field"
+            ><span class="label">Преднастройка</span
+            ><AppSelect v-model="preset" class="select" @change="choosePreset">
+              <option value="clean">Чистый лист</option>
+              <option value="names">С названиями</option>
+              <option value="teach">Для проведения</option>
+            </AppSelect></label
+          ><label class="field"
+            ><span class="label">Ориентация A4</span
+            ><AppSelect v-model="orientation" class="select">
+              <option value="landscape">Альбомная</option>
+              <option value="portrait">Книжная</option>
+            </AppSelect></label
+          ><label class="check-label"
+            ><input v-model="showNames" type="checkbox" :disabled="preset === 'clean'" />Названия асан</label
+          ><button class="btn btn-ghost" @click="savePreferences">Запомнить настройки</button
+          ><span class="muted" role="status">{{ printReady ? 'Лист готов' : 'Загружаем рисунки…' }}</span>
+        </div>
+      </ResponsivePanel>
     </div>
     <p v-if="preferencesMessage" class="success-banner" role="status">{{ preferencesMessage }}</p>
     <div v-if="practice" class="sheet-region">
@@ -218,6 +226,12 @@ onMounted(load);
   </AppShell>
 </template>
 <style scoped>
+.print-phone-label {
+  display: none;
+}
+.output-settings-toggle {
+  display: contents;
+}
 .output-actions,
 .output-settings {
   display: flex;
@@ -284,6 +298,29 @@ onMounted(load);
   margin-top: 16px;
   font-size: 13px;
   line-height: 1.65;
+}
+@media screen and (max-width: 760px) {
+  .print-desktop-label {
+    display: none;
+  }
+  .print-phone-label {
+    display: inline;
+  }
+  .output-settings-toggle {
+    display: block;
+    margin-bottom: 18px;
+  }
+  .output-settings-toggle :deep(.responsive-panel-trigger) {
+    width: 100%;
+  }
+  .output-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+  .output-actions > .btn {
+    font-size: 14px;
+    padding-inline: 12px;
+  }
 }
 @media (max-width: 700px) {
   .output-actions {

@@ -1227,4 +1227,23 @@ onBeforeUnmount(() => {
     box-shadow: 0 4px 24px #15191620;
   }
 }
+@media screen and (max-width: 760px) {
+  .review-modes {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    gap: 8px;
+    padding-bottom: 6px;
+    overscroll-behavior-x: contain;
+  }
+  .review-modes > .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 15px;
+  }
+  .review-heading > .review-actions .btn {
+    font-size: 14px;
+  }
+}
 </style>
