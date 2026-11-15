@@ -38,7 +38,7 @@ class SessionController
 
     public function store(Request $request)
     {
-        $input = $request->validate(MetronomeSettings::rules('metronome.', false) + ['metronome' => 'sometimes|nullable|array', 'id' => 'required|uuid', 'document_id' => 'required|uuid', 'expected_revision' => 'required|integer|min:1', 'mode' => ['required', Rule::in(['teach', 'practice'])], 'timezone' => 'required|timezone']);
+        $input = $request->validate(MetronomeSettings::rules('metronome.', false) + ['metronome' => 'sometimes|nullable|array', 'id' => 'required|uuid', 'document_id' => 'required|uuid', 'expected_revision' => 'required|integer|min:1', 'mode' => ['required', Rule::in(['teach', 'practice'])], 'timezone' => 'required|string|timezone:ALL_WITH_BC|max:80']);
         $result = DB::transaction(function () use ($input) {
             $existing = DB::table('practice_execution_sessions')->where('id', $input['id'])->lockForUpdate()->first();
             if ($existing) {
@@ -107,7 +107,7 @@ class SessionController
 
     public function index(Request $request)
     {
-        $input = $request->validate(['days' => 'nullable|integer|min:1|max:3650', 'timezone' => 'nullable|timezone']);
+        $input = $request->validate(['days' => 'nullable|integer|min:1|max:3650', 'timezone' => 'nullable|string|timezone:ALL_WITH_BC|max:80']);
         $tz = $input['timezone'] ?? 'UTC';
         $query = $this->owned();
         if (! empty($input['days'])) {

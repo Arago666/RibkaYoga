@@ -22,7 +22,7 @@ class Settings
     public static function validate(array $input): array
     {
         $rules = [
-            'kind' => ['sometimes', Rule::in(['meditation', 'breathing', 'tones'])], 'timezone' => ['sometimes', 'timezone', 'max:80'],
+            'kind' => ['sometimes', Rule::in(['meditation', 'breathing', 'tones'])], 'timezone' => ['sometimes', 'string', 'timezone:ALL_WITH_BC', 'max:80'],
             'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:43200'],
             'preparation_seconds' => ['sometimes', 'integer', 'min:0', 'max:300'],
             'start_signal' => ['sometimes', Rule::in(['none', 'gong', 'bowl', 'bell'])],

@@ -22,8 +22,10 @@ class MeditationController
 
     public function settings(Request $request): JsonResponse
     {
-        $input = $request->validate(['timezone' => ['sometimes', 'timezone', 'max:80']]);
-        $settings = $this->personalSettings($input['timezone'] ?? 'UTC');
+        // The browser zone is only an initial preference; it must not block loading saved settings.
+        $timezone = $request->query('timezone', 'UTC');
+        $valid = validator(['timezone' => $timezone], ['timezone' => ['required', 'string', 'timezone:ALL_WITH_BC', 'max:80']])->passes();
+        $settings = $this->personalSettings($valid ? $timezone : 'UTC');
 
         return response()->json(['data' => ['revision' => $settings->revision, 'settings' => [...Settings::defaults(), ...$settings->settings]], 'audio_limits' => $this->audio->limits()]);
     }
@@ -121,7 +123,7 @@ class MeditationController
 
     private function historyQuery(Request $request): array
     {
-        $input = $request->validate(['timezone' => ['sometimes', 'timezone', 'max:80'], 'period' => ['sometimes', Rule::in(['1', '7', '30', '180', 'all'])], 'page' => ['sometimes', 'integer', 'min:1']]);
+        $input = $request->validate(['timezone' => ['sometimes', 'string', 'timezone:ALL_WITH_BC', 'max:80'], 'period' => ['sometimes', Rule::in(['1', '7', '30', '180', 'all'])], 'page' => ['sometimes', 'integer', 'min:1']]);
         $input['timezone'] ??= $this->personalSettings()->settings['timezone'] ?? 'UTC';
         $query = $this->timer->query()->whereIn('status', ['completed', 'interrupted']);
         if (($input['period'] ?? '30') !== 'all') {
