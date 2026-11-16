@@ -43,7 +43,7 @@ export async function initializeTelegramMiniApp(): Promise<void> {
   if (!context.Telegram?.WebApp && launch.has('tgWebAppVersion')) {
     await new Promise<void>((resolve) => {
       const script = document.createElement('script');
-      script.src = 'https://telegram.org/js/telegram-web-app.js?62';
+      script.src = '/vendor/telegram/telegram-web-app-20261116.js';
       script.async = true;
       script.onload = script.onerror = () => resolve();
       document.head.append(script);
