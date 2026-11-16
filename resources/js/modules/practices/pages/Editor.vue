@@ -3141,6 +3141,19 @@ onBeforeUnmount(() => {
     padding: 10px;
     border-radius: 20px;
   }
+  .cell-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    margin-bottom: 0;
+  }
+  .cell-toolbar > * {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .cell-toolbar .selected-label {
+    display: none;
+  }
   .save-toolbar {
     flex-wrap: nowrap;
     overflow-x: auto;
