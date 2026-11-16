@@ -13,16 +13,27 @@ import {
   Settings,
   ScanText,
   AudioLines,
+  House,
 } from '@lucide/vue';
 import { computed, ref, onMounted } from 'vue';
 import { readUiPreferences, uiPreferencesKey } from './uiPreferences';
 import Modal from './Modal.vue';
 import BrandMotif from './BrandMotif.vue';
+import AppBreadcrumbs, { type BreadcrumbItem } from './AppBreadcrumbs.vue';
 import '../../css/brand-app.css';
 defineProps<{
   section:
-    'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews' | 'metronome';
+    | 'home'
+    | 'practices'
+    | 'library'
+    | 'account'
+    | 'templates'
+    | 'sketchbook'
+    | 'meditation'
+    | 'reviews'
+    | 'metronome';
   wide?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
 }>();
 const moreOpen = ref(false);
 const moreItems = [
@@ -35,6 +46,7 @@ const moreItems = [
   { href: '/settings', label: 'Настройки', icon: Settings },
 ];
 const page = usePage();
+const miniApp = computed(() => Boolean(page.props.miniApp));
 onMounted(() => {
   document.documentElement.dataset.reducedMotion = String(
     readUiPreferences(uiPreferencesKey(page.props.auth)).reduceMotion,
@@ -48,10 +60,16 @@ const user = computed(
   <div :class="['app-shell', 'app-shell-branded', { 'app-shell-wide': wide }]">
     <div class="app-ambient" aria-hidden="true"><BrandMotif /></div>
     <header :class="['app-header', { 'with-admin': user?.is_admin }]">
-      <Link href="/" class="brand" aria-label="RibkaYoga — главная страница"
+      <Link :href="user ? '/dashboard' : '/'" class="brand" aria-label="RibkaYoga — главная страница"
         ><img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span></Link
       >
       <nav v-if="user" class="main-nav" aria-label="Основная навигация">
+        <Link
+          href="/dashboard"
+          :class="['nav-link', 'mobile-home-nav', { active: section === 'home' }]"
+          :aria-current="section === 'home' ? 'page' : undefined"
+          ><House :size="18" /><span>Главная</span></Link
+        >
         <Link
           href="/practices"
           :class="['nav-link', { active: section === 'practices' }]"
@@ -62,7 +80,7 @@ const user = computed(
           href="/library"
           :class="['nav-link', { active: section === 'library' }]"
           :aria-current="section === 'library' ? 'page' : undefined"
-          ><Library :size="18" /><span>Библиотека</span></Link
+          ><Library :size="18" /><span>Асаны</span></Link
         >
         <Link
           href="/templates"
@@ -106,7 +124,12 @@ const user = computed(
         <Link href="/settings" class="icon-btn settings-link" aria-label="Настройки приложения"
           ><Settings :size="18"
         /></Link>
-        <button class="icon-btn" title="Выйти" aria-label="Выйти из аккаунта" @click="router.post('/logout')">
+        <button
+          class="icon-btn"
+          title="Выйти"
+          aria-label="Выйти из аккаунта"
+          @click="router.post(miniApp ? '/logout?mini_app=1' : '/logout')"
+        >
           <LogOut :size="18" />
         </button>
       </div>
@@ -121,16 +144,21 @@ const user = computed(
         </Link>
       </nav>
     </Modal>
-    <main :class="['app-main', { wide }]"><slot /></main>
+    <main :class="['app-main', { wide }]"><AppBreadcrumbs :items="breadcrumbs" /><slot /></main>
     <footer class="app-footer">
       <span class="footer-signature"
         ><span class="brand-seed" aria-hidden="true"></span>Место для вашей практики</span
       >
-      <Link href="/" class="footer-home">О RibkaYoga <span aria-hidden="true">↗</span></Link>
+      <Link :href="user ? '/dashboard' : '/'" class="footer-home"
+        >{{ user ? 'Главная' : 'О RibkaYoga' }} <span aria-hidden="true">↗</span></Link
+      >
     </footer>
   </div>
 </template>
 <style scoped>
+.main-nav .mobile-home-nav {
+  display: none;
+}
 .guest-login {
   margin-left: auto;
 }
@@ -204,6 +232,19 @@ const user = computed(
   }
 }
 @media (max-width: 760px) {
+  .main-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .main-nav .nav-link {
+    min-width: 0;
+  }
+  .main-nav .mobile-home-nav,
+  .main-nav .mobile-nav {
+    display: flex;
+  }
+  .main-nav .more-nav {
+    display: none;
+  }
   .admin-link {
     display: none;
   }
@@ -223,6 +264,12 @@ const user = computed(
 @media (max-width: 350px) {
   .settings-link {
     display: none;
+  }
+}
+@media (max-width: 350px) {
+  .main-nav .nav-link {
+    font-size: 9px;
+    letter-spacing: -0.02em;
   }
 }
 </style>

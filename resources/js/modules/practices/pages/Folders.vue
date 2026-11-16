@@ -237,7 +237,14 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
 
 <template>
   <Head :title="title" />
-  <AppShell section="practices">
+  <AppShell
+    section="practices"
+    :breadcrumbs="
+      current
+        ? [{ label: 'Категории практик', href: '/practice-folders' }, { label: current.name }]
+        : undefined
+    "
+  >
     <PageHeading eyebrow="Порядок в практике" :title="title" :description="description" />
     <PracticeNavigation active="categories" />
 

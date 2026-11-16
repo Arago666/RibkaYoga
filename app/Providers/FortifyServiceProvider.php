@@ -14,10 +14,16 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->singleton(LogoutResponse::class, \App\Modules\Access\Http\LogoutResponse::class);
+    }
+
     public function boot(): void
     {
         Fortify::loginView(fn () => Inertia::render('access/Login', ['status' => session('status')]));

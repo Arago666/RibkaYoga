@@ -8,7 +8,7 @@ return [
     'username' => 'login',
     'email' => 'email',
     'lowercase_usernames' => true,
-    'home' => '/practices',
+    'home' => '/dashboard',
     'prefix' => '',
     'domain' => null,
     'middleware' => ['web', 'throttle:access'],

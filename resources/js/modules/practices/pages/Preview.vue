@@ -145,7 +145,15 @@ onMounted(load);
 </script>
 <template>
   <Head :title="practice ? `${practice.title} — готовый лист` : 'Лист практики'" />
-  <AppShell section="practices" wide>
+  <AppShell
+    section="practices"
+    wide
+    :breadcrumbs="[
+      { label: 'Практики', href: '/practices' },
+      { label: practice?.title || 'Практика', href: `/practices/${documentId}/edit` },
+      { label: printMode ? 'Печать' : 'Готовый лист' },
+    ]"
+  >
     <header class="page-header">
       <div>
         <Link class="btn btn-ghost" :href="`/practices/${documentId}/edit`">К редактированию</Link>

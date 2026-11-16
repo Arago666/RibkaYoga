@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, ArrowRight, Eye, EyeOff } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import BrandMotif from '@/shared/BrandMotif.vue';
 import '../../../../css/brand-app.css';
 defineProps<{ status?: string }>();
 const form = useForm({ login: '', password: '', remember: true });
 const visible = ref(false);
+const page = usePage();
+const miniApp = computed(() => Boolean(page.props.miniApp));
 function submit() {
   form.post('/login', { onFinish: () => form.reset('password') });
 }
@@ -19,15 +21,15 @@ function submit() {
       content="Войдите в RibkaYoga. Ваша библиотека асан, практики и пространство для осознанного движения."
     />
   </Head>
-  <main class="brand-login-page">
+  <main class="brand-login-page" :class="{ 'is-mini-app': miniApp }">
     <header class="brand-login-header">
-      <Link href="/" class="brand" aria-label="RibkaYoga — главная страница">
+      <Link :href="miniApp ? '/mini-app' : '/'" class="brand" aria-label="RibkaYoga — главная страница">
         <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
       </Link>
-      <Link href="/" class="brand-login-back"><ArrowLeft :size="16" />На главную</Link>
+      <Link v-if="!miniApp" href="/" class="brand-login-back"><ArrowLeft :size="16" />На главную</Link>
     </header>
     <div class="brand-login-layout">
-      <aside class="brand-login-visual" aria-label="Пространство для вашей практики">
+      <aside v-if="!miniApp" class="brand-login-visual" aria-label="Пространство для вашей практики">
         <img
           src="/images/brand/glass-garden-hero.webp"
           alt="Стеклянная форма и зелёный островок мха"
@@ -51,7 +53,7 @@ function submit() {
       <section class="brand-login-form-panel">
         <div class="brand-login-form-inner">
           <span class="eyebrow">Ваше пространство</span>
-          <h1>С возвращением.</h1>
+          <h1>{{ miniApp ? 'Вход в RibkaYoga' : 'С возвращением.' }}</h1>
           <p class="brand-login-intro">Войдите, чтобы продолжить свою практику.</p>
           <p v-if="status" class="success-banner" role="status">{{ status }}</p>
           <form @submit.prevent="submit" class="login-form">
@@ -66,7 +68,7 @@ function submit() {
                 :spellcheck="false"
                 maxlength="64"
                 required
-                autofocus
+                :autofocus="!miniApp"
                 placeholder="Введите логин"
                 :aria-invalid="!!form.errors.login"
                 :aria-describedby="form.errors.login ? 'login-error' : undefined"

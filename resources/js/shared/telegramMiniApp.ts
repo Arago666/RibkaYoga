@@ -74,11 +74,17 @@ export async function initializeTelegramMiniApp(): Promise<void> {
       'button[aria-label="Закрыть"], button[aria-label^="Свернуть"]',
     );
     if (close) close.click();
-    else router.visit('/practices');
+    else {
+      const parent = [
+        ...document.querySelectorAll<HTMLAnchorElement>('[aria-label="Путь по разделам"] a'),
+      ].at(-1);
+      router.visit(parent?.getAttribute('href') || '/dashboard');
+    }
   };
   app.BackButton.onClick(back);
   const navigation = () => {
-    if (['/', '/practices', '/login', '/register'].includes(location.pathname)) app.BackButton.hide();
+    if (['/', '/dashboard', '/mini-app', '/login', '/register'].includes(location.pathname))
+      app.BackButton.hide();
     else app.BackButton.show();
   };
   router.on('navigate', navigation);

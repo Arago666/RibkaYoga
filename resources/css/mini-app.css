@@ -96,8 +96,34 @@ html[data-mini-app='telegram'] {
   min-height: var(--mini-app-height, 100dvh);
 }
 html[data-mini-app='telegram'] :is(.brand-login-page, .landing) {
-  padding-top: var(--app-safe-top);
-  padding-bottom: var(--app-safe-bottom);
+  padding-top: max(20px, var(--app-safe-top));
+  padding-bottom: max(20px, var(--app-safe-bottom));
+}
+.brand-login-page.is-mini-app {
+  padding: max(20px, var(--app-safe-top)) 20px max(24px, var(--app-safe-bottom));
+}
+.brand-login-page.is-mini-app .brand-login-header {
+  max-width: 460px;
+  margin-bottom: 28px;
+}
+.brand-login-page.is-mini-app .brand-login-layout {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  max-width: 460px;
+  border-radius: 26px;
+}
+.brand-login-page.is-mini-app .brand-login-form-panel {
+  min-height: 0;
+  padding: 30px 24px 24px;
+}
+.brand-login-page.is-mini-app .brand-login-form-inner {
+  margin: 0;
+}
+.brand-login-page.is-mini-app .brand-login-form-inner h1 {
+  font-size: 28px;
+}
+.brand-login-page.is-mini-app .brand-login-footnote {
+  margin-top: 28px;
 }
 html[data-mini-app='telegram'] .app-shell {
   padding-left: max(0px, calc(var(--app-safe-left) - var(--page-gutter)));

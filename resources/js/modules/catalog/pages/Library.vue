@@ -2,7 +2,7 @@
 import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
   Plus,
   Search,
@@ -240,7 +240,6 @@ async function taxonomyChanged() {
       description="Ваши асаны, рисунки и подборки — в одном месте."
     >
       <div class="library-actions">
-        <Link class="btn btn-secondary" href="/pose-editor">Создать 3D-позу</Link>
         <button class="btn btn-primary" @click="uploadOpen = true"><Plus :size="19" /> Добавить асаны</button>
       </div>
     </PageHeading>

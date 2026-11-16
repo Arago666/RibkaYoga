@@ -201,14 +201,6 @@ onBeforeUnmount(clearReplacement);
           Оставить выбранное изображение
         </button>
       </div>
-      <a
-        v-if="currentCard?.pose_source"
-        class="btn btn-secondary"
-        :href="`/pose-editor?asana=${currentCard.id}`"
-        target="_blank"
-        rel="noopener"
-        >Редактировать 3D-позу</a
-      >
       <AsanaFields
         :key="card?.id"
         ref="fields"

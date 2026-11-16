@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { ArrowLeft } from '@lucide/vue';
 import BrandMotif from './BrandMotif.vue';
 import '../../css/brand-app.css';
 withDefaults(defineProps<{ title: string; eyebrow?: string }>(), { eyebrow: 'Ваше пространство' });
+const page = usePage();
+const miniApp = computed(() => Boolean(page.props.miniApp));
 </script>
 <template>
-  <main class="brand-login-page">
+  <main class="brand-login-page" :class="{ 'is-mini-app': miniApp }">
     <header class="brand-login-header">
-      <Link href="/" class="brand" aria-label="RibkaYoga — главная страница">
+      <Link :href="miniApp ? '/mini-app' : '/'" class="brand" aria-label="RibkaYoga — главная страница">
         <img src="/favicon.svg" alt="" /><span>ribka<span class="brand-light">yoga</span></span>
       </Link>
-      <Link href="/" class="brand-login-back"><ArrowLeft :size="16" />На главную</Link>
+      <Link :href="miniApp ? '/login' : '/'" class="brand-login-back"
+        ><ArrowLeft :size="16" />{{ miniApp ? 'К входу' : 'На главную' }}</Link
+      >
     </header>
     <div class="brand-login-layout">
-      <aside class="brand-login-visual" aria-label="Пространство для вашей практики">
+      <aside v-if="!miniApp" class="brand-login-visual" aria-label="Пространство для вашей практики">
         <img
           src="/images/brand/glass-garden-hero.webp"
           alt="Стеклянная форма и зелёный островок мха"

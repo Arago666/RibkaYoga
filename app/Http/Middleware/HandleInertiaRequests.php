@@ -15,6 +15,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'miniApp' => (bool) $request->session()->get('mini_app', false),
             'csrf_token' => csrf_token(),
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'login', 'is_admin'),

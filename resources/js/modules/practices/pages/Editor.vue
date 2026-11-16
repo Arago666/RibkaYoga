@@ -1643,7 +1643,12 @@ onBeforeUnmount(() => {
     @save="saveExecution"
   />
   <Head :title="doc?.title || 'Конструктор'" />
-  <AppShell section="practices" wide :class="{ 'embedded-editor': embedded }">
+  <AppShell
+    section="practices"
+    wide
+    :class="{ 'embedded-editor': embedded }"
+    :breadcrumbs="[{ label: 'Практики', href: '/practices' }, { label: doc?.title || 'Конструктор' }]"
+  >
     <div v-if="loading" class="editor-loading">
       <div class="skeleton" style="height: 64px; margin-bottom: 25px" />
       <div class="skeleton" style="height: 500px" />
@@ -1654,26 +1659,6 @@ onBeforeUnmount(() => {
       <button class="btn btn-primary" @click="editor.load"><RefreshCw :size="17" />Повторить</button>
     </div>
     <template v-else>
-      <div v-if="!embedded" class="editor-breadcrumb">
-        <button
-          @click="
-            go(rowMode ? `/practices?tab=${transitionDocument ? 'transitions' : 'rows'}` : '/practices')
-          "
-        >
-          <ArrowLeft :size="15" />{{
-            transitionDocument ? 'Связки и переходы' : rowMode ? 'Сохранённые строки' : 'Все практики'
-          }}</button
-        ><span>/</span
-        ><span>{{
-          transitionDocument
-            ? 'Связка'
-            : rowMode
-              ? 'Сохранённая строка'
-              : doc.kind === 'template'
-                ? 'Шаблон практики'
-                : 'Конструктор'
-        }}</span>
-      </div>
       <header class="editor-header">
         <div class="editor-title-area">
           <input
@@ -2504,6 +2489,7 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 .embedded-editor :deep(.app-header),
+.embedded-editor :deep(.app-breadcrumbs),
 .embedded-editor :deep(.app-footer) {
   display: none;
 }
@@ -2720,25 +2706,6 @@ onBeforeUnmount(() => {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
   background: var(--accent-soft) !important;
-}
-.editor-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.editor-breadcrumb button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  background: none;
-  border: 0;
-  padding: 0;
-  min-height: var(--control-height);
 }
 .editor-header {
   display: flex;

@@ -113,7 +113,12 @@ onMounted(async () => {
 </script>
 <template>
   <Head title="Настройки" />
-  <AppShell section="account">
+  <AppShell
+    section="account"
+    :breadcrumbs="
+      activeSection ? [{ label: 'Настройки', href: '/settings' }, { label: activeSection.title }] : undefined
+    "
+  >
     <PageHeading
       eyebrow="Всё по-вашему"
       :title="activeSection?.title || 'Настройки'"
