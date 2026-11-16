@@ -2,7 +2,7 @@
 import PageHeading from '@/shared/PageHeading.vue';
 import { onMounted, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { UserRound, CreditCard, Shield, Save } from '@lucide/vue';
+import { UserRound, CreditCard, Shield, Save, Send } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 import { errorText } from '@/modules/catalog/types';
@@ -12,7 +12,7 @@ interface AccountData {
     id: number;
     name: string;
     login: string;
-    email: string;
+    email: string | null;
     phone: string | null;
     telegram: string | null;
     requisites: string | null;
@@ -22,6 +22,7 @@ interface AccountData {
   workspace: { id: string; name: string; role: string };
   subscription: Subscription;
   plans: Record<string, { name: string; limits: Record<string, number | null> }>;
+  telegram_login: { connected: boolean; password_enabled: boolean };
 }
 const account = ref<AccountData | null>(null);
 const error = ref(''),
@@ -50,7 +51,7 @@ async function load() {
     form.defaults({
       name: user.name,
       login: user.login,
-      email: user.email,
+      email: user.email || '',
       phone: user.phone || '',
       telegram: user.telegram || '',
       requisites: user.requisites || '',
@@ -152,11 +153,21 @@ onMounted(load);
               v-model="form[field]"
               class="input"
               :type="field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'"
-              :required="['name', 'login', 'email'].includes(field)"
+              :required="
+                ['name', 'login'].includes(field) ||
+                (field === 'email' && account.telegram_login.password_enabled)
+              "
+              :readonly="!account.telegram_login.password_enabled && ['login', 'email'].includes(field)"
               :maxlength="field === 'email' ? 255 : field === 'login' || field === 'phone' ? 64 : 120"
             /><span v-if="form.errors[field]" class="field-error">{{ form.errors[field] }}</span></label
           >
-          <label v-if="form.login !== account.user.login || form.email !== account.user.email" class="field">
+          <label
+            v-if="
+              account.telegram_login.password_enabled &&
+              (form.login !== account.user.login || form.email !== (account.user.email || ''))
+            "
+            class="field"
+          >
             <span class="label">Текущий пароль для изменения логина или почты</span>
             <input
               v-model="form.profile_password"
@@ -212,6 +223,10 @@ onMounted(load);
         </form>
       </section>
       <div class="account-column">
+        <section v-if="account.telegram_login.connected" class="card account-card">
+          <h2><Send :size="20" />Telegram</h2>
+          <p>В Mini App вы автоматически входите в этот отдельный кабинет через свой Telegram.</p>
+        </section>
         <section class="card account-card">
           <h2><CreditCard :size="20" />Подписка</h2>
           <h3>{{ account.subscription.plan_name }}</h3>
@@ -263,7 +278,7 @@ onMounted(load);
             </li>
           </ul>
         </section>
-        <section class="card account-card">
+        <section v-if="account.telegram_login.password_enabled" class="card account-card">
           <h2>Изменить пароль</h2>
           <form class="profile-form" @submit.prevent="updatePassword">
             <label class="field"

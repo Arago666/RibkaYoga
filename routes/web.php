@@ -1,28 +1,27 @@
 <?php
 
 use App\Modules\Access\Http\TelegramBotController;
+use App\Modules\Access\Http\TelegramSessionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/mini-app', function (Request $request) {
-    // UI context only: a Telegram launch never grants a site account.
+    // Authentication happens only after server verification of signed initData.
     $request->session()->put('mini_app', true);
-    if (! $request->user()) {
-        $request->session()->put('url.intended', route('dashboard'));
-    }
 
-    return redirect()->route($request->user() ? 'dashboard' : 'login');
+    return Inertia::render('access/TelegramEntry');
 })->name('mini-app');
+Route::post('/api/telegram/session', TelegramSessionController::class)->middleware('throttle:20,1');
 Route::post('/telegram/webhook', TelegramBotController::class)
     ->middleware('throttle:120,1')
     ->name('telegram.webhook');
 
 Route::get('/', function (Request $request) {
+    $request->session()->forget('mini_app');
     if ($request->user()) {
         return redirect()->route('dashboard');
     }
-    $request->session()->forget('mini_app');
 
     return Inertia::render('presentation/Home', ['socialImage' => url('/images/brand/glass-garden-hero.webp')]);
 })->name('home');

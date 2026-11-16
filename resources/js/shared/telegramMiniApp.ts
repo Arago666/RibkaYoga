@@ -25,7 +25,35 @@ interface TelegramWebApp {
   BackButton: { show(): void; hide(): void; onClick(handler: () => void): void };
 }
 
-/** Layout bridge only. Telegram data never grants authentication or access. */
+let appPromise: Promise<TelegramWebApp | null> | undefined;
+function telegramApp(): Promise<TelegramWebApp | null> {
+  return (appPromise ??= (async () => {
+    const context = window as Window & { Telegram?: { WebApp?: TelegramWebApp } };
+    const launch = new URLSearchParams(location.hash.slice(1));
+    if (!context.Telegram?.WebApp && launch.has('tgWebAppVersion')) {
+      await new Promise<void>((resolve) => {
+        const script = document.createElement('script');
+        script.src = '/vendor/telegram/telegram-web-app-20261116.js';
+        script.async = true;
+        const timeout = window.setTimeout(resolve, 8000);
+        script.onload = script.onerror = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        document.head.append(script);
+      });
+    }
+    const app = context.Telegram?.WebApp;
+    return app && app.platform !== 'unknown' && app.initData ? app : null;
+  })());
+}
+
+/** Raw launch proof goes only to our CSRF-protected verification endpoint. */
+export async function getTelegramLaunchData(): Promise<string | null> {
+  return (await telegramApp())?.initData || null;
+}
+
+/** Layout data is not an authentication decision; the server verifies identity separately. */
 export async function initializeTelegramMiniApp(): Promise<void> {
   const root = document.documentElement;
   const keyboard = () => {
@@ -38,19 +66,8 @@ export async function initializeTelegramMiniApp(): Promise<void> {
   document.addEventListener('focusin', keyboard);
   document.addEventListener('focusout', keyboard);
   keyboard();
-  const context = window as Window & { Telegram?: { WebApp?: TelegramWebApp } };
-  const launch = new URLSearchParams(location.hash.slice(1));
-  if (!context.Telegram?.WebApp && launch.has('tgWebAppVersion')) {
-    await new Promise<void>((resolve) => {
-      const script = document.createElement('script');
-      script.src = '/vendor/telegram/telegram-web-app-20261116.js';
-      script.async = true;
-      script.onload = script.onerror = () => resolve();
-      document.head.append(script);
-    });
-  }
-  const app = context.Telegram?.WebApp;
-  if (!app || app.platform === 'unknown' || !app.initData) return;
+  const app = await telegramApp();
+  if (!app) return;
   root.dataset.miniApp = 'telegram';
   const layout = () => {
     root.dataset.miniFullscreen = String(!!app.isFullscreen);

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Access\Http;
 
+use App\Modules\Access\Models\TelegramIdentity;
 use App\Modules\Access\Models\Workspace;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\SubscriptionAccess;
@@ -32,17 +33,19 @@ class AccountController
                 'avatar_url' => $user->avatar_path ? '/account/avatar?v='.$user->updated_at->timestamp : null],
             'workspace' => $this->workspace->details(), 'subscription' => $this->subscription->describe($this->workspace->id()),
             'plans' => config('billing.plans'),
+            'telegram_login' => ['connected' => TelegramIdentity::where('user_id', $user->id)->exists(), 'password_enabled' => (bool) $user->password_login_enabled],
         ];
     }
 
     public function update(Request $request)
     {
         $user = $request->user();
-        $request->merge(['login' => mb_strtolower(trim((string) $request->input('login'))), 'email' => mb_strtolower(trim((string) $request->input('email')))]);
+        $request->merge(['login' => mb_strtolower(trim((string) $request->input('login'))), 'email' => mb_strtolower(trim((string) $request->input('email'))) ?: null]);
+        abort_if(! $user->password_login_enabled && ($user->login !== $request->input('login') || $user->email !== $request->input('email')), 403, 'Этот кабинет использует вход через Telegram.');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'login' => ['required', 'string', 'max:64', 'regex:/\A[a-z0-9][a-z0-9._-]*\z/', Rule::unique('users', 'login')->ignore($user->id)],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'email' => [$user->password_login_enabled ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:64'], 'telegram' => ['nullable', 'string', 'max:120'],
             'requisites' => ['nullable', 'string', 'max:3000'], 'workspace_name' => ['required', 'string', 'max:160'],
             'avatar' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'], 'remove_avatar' => ['sometimes', 'boolean'],
@@ -87,6 +90,7 @@ class AccountController
 
     public function password(Request $request): array
     {
+        abort_unless($request->user()->password_login_enabled, 403, 'Этот кабинет использует вход через Telegram.');
         $data = $request->validate(['current_password' => ['required', 'current_password'], 'password' => ['required', 'confirmed', Password::min(8)]]);
         $request->user()->forceFill(['password' => $data['password'], 'remember_token' => Str::random(60)])->save();
         $request->session()->regenerate();

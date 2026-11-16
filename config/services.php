@@ -3,6 +3,7 @@
 return [
 
     'telegram' => [
+        'bot_id' => env('TELEGRAM_BOT_ID', '9205572096'),
         'username' => env('TELEGRAM_BOT_USERNAME', 'ribkayogabot'),
         'api_address' => env('TELEGRAM_API_ADDRESS'),
         'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),

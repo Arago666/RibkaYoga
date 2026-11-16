@@ -125,6 +125,7 @@ const user = computed(
           ><Settings :size="18"
         /></Link>
         <button
+          v-if="!miniApp"
           class="icon-btn"
           title="Выйти"
           aria-label="Выйти из аккаунта"
