@@ -4,6 +4,7 @@ namespace App\Modules\Access;
 
 use App\Modules\Access\Console\CreateMember;
 use App\Modules\Access\Console\CreateWorkspace;
+use App\Modules\Access\Console\PollTelegramBot;
 use App\Modules\Access\Console\ResetPassword;
 use App\Modules\Access\Console\SetAdministrator;
 use Illuminate\Support\Facades\Route;
@@ -15,7 +16,7 @@ class AccessServiceProvider extends ServiceProvider
     {
         Route::middleware(['web', 'auth'])->group(__DIR__.'/routes.php');
         if ($this->app->runningInConsole()) {
-            $this->commands([CreateWorkspace::class, CreateMember::class, ResetPassword::class, SetAdministrator::class]);
+            $this->commands([CreateWorkspace::class, CreateMember::class, ResetPassword::class, SetAdministrator::class, PollTelegramBot::class]);
         }
     }
 }

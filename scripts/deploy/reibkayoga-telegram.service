@@ -1,0 +1,28 @@
+[Unit]
+Description=RibkaYoga Telegram command polling
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=reibkayoga
+Group=reibkayoga
+WorkingDirectory=/var/www/reibkayoga
+LoadCredential=telegram-token:/etc/reibkayoga/telegram-bot.token
+ExecStart=/usr/bin/php -d extension=/opt/reibkayoga/php-extensions/usr/lib/php/20240924/pdo_pgsql.so /var/www/reibkayoga/artisan ribka:telegram-poll
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=50
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/reibkayoga/storage
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=160M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target
