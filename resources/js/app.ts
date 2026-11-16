@@ -1,4 +1,6 @@
 import '../css/mobile.css';
+import '../css/mini-app.css';
+import { initializeTelegramMiniApp } from './shared/telegramMiniApp';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import type { DefineComponent } from 'vue';
@@ -15,6 +17,7 @@ void createInertiaApp({
     createApp({ render: () => h(App, props) })
       .use(plugin)
       .mount(el);
+    void initializeTelegramMiniApp();
   },
   progress: { color: '#397a28' },
 });

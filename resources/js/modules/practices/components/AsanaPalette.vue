@@ -582,9 +582,12 @@ onBeforeUnmount(() => {
     top: auto;
     z-index: 80;
     border-radius: var(--panel-radius) var(--panel-radius) 0 0;
-    max-height: calc(100dvh - max(72px, env(safe-area-inset-top)));
+    max-height: calc(
+      min(100dvh, var(--visual-viewport-height, 100dvh)) -
+        max(72px, var(--app-safe-top, env(safe-area-inset-top)))
+    );
     overflow-y: auto;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--app-safe-bottom, env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -10px 60px color-mix(in srgb, var(--text) 13%, transparent);
   }
   .mobile-open .palette-grid {

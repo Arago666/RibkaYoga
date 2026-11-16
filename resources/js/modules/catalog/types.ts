@@ -13,6 +13,7 @@ export interface AsanaDisplayImage {
   available: boolean;
 }
 export interface Asana {
+  pose_source?: import('./pose/scene').PoseSource | null;
   illustration_variant_id?: string | null;
   id: string;
   name: string;

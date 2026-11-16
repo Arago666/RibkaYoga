@@ -223,7 +223,6 @@ onMounted(load);
       @changed="load"
     />
     <div class="folder-context">
-      <button v-if="folderId" class="btn btn-ghost" @click="folderId = ''">← Документы без папки</button>
       <h2>{{ folderId ? 'Документы папки' : 'Документы без папки' }}</h2>
       <p v-if="!folderId" class="muted">После добавления в папку документ остаётся доступен внутри неё.</p>
     </div>
@@ -259,7 +258,7 @@ onMounted(load);
         <div class="cycle-card-top">
           <CalendarDays v-if="item.type === 'cycle'" :size="28" /><BookOpen v-else :size="28" /><ActionMenu
             :label="`Действия: ${item.title}`"
-            ><button v-if="!item.archived_at" @click="assigning = item">Добавить в папку</button
+            ><button v-if="!item.archived_at" @click="assigning = item">Переместить в папку</button
             ><button v-if="folderId && !item.archived_at" :disabled="busy" @click="removeFromFolder(item)">
               Убрать из этой папки</button
             ><Link v-if="!item.archived_at" :href="itemUrl(item)">Редактировать</Link
@@ -329,7 +328,7 @@ onMounted(load);
         </button></template
       ></Modal
     >
-    <Modal :open="!!assigning" title="Добавить в папку" @close="assigning = null"
+    <Modal :open="!!assigning" title="Переместить в папку" @close="assigning = null"
       ><PracticeFolders
         v-if="assigning"
         mode="program"

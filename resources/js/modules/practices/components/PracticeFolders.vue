@@ -13,6 +13,7 @@ interface FolderItem {
   archived_at: string | null;
   documents_count?: number;
   items_count?: number;
+  parent_id?: string | null;
 }
 export interface ProgramItem {
   id: string;
@@ -39,11 +40,33 @@ const items = ref<FolderItem[]>([]),
   archived = ref(false),
   creating = ref(false),
   name = ref(''),
+  createParent = ref<string | null>(null),
   dropTarget = ref<string | null>(null);
 const endpoint = computed(() => (props.mode === 'program' ? 'program-folders' : 'practice-folders'));
 const hasSelection = computed(
   () => !!(props.mode === 'program' ? props.programItems.length : props.documents.length),
 );
+const visibleItems = computed(() =>
+  props.mode !== 'program' || hasSelection.value || archived.value
+    ? items.value
+    : items.value.filter((folder) => (folder.parent_id || '') === props.selectedFolder),
+);
+function pathTo(id: string): FolderItem[] {
+  const path: FolderItem[] = [];
+  const seen = new Set<string>();
+  let current = items.value.find((folder) => folder.id === id);
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id);
+    path.unshift(current);
+    current = items.value.find((folder) => folder.id === current?.parent_id);
+  }
+  return path;
+}
+const breadcrumbs = computed(() => pathTo(props.selectedFolder));
+function startCreate(parent = props.selectedFolder) {
+  createParent.value = props.mode === 'program' ? parent || null : null;
+  creating.value = true;
+}
 async function load() {
   loading.value = true;
   try {
@@ -59,6 +82,19 @@ async function load() {
 function failure(e: unknown) {
   return e instanceof Error ? e.message : 'Не удалось изменить папку.';
 }
+function documentCount(folder: FolderItem) {
+  const count = props.mode === 'program' ? folder.items_count || 0 : folder.documents_count || 0;
+  const tail = count % 100;
+  const word =
+    tail >= 11 && tail <= 14
+      ? 'документов'
+      : count % 10 === 1
+        ? 'документ'
+        : count % 10 >= 2 && count % 10 <= 4
+          ? 'документа'
+          : 'документов';
+  return `${count} ${word}`;
+}
 async function create() {
   if (busy.value || !name.value.trim()) return;
   busy.value = true;
@@ -66,7 +102,10 @@ async function create() {
   try {
     await api(`/api/${endpoint.value}`, {
       method: 'POST',
-      body: JSON.stringify({ name: name.value.trim() }),
+      body: JSON.stringify({
+        name: name.value.trim(),
+        ...(props.mode === 'program' ? { parent_id: createParent.value } : {}),
+      }),
     });
     name.value = '';
     creating.value = false;
@@ -126,7 +165,7 @@ async function assign(folder: FolderItem, remove = false, dropped?: ProgramItem[
     await load();
     notice.value = remove
       ? 'Документ убран из папки. Сам документ сохранён.'
-      : `Добавлено в «${folder.name}».`;
+      : `${props.mode === 'program' ? 'Перемещено' : 'Добавлено'} в «${folder.name}».`;
     emit('changed');
   } catch (e) {
     error.value = failure(e);
@@ -167,8 +206,26 @@ defineExpose({ refresh: load });
     :aria-busy="busy || loading"
     :aria-label="mode === 'program' ? 'Папки программ и циклов' : 'Категории практик'"
   >
+    <nav
+      v-if="mode === 'program' && !hasSelection && !archived"
+      class="folder-breadcrumbs"
+      aria-label="Путь к папке"
+    >
+      <button :aria-current="!selectedFolder ? 'page' : undefined" @click="emit('select', '')">
+        <Folder :size="16" />Программы и циклы
+      </button>
+      <template v-for="(folder, index) in breadcrumbs" :key="folder.id">
+        <span aria-hidden="true">/</span>
+        <button
+          :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined"
+          @click="emit('select', folder.id)"
+        >
+          {{ folder.name }}
+        </button>
+      </template>
+    </nav>
     <div class="folder-heading">
-      <button class="btn btn-secondary" @click="creating = true">
+      <button class="btn btn-secondary" @click="startCreate()">
         <Plus :size="17" />{{ mode === 'program' ? 'Создать папку' : 'Создать категорию' }}</button
       ><ActionMenu label="Действия с папками"
         ><button
@@ -195,15 +252,18 @@ defineExpose({ refresh: load });
     </p>
     <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
     <p v-if="hasSelection" class="muted">
-      Нажмите на папку, чтобы добавить выбранный документ. Его прежние
-      {{ mode === 'program' ? 'папки' : 'категории' }} сохранятся.
+      {{
+        mode === 'program'
+          ? 'Выберите папку назначения. Документ будет перемещён из прежней папки.'
+          : 'Выберите категорию. Остальные категории документа сохранятся.'
+      }}
     </p>
     <p v-if="loading && !items.length" class="folder-loading" role="status">
       {{ mode === 'program' ? 'Загружаем папки…' : 'Загружаем категории…' }}
     </p>
     <div v-else class="folder-grid">
       <article
-        v-for="folder in items"
+        v-for="folder in visibleItems"
         :key="folder.id"
         class="folder-card"
         :class="{
@@ -224,8 +284,15 @@ defineExpose({ refresh: load });
               :stroke-width="1.5"
           /></span>
           <ActionMenu :label="`Действия с папкой: ${folder.name}`"
+            ><button
+              v-if="mode === 'program' && !hasSelection && !folder.archived_at"
+              :disabled="busy"
+              @click="startCreate(folder.id)"
+            >
+              <Plus :size="16" />Создать папку внутри</button
             ><template v-if="hasSelection && !folder.archived_at"
-              ><button :disabled="busy" @click="assign(folder)">Добавить выбранные</button
+              ><button :disabled="busy" @click="assign(folder)">
+                {{ mode === 'program' ? 'Переместить сюда' : 'Добавить выбранные' }}</button
               ><button :disabled="busy" @click="assign(folder, true)">Убрать выбранные</button></template
             ><button :disabled="busy" @click="rename(folder)">Переименовать</button
             ><button :disabled="busy" @click="change(folder, { archived: !folder.archived_at })">
@@ -252,23 +319,26 @@ defineExpose({ refresh: load });
           <Plus v-else-if="!folder.archived_at && hasSelection" :size="18" aria-hidden="true" />
           <ArrowUpRight v-else-if="!folder.archived_at" :size="18" aria-hidden="true" />
         </button>
+        <small v-if="mode === 'program' && hasSelection && folder.parent_id" class="muted">{{
+          pathTo(folder.id)
+            .slice(0, -1)
+            .map((parent) => parent.name)
+            .join(' / ')
+        }}</small>
         <div class="folder-meta">
           <FileText :size="14" aria-hidden="true" />
-          <small
-            >{{
-              mode === 'program' ? folder.items_count || 0 : folder.documents_count || 0
-            }}
-            документов</small
-          >
+          <small>{{ documentCount(folder) }}</small>
           <span v-if="folder.archived_at" class="folder-archive-label">В архиве</span>
         </div>
       </article>
     </div>
-    <p v-if="!loading && !items.length && !error" class="muted">
+    <p v-if="!loading && !visibleItems.length && !error" class="muted">
       {{
         archived
           ? 'В архиве папок пока нет.'
-          : 'Создайте папку, чтобы собрать занятия по теме. Документы можно перетаскивать на неё или добавлять через меню «⋮».'
+          : mode === 'program' && selectedFolder
+            ? 'Вложенных папок пока нет. Здесь можно создать новую папку.'
+            : 'Создайте папку, чтобы собрать занятия по теме. Документы можно перетаскивать на неё или добавлять через меню «⋮».'
       }}
     </p>
     <Modal
@@ -276,6 +346,16 @@ defineExpose({ refresh: load });
       :title="mode === 'program' ? 'Новая папка' : 'Новая категория практик'"
       @close="!busy && (creating = false)"
       ><form id="folder-create" @submit.prevent="create">
+        <p v-if="mode === 'program'" class="muted">
+          В папке:
+          {{
+            createParent
+              ? pathTo(createParent)
+                  .map((parent) => parent.name)
+                  .join(' / ')
+              : 'Программы и циклы'
+          }}
+        </p>
         <label class="field"
           ><span class="label">Название</span
           ><input
@@ -297,6 +377,33 @@ defineExpose({ refresh: load });
   </section>
 </template>
 <style scoped>
+.folder-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 14px;
+  color: var(--muted);
+}
+.folder-breadcrumbs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.folder-breadcrumbs button[aria-current='page'],
+.folder-breadcrumbs button:hover {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
 .folder-heading {
   display: flex;
   align-items: center;

@@ -1,15 +1,60 @@
 <script setup lang="ts">
 import PageHeading from '@/shared/PageHeading.vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Bell, HardDrive, ShieldCheck, SlidersHorizontal } from '@lucide/vue';
+import {
+  Bell,
+  HardDrive,
+  ShieldCheck,
+  SlidersHorizontal,
+  UserRound,
+  BookOpen,
+  Volume2,
+  Accessibility,
+  CircleHelp,
+  ChevronRight,
+  ArrowLeft,
+  Search,
+  Timer,
+  AudioLines,
+  History,
+  Shield,
+} from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
 const page = usePage(),
   key = uiPreferencesKey(page.props.auth);
 const values = ref(readUiPreferences(key)),
+  section = ref(''),
+  search = ref(''),
   notice = ref(''),
   error = ref('');
+const sections = [
+  {
+    id: 'account',
+    title: 'Аккаунт и тариф',
+    hint: 'Профиль, доступ и безопасность',
+    icon: UserRound,
+    href: '/account',
+  },
+  { id: 'appearance', title: 'Оформление', hint: 'Вид и запомненные подборки', icon: SlidersHorizontal },
+  { id: 'practice', title: 'Практика', hint: 'Шаблоны, занятия и история', icon: BookOpen },
+  { id: 'sound', title: 'Звук', hint: 'Метроном, гонги и фоновое сопровождение', icon: Volume2 },
+  { id: 'notifications', title: 'Уведомления', hint: 'Сигнал о завершении медитации', icon: Bell },
+  { id: 'storage', title: 'Память и копии', hint: 'Память браузера и экспорт практик', icon: HardDrive },
+  {
+    id: 'accessibility',
+    title: 'Доступ и движение',
+    hint: 'Доступность и уменьшение анимаций',
+    icon: Accessibility,
+  },
+  { id: 'help', title: 'Помощь и сведения', hint: 'О приложении и конфиденциальности', icon: CircleHelp },
+];
+const visibleSections = computed(() =>
+  sections.filter((item) => `${item.title} ${item.hint}`.toLowerCase().includes(search.value.toLowerCase())),
+);
+const activeSection = computed(() => sections.find((item) => item.id === section.value));
+const isAdmin = computed(() => (page.props.auth as { user?: { is_admin?: boolean } })?.user?.is_admin);
 const notificationSupported = 'Notification' in window && window.isSecureContext;
 const permission = ref(notificationSupported ? Notification.permission : 'unavailable');
 const estimate = ref<{ usage?: number; quota?: number }>({});
@@ -18,6 +63,7 @@ const bytes = (value?: number) =>
 function save() {
   try {
     localStorage.setItem(key, JSON.stringify(values.value));
+    document.documentElement.dataset.reducedMotion = String(values.value.reduceMotion);
     notice.value = 'Настройки сохранены в этом браузере для вашего аккаунта.';
     error.value = '';
   } catch {
@@ -51,6 +97,7 @@ function clearViewPreferences() {
     for (const item of Object.keys(localStorage))
       if (item === key || item.startsWith(palettePrefix)) localStorage.removeItem(item);
     values.value = readUiPreferences(key);
+    document.documentElement.dataset.reducedMotion = String(values.value.reduceMotion);
     notice.value = 'Настройки вида сброшены. Рисунки и документы сохранены.';
   } catch {
     error.value = 'Не удалось сбросить настройки браузера.';
@@ -69,105 +116,257 @@ onMounted(async () => {
   <AppShell section="account">
     <PageHeading
       eyebrow="Всё по-вашему"
-      title="Настройки"
-      description="Отображение, уведомления, конфиденциальность и память."
+      :title="activeSection?.title || 'Настройки'"
+      description="Удобный ритм, понятное управление и ваше пространство для практики."
     >
-      <Link class="btn btn-secondary" href="/library">В библиотеку</Link>
+      <button
+        v-if="section"
+        class="btn btn-secondary"
+        @click="
+          section = '';
+          notice = '';
+          error = '';
+        "
+      >
+        <ArrowLeft :size="18" />Все настройки
+      </button>
     </PageHeading>
     <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
-    <div class="settings-grid">
-      <section class="card settings-section">
-        <h2>
-          <span class="section-icon"><SlidersHorizontal aria-hidden="true" /></span>Отображение
-        </h2>
-        <p class="muted">В библиотеке и практиках используются ваши исходные изображения асан.</p>
-        <Link href="/library" class="btn btn-primary">Открыть библиотеку</Link>
-        <label class="settings-check"
-          ><input v-model="values.rememberFilters" type="checkbox" @change="save" />Запоминать выбранную
-          подборку при заполнении ячеек</label
-        >
-      </section>
-      <div class="settings-column">
-        <section class="card settings-section">
-          <h2>
-            <span class="section-icon"><Bell aria-hidden="true" /></span>Уведомления
-          </h2>
-          <label class="settings-check"
-            ><input
-              :checked="values.meditationNotifications"
-              type="checkbox"
-              :disabled="!notificationSupported"
-              @change="notifications"
-            />Уведомлять о завершении медитации</label
+    <div v-if="!section" class="settings-home">
+      <label class="settings-search"
+        ><Search :size="20" /><input
+          v-model="search"
+          type="search"
+          placeholder="Поиск настроек"
+          aria-label="Поиск настроек"
+      /></label>
+      <div class="settings-list card">
+        <template v-for="item in visibleSections" :key="item.id">
+          <Link v-if="item.href" :href="item.href" class="settings-row">
+            <component :is="item.icon" :size="24" /><span
+              ><strong>{{ item.title }}</strong
+              ><small>{{ item.hint }}</small></span
+            ><ChevronRight :size="20" />
+          </Link>
+          <button
+            v-else
+            class="settings-row"
+            @click="
+              section = item.id;
+              notice = '';
+              error = '';
+            "
           >
-          <p v-if="!notificationSupported" class="muted">
-            Этот браузер не предоставляет уведомления на текущем HTTP-адресе. Завершение сессии показывается в
-            приложении и сопровождается выбранным звуком.
-          </p>
-          <p v-else class="muted">
-            Разрешение браузера:
-            {{
-              permission === 'granted'
-                ? 'разрешены'
-                : permission === 'denied'
-                  ? 'заблокированы'
-                  : 'ещё не запрошено'
-            }}. Напоминания по расписанию не включены.
-          </p>
-        </section>
-        <section class="card settings-section">
-          <h2>
-            <span class="section-icon"><ShieldCheck aria-hidden="true" /></span>Конфиденциальность
-          </h2>
-          <p class="muted">
-            Документы и изображения доступны в вашем рабочем пространстве. Доступ преподавателям и публикации
-            по ссылке настраиваются для каждой практики отдельно.
-          </p>
-          <Link href="/practices" class="btn btn-secondary">Управлять доступом к практикам</Link
-          ><Link href="/account" class="btn btn-ghost">Профиль и пароль</Link>
-        </section>
-        <section class="card settings-section">
-          <h2>
-            <span class="section-icon"><HardDrive aria-hidden="true" /></span>Память браузера
-          </h2>
-          <p class="muted">
-            Использовано этим сайтом: {{ bytes(estimate.usage) }}. Доступная квота:
-            {{ bytes(estimate.quota) }}. Это оценка браузера, не объём серверных документов.
-          </p>
-          <button class="btn btn-secondary" @click="clearViewPreferences">Сбросить настройки вида</button>
-          <p class="muted">Черновики рисунков, исходники, практики и файлы на сервере не удаляются.</p>
-        </section>
+            <component :is="item.icon" :size="24" /><span
+              ><strong>{{ item.title }}</strong
+              ><small>{{ item.hint }}</small></span
+            ><ChevronRight :size="20" />
+          </button>
+        </template>
+        <p v-if="!visibleSections.length" class="muted">Ничего не найдено. Попробуйте другое слово.</p>
       </div>
     </div>
+    <section v-else class="card settings-section">
+      <template v-if="section === 'appearance'">
+        <h2><SlidersHorizontal :size="22" />Отображение</h2>
+        <p class="muted">
+          Белые карточки, тонкие рисунки и зелёный акцент. Подложки скетчбука и цвета пометок настраиваются в
+          редакторах.
+        </p>
+        <label class="settings-check"
+          ><input v-model="values.rememberFilters" type="checkbox" @change="save" />Запоминать подборку при
+          заполнении ячеек</label
+        >
+        <Link class="settings-row" href="/library"
+          ><BookOpen :size="23" /><span>Библиотека асан</span><ChevronRight :size="20"
+        /></Link>
+      </template>
+      <template v-if="section === 'practice'">
+        <h2><BookOpen :size="22" />Создание и проведение занятий</h2>
+        <Link class="settings-row" href="/templates"
+          ><BookOpen :size="23" /><span>Шаблоны</span><ChevronRight :size="20"
+        /></Link>
+        <Link class="settings-row" href="/practices"
+          ><Timer :size="23" /><span>Практики и настройка времени</span><ChevronRight :size="20"
+        /></Link>
+        <Link class="settings-row" href="/practice-history"
+          ><History :size="23" /><span>История практики</span><ChevronRight :size="20"
+        /></Link>
+        <p class="muted">
+          Время удержания и отдыха задаётся внутри каждой практики. Это сохраняет индивидуальные настройки
+          занятия.
+        </p>
+      </template>
+      <template v-if="section === 'sound'">
+        <h2><Volume2 :size="22" />Сопровождение практики</h2>
+        <Link class="settings-row" href="/meditation"
+          ><Timer :size="23" /><span>Гонги, фон и личное аудио</span><ChevronRight :size="20"
+        /></Link>
+        <Link class="settings-row" href="/metronome"
+          ><AudioLines :size="23" /><span>Метроном и сохранённые ритмы</span><ChevronRight :size="20"
+        /></Link>
+      </template>
+      <template v-if="section === 'notifications'">
+        <h2><Bell :size="22" />Завершение медитации</h2>
+        <label class="settings-check"
+          ><input
+            :checked="values.meditationNotifications"
+            type="checkbox"
+            :disabled="!notificationSupported"
+            @change="notifications"
+          />Уведомлять о завершении медитации</label
+        >
+        <p v-if="!notificationSupported" class="muted">
+          В этом браузере системные уведомления недоступны. Сигнал завершения остаётся внутри приложения.
+        </p>
+        <p v-else class="muted">
+          Разрешение браузера:
+          {{
+            permission === 'granted'
+              ? 'разрешены'
+              : permission === 'denied'
+                ? 'заблокированы'
+                : 'ещё не запрошено'
+          }}.
+        </p>
+      </template>
+      <template v-if="section === 'storage'">
+        <h2><HardDrive :size="22" />Память браузера</h2>
+        <p class="muted">
+          Использовано: {{ bytes(estimate.usage) }}. Доступная квота: {{ bytes(estimate.quota) }}.
+        </p>
+        <Link class="settings-row" href="/practices"
+          ><BookOpen :size="23" /><span>Экспортировать практику</span><ChevronRight :size="20"
+        /></Link>
+        <button class="btn btn-secondary" @click="clearViewPreferences">
+          <SlidersHorizontal :size="18" />Сбросить настройки вида
+        </button>
+        <p class="muted">
+          Черновики, рисунки и документы сохранятся. Файлы PDF и экспорта доступны в меню каждой практики.
+        </p>
+      </template>
+      <template v-if="section === 'accessibility'">
+        <h2><Accessibility :size="22" />Движение и доступ</h2>
+        <label class="settings-check"
+          ><input v-model="values.reduceMotion" type="checkbox" @change="save" />Уменьшить анимации</label
+        >
+        <p class="muted">
+          Клавиатура: Tab — переход, Enter — действие. В конструкторе нажатие выбирает заполненную ячейку;
+          повторное снимает выделение.
+        </p>
+        <Link class="settings-row" href="/account"
+          ><ShieldCheck :size="23" /><span>Безопасность аккаунта</span><ChevronRight :size="20"
+        /></Link>
+      </template>
+      <template v-if="section === 'help'">
+        <h2><CircleHelp :size="22" />RibkaYoga</h2>
+        <p class="muted">
+          Библиотека асан, конструктор занятий, медитация и личные разборы в одном пространстве.
+        </p>
+        <Link class="settings-row" href="/"
+          ><CircleHelp :size="23" /><span>О приложении</span><ChevronRight :size="20"
+        /></Link>
+        <p class="muted">
+          Доступ к практикам задаётся отдельно. Личные пометки разбора не отправляются автору исходной
+          практики.
+        </p>
+        <Link v-if="isAdmin" class="settings-row" href="/admin"
+          ><Shield :size="23" /><span>Администрирование</span><ChevronRight :size="20"
+        /></Link>
+      </template>
+    </section>
   </AppShell>
 </template>
 <style scoped>
-.settings-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: var(--section-gap);
+.settings-home {
+  max-width: 780px;
+  margin-inline: auto;
 }
-.settings-column {
-  display: grid;
-  gap: var(--section-gap);
-  align-content: start;
-}
-.settings-section {
-  padding: var(--panel-padding);
-  display: grid;
-  align-content: start;
-  gap: 18px;
-  min-width: 0;
-}
-.settings-section h2 {
+.settings-search {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 19px;
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  margin: 0;
+  padding: 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--control-surface);
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+.settings-search input {
+  width: 100%;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+}
+.settings-search:focus-within {
+  outline: 2px solid var(--accent);
+}
+.settings-list {
+  padding: 8px 24px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 86px;
+  width: 100%;
+  padding: 16px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  text-decoration: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.settings-row:last-child {
+  border-bottom: 0;
+}
+.settings-row > svg:first-child {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+.settings-row > svg:last-child {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.settings-row > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.settings-row strong {
+  font-weight: 550;
+  font-size: 18px;
+}
+.settings-row small {
+  color: var(--muted);
+  line-height: 1.4;
+  font-size: 13px;
+}
+.settings-row:hover {
+  color: var(--accent-dark);
+}
+.settings-section {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  max-width: 780px;
+  margin-inline: auto;
+  padding: var(--panel-padding);
+}
+.settings-section h2 {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 21px;
 }
 .settings-section .btn {
   width: fit-content;
@@ -175,12 +374,26 @@ onMounted(async () => {
 .settings-check {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   line-height: 1.5;
+  min-height: 48px;
 }
-@media (max-width: 850px) {
-  .settings-grid {
-    grid-template-columns: 1fr;
+.settings-check input {
+  accent-color: var(--accent);
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .settings-list {
+    padding-inline: 18px;
+  }
+  .settings-row {
+    gap: 13px;
+    min-height: 84px;
+  }
+  .settings-row strong {
+    font-size: 17px;
   }
 }
 </style>

@@ -579,6 +579,7 @@ function selectCell(id: string, showPicker = true) {
   if (locked.value) return;
   const found = findCell(id);
   if (!found) return;
+  const wasSelected = highlightedCell.value === id;
   heldSelection.value = false;
   if (pendingDrawings.value.length && showPicker) {
     insertDrawingQueue(id);
@@ -627,6 +628,14 @@ function selectCell(id: string, showPicker = true) {
   if (transfer.value) {
     moveContent(transfer.value.source, id, transfer.value.mode === 'copy');
     transfer.value = null;
+  }
+  if (cellFilled(found.cell) && !transferring && showPicker) {
+    if (wasSelected) {
+      activeCell.value = null;
+      highlightedCell.value = null;
+      heldSelection.value = false;
+    } else holdCell(id);
+    return;
   }
   activeCell.value = id;
   activeBlock.value = found.block.id;
@@ -2167,8 +2176,9 @@ onBeforeUnmount(() => {
             <Plus :size="19" />Добавить блок
           </button>
           <p class="canvas-help">
-            Нажмите на ячейку, чтобы выбрать картинку или ввести своё название. Удерживайте её 1 секунду,
-            чтобы выделить без открытия окна. Асаны справа можно перетаскивать в последовательность.
+            Нажмите на заполненную ячейку, чтобы выделить её; повторное нажатие снимает выбор. Изменение
+            доступно в меню выбранной ячейки. Пустая ячейка открывает выбор асаны или своего названия. Асаны
+            из библиотеки можно перетаскивать в последовательность.
           </p>
         </div>
         <AsanaPalette

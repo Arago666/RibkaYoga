@@ -12,6 +12,7 @@ use App\Modules\Catalog\Services\Classification;
 use App\Modules\Catalog\Services\DrawingSource;
 use App\Modules\Catalog\Services\Facets;
 use App\Modules\Catalog\Services\Names;
+use App\Modules\Catalog\Services\PoseSource;
 use App\Modules\Collections\PublicApi\CollectionMembership;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\PublicApi\NativeImages;
@@ -90,6 +91,7 @@ class AsanaController
                     $asana->current_image_asset_id = $asset['id'];
                     // An ordinary replacement has no editable drawing associated with it.
                     $asana->drawing_source = $data['drawing_source'] ?? null;
+                    $asana->pose_source = $data['pose_source'] ?? null;
                 }
                 $asana->revision++;
                 $this->apply($asana, $data);
@@ -217,6 +219,17 @@ class AsanaController
 
     private function validate(Request $request, bool $update): array
     {
+        if ($request->exists('pose_source')) {
+            $pose = app(PoseSource::class)->validate($request->input('pose_source'));
+            if ($pose !== null) {
+                $file = $request->file('image');
+                $size = $file ? @getimagesize($file->getRealPath()) : false;
+                if (! $size || ($size['mime'] ?? '') !== 'image/png' || $size[0] !== 1024 || $size[1] !== 1024 || $request->filled('drawing_source')) {
+                    throw ValidationException::withMessages(['pose_source' => 'Сохранение позы требует PNG 1024 × 1024 из редактора.']);
+                }
+            }
+            $request->merge(['pose_source' => $pose]);
+        }
         if ($request->exists('drawing_source')) {
             $source = app(DrawingSource::class)->validate($request->input('drawing_source'));
             if ($source !== null && (! $request->hasFile('image') || $request->file('image')->getMimeType() !== 'image/png')) {
@@ -279,6 +292,7 @@ class AsanaController
             'relations.*.asana_id' => ['required', 'uuid'],
             'relations.*.kind' => ['required', Rule::in(['simpler', 'harder', 'preparation', 'follow_up', 'compensation', 'variation'])],
             'image' => [$update ? 'nullable' : 'required', 'file', 'max:'.config('ribka.upload_max_kb', 10240)],
+            'pose_source' => ['sometimes', 'nullable', 'array'],
             'drawing_source' => ['sometimes', 'nullable', 'array'],
             'expected_revision' => [$update ? 'required' : 'sometimes', 'integer', 'min:1'],
         ]);
@@ -301,6 +315,9 @@ class AsanaController
             app(Facets::class)->validate($data['facet_assignments'], $this->workspace->id(), true);
         }
         $asana->name = $data['name'] ?? $asana->name;
+        if (array_key_exists('pose_source', $data)) {
+            $asana->pose_source = $data['pose_source'];
+        }
         if (array_key_exists('drawing_source', $data)) {
             $asana->drawing_source = $data['drawing_source'];
         }

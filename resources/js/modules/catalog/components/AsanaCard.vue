@@ -98,7 +98,13 @@ defineEmits<{
         {{ card.alternate_name }}
       </p>
       <p v-if="displayImage && !displayImage.available" class="style-fallback">Нет объёмного варианта</p>
-      <p v-if="card.sanskrit_cyrillic || card.sanskrit_latin" class="asana-category">
+      <p
+        v-if="
+          (card.sanskrit_cyrillic || card.sanskrit_latin) &&
+          (card.sanskrit_cyrillic || card.sanskrit_latin) !== card.name
+        "
+        class="asana-category"
+      >
         {{ card.sanskrit_cyrillic || card.sanskrit_latin }}
       </p>
       <span v-if="card.facet_values?.some((v) => v.dimension === 'difficulty')" class="badge">{{
@@ -106,7 +112,14 @@ defineEmits<{
       }}</span>
       <span v-if="card.archived_at" class="badge">В архиве</span>
       <p v-else class="asana-category">
-        {{ card.categories?.map((item) => item.name).join(' · ') || 'Без категории' }}
+        {{
+          card.categories?.map((item) => item.name).join(' · ') ||
+          card.facet_values
+            ?.filter((item) => item.dimension === 'position')
+            .map((item) => item.name)
+            .join(' · ') ||
+          'Без категории'
+        }}
       </p>
       <p v-if="favoriteError" class="error-banner" role="alert">{{ favoriteError }}</p>
     </div>

@@ -60,7 +60,7 @@ class CatalogReader implements AsanaReader
 
         return $asanas->mapWithKeys(fn (Asana $asana) => [$asana->id => [
             'id' => $asana->id, 'name' => $asana->name, 'alternate_name' => $asana->alternate_name, 'description' => $asana->description,
-            ...($includeDrawingSource ? ['drawing_source' => $asana->drawing_source, 'information_description' => $asana->information_description, 'benefits' => $asana->benefits ?? [], 'steps' => $asana->steps ?? [], 'teacher_cues' => $asana->teacher_cues ?? [], 'equipment' => $asana->equipment ?? [], 'precautions' => $asana->precautions ?? [], 'adaptations' => $asana->adaptations ?? [], 'editorial' => $asana->editorial ?? []] : []),
+            ...($includeDrawingSource ? ['pose_source' => $asana->pose_source, 'drawing_source' => $asana->drawing_source, 'information_description' => $asana->information_description, 'benefits' => $asana->benefits ?? [], 'steps' => $asana->steps ?? [], 'teacher_cues' => $asana->teacher_cues ?? [], 'equipment' => $asana->equipment ?? [], 'precautions' => $asana->precautions ?? [], 'adaptations' => $asana->adaptations ?? [], 'editorial' => $asana->editorial ?? []] : []),
             'sanskrit_cyrillic' => $asana->sanskrit_cyrillic, 'sanskrit_latin' => $asana->sanskrit_latin,
             'has_bind' => $asana->has_bind, 'classification_status' => $asana->classification_status,
             'favorite' => (bool) ($preferences[$asana->id]->favorite ?? false),

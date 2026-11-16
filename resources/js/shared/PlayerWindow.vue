@@ -40,13 +40,17 @@ const emit = defineEmits<{ close: [] }>();
   overscroll-behavior: contain;
   outline: none;
   background: radial-gradient(ellipse at 50% 0%, #eaf2e8 0%, #f8faf7 65%);
-  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  padding: max(16px, var(--app-safe-top, env(safe-area-inset-top)))
+    max(16px, var(--app-safe-right, env(safe-area-inset-right)))
+    max(16px, var(--app-safe-bottom, env(safe-area-inset-bottom)))
+    max(16px, var(--app-safe-left, env(safe-area-inset-left)));
 }
 @media (max-width: 480px) {
   .player-window {
-    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
-      max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    padding: max(12px, var(--app-safe-top, env(safe-area-inset-top)))
+      max(12px, var(--app-safe-right, env(safe-area-inset-right)))
+      max(12px, var(--app-safe-bottom, env(safe-area-inset-bottom)))
+      max(12px, var(--app-safe-left, env(safe-area-inset-left)));
   }
 }
 </style>

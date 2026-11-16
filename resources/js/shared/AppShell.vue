@@ -5,7 +5,7 @@ import {
   LayoutGrid,
   LogOut,
   UserRound,
-  Shield,
+  History,
   BookOpen,
   Pencil,
   Timer,
@@ -14,8 +14,9 @@ import {
   ScanText,
   AudioLines,
 } from '@lucide/vue';
-import { computed } from 'vue';
-import { dismissMenu as vDismissMenu } from './dismissMenu';
+import { computed, ref, onMounted } from 'vue';
+import { readUiPreferences, uiPreferencesKey } from './uiPreferences';
+import Modal from './Modal.vue';
 import BrandMotif from './BrandMotif.vue';
 import '../../css/brand-app.css';
 defineProps<{
@@ -23,7 +24,22 @@ defineProps<{
     'practices' | 'library' | 'account' | 'templates' | 'sketchbook' | 'meditation' | 'reviews' | 'metronome';
   wide?: boolean;
 }>();
+const moreOpen = ref(false);
+const moreItems = [
+  { href: '/sketchbook', label: 'Скетчбук', icon: Pencil },
+  { href: '/metronome', label: 'Метроном', icon: AudioLines },
+  { href: '/practice-reviews', label: 'Разбор практики', icon: ScanText },
+  { href: '/practice-history', label: 'История практики', icon: History },
+  { href: '/templates', label: 'Шаблоны', icon: BookOpen },
+  { href: '/account', label: 'Кабинет', icon: UserRound },
+  { href: '/settings', label: 'Настройки', icon: Settings },
+];
 const page = usePage();
+onMounted(() => {
+  document.documentElement.dataset.reducedMotion = String(
+    readUiPreferences(uiPreferencesKey(page.props.auth)).reduceMotion,
+  );
+});
 const user = computed(
   () => (page.props.auth as { user?: { name: string; email: string; is_admin?: boolean } } | undefined)?.user,
 );
@@ -72,34 +88,15 @@ const user = computed(
           :aria-current="section === 'reviews' ? 'page' : undefined"
           ><ScanText :size="18" /><span>Разбор</span></Link
         >
-        <details
-          v-dismiss-menu
-          :class="[
-            'more-nav',
-            {
-              'contains-active': section === 'templates' || section === 'reviews' || section === 'metronome',
-            },
-          ]"
+        <button
+          :class="['nav-link', 'more-nav', { active: section === 'account' || section === 'metronome' }]"
+          aria-label="Ещё"
+          aria-haspopup="dialog"
+          :aria-expanded="moreOpen"
+          @click="moreOpen = true"
         >
-          <summary :class="['nav-link', { active: section === 'account' || section === 'metronome' }]">
-            <Menu :size="18" /><span>Ещё</span>
-          </summary>
-          <div id="more-navigation" class="more-links">
-            <Link href="/metronome" :aria-current="section === 'metronome' ? 'page' : undefined"
-              ><AudioLines :size="17" />Метроном</Link
-            >
-            <Link href="/templates"><BookOpen :size="17" />Шаблоны</Link>
-            <Link href="/practice-reviews"><ScanText :size="17" />Разбор практики</Link>
-            <Link href="/mesocycles">Программы и циклы</Link>
-            <Link href="/practice-folders">Категории практик</Link>
-            <Link href="/shared-practices">Мне дали доступ</Link>
-            <Link href="/sketchbook"><Pencil :size="17" />Скетчбук</Link>
-            <Link href="/practice-history">История практики</Link>
-            <Link href="/account"><UserRound :size="17" />Кабинет</Link>
-            <Link href="/settings"><Settings :size="17" />Настройки</Link>
-            <Link v-if="user?.is_admin" href="/admin"><Shield :size="17" />Администрирование</Link>
-          </div>
-        </details>
+          <Menu :size="18" /><span>Ещё</span>
+        </button>
       </nav>
       <div v-if="user" class="account">
         <Link href="/account" class="account-profile" aria-label="Открыть личный кабинет"
@@ -109,20 +106,21 @@ const user = computed(
         <Link href="/settings" class="icon-btn settings-link" aria-label="Настройки приложения"
           ><Settings :size="18"
         /></Link>
-        <Link
-          v-if="user?.is_admin"
-          href="/admin"
-          class="icon-btn admin-link"
-          title="Администрирование"
-          aria-label="Администрирование"
-          ><Shield :size="18"
-        /></Link>
         <button class="icon-btn" title="Выйти" aria-label="Выйти из аккаунта" @click="router.post('/logout')">
           <LogOut :size="18" />
         </button>
       </div>
       <Link v-else href="/login" class="btn guest-login">Войти</Link>
     </header>
+    <Modal :open="moreOpen" title="Ещё" @close="moreOpen = false">
+      <nav class="workspace-menu" aria-label="Другие разделы">
+        <Link v-for="item in moreItems" :key="item.href" :href="item.href" @click="moreOpen = false">
+          <span class="workspace-menu-icon"><component :is="item.icon" :size="23" /></span>
+          <span>{{ item.label }}</span
+          ><span class="workspace-menu-arrow" aria-hidden="true">↗</span>
+        </Link>
+      </nav>
+    </Modal>
     <main :class="['app-main', { wide }]"><slot /></main>
     <footer class="app-footer">
       <span class="footer-signature"
@@ -137,47 +135,46 @@ const user = computed(
   margin-left: auto;
 }
 .more-nav {
-  position: relative;
-}
-.more-nav summary {
-  list-style: none;
+  border: 0;
+  background: none;
+  font-family: inherit;
   cursor: pointer;
 }
-.more-nav summary::-webkit-details-marker {
-  display: none;
-}
-.more-links {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 12px);
+.workspace-menu {
   display: grid;
-  gap: 3px;
-  min-width: 245px;
-  max-height: min(560px, 75dvh);
-  overflow-y: auto;
-  padding: 9px;
-  background: var(--popup-surface);
-  border: 1px solid var(--line);
-  border-radius: var(--popup-radius);
-  box-shadow: var(--popup-shadow);
-  backdrop-filter: blur(20px);
-  z-index: 75;
+  gap: 10px;
 }
-.more-links a {
+.workspace-menu a {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 12px 14px;
-  min-height: 44px;
-  border-radius: 12px;
-  white-space: nowrap;
-  text-decoration: none;
+  gap: 14px;
+  min-height: 62px;
+  padding: 8px 18px 8px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--control-surface);
+  box-shadow: var(--control-shadow);
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 550;
+  text-decoration: none;
 }
-.more-links a:hover,
-.more-links a[aria-current='page'] {
+.workspace-menu a:hover {
+  border-color: var(--accent);
+}
+.workspace-menu-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 50%;
   background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+.workspace-menu-arrow {
+  margin-left: auto;
+  color: var(--muted);
 }
 .account-profile {
   display: flex;

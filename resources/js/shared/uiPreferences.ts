@@ -1,6 +1,7 @@
 export interface UiPreferences {
   libraryStyle: 'original';
   rememberFilters: boolean;
+  reduceMotion: boolean;
   meditationNotifications: boolean;
 }
 export function uiPreferencesKey(auth: unknown): string {
@@ -11,10 +12,12 @@ export function readUiPreferences(key: string): UiPreferences {
   const result: UiPreferences = {
     libraryStyle: 'original',
     rememberFilters: true,
+    reduceMotion: false,
     meditationNotifications: false,
   };
   try {
     const saved = JSON.parse(localStorage.getItem(key) || '{}');
+    if (typeof saved.reduceMotion === 'boolean') result.reduceMotion = saved.reduceMotion;
     if (typeof saved.rememberFilters === 'boolean') result.rememberFilters = saved.rememberFilters;
     if (typeof saved.meditationNotifications === 'boolean')
       result.meditationNotifications = saved.meditationNotifications;

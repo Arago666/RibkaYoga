@@ -1,0 +1,113 @@
+/* Shared phone layout; Telegram contributes insets only when its SDK is present. */
+:root {
+  --app-safe-top: calc(
+    max(env(safe-area-inset-top, 0px), var(--mini-safe-top, 0px)) + var(--mini-content-top, 0px)
+  );
+  --app-safe-bottom: calc(
+    max(env(safe-area-inset-bottom, 0px), var(--mini-safe-bottom, 0px)) + var(--mini-content-bottom, 0px)
+  );
+  --app-safe-left: calc(
+    max(env(safe-area-inset-left, 0px), var(--mini-safe-left, 0px)) + var(--mini-content-left, 0px)
+  );
+  --app-safe-right: calc(
+    max(env(safe-area-inset-right, 0px), var(--mini-safe-right, 0px)) + var(--mini-content-right, 0px)
+  );
+}
+@media screen and (max-width: 760px) {
+  html {
+    scroll-padding-top: 16px;
+    scroll-padding-bottom: calc(100px + var(--app-safe-bottom));
+  }
+  body {
+    background: #fbfcf9;
+  }
+  .app-shell {
+    padding-bottom: calc(100px + var(--app-safe-bottom));
+  }
+  .app-shell .app-header {
+    margin-top: max(10px, var(--app-safe-top));
+  }
+  .app-shell .main-nav {
+    bottom: calc(10px + var(--app-safe-bottom));
+    left: calc(12px + var(--app-safe-left));
+    right: calc(12px + var(--app-safe-right));
+    border-radius: 32px;
+    background: rgb(255 255 255 / 96%);
+    box-shadow:
+      0 8px 36px #183d2920,
+      inset 0 1px 0 #fff;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .app-shell .main-nav > .nav-link,
+  .app-shell .main-nav > .more-nav {
+    flex: 1;
+  }
+  .app-shell .main-nav .nav-link.active {
+    border-radius: 24px;
+  }
+  .app-shell .page-heading {
+    padding-bottom: 20px;
+  }
+  .app-shell .card {
+    box-shadow: 0 4px 24px #173c2405;
+  }
+  .modal-content {
+    max-height: calc(
+      min(100dvh, var(--visual-viewport-height, 100dvh), var(--mini-app-height, 100dvh)) -
+        var(--app-safe-top) - var(--app-safe-bottom) - 20px
+    );
+    border-radius: 30px;
+  }
+  .modal-header {
+    min-height: 72px;
+  }
+  .modal-body {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-footer {
+    padding-bottom: max(16px, var(--app-safe-bottom));
+  }
+  html[data-keyboard='open'] .app-shell .main-nav {
+    display: none;
+  }
+  html[data-keyboard='open'] .modal-content {
+    top: calc(var(--app-safe-top) + 10px);
+    bottom: auto;
+    left: 10px;
+    width: calc(100% - 20px);
+    transform: none;
+  }
+  .app-shell input,
+  .app-shell textarea,
+  .modal-content input,
+  .modal-content textarea {
+    font-size: 16px;
+  }
+  .app-shell :is(button, a, input, summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app-shell button {
+    touch-action: manipulation;
+  }
+}
+html[data-mini-app='telegram'] {
+  min-height: var(--mini-app-height, 100dvh);
+}
+html[data-mini-app='telegram'] :is(.brand-login-page, .landing) {
+  padding-top: var(--app-safe-top);
+  padding-bottom: var(--app-safe-bottom);
+}
+html[data-mini-app='telegram'] .app-shell {
+  padding-left: max(0px, calc(var(--app-safe-left) - var(--page-gutter)));
+  padding-right: max(0px, calc(var(--app-safe-right) - var(--page-gutter)));
+}
+html[data-reduced-motion='true'] *,
+html[data-reduced-motion='true'] *::before,
+html[data-reduced-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

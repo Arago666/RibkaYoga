@@ -32,9 +32,20 @@ class ProgramFolderController
 
     public function store(Request $request): JsonResponse
     {
-        $input = $request->validate(['name' => 'required|string|max:160']);
+        $input = $request->validate(['name' => 'required|string|max:160', 'parent_id' => 'nullable|uuid']);
         $id = (string) Str::uuid();
-        $this->folders()->insert(['id' => $id, 'workspace_id' => $this->workspace->id(), 'user_id' => $this->workspace->userId(), 'name' => trim($input['name']), 'revision' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        DB::transaction(function () use ($input, $id) {
+            $folders = $this->folders()->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $parent = $input['parent_id'] ?? null;
+            if ($parent) {
+                abort_unless(isset($folders[$parent]) && ! $folders[$parent]->archived_at, 404, 'Родительская папка недоступна.');
+                $depth = 0;
+                for ($current = $parent; $current; $current = $folders[$current]->parent_id ?? null) {
+                    abort_if(++$depth >= 20, 422, 'Допускается не более 20 уровней папок.');
+                }
+            }
+            $this->folders()->insert(['id' => $id, 'workspace_id' => $this->workspace->id(), 'user_id' => $this->workspace->userId(), 'parent_id' => $parent, 'name' => trim($input['name']), 'revision' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        });
 
         return response()->json(['data' => $this->folders()->where('id', $id)->first()], 201);
     }
@@ -43,7 +54,7 @@ class ProgramFolderController
     {
         $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'name' => 'sometimes|required|string|max:160', 'archived' => 'sometimes|boolean']);
         DB::transaction(function () use ($input, $id) {
-            $folder = $this->folders()->where('id', $id)->lockForUpdate()->first();
+            $folder = $this->folders()->orderBy('id')->lockForUpdate()->get()->firstWhere('id', $id);
             abort_unless($folder, 404);
             abort_unless((int) $folder->revision === (int) $input['expected_revision'], 409, 'Папка изменена в другом окне. Обновите список.');
             $values = ['revision' => $folder->revision + 1, 'updated_at' => now()];
@@ -52,6 +63,10 @@ class ProgramFolderController
             }
             if (array_key_exists('archived', $input)) {
                 $values['archived_at'] = $input['archived'] ? now() : null;
+                if ($input['archived']) {
+                    // Keep children reachable when their parent is archived.
+                    $this->folders()->where('parent_id', $id)->update(['parent_id' => $folder->parent_id, 'revision' => DB::raw('revision + 1'), 'updated_at' => now()]);
+                }
             }
             $this->folders()->where('id', $id)->update($values);
         });
@@ -63,11 +78,13 @@ class ProgramFolderController
     {
         $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'items' => 'required|array|list|min:1|max:100', 'items.*.id' => 'required|uuid|distinct', 'items.*.type' => 'required|in:practice,cycle', 'items.*.expected_revision' => 'required|integer|min:1', 'remove' => 'sometimes|boolean']);
         DB::transaction(function () use ($id, $input) {
-            $folder = $this->folders()->where('id', $id)->whereNull('archived_at')->lockForUpdate()->first();
-            abort_unless($folder, 404);
+            $folders = $this->folders()->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $folder = $folders->get($id);
+            abort_unless($folder && ! $folder->archived_at, 404);
             abort_unless((int) $folder->revision === (int) $input['expected_revision'], 409, 'Папка изменена. Обновите список.');
             $items = $input['items'];
             usort($items, fn ($a, $b) => [$a['type'], $a['id']] <=> [$b['type'], $b['id']]);
+            $changedFolders = [];
             foreach ($items as $item) {
                 $kind = $item['type'] === 'cycle' ? 'cycle' : 'document';
                 $table = $kind === 'cycle' ? 'practice_mesocycles' : 'practice_documents';
@@ -78,8 +95,14 @@ class ProgramFolderController
                 if ($input['remove'] ?? false) {
                     $relation->where('folder_id', $id)->where($kind.'_id', $record->id)->delete();
                 } else {
+                    $sourceIds = (clone $relation)->where($kind.'_id', $record->id)->whereIn('folder_id', $folders->keys())->where('folder_id', '!=', $id)->pluck('folder_id');
+                    $changedFolders = [...$changedFolders, ...$sourceIds];
+                    (clone $relation)->where($kind.'_id', $record->id)->whereIn('folder_id', $sourceIds)->delete();
                     $relation->insertOrIgnore(['folder_id' => $id, $kind.'_id' => $record->id]);
                 }
+            }
+            if ($changedFolders) {
+                $this->folders()->whereIn('id', array_unique($changedFolders))->update(['revision' => DB::raw('revision + 1'), 'updated_at' => now()]);
             }
             $this->folders()->where('id', $id)->update(['revision' => $folder->revision + 1, 'updated_at' => now()]);
         });
