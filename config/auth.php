@@ -101,6 +101,8 @@ return [
         ],
     ],
 
+    'recovery_support_url' => env('RECOVERY_SUPPORT_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout

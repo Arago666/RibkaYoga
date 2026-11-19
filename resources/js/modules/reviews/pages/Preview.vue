@@ -5,6 +5,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { Download, ExternalLink, Printer } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import SheetViewport from '@/shared/SheetViewport.vue';
+import PdfDownloadLink from '@/shared/PdfDownloadLink.vue';
 import { api } from '@/shared/api';
 import type { Review } from '../types';
 const props = defineProps<{ reviewId: string }>();
@@ -118,7 +119,9 @@ onMounted(load);
         <button class="btn" :disabled="!ready" @click="print"><Printer :size="18" />Печать</button
         ><a v-if="review" class="btn" :href="`${pdfUrl}&inline=1`" target="_blank" rel="noopener"
           ><ExternalLink :size="17" />Открыть PDF</a
-        ><a v-if="review" class="btn btn-primary" :href="pdfUrl"><Download :size="17" />Скачать PDF</a>
+        ><PdfDownloadLink v-if="review" class="btn btn-primary" :href="pdfUrl" :title="review.title"
+          ><Download :size="17" />Скачать PDF</PdfDownloadLink
+        >
       </div>
     </header>
     <p v-if="error" class="error-banner" role="alert">

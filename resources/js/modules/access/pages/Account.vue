@@ -21,6 +21,7 @@ interface AccountData {
   };
   workspace: { id: string; name: string; role: string };
   subscription: Subscription;
+  own_asanas: number;
   plans: Record<string, { name: string; limits: Record<string, number | null> }>;
   telegram_login: { connected: boolean; password_enabled: boolean };
 }
@@ -240,8 +241,14 @@ onMounted(load);
           </p>
           <dl class="limits">
             <div>
-              <dt>Асаны</dt>
-              <dd>{{ account.subscription.limits.asanas ?? 'Без лимита' }}</dd>
+              <dt>Собственные асаны</dt>
+              <dd>
+                {{
+                  account.subscription.limits.asanas == null
+                    ? 'Без лимита'
+                    : `${account.own_asanas} из ${account.subscription.limits.asanas}`
+                }}
+              </dd>
             </div>
             <div>
               <dt>Практики и шаблоны</dt>
@@ -252,16 +259,22 @@ onMounted(load);
               <dd>{{ account.subscription.limits.mesocycles === 0 ? 'Тариф «Про»' : 'Без лимита' }}</dd>
             </div>
           </dl>
-          <div class="local-billing">
-            <strong>Оплата пока не подключена</strong>
-            <p class="muted">
-              Доступ выдаётся администратором вручную. Списаний с карты нет. Для онлайн-оплаты и автопродления
-              нужно подключить платёжного провайдера.
-            </p>
-          </div>
-          <p v-if="account.subscription.cancel_at_period_end" class="muted">Автопродление отключено.</p>
+          <p class="muted">Стартовая библиотека не расходует лимит собственных асан.</p>
+          <p v-if="account.subscription.status === 'trialing'" class="muted">
+            После пробного периода действует базовый тариф.
+            {{ account.plans.basic?.limits.asanas }} собственных асан и
+            {{ account.plans.basic?.limits.practices }} практик и шаблонов.
+          </p>
+          <p
+            v-if="
+              account.subscription.payment_provider_connected && account.subscription.cancel_at_period_end
+            "
+            class="muted"
+          >
+            Автопродление отключено.
+          </p>
           <button
-            v-else-if="account.workspace.role === 'owner'"
+            v-else-if="account.subscription.payment_provider_connected && account.workspace.role === 'owner'"
             type="button"
             class="btn btn-secondary"
             :disabled="busy"
@@ -269,9 +282,8 @@ onMounted(load);
           >
             Отменить продление
           </button>
-          <h3>История платежей</h3>
-          <p v-if="!account.subscription.payments.length" class="muted">Платежей пока нет.</p>
-          <ul v-else class="payments">
+          <h3 v-if="account.subscription.payments.length">История платежей</h3>
+          <ul v-if="account.subscription.payments.length" class="payments">
             <li v-for="payment in account.subscription.payments" :key="payment.id">
               {{ (payment.amount_minor / 100).toLocaleString('ru-RU') }} {{ payment.currency }} ·
               {{ payment.status }} · {{ localDate(payment.paid_at) }}
@@ -388,16 +400,6 @@ p {
 dd {
   margin: 0;
   font-weight: 600;
-}
-.local-billing {
-  margin: 20px 0;
-  padding: 16px;
-  border-radius: var(--field-radius);
-  background: var(--surface-soft);
-  font-size: 0.85rem;
-}
-.local-billing p {
-  margin-bottom: 0;
 }
 .payments {
   padding-left: 16px;

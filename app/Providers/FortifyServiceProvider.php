@@ -28,7 +28,12 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::loginView(fn () => Inertia::render('access/Login', ['status' => session('status')]));
         Fortify::registerView(fn () => Inertia::render('access/Register', ['trialDays' => max(0, (int) config('billing.trial_days', 14))]));
-        Fortify::requestPasswordResetLinkView(fn () => Inertia::render('access/ForgotPassword', ['status' => session('status'), 'localMail' => app()->isLocal() && config('mail.default') === 'log', 'recoveryAvailable' => RecoveryDelivery::available()]));
+        Fortify::requestPasswordResetLinkView(fn () => Inertia::render('access/ForgotPassword', [
+            'status' => session('status'),
+            'localMail' => app()->isLocal() && config('mail.default') === 'log',
+            'recoveryAvailable' => RecoveryDelivery::available(),
+            'supportUrl' => RecoveryDelivery::supportUrl(),
+        ]));
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('access/ResetPassword', ['token' => $request->route('token'), 'email' => $request->query('email', '')]));
         Fortify::createUsersUsing(RegisterUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);

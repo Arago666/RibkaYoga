@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,9 +16,14 @@ class Asana extends Model
 
     protected $guarded = [];
 
+    public function scopeCountedForQuota(Builder $query, string $workspaceId): Builder
+    {
+        return $query->where('workspace_id', $workspaceId)->whereNull('archived_at')->where('starter_card', false);
+    }
+
     protected function casts(): array
     {
-        return ['archived_at' => 'datetime', 'revision' => 'integer', 'pose_source' => 'array', 'drawing_source' => 'array', 'steps' => 'array', 'teacher_cues' => 'array', 'benefits' => 'array', 'equipment' => 'array', 'precautions' => 'array', 'adaptations' => 'array', 'editorial' => 'array', 'has_bind' => 'boolean'];
+        return ['archived_at' => 'datetime', 'revision' => 'integer', 'pose_source' => 'array', 'drawing_source' => 'array', 'steps' => 'array', 'teacher_cues' => 'array', 'benefits' => 'array', 'equipment' => 'array', 'precautions' => 'array', 'adaptations' => 'array', 'editorial' => 'array', 'has_bind' => 'boolean', 'starter_card' => 'boolean'];
     }
 
     public function aliases(): HasMany

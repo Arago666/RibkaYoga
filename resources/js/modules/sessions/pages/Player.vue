@@ -32,6 +32,13 @@ import { MetronomeEngine, type MetronomeState } from '../metronomeEngine';
 import type { ExecutionPlan, ExecutionProgress, ExecutionSession } from '../types';
 const props = defineProps<{ documentId?: string; publicToken?: string }>();
 const page = usePage();
+const query = new URLSearchParams(location.search);
+const ownSheet = !props.publicToken && query.get('from') === 'owned';
+const sheetHref = props.publicToken
+  ? `/p/${props.publicToken}`
+  : ownSheet
+    ? `/practices/${props.documentId}/preview`
+    : `/shared-practices/${props.documentId}`;
 const metronome = ref<MetronomeSettings>(defaultMetronome());
 const metronomeOpen = ref(false);
 const settingsOpen = ref(false);
@@ -46,9 +53,7 @@ const plan = ref<ExecutionPlan | null>(null),
   notice = ref(''),
   saving = ref(false),
   starting = ref(false);
-const mode = ref<'teach' | 'practice'>(
-  new URLSearchParams(location.search).get('mode') === 'teach' ? 'teach' : 'practice',
-);
+const mode = ref<'teach' | 'practice'>(query.get('mode') === 'teach' ? 'teach' : 'practice');
 const progress = ref<ExecutionProgress>({
   step: 0,
   seconds_by_step: [],
@@ -753,9 +758,10 @@ onMounted(async () => {
   try {
     if (stored?.sessionId && !props.publicToken) {
       const remote = (await api<{ data: ExecutionSession }>(`/api/executions/${stored.sessionId}`)).data;
-      adopt(remote, stored);
-      notice.value =
-        'Восстановлена сохранённая сессия и её неизменяемый план. Для продолжения нажмите кнопку.';
+      if (!ownSheet || !['completed', 'interrupted'].includes(remote.status)) {
+        adopt(remote, stored);
+        notice.value = 'Восстановлена сохранённая сессия. Для продолжения нажмите кнопку.';
+      }
     } else if (
       props.publicToken &&
       plan.value &&
@@ -819,9 +825,7 @@ watch(metronome, () => draft(true), { deep: true });
         <h1 class="page-title">{{ plan?.title || 'Практика' }}</h1>
       </div>
       <div class="player-header-actions">
-        <Link class="btn" :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`"
-          >← К листу</Link
-        >
+        <Link class="btn" :href="sheetHref">← К листу</Link>
         <Link v-if="!publicToken" class="btn" href="/practice-history">История</Link>
       </div>
     </header>
@@ -1090,9 +1094,7 @@ watch(metronome, () => draft(true), { deep: true });
       <p v-if="publicToken" class="muted">Прогресс этой публикации хранится только на устройстве.</p>
       <div v-if="userId" class="player-header-actions player-context-actions">
         <Link href="/practices" class="btn">Мои практики</Link>
-        <Link :href="publicToken ? `/p/${publicToken}` : `/shared-practices/${documentId}`" class="btn"
-          >Лист и разрешённое копирование</Link
-        >
+        <Link v-if="!ownSheet" :href="sheetHref" class="btn">Лист и разрешённое копирование</Link>
       </div>
     </template>
     <Modal :open="settingsOpen" title="Настройки плеера" @close="settingsOpen = false">

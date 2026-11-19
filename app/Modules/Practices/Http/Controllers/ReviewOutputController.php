@@ -4,6 +4,7 @@ namespace App\Modules\Practices\Http\Controllers;
 
 use App\Modules\Practices\Services\PracticeReviews;
 use App\Modules\Practices\Services\ReviewSheetRenderer;
+use App\Modules\Practices\Services\SheetResponse;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class ReviewOutputController
         [$review, $options] = $this->prepare($request, $id);
         $html = $this->renderer->render($review, $this->reviews->images($id, true), $options);
 
-        return response($html)->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow')->header('X-Content-Type-Options', 'nosniff')->header('Content-Security-Policy', "default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'");
+        return SheetResponse::html($html, embeddedImages: true);
     }
 
     public function pdf(Request $request, string $id)

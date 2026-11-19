@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Plus, X, Save, ExternalLink, Copy, RefreshCw, GripVertical } from '@lucide/vue';
 import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
+import AppSelect from '@/shared/AppSelect.vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import AsanaPalette from '../components/AsanaPalette.vue';
@@ -23,7 +24,6 @@ interface Week {
   id: string;
   position: number;
   document_id: string;
-  document: Practice;
   title: string | null;
 }
 interface Cycle {
@@ -46,15 +46,55 @@ const cycle = ref<Cycle | null>(null),
   cloudOpen = ref(false),
   notice = ref('');
 const frames = new Map<string, HTMLIFrameElement>();
+const readyFrames = new Set<string>();
 const activeDocumentId = ref<string | null>(null);
 const switching = ref(false);
 const boardPage = ref(0);
-const visibleWeeks = computed(
-  () => cycle.value?.weeks.slice(boardPage.value * 5, boardPage.value * 5 + 5) || [],
-);
+const phoneViewport = window.matchMedia('(max-width: 760px)');
+const phoneLayout = ref(phoneViewport.matches);
+const visibleWeeks = computed(() => {
+  if (!cycle.value) return [];
+  if (phoneLayout.value)
+    return cycle.value.weeks.filter((week) => week.document_id === activeDocumentId.value);
+  return cycle.value.weeks.slice(boardPage.value * 5, boardPage.value * 5 + 5);
+});
 async function saveMountedWeeks() {
   for (const documentId of frames.keys()) if (!(await saveWeek(documentId))) return false;
   return true;
+}
+async function selectPhoneWeek(documentId: string) {
+  if (documentId === activeDocumentId.value || !cycle.value) return;
+  const next = cycle.value.weeks.find((week) => week.document_id === documentId);
+  if (next) await switchLayout(true, next);
+}
+async function syncPhoneLayout() {
+  if (!cycle.value) {
+    phoneLayout.value = phoneViewport.matches;
+    return;
+  }
+  if (phoneViewport.matches === phoneLayout.value) return;
+  const active = visibleWeeks.value.find((week) => week.document_id === activeDocumentId.value);
+  await switchLayout(phoneViewport.matches, active ?? visibleWeeks.value[0]);
+}
+async function switchLayout(isPhone: boolean, week?: Week) {
+  if (switching.value || allSaving.value || replaceBusy.value) return;
+  switching.value = true;
+  try {
+    if (!(await saveMountedWeeks())) {
+      error.value = 'Сохраните открытое занятие перед переключением.';
+      return;
+    }
+    if (!alive) return;
+    pointerDrag.cancel();
+    target.value = null;
+    phoneLayout.value = isPhone;
+    if (week) {
+      activeDocumentId.value = week.document_id;
+      boardPage.value = Math.floor(week.position / 5);
+    }
+  } finally {
+    switching.value = false;
+  }
 }
 async function changeBoardPage(value: number) {
   if (switching.value) return;
@@ -192,7 +232,7 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const result = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`);
+    const result = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}?summary=1`);
     if (!alive) return;
     cycle.value = result.data;
     if (
@@ -229,7 +269,7 @@ async function performSave(): Promise<boolean> {
   try {
     const previous = JSON.parse(acknowledged.value || '{}') as Partial<Cycle>;
     const cloud = [...cycle.value.cloud_asana_ids];
-    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`, {
+    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}?summary=1`, {
       method: 'PATCH',
       body: JSON.stringify({ ...outgoing, expected_revision: cycle.value.revision }),
     });
@@ -237,7 +277,7 @@ async function performSave(): Promise<boolean> {
     cycle.value.revision = response.data.revision;
     acknowledged.value = JSON.stringify({ ...outgoing, cloud_asana_ids: previous.cloud_asana_ids || [] });
     if (JSON.stringify(cloud) !== JSON.stringify(previous.cloud_asana_ids || [])) {
-      const cloudResponse = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}`, {
+      const cloudResponse = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}?summary=1`, {
         method: 'PATCH',
         body: JSON.stringify({ cloud_asana_ids: cloud, expected_revision: cycle.value.revision }),
       });
@@ -300,7 +340,7 @@ function cloudTargetAtPoint(point: PaletteDragPoint): MesocycleTarget | null {
 async function insertCloud(card: Asana, destination = target.value) {
   if (cloudDisabled.value || !cycle.value?.cloud_asana_ids.includes(card.id)) return;
   if (!destination) {
-    notice.value = 'Сначала нажмите на ячейку нужной недели.';
+    notice.value = 'Сначала нажмите на ячейку нужного занятия.';
     return;
   }
   if (card.archived_at) {
@@ -309,25 +349,27 @@ async function insertCloud(card: Asana, destination = target.value) {
   }
   if (!frames.has(destination.documentId)) {
     const week = cycle.value?.weeks.find((item) => item.document_id === destination.documentId);
-    const cell = week?.document.blocks
-      .flatMap((block) => block.rows.flatMap((row) => row.cells))
-      .find((item) => item.id === destination.cellId);
-    if (!week || !cell || !(await saveMetadata())) return;
-    const occupied = !!(cell.card_snapshot_id || cell.custom_name);
-    if (
-      occupied &&
-      !window.confirm(`Заменить «${destination.label}»? Позиционные стрелки и скобки сохранятся.`)
-    )
-      return;
-    const operationId = uid();
+    if (!week || !(await saveMetadata())) return;
     try {
+      const { data: document } = await api<{ data: Practice }>(`/api/practices/${week.document_id}`);
+      const cell = document.blocks
+        .flatMap((block) => block.rows.flatMap((row) => row.cells))
+        .find((item) => item.id === destination.cellId);
+      if (!cell) return;
+      const occupied = !!(cell.card_snapshot_id || cell.custom_name);
+      if (
+        occupied &&
+        !window.confirm(`Заменить «${destination.label}»? Позиционные стрелки и скобки сохранятся.`)
+      )
+        return;
+      const operationId = uid();
       const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/insert`, {
         method: 'POST',
         body: JSON.stringify({
           expected_revision: cycle.value!.revision,
           idempotency_key: operationId,
           document_id: week.document_id,
-          expected_document_revision: week.document.revision,
+          expected_document_revision: document.revision,
           cell_id: cell.id,
           asana_id: card.id,
           confirm_replace: occupied,
@@ -383,7 +425,10 @@ function receive(event: MessageEvent) {
     target.value = { documentId, cellId: data.cellId, label: data.label };
   }
   if (data.type === 'ribka:meso-clear-target' && target.value?.documentId === documentId) target.value = null;
-  if (data.type === 'ribka:meso-status') weekDirty.value[documentId] = data.dirty || data.pending > 0;
+  if (data.type === 'ribka:meso-status') {
+    readyFrames.add(documentId);
+    weekDirty.value[documentId] = data.dirty || data.pending > 0;
+  }
   if (data.type === 'ribka:meso-saved') {
     const request = weekSaveRequests.get(documentId);
     if (request && request.requestId === data.requestId) {
@@ -396,6 +441,7 @@ function receive(event: MessageEvent) {
 function saveWeek(documentId: string): Promise<boolean> {
   const frame = frames.get(documentId);
   if (!frame?.contentWindow) return Promise.resolve(!weekDirty.value[documentId]);
+  if (!readyFrames.has(documentId) && !weekDirty.value[documentId]) return Promise.resolve(true);
   const previous = weekSaveRequests.get(documentId);
   if (previous) {
     clearTimeout(previous.timer);
@@ -439,23 +485,26 @@ async function chooseSource(item: PracticeChoice) {
   replacementCandidate.value = item;
 }
 async function replaceWeek() {
-  if (!cycle.value || !replacement.value || !sourceId.value || replaceBusy.value) return;
-  if (!(await saveMetadata())) return;
+  if (!cycle.value || !replacement.value || !sourceId.value || replaceBusy.value || switching.value) return;
   replaceBusy.value = true;
   error.value = '';
   try {
-    if (!(await saveWeek(replacement.value.document_id)))
+    if (!(await saveMetadata())) return;
+    if (!(await (phoneLayout.value ? saveMountedWeeks() : saveWeek(replacement.value.document_id))))
       throw new Error('Не удалось сохранить предыдущую неделю. Проверьте её редактор перед заменой.');
-    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/replace-week`, {
-      method: 'POST',
-      body: JSON.stringify({
-        expected_revision: cycle.value.revision,
-        position: replacement.value.position,
-        source_document_id: sourceId.value,
-        expected_source_revision: sources.value.find((source) => source.id === sourceId.value)?.revision,
-        idempotency_key: replacementKey.value,
-      }),
-    });
+    const response = await api<{ data: Cycle }>(
+      `/api/mesocycles/${props.mesocycleId}/replace-week?summary=1`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          expected_revision: cycle.value.revision,
+          position: replacement.value.position,
+          source_document_id: sourceId.value,
+          expected_source_revision: sources.value.find((source) => source.id === sourceId.value)?.revision,
+          idempotency_key: replacementKey.value,
+        }),
+      },
+    );
     cycle.value = response.data;
     activeDocumentId.value =
       response.data.weeks.find((week) => week.position === replacement.value?.position)?.document_id ||
@@ -476,12 +525,20 @@ async function changeStructure(
   positions: { id?: string; title?: string | null }[],
   removed: { id: string; action: 'keep' | 'archive'; expected_revision: number }[] = [],
 ) {
-  if (!cycle.value || switching.value || positions.length < 1 || positions.length > 52) return;
-  if (!(await saveMetadata()) || !(await saveMountedWeeks())) return;
+  if (
+    !cycle.value ||
+    switching.value ||
+    allSaving.value ||
+    replaceBusy.value ||
+    positions.length < 1 ||
+    positions.length > 52
+  )
+    return;
   switching.value = true;
   error.value = '';
   try {
-    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/structure`, {
+    if (!(await saveMetadata()) || !(await saveMountedWeeks())) return;
+    const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/structure?summary=1`, {
       method: 'POST',
       body: JSON.stringify({
         expected_revision: cycle.value.revision,
@@ -575,6 +632,7 @@ function reloadCurrent() {
 }
 let removeGuard: (() => void) | undefined;
 onMounted(() => {
+  phoneViewport.addEventListener('change', syncPhoneLayout);
   void load();
   window.addEventListener('message', receive);
   window.addEventListener('beforeunload', beforeUnload);
@@ -589,6 +647,7 @@ onBeforeUnmount(() => {
   pointerDrag.cancel();
   alive = false;
   clearTimeout(timer);
+  phoneViewport.removeEventListener('change', syncPhoneLayout);
   window.removeEventListener('message', receive);
   window.removeEventListener('beforeunload', beforeUnload);
   removeGuard?.();
@@ -659,7 +718,7 @@ onBeforeUnmount(() => {
           </button>
         </header>
         <p v-if="!cycle.cloud_asanas.length" class="muted">
-          Добавьте асаны в общий буфер. Выберите ячейку недели, затем нажмите на асану в облаке.
+          Выберите ячейку занятия, затем нажмите на асану из общего облака.
         </p>
         <div class="cloud-cards">
           <div v-for="card in cycle.cloud_asanas" :key="card.id" class="cloud-card">
@@ -696,15 +755,15 @@ onBeforeUnmount(() => {
             dragPreview
               ? dragTarget
                 ? 'Отпустите асану в подсвеченную ячейку. Esc — отмена.'
-                : 'Перетащите асану в ячейку любой недели. Esc — отмена.'
+                : 'Перетащите асану в ячейку занятия. Esc — отмена.'
               : target
-                ? `Неделя ${(selectedWeek?.position ?? 0) + 1}: выбрана ячейка «${target.label}». Нажмите на асану выше.`
-                : 'Нажмите на ячейку любой недели для заполнения из общего облака.'
+                ? `Занятие ${(selectedWeek?.position ?? 0) + 1} · ячейка «${target.label}». Нажмите на асану выше.`
+                : 'Нажмите на ячейку занятия для заполнения из общего облака.'
           }}
         </p>
         <p v-if="target || dragPreview" class="cloud-help">
-          Перетащите рисунок в любую неделю. На сенсорном экране тяните за значок ⋮⋮. Можно выбрать ячейку и
-          нажать на асану; с клавиатуры используйте Tab и Enter.
+          Перетащите рисунок в ячейку. На сенсорном экране тяните за значок ⋮⋮. Можно выбрать ячейку и нажать
+          на асану; с клавиатуры используйте Tab и Enter.
         </p>
       </div>
       <p v-if="notice" class="success-banner" role="status">{{ notice }}</p>
@@ -728,12 +787,27 @@ onBeforeUnmount(() => {
           Добавить занятие
         </button>
       </div>
+      <div v-if="phoneLayout" class="cycle-week-picker">
+        <label for="cycle-current-week">Текущее занятие</label>
+        <AppSelect
+          id="cycle-current-week"
+          :model-value="activeDocumentId || ''"
+          :disabled="switching || allSaving || replaceBusy"
+          @update:model-value="selectPhoneWeek"
+        >
+          <option v-for="week in cycle.weeks" :key="week.id" :value="week.document_id">
+            {{ week.title ? `${week.position + 1}. ${week.title}` : `Занятие ${week.position + 1}` }}
+          </option>
+        </AppSelect>
+      </div>
       <div
         ref="weeksBoard"
         class="weeks-board"
+        :class="{ 'single-week': phoneLayout }"
         role="region"
-        aria-label="Занятия мезоцикла. Прокрутите по горизонтали, чтобы перейти к следующему занятию"
-        tabindex="0"
+        :aria-label="phoneLayout ? 'Редактор выбранного занятия' : 'Занятия мезоцикла'"
+        :tabindex="phoneLayout ? undefined : 0"
+        :inert="switching || replaceBusy"
         :style="{ '--visible-weeks': Math.min(5, visibleWeeks.length) }"
       >
         <section
@@ -783,7 +857,10 @@ onBeforeUnmount(() => {
             :ref="
               (element) => {
                 if (element) frames.set(week.document_id, element as HTMLIFrameElement);
-                else frames.delete(week.document_id);
+                else {
+                  frames.delete(week.document_id);
+                  readyFrames.delete(week.document_id);
+                }
               }
             "
             :src="frameSource(week.document_id)"
@@ -791,7 +868,7 @@ onBeforeUnmount(() => {
           />
         </section>
       </div>
-      <div v-if="cycle.weeks.length > 5" class="cycle-structure-tools">
+      <div v-if="!phoneLayout && cycle.weeks.length > 5" class="cycle-structure-tools">
         <button
           class="btn btn-secondary"
           :disabled="boardPage <= 0 || switching"
@@ -807,7 +884,7 @@ onBeforeUnmount(() => {
           Следующие занятия
         </button>
       </div>
-      <p class="muted board-help">
+      <p v-if="!phoneLayout" class="muted board-help">
         Все пять занятий доступны для редактирования одновременно. Перед сменой страницы или структуры
         открытые занятия сохраняются.
       </p>
@@ -836,7 +913,7 @@ onBeforeUnmount(() => {
       </div>
     </Modal>
     <Modal :open="cloudOpen" title="Добавить асаны в облако" @close="cloudOpen = false"
-      ><p class="muted">Выберите несколько асан. Они будут доступны для каждой недели.</p>
+      ><p class="muted">Выберите асаны, которые будут доступны во всех занятиях цикла.</p>
       <AsanaPalette
         v-if="cloudOpen"
         :document-id="mesocycleId"
@@ -1178,6 +1255,26 @@ onBeforeUnmount(() => {
   font-size: 12px;
   line-height: 1.7;
   margin: 14px 0;
+}
+.cycle-week-picker {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cycle-week-picker label {
+  color: var(--muted);
+  font-size: 13px;
+}
+.weeks-board.single-week {
+  grid-template-columns: minmax(0, 1fr);
+  overflow-x: visible;
+}
+.single-week .week-column {
+  min-width: 0;
+}
+.single-week .week-column iframe {
+  height: 70dvh;
+  max-height: none;
 }
 @media (max-width: 650px) {
   .cycle-heading {

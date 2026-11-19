@@ -21,6 +21,7 @@ import {
   UserPlus,
   LayoutGrid,
   List,
+  Play,
 } from '@lucide/vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import PracticePicker, { type PracticeChoice } from '../components/PracticePicker.vue';
@@ -35,7 +36,9 @@ import PracticeCategoryFilter from '../components/PracticeCategoryFilter.vue';
 import PracticeFolders from '../components/PracticeFolders.vue';
 import PracticeNavigation from '../components/PracticeNavigation.vue';
 import PortableImportDialog from '../components/PortableImportDialog.vue';
+import PracticeLaunchDialog from '../components/PracticeLaunchDialog.vue';
 const sharingItem = ref<PracticeListItem | null>(null);
+const launchingItem = ref<PracticeListItem | null>(null);
 type Tab = 'practices' | 'templates' | 'rows' | 'transitions';
 interface PreviewCard {
   id: string;
@@ -59,6 +62,7 @@ interface PracticeListItem {
   row_count?: number;
   cells_count?: number;
   cell_count?: number;
+  filled_cell_count?: number;
   preview_cards?: PreviewCard[];
   preview_cells?: Cell[];
 }
@@ -288,6 +292,11 @@ async function restoreUrl() {
 }
 onMounted(() => {
   window.addEventListener('popstate', restoreUrl);
+  if (initial.searchParams.get('create') === '1' && tab.value === 'practices') {
+    initial.searchParams.delete('create');
+    window.history.replaceState(window.history.state, '', initial);
+    openCreate();
+  }
   void load();
 });
 onBeforeUnmount(() => {
@@ -321,6 +330,14 @@ function counts(item: PracticeListItem) {
   return rowTab.value
     ? noun(item.cells_count ?? item.cell_count ?? 0, 'ячейка', 'ячейки', 'ячеек')
     : `${noun(item.blocks_count ?? item.block_count ?? 0, 'блок', 'блока', 'блоков')} · ${noun(item.row_count ?? 0, 'строка', 'строки', 'строк')}`;
+}
+function canLaunch(item: PracticeListItem) {
+  return (
+    tab.value === 'practices' &&
+    !item.archived_at &&
+    !insertAsana &&
+    (item.filled_cell_count ?? item.preview_cells?.length ?? 0) > 0
+  );
 }
 function openCreate(template?: PracticeListItem, asTemplate = false) {
   createOpen.value = true;
@@ -486,6 +503,7 @@ async function saveName() {
 }
 </script>
 <template>
+  <PracticeLaunchDialog :practice="launchingItem" @close="launchingItem = null" />
   <PracticePicker
     :external-error="error"
     :open="addPracticeOpen"
@@ -519,11 +537,11 @@ async function saveName() {
         <button
           v-if="!rowTab"
           class="btn btn-secondary"
-          aria-label="Добавить практику"
+          aria-label="Копировать практику"
           @click="addPracticeOpen = true"
         >
-          <Plus :size="18" /><span class="add-label-desktop">Добавить практику</span
-          ><span class="add-label-mobile">Добавить</span>
+          <Copy :size="18" /><span class="add-label-desktop">Копировать практику</span
+          ><span class="add-label-mobile">Копировать</span>
         </button>
         <ActionMenu label="Действия со списком практик">
           <button @click="importOpen = true">Импорт JSON</button>
@@ -687,8 +705,15 @@ async function saveName() {
               :disabled="busy"
               @click="openCreate(item)"
             >
-              Создать практику <ArrowRight :size="17" /></button
-            ><Link v-else class="btn btn-secondary open-practice" :href="editUrl(item)"
+              Создать практику <ArrowRight :size="17" />
+            </button>
+            <div v-else-if="canLaunch(item)" class="practice-card-actions">
+              <button class="btn btn-primary" type="button" @click="launchingItem = item">
+                <Play :size="17" />Начать
+              </button>
+              <Link class="btn btn-secondary" :href="editUrl(item)">Редактировать</Link>
+            </div>
+            <Link v-else class="btn btn-secondary open-practice" :href="editUrl(item)"
               >{{
                 rowTab ? (tab === 'transitions' ? 'Изменить связку' : 'Изменить строку') : 'Открыть практику'
               }}<ArrowRight :size="17"
@@ -1133,6 +1158,15 @@ async function saveName() {
 }
 .practice-content {
   padding: var(--panel-padding);
+}
+.practice-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.practice-card-actions > :first-child {
+  flex: 1 1 auto;
 }
 .practice-theme {
   display: inline-block;

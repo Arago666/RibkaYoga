@@ -222,6 +222,9 @@ class PracticeEditor
     {
         return DB::transaction(function () use ($input) {
             $this->entitlements->lock($this->workspace());
+            if (($input['example'] ?? null) === 'first-practice') {
+                return $this->insertDocument($this->firstPracticeExample(), 'practice');
+            }
             if (! empty($input['template_id'])) {
                 $source = $this->find('practice_documents', $input['template_id'], true);
                 abort_unless($source->kind === 'template' && ! $source->archived_at, 422, 'Выберите доступный шаблон практики.');
@@ -244,6 +247,30 @@ class PracticeEditor
 
             return $this->insertDocument($tree, $input['kind'] ?? 'practice');
         });
+    }
+
+    private function firstPracticeExample(): array
+    {
+        $steps = [
+            ['block' => 'Начало', 'name' => 'Сукхасана', 'seconds' => 60],
+            ['block' => 'Основная часть', 'name' => 'Тадасана', 'seconds' => 60],
+            ['block' => 'Завершение', 'name' => 'Шавасана', 'seconds' => 120],
+        ];
+        $ids = $this->asanas->activeIdsByName(array_column($steps, 'name'));
+        $resolved = collect($this->resolveCards(array_values($ids)))->keyBy('source_asana_id');
+        $blocks = [];
+        foreach ($steps as $step) {
+            $snapshotId = isset($ids[$step['name']]) ? ($resolved[$ids[$step['name']]]['id'] ?? null) : null;
+            $blocks[] = [
+                'title' => $step['block'], 'purpose' => null,
+                'rows' => [['note' => null, 'cells' => [[
+                    'card_snapshot_id' => $snapshotId, 'custom_name' => $snapshotId ? null : $step['name'],
+                    'group_key' => null, 'note' => null, 'advance_mode' => 'time', 'duration_seconds' => $step['seconds'],
+                ]]]],
+            ];
+        }
+
+        return ['title' => 'Пример короткой практики', 'blocks' => $blocks];
     }
 
     public function save(string $id, array $input): array

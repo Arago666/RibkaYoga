@@ -45,6 +45,7 @@ const config = reactive<MeditationConfig>({ ...defaults });
 const immersive = ref(false);
 const revision = ref(1),
   ready = ref(false),
+  initializing = ref(false),
   error = ref(''),
   notice = ref('');
 const session = ref<MeditationSession | null>(null),
@@ -64,7 +65,9 @@ const engine = new MeditationAudio();
 const audios = ref<PersonalAudio[]>([]),
   audioArchive = ref(false),
   audioTitle = ref(''),
-  audioFile = ref<File | null>(null);
+  audioFile = ref<File | null>(null),
+  audioBusy = ref(false),
+  audioError = ref('');
 const limits = ref<AudioLimits>({ max_bytes: 104857600, max_seconds: 7200, max_library_bytes: 1073741824 });
 const uploading = ref(false),
   uploadPercent = ref(0);
@@ -72,7 +75,10 @@ let uploadCancel: (() => void) | null = null;
 const history = ref<MeditationHistory | null>(null),
   period = ref('30'),
   historyPage = ref(1),
-  historyBusy = ref(false);
+  historyBusy = ref(false),
+  historyError = ref('');
+let audioRequest = 0;
+let historyRequest = 0;
 let tickId: ReturnType<typeof setInterval> | null = null;
 let heartbeatId: ReturnType<typeof setInterval> | null = null;
 let operation: Promise<void> = Promise.resolve();
@@ -137,12 +143,15 @@ const breath = computed(() => {
 });
 const calendar = computed(() => {
   const days = history.value?.summary.days ?? {};
-  const today = new Intl.DateTimeFormat('en-CA', {
+  const parts = new Intl.DateTimeFormat('en', {
     timeZone: config.timezone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(new Date());
+  }).formatToParts(new Date());
+  const today = ['year', 'month', 'day']
+    .map((unit) => parts.find((part) => part.type === unit)?.value)
+    .join('-');
   const cursor = new Date(`${today}T12:00:00Z`);
   return Array.from({ length: 35 }, (_, index) => {
     const date = new Date(cursor);
@@ -207,46 +216,67 @@ function adopt(value: MeditationSession): void {
   clock.value = anchor.value;
 }
 async function loadHistory(): Promise<void> {
+  const request = ++historyRequest;
   historyBusy.value = true;
+  historyError.value = '';
   try {
-    history.value = await api<MeditationHistory>(
+    const result = await api<MeditationHistory>(
       `/api/meditation/history?${new URLSearchParams({ period: period.value, timezone: config.timezone, page: String(historyPage.value) })}`,
     );
+    if (request === historyRequest) history.value = result;
   } catch (cause) {
-    error.value = message(cause);
+    if (request === historyRequest) historyError.value = message(cause);
   } finally {
-    historyBusy.value = false;
+    if (request === historyRequest) historyBusy.value = false;
   }
 }
 async function loadAudio(): Promise<void> {
-  const result = await api<{ data: PersonalAudio[]; limits: AudioLimits }>(
-    `/api/audio?archived=${audioArchive.value ? 1 : 0}`,
-  );
-  audios.value = result.data;
-  limits.value = result.limits;
+  const request = ++audioRequest;
+  audioBusy.value = true;
+  audioError.value = '';
+  try {
+    const result = await api<{ data: PersonalAudio[]; limits: AudioLimits }>(
+      `/api/audio?archived=${audioArchive.value ? 1 : 0}`,
+    );
+    if (request !== audioRequest) return;
+    audios.value = result.data;
+    limits.value = result.limits;
+  } catch (cause) {
+    if (request === audioRequest) audioError.value = message(cause);
+  } finally {
+    if (request === audioRequest) audioBusy.value = false;
+  }
 }
 async function initialize(): Promise<void> {
+  if (initializing.value) return;
+  initializing.value = true;
   error.value = '';
   try {
-    const result = await api<{
-      data: { revision: number; settings: MeditationConfig };
-      audio_limits: AudioLimits;
-    }>(`/api/meditation/settings?timezone=${encodeURIComponent(defaults.timezone)}`);
+    const [result, current] = await Promise.all([
+      api<{
+        data: { revision: number; settings: MeditationConfig };
+        audio_limits: AudioLimits;
+      }>(`/api/meditation/settings?timezone=${encodeURIComponent(defaults.timezone)}`),
+      api<{ data: MeditationSession | null }>('/api/meditation/active'),
+    ]);
+    if (disposed) return;
     Object.assign(config, result.data.settings);
     if (!timezoneOptions.includes(config.timezone)) timezoneOptions.push(config.timezone);
     revision.value = result.data.revision;
     limits.value = result.audio_limits;
-    const current = await api<{ data: MeditationSession | null }>('/api/meditation/active');
     if (current.data) {
       adopt(current.data);
       localPause.value = true;
       notice.value =
         'Есть незавершённая сессия. Продолжите её явно; звук после открытия страницы не запускается.';
     }
-    await Promise.all([loadAudio(), loadHistory()]);
     ready.value = true;
+    void loadAudio();
+    void loadHistory();
   } catch (cause) {
     error.value = message(cause);
+  } finally {
+    initializing.value = false;
   }
 }
 async function saveSettings(): Promise<void> {
@@ -274,8 +304,11 @@ function freeze(): void {
   void wakeLock?.release().catch(() => {});
   wakeLock = null;
 }
+function canPlay(): boolean {
+  return playbackRequested && !disposed && !document.hidden && navigator.onLine;
+}
 async function sound(): Promise<void> {
-  if (!session.value || !running.value) return;
+  if (!session.value || !running.value || !canPlay()) return;
   const selected = session.value.settings;
   try {
     await engine.start(
@@ -288,26 +321,25 @@ async function sound(): Promise<void> {
       (detail) => {
         error.value = detail;
       },
+      () => running.value && canPlay(),
     );
     engine.setMuted(muted.value);
   } catch (cause) {
-    error.value = message(cause);
+    if (running.value && canPlay()) error.value = message(cause);
   }
 }
 async function screenAwake(): Promise<void> {
   try {
-    if ('wakeLock' in navigator)
-      wakeLock = await (
-        navigator as Navigator & {
-          wakeLock: { request(type: 'screen'): Promise<{ release(): Promise<void> }> };
-        }
-      ).wakeLock.request('screen');
+    if (wakeLock || !running.value || !canPlay() || !('wakeLock' in navigator)) return;
+    const lock = await navigator.wakeLock.request('screen');
+    if (wakeLock || !running.value || !canPlay()) await lock.release();
+    else wakeLock = lock;
   } catch {
     /* Normal browser mode remains available. */
   }
 }
 async function beginSession(): Promise<void> {
-  if (requestBusy.value || disposed || !playbackRequested) return;
+  if (requestBusy.value || !canPlay()) return;
   requestBusy.value = true;
   error.value = '';
   startId ??= uid();
@@ -317,18 +349,21 @@ async function beginSession(): Promise<void> {
       body: JSON.stringify({ id: startId, settings: config }),
     });
     adopt(result.data);
-    localPause.value = false;
     preparing.value = false;
-    if (!playbackRequested || disposed) {
+    if (!canPlay()) {
       void command('pause');
       return;
     }
+    localPause.value = false;
     intervalIndex = Math.floor(activeMs.value / 1000 / (result.data.settings.interval_seconds || Infinity));
     await sound();
+    if (!running.value || !canPlay()) return;
     engine.signal(result.data.settings.start_signal, result.data.settings.signal_volume);
     await screenAwake();
   } catch (cause) {
     preparing.value = false;
+    playbackRequested = false;
+    if (disposed) return;
     error.value = message(cause);
     try {
       const current = await api<{ data: MeditationSession | null }>('/api/meditation/active');
@@ -346,19 +381,26 @@ async function beginSession(): Promise<void> {
   }
 }
 async function start(): Promise<void> {
-  if (!terminal.value || preparing.value || requestBusy.value) return;
+  if (!ready.value || !terminal.value || preparing.value || requestBusy.value || document.hidden) return;
+  if (!navigator.onLine) {
+    error.value = 'Нет сети. Подключитесь к интернету, чтобы начать сеанс.';
+    return;
+  }
   playbackRequested = true;
   immersive.value = true;
   error.value = '';
   notice.value = '';
   frozen.value = 0;
   document.querySelectorAll<HTMLAudioElement>('.audio-list audio').forEach((audio) => audio.pause());
+  requestBusy.value = true;
   try {
     await engine.unlock();
   } catch {
     notice.value = 'Звук недоступен; можно продолжить в тишине.';
+  } finally {
+    requestBusy.value = false;
   }
-  if (!playbackRequested || disposed) return;
+  if (!canPlay()) return;
   startId = null;
   if (config.preparation_seconds > 0) {
     preparing.value = true;
@@ -369,9 +411,17 @@ async function start(): Promise<void> {
 }
 function togglePreparation(): void {
   if (!preparing.value) return;
-  preparationPaused.value = !preparationPaused.value;
-  playbackRequested = !preparationPaused.value;
-  if (!preparationPaused.value) preparationDeadline = performance.now() + preparationLeft.value * 1000;
+  if (!preparationPaused.value) {
+    suspendPlayback();
+  } else if (!document.hidden && navigator.onLine) {
+    preparationPaused.value = false;
+    playbackRequested = true;
+    preparationDeadline = performance.now() + preparationLeft.value * 1000;
+  }
+}
+function cancelPreparation(): void {
+  suspendPlayback();
+  preparing.value = false;
 }
 async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | 'interrupt'): Promise<void> {
   if (!session.value) return;
@@ -381,6 +431,7 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
     .catch(() => {})
     .then(async () => {
       if (!session.value || (terminal.value && action !== 'heartbeat')) return;
+      if (action === 'resume' && !canPlay()) return;
       requestBusy.value = true;
       try {
         const result = await api<{ data: MeditationSession }>(
@@ -393,7 +444,7 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
         );
         adopt(result.data);
         if (action === 'resume' && result.data.status === 'running') {
-          if (!playbackRequested || disposed) {
+          if (!canPlay()) {
             localPause.value = true;
             engine.pause();
             void command('pause');
@@ -407,6 +458,7 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
           engine.pause();
         }
         if (terminal.value) {
+          playbackRequested = false;
           engine.stop();
           if (result.data.status === 'completed') {
             engine.signal(result.data.settings.end_signal, result.data.settings.signal_volume);
@@ -416,9 +468,10 @@ async function command(action: 'heartbeat' | 'pause' | 'resume' | 'complete' | '
             result.data.status === 'completed'
               ? 'Сессия завершена. Активное время сохранено.'
               : 'Сессия прервана. Активное время сохранено отдельно от завершённых занятий.';
-          await loadHistory();
+          void loadHistory();
         }
       } catch (cause) {
+        playbackRequested = false;
         freeze();
         error.value = `${message(cause)} Таймер приостановлен; нажмите «Сверить с сервером» перед продолжением.`;
       } finally {
@@ -475,29 +528,30 @@ function tick(): void {
     }
   }
 }
+function suspendPlayback(): boolean {
+  const wasPlaying = playbackRequested || running.value;
+  playbackRequested = false;
+  if (preparing.value && !preparationPaused.value) {
+    preparationLeft.value = Math.max(0, (preparationDeadline - performance.now()) / 1000);
+    preparationPaused.value = true;
+  }
+  if (running.value) void command('pause');
+  return wasPlaying;
+}
 function hidden(): void {
-  if (document.hidden) {
-    document.querySelectorAll<HTMLAudioElement>('.audio-list audio').forEach((audio) => audio.pause());
-    if (preparing.value && !preparationPaused.value) togglePreparation();
-    if (running.value) {
-      freeze();
-      void command('pause');
-      notice.value = 'При уходе с экрана таймер поставлен на паузу. Продолжите, когда вернётесь.';
-    }
+  if (!document.hidden) return;
+  document.querySelectorAll<HTMLAudioElement>('.audio-list audio').forEach((audio) => audio.pause());
+  if (suspendPlayback()) {
+    notice.value = 'При уходе с экрана воспроизведение приостановлено. Продолжите, когда вернётесь.';
   }
 }
 function disconnected(): void {
-  if (running.value) {
-    freeze();
-    void command('pause');
+  if (suspendPlayback()) {
     error.value = 'Нет сети. Таймер и звук приостановлены; после подключения сверьте состояние.';
   }
 }
 function leaving(): void {
-  if (running.value) {
-    freeze();
-    void command('pause');
-  }
+  suspendPlayback();
 }
 async function preview(signal: Signal): Promise<void> {
   try {
@@ -579,9 +633,7 @@ function fullscreen(): void {
   immersive.value = true;
 }
 function closeWindow(): void {
-  playbackRequested = false;
-  if (preparing.value && !preparationPaused.value) togglePreparation();
-  if (running.value) void command('pause');
+  suspendPlayback();
   immersive.value = false;
 }
 watch(muted, (value) => engine.setMuted(value));
@@ -596,10 +648,7 @@ watch(
   },
 );
 watch(audioArchive, () => {
-  if (ready.value)
-    void loadAudio().catch((cause) => {
-      error.value = message(cause);
-    });
+  if (ready.value) void loadAudio();
 });
 watch(
   () => config.kind,
@@ -626,7 +675,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('offline', disconnected);
   window.removeEventListener('pagehide', leaving);
   uploadCancel?.();
-  if (running.value) void command('pause');
+  suspendPlayback();
   engine.stop();
   void engine.dispose();
   void wakeLock?.release().catch(() => {});
@@ -656,8 +705,8 @@ onBeforeUnmount(() => {
       </div>
       <p v-if="notice" class="meditation-notice" role="status">{{ notice }}</p>
       <div v-if="!ready" class="card">
-        <p>Загрузка личных настроек…</p>
-        <button type="button" class="btn" @click="initialize">Повторить</button>
+        <p v-if="initializing" role="status">Загрузка таймера…</p>
+        <button v-else type="button" class="btn" @click="initialize">Повторить</button>
       </div>
       <template v-else>
         <div class="meditation-workspace">
@@ -895,7 +944,7 @@ onBeforeUnmount(() => {
                 <template v-if="preparing"
                   ><button class="btn" @click="togglePreparation">
                     {{ preparationPaused ? 'Продолжить подготовку' : 'Пауза' }}</button
-                  ><button class="btn" @click="preparing = false">Отменить подготовку</button></template
+                  ><button class="btn" @click="cancelPreparation">Отменить подготовку</button></template
                 >
                 <button
                   v-else-if="terminal"
@@ -1351,7 +1400,12 @@ onBeforeUnmount(() => {
                 <label class="check"
                   ><input v-model="audioArchive" type="checkbox" /> Показать архив аудио</label
                 >
-                <p v-if="!audios.length" class="muted">
+                <p v-if="audioBusy" class="muted" role="status">Загрузка аудио…</p>
+                <div v-else-if="audioError" class="meditation-error" role="alert">
+                  Не удалось загрузить аудио. {{ audioError }}
+                  <button type="button" class="btn" @click="loadAudio">Повторить</button>
+                </div>
+                <p v-else-if="!audios.length" class="muted">
                   {{ audioArchive ? 'Архив пуст.' : 'Личных записей пока нет.' }}
                 </p>
                 <ul class="audio-list">
@@ -1402,7 +1456,12 @@ onBeforeUnmount(() => {
               <p class="muted small">
                 Часовой пояс: {{ config.timezone }}. Завершённые и прерванные сессии учитываются отдельно.
               </p>
-              <template v-if="history"
+              <p v-if="historyBusy" class="muted" role="status">Загрузка статистики…</p>
+              <div v-else-if="historyError" class="meditation-error" role="alert">
+                Не удалось загрузить статистику. {{ historyError }}
+                <button type="button" class="btn" @click="loadHistory">Повторить</button>
+              </div>
+              <template v-else-if="history"
                 ><div class="meditation-stats">
                   <div>
                     <strong>{{ Math.round(history.summary.active_ms / 60000) }}</strong

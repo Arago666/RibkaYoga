@@ -5,6 +5,7 @@ namespace App\Modules\Practices\Http\Controllers;
 use App\Modules\Media\PublicApi\AssetStore;
 use App\Modules\Practices\Services\DocumentSharing;
 use App\Modules\Practices\Services\SheetRenderer;
+use App\Modules\Practices\Services\SheetResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -65,7 +66,7 @@ class DocumentSharingController
         }
         $names = (bool) ($input['show_names'] ?? false);
 
-        return response($renderer->render($document, $images, ['show_names' => $names, 'preset' => $names ? 'names' : 'clean', 'orientation' => $input['orientation'] ?? 'landscape']))->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'private, no-store')->header('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'");
+        return SheetResponse::html($renderer->render($document, $images, ['show_names' => $names, 'preset' => $names ? 'names' : 'clean', 'orientation' => $input['orientation'] ?? 'landscape']));
     }
 
     public function media(string $id, string $assetId, AssetStore $assets): BinaryFileResponse

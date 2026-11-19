@@ -44,6 +44,19 @@ class CatalogReader implements AsanaReader
         return $this->serialize($asanas);
     }
 
+    public function activeIdsByName(array $names): array
+    {
+        $normalized = array_combine($names, array_map(Names::normalize(...), $names));
+        $query = Asana::query()->where('workspace_id', $this->workspace->id())->whereNull('archived_at')
+            ->whereIn('normalized_name', $normalized)->orderBy('created_at')->orderBy('id');
+        if (DB::transactionLevel() > 0) {
+            $query->sharedLock();
+        }
+        $matches = $query->get(['id', 'normalized_name'])->unique('normalized_name')->pluck('id', 'normalized_name');
+
+        return array_filter(array_map(fn ($name) => $matches[$name] ?? null, $normalized));
+    }
+
     public function serialize(Collection $asanas, bool $includeDrawingSource = false): array
     {
         if ($asanas->isEmpty()) {

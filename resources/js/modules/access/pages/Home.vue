@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 import {
+  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   FolderOpen,
@@ -8,11 +10,50 @@ import {
   ScanText,
   History,
   AudioLines,
+  Play,
+  Plus,
   Settings,
   Users,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import PageHeading from '@/shared/PageHeading.vue';
+import { api } from '@/shared/api';
+
+const recent = ref<{ id: string; title: string } | null>(null);
+const empty = ref(false);
+const creatingExample = ref(false);
+const exampleError = ref('');
+
+onMounted(async () => {
+  try {
+    const { data } = await api<{ data: { id: string; title: string }[] }>(
+      '/api/practices?kind=practice&archive=active&sort=updated_desc&include_cycle_documents=0&per_page=1',
+    );
+    recent.value = data[0] ?? null;
+    empty.value = data.length === 0;
+  } catch {
+    // The direct creation and section links remain available.
+  }
+});
+
+async function createExample() {
+  if (creatingExample.value) return;
+  creatingExample.value = true;
+  exampleError.value = '';
+  try {
+    const { data } = await api<{ data: { id: string; title: string } }>('/api/practices', {
+      method: 'POST',
+      body: JSON.stringify({ example: 'first-practice' }),
+    });
+    recent.value = data;
+    empty.value = false;
+    router.visit(`/practices/${data.id}/preview`);
+  } catch (error) {
+    exampleError.value = error instanceof Error ? error.message : 'Не удалось создать пример.';
+  } finally {
+    creatingExample.value = false;
+  }
+}
 
 const primary = [
   { title: 'Практики', description: 'Собрать и провести занятие', href: '/practices', image: 'practices' },
@@ -46,6 +87,19 @@ const tools = [
       title="С чего начнём?"
       description="Всё нужное для занятий — под рукой."
     />
+    <section class="home-practice-actions" aria-label="Быстрые действия с практиками">
+      <Link href="/practices?create=1" class="btn btn-primary"><Plus :size="17" /> Создать практику</Link>
+      <Link v-if="recent" :href="`/practices/${recent.id}/edit`" class="btn btn-secondary home-continue">
+        <ArrowRight :size="17" />
+        <span
+          >Продолжить <span class="home-recent-title">{{ recent.title }}</span></span
+        >
+      </Link>
+      <button v-else-if="empty" class="btn btn-secondary" :disabled="creatingExample" @click="createExample">
+        <Play :size="16" /> {{ creatingExample ? 'Создаём…' : 'Создать пример' }}
+      </button>
+    </section>
+    <p v-if="exampleError" class="error-banner" role="alert">{{ exampleError }}</p>
     <nav class="home-primary" aria-label="Основные разделы">
       <Link v-for="item in primary" :key="item.href" :href="item.href" class="home-tile">
         <img
@@ -79,6 +133,31 @@ const tools = [
 .home-heading {
   min-height: 0;
   margin-bottom: 22px;
+}
+.home-practice-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 540px;
+  margin-bottom: 22px;
+}
+.home-practice-actions .btn {
+  min-height: 55px;
+  max-width: 100%;
+  min-width: 0;
+}
+.home-continue > span {
+  display: grid;
+  min-width: 0;
+}
+.home-recent-title {
+  max-width: 28ch;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .home-primary {
   display: grid;
@@ -175,6 +254,14 @@ const tools = [
   border-radius: 14px;
 }
 @media (max-width: 600px) {
+  .home-practice-actions .btn {
+    padding-inline: 10px;
+    font-size: 13px;
+    white-space: normal;
+  }
+  .home-practice-actions .btn svg {
+    flex-shrink: 0;
+  }
   .home-primary {
     grid-template-columns: 1fr;
     gap: 12px;

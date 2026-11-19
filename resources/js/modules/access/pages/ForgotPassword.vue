@@ -2,7 +2,12 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowRight } from '@lucide/vue';
 import BrandAuthFrame from '@/shared/BrandAuthFrame.vue';
-defineProps<{ status?: string; localMail: boolean; recoveryAvailable: boolean }>();
+defineProps<{
+  status?: string;
+  localMail: boolean;
+  recoveryAvailable: boolean;
+  supportUrl?: string | null;
+}>();
 const form = useForm({ email: '' });
 </script>
 <template>
@@ -21,7 +26,8 @@ const form = useForm({ email: '' });
       <p v-else-if="recoveryAvailable">
         Укажите почту своего аккаунта. На неё придёт ссылка для смены пароля.
       </p>
-      <p v-else>Отправка писем пока не подключена. Для восстановления доступа обратитесь к администратору.</p>
+      <p v-else-if="supportUrl">Восстановление по почте недоступно. Напишите в поддержку RibkaYoga.</p>
+      <p v-else>Восстановление пароля временно недоступно.</p>
     </template>
     <p v-if="status" class="success-banner" role="status">{{ status }}</p>
     <form v-if="recoveryAvailable" class="login-form" @submit.prevent="form.post('/forgot-password')">
@@ -47,6 +53,9 @@ const form = useForm({ email: '' });
         {{ form.processing ? 'Отправляем…' : 'Получить ссылку' }}<ArrowRight :size="19" />
       </button>
     </form>
+    <a v-else-if="supportUrl" :href="supportUrl" class="btn btn-primary login-submit" rel="noreferrer">
+      Связаться с поддержкой<ArrowRight :size="19" />
+    </a>
     <template #links
       ><Link href="/login">Вернуться ко входу <span aria-hidden="true">↗</span></Link></template
     >

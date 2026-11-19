@@ -59,7 +59,7 @@ class AsanaController
                 $this->collections->lockWorkspace();
                 $limits = app(Entitlements::class);
                 $limits->lock($this->workspace->id());
-                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::where('workspace_id', $this->workspace->id())->whereNull('archived_at')->count());
+                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::countedForQuota($this->workspace->id())->count());
                 $asana = new Asana([
                     'workspace_id' => $this->workspace->id(), 'created_by' => $this->workspace->userId(),
                     'updated_by' => $this->workspace->userId(), 'current_image_asset_id' => $asset['id'], 'revision' => 1,
@@ -147,10 +147,10 @@ class AsanaController
                 $this->collections->lockWorkspace();
                 $limits = app(Entitlements::class);
                 $limits->lock($this->workspace->id());
-                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::where('workspace_id', $this->workspace->id())->whereNull('archived_at')->count());
+                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::countedForQuota($this->workspace->id())->count());
                 $source = $this->find($id, true);
                 $this->checkRevision($source, $input['expected_revision']);
-                $card = $source->replicate(['id', 'import_key', 'import_source', 'created_at', 'updated_at', 'archived_at']);
+                $card = $source->replicate(['id', 'import_key', 'import_source', 'starter_card', 'created_at', 'updated_at', 'archived_at']);
                 $card->setRelations([]);
                 $card->forceFill(['name' => trim($input['name']), 'normalized_name' => Names::normalize($input['name']),
                     'normalized_search_text' => Names::normalize(implode(' ', [$input['name'], $source->alternate_name ?? '', $source->sanskrit_cyrillic ?? '', $source->sanskrit_latin ?? '', ...$source->aliases->pluck('name')->all()])),
@@ -206,8 +206,8 @@ class AsanaController
             if (! $archived && (! ($this->collections->collectionIdsForAsanas([$asana->id])[$asana->id] ?? []))) {
                 throw ValidationException::withMessages(['asana' => 'Перед восстановлением укажите действующую подборку в карточке.']);
             }
-            if (! $archived && $asana->archived_at) {
-                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::where('workspace_id', $this->workspace->id())->whereNull('archived_at')->count());
+            if (! $archived && $asana->archived_at && ! $asana->starter_card) {
+                $limits->assertCanCreate($this->workspace->id(), 'asanas', Asana::countedForQuota($this->workspace->id())->count());
             }
             $asana->forceFill(['archived_at' => $archived ? now() : null, 'revision' => $asana->revision + 1, 'updated_by' => $this->workspace->userId()])->save();
 

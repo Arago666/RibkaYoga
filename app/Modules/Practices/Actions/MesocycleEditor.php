@@ -29,14 +29,21 @@ class MesocycleEditor
         return ['data' => $data, 'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()];
     }
 
-    public function show(string $id): array
+    public function show(string $id, bool $includeDocuments = true): array
     {
         $record = $this->find($id);
         $data = (array) $record;
         $data['revision'] = (int) $record->revision;
         $data['cloud_asana_ids'] = json_decode($record->cloud_asana_ids, true) ?: [];
         $data['cloud_asanas'] = $data['cloud_asana_ids'] ? array_values($this->asanas->findMany($data['cloud_asana_ids'], true)) : [];
-        $data['weeks'] = DB::table('practice_mesocycle_weeks')->where('mesocycle_id', $id)->orderBy('position')->get()->map(fn ($week) => ['id' => $week->id, 'position' => (int) $week->position, 'title' => $week->title, 'document_id' => $week->document_id, 'document' => $this->practices->document($week->document_id)])->all();
+        $data['weeks'] = DB::table('practice_mesocycle_weeks')->where('mesocycle_id', $record->id)->orderBy('position')->get()->map(function ($week) use ($includeDocuments) {
+            $position = ['id' => $week->id, 'position' => (int) $week->position, 'title' => $week->title, 'document_id' => $week->document_id];
+            if ($includeDocuments) {
+                $position['document'] = $this->practices->document($week->document_id);
+            }
+
+            return $position;
+        })->all();
 
         return $data;
     }
@@ -65,9 +72,9 @@ class MesocycleEditor
         });
     }
 
-    public function update(string $id, array $input): array
+    public function update(string $id, array $input, bool $includeDocuments = true): array
     {
-        return DB::transaction(function () use ($id, $input) {
+        return DB::transaction(function () use ($id, $input, $includeDocuments) {
             $record = $this->find($id, true);
             $this->editable($record, $input['expected_revision']);
             $values = [];
@@ -88,17 +95,17 @@ class MesocycleEditor
             }
             $this->touch($record, $values);
 
-            return $this->show($id);
+            return $this->show($id, $includeDocuments);
         });
     }
 
-    public function replaceWeek(string $id, array $input): array
+    public function replaceWeek(string $id, array $input, bool $includeDocuments = true): array
     {
-        return DB::transaction(function () use ($id, $input) {
+        return DB::transaction(function () use ($id, $input, $includeDocuments) {
             $this->entitlements->lock($this->context->id());
             $record = $this->find($id, true);
             if ($saved = $this->replay($input, 'replace:'.$id)) {
-                return $this->show($saved['cycle_id']);
+                return $this->show($saved['cycle_id'], $includeDocuments);
             }
             $this->editable($record, $input['expected_revision']);
             $slot = DB::table('practice_mesocycle_weeks')->where('mesocycle_id', $id)->where('position', $input['position'])->lockForUpdate()->first();
@@ -109,17 +116,17 @@ class MesocycleEditor
             $this->touch($record);
             $this->remember($input, 'replace:'.$id, ['cycle_id' => $id, 'document_id' => $copy['id'], 'previous_document_id' => $slot->document_id]);
 
-            return $this->show($id);
+            return $this->show($id, $includeDocuments);
         });
     }
 
-    public function structure(string $id, array $input): array
+    public function structure(string $id, array $input, bool $includeDocuments = true): array
     {
-        return DB::transaction(function () use ($id, $input) {
+        return DB::transaction(function () use ($id, $input, $includeDocuments) {
             $this->entitlements->lock($this->context->id());
             $record = $this->find($id, true);
             if ($saved = $this->replay($input, 'structure:'.$id)) {
-                return $this->show($saved['cycle_id']);
+                return $this->show($saved['cycle_id'], $includeDocuments);
             }
             $this->editable($record, $input['expected_revision']);
             $existing = DB::table('practice_mesocycle_weeks')->where('mesocycle_id', $id)->lockForUpdate()->get()->keyBy('id');
@@ -159,7 +166,7 @@ class MesocycleEditor
             $this->touch($record);
             $this->remember($input, 'structure:'.$id, ['cycle_id' => $id]);
 
-            return $this->show($id);
+            return $this->show($id, $includeDocuments);
         });
     }
 

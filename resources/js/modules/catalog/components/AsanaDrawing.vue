@@ -1807,7 +1807,7 @@ watch(fixedSheet, (fixed) => {
     resetView();
   }
 });
-defineExpose({ hasUnappliedChanges, discardDraft, apply, exportDrawing, exportSelection });
+defineExpose({ hasUnappliedChanges, discardDraft, apply, exportDrawing, exportSelection, flushDraft });
 onMounted(() => {
   render();
   window.addEventListener('keydown', keydown, true);

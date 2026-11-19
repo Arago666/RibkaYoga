@@ -4,6 +4,7 @@ namespace App\Modules\Practices\Http\Controllers;
 
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Practices\Services\DocumentDelivery;
+use App\Modules\Practices\Services\SheetResponse;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class DocumentOutputController
 
     public function sheet(Request $request, string $id)
     {
-        return response($this->delivery->html($id, $this->options($request)))->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow')->header('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'");
+        return SheetResponse::html($this->delivery->html($id, $this->options($request)));
     }
 
     public function pdf(Request $request, string $id)

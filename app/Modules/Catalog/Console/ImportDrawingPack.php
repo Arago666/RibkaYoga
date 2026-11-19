@@ -56,7 +56,7 @@ class ImportDrawingPack extends Command
                 $plan = $this->plan($manifest, $items, $workspace, $assets, ! $dryRun);
                 $creating = count(array_filter($plan, fn ($entry) => $entry['status'] === 'create'));
                 if ($creating) {
-                    $limits->assertCanCreate($workspace->id(), 'asanas', Asana::where('workspace_id', $workspace->id())->whereNull('archived_at')->count(), $creating);
+                    $limits->assertCanCreate($workspace->id(), 'asanas', Asana::countedForQuota($workspace->id())->count(), $creating);
                 }
                 $saved = [];
                 foreach ($plan as $entry) {

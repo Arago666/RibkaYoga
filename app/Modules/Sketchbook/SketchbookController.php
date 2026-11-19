@@ -48,9 +48,34 @@ class SketchbookController
 
     public function store(Request $request)
     {
-        $input = $request->validate(['title' => 'required|string|max:160', 'page_format' => ['nullable', Rule::in(['square', 'a4-portrait', 'a4-landscape'])]]);
+        $input = $request->validate([
+            'title' => 'required|string|max:160',
+            'page_format' => ['nullable', Rule::in(['square', 'a4-portrait', 'a4-landscape'])],
+            'drawing_source' => 'sometimes', 'image' => 'nullable|file',
+        ]);
+        $source = $request->exists('drawing_source') ? $this->sources->validate($input['drawing_source'], true) : null;
+        abort_if($source && ! $request->hasFile('image'), 422, 'Подготовьте рисунок для сохранения листа.');
         $id = (string) Str::uuid();
-        DB::table('sketchbook_pages')->insert(['id' => $id, 'workspace_id' => $this->workspace->id(), 'user_id' => $this->workspace->userId(), 'title' => trim($input['title']), 'page_format' => $input['page_format'] ?? 'square', 'revision' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $asset = null;
+        try {
+            DB::transaction(function () use ($request, $source, $input, $id, &$asset) {
+                $values = [
+                    'id' => $id, 'workspace_id' => $this->workspace->id(), 'user_id' => $this->workspace->userId(),
+                    'title' => trim($input['title']), 'page_format' => $input['page_format'] ?? 'square',
+                    'revision' => 1, 'created_at' => now(), 'updated_at' => now(),
+                ];
+                if ($source) {
+                    $asset = $this->assets->store($request->file('image'));
+                    $values += $this->drawingValues($asset, $source);
+                }
+                DB::table('sketchbook_pages')->insert($values);
+            });
+        } catch (\Throwable $failure) {
+            if ($asset) {
+                $this->assets->discardUnattached($asset['id']);
+            }
+            throw $failure;
+        }
 
         return $this->show($id)->setStatusCode(201);
     }
@@ -78,10 +103,7 @@ class SketchbookController
                 $values = ['title' => trim($input['title']), 'page_format' => $input['page_format'], 'revision' => $row->revision + 1, 'updated_at' => now()];
                 if ($source) {
                     $asset = $this->assets->store($request->file('image'));
-                    abort_unless($asset['mime'] === 'image/png' && $asset['width'] === 1024 && $asset['height'] === 1024, 422, 'Нужен PNG 1024 × 1024.');
-                    $this->native->remember($asset['id'], $source, true);
-                    app(SketchImages::class)->remember($asset['id']);
-                    $values += ['image_asset_id' => $asset['id'], 'drawing_source' => json_encode($source, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)];
+                    $values += $this->drawingValues($asset, $source);
                 }
                 $this->owned()->where('id', $id)->update($values);
 
@@ -95,6 +117,15 @@ class SketchbookController
         }
 
         return response()->json(['data' => $result]);
+    }
+
+    private function drawingValues(array $asset, array $source): array
+    {
+        abort_unless($asset['mime'] === 'image/png' && $asset['width'] === 1024 && $asset['height'] === 1024, 422, 'Нужен PNG 1024 × 1024.');
+        $this->native->remember($asset['id'], $source, true);
+        app(SketchImages::class)->remember($asset['id']);
+
+        return ['image_asset_id' => $asset['id'], 'drawing_source' => json_encode($source, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)];
     }
 
     public function copy(Request $request, string $id)

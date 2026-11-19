@@ -2,12 +2,16 @@
 import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { Play } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import SheetViewport from '@/shared/SheetViewport.vue';
+import PdfDownloadLink from '@/shared/PdfDownloadLink.vue';
 import { api } from '@/shared/api';
 import PublicationDialog from '../components/PublicationDialog.vue';
-import type { Practice } from '../types';
+import PracticeLaunchDialog from '../components/PracticeLaunchDialog.vue';
+import PracticeSequenceList from '../components/PracticeSequenceList.vue';
+import { cellFilled, type Practice } from '../types';
 const props = withDefaults(defineProps<{ documentId: string; printMode?: boolean }>(), { printMode: false });
 const practice = ref<Practice | null>(null),
   loading = ref(true),
@@ -19,8 +23,22 @@ const practice = ref<Practice | null>(null),
   preferenceRevision = ref<number | null>(null),
   preferencesMessage = ref(''),
   sharing = ref(false),
+  launching = ref(false),
   frame = ref<HTMLIFrameElement | null>(null),
   frameHeight = ref(650);
+const phoneMedia = window.matchMedia('(max-width: 760px)');
+const phone = ref(phoneMedia.matches);
+const phoneSheet = ref(false);
+const showSheet = computed(() => props.printMode || !phone.value || phoneSheet.value);
+const canLaunch = computed(
+  () =>
+    practice.value?.kind === 'practice' &&
+    !practice.value.archived_at &&
+    practice.value.blocks.some((block) => block.rows.some((row) => row.cells.some(cellFilled))),
+);
+function syncPhone() {
+  phone.value = phoneMedia.matches;
+}
 const options = computed(
   () =>
     new URLSearchParams({
@@ -33,7 +51,8 @@ const sheetUrl = computed(() => `/api/practices/${props.documentId}/sheet?${opti
 const pdfUrl = computed(() => `/api/practices/${props.documentId}/pdf?${options.value}`);
 let autoPrinted = false,
   preparation = 0;
-watch([preset, showNames, orientation], () => {
+watch([preset, showNames, orientation, showSheet], () => {
+  preparation++;
   printReady.value = false;
   error.value = '';
 });
@@ -141,7 +160,11 @@ async function savePreferences() {
     error.value = e instanceof Error ? e.message : 'Не удалось сохранить настройки.';
   }
 }
-onMounted(load);
+onMounted(() => {
+  phoneMedia.addEventListener('change', syncPhone);
+  void load();
+});
+onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
 </script>
 <template>
   <Head :title="practice ? `${practice.title} — готовый лист` : 'Лист практики'" />
@@ -161,11 +184,23 @@ onMounted(load);
         <p v-if="practice" class="page-description">{{ practice.title }}</p>
       </div>
       <div class="output-actions">
-        <button class="btn btn-primary" :disabled="!printReady" @click="printSheet">
+        <button
+          v-if="canLaunch && !printMode"
+          class="btn btn-primary"
+          type="button"
+          @click="launching = true"
+        >
+          <Play :size="17" />Начать
+        </button>
+        <button v-if="showSheet" class="btn btn-secondary" :disabled="!printReady" @click="printSheet">
           <span class="print-desktop-label">Печать / PDF браузера</span
           ><span class="print-phone-label">Печать</span></button
-        ><a class="btn btn-secondary" :href="pdfUrl" :aria-disabled="!practice" target="_blank" rel="noopener"
-          >Скачать PDF</a
+        ><PdfDownloadLink
+          class="btn btn-secondary"
+          :href="pdfUrl"
+          :title="practice?.title || 'Практика'"
+          :disabled="!practice"
+          >Скачать PDF</PdfDownloadLink
         ><ResponsivePanel title="Действия с листом" label="Ещё">
           <a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
             >Экспорт JSON с рисунками</a
@@ -179,7 +214,15 @@ onMounted(load);
       {{ error }} <button class="btn btn-ghost" @click="load">Повторить</button>
     </p>
     <p v-if="loading" class="muted" role="status">Открываем лист…</p>
-    <div v-if="practice" class="output-settings-toggle">
+    <div v-if="practice && phone && !printMode" class="output-modes" role="group" aria-label="Вид практики">
+      <button class="btn btn-ghost" type="button" :aria-pressed="!phoneSheet" @click="phoneSheet = false">
+        Последовательность
+      </button>
+      <button class="btn btn-ghost" type="button" :aria-pressed="phoneSheet" @click="phoneSheet = true">
+        Лист A4
+      </button>
+    </div>
+    <div v-if="practice && showSheet" class="output-settings-toggle">
       <ResponsivePanel title="Вид готового листа" label="Настройки листа">
         <div v-if="practice" class="card output-settings">
           <label class="field"
@@ -203,7 +246,7 @@ onMounted(load);
       </ResponsivePanel>
     </div>
     <p v-if="preferencesMessage" class="success-banner" role="status">{{ preferencesMessage }}</p>
-    <div v-if="practice" class="sheet-region">
+    <div v-if="practice && showSheet" class="sheet-region">
       <SheetViewport :width="orientation === 'landscape' ? 1050 : 730" :height="frameHeight">
         <iframe
           ref="frame"
@@ -218,7 +261,8 @@ onMounted(load);
         />
       </SheetViewport>
     </div>
-    <p v-if="practice" class="muted output-hint">
+    <PracticeSequenceList v-else-if="practice" :practice="practice" />
+    <p v-if="practice && showSheet" class="muted output-hint">
       «Весь лист» подстраивает просмотр под экран, «100%» позволяет рассмотреть детали с прокруткой. Просмотр
       и скачиваемый PDF используют один макет; исходные изображения остаются в базе.
     </p>
@@ -231,6 +275,7 @@ onMounted(load);
       :orientation="orientation"
       @close="sharing = false"
     />
+    <PracticeLaunchDialog :practice="launching ? practice : null" @close="launching = false" />
   </AppShell>
 </template>
 <style scoped>
@@ -307,6 +352,20 @@ onMounted(load);
   font-size: 13px;
   line-height: 1.65;
 }
+.output-modes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+}
+.output-modes button[aria-pressed='true'] {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
 @media screen and (max-width: 760px) {
   .print-desktop-label {
     display: none;
@@ -320,10 +379,6 @@ onMounted(load);
   }
   .output-settings-toggle :deep(.responsive-panel-trigger) {
     width: 100%;
-  }
-  .output-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
   .output-actions > .btn {
     font-size: 14px;

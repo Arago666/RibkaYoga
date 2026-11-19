@@ -6,6 +6,7 @@ use App\Modules\Access\Models\TelegramIdentity;
 use App\Modules\Access\Models\Workspace;
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Billing\PublicApi\SubscriptionAccess;
+use App\Modules\Catalog\PublicApi\CatalogUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +34,7 @@ class AccountController
                 'avatar_url' => $user->avatar_path ? '/account/avatar?v='.$user->updated_at->timestamp : null],
             'workspace' => $this->workspace->details(), 'subscription' => $this->subscription->describe($this->workspace->id()),
             'plans' => config('billing.plans'),
+            'own_asanas' => app(CatalogUsage::class)->ownActiveCards(),
             'telegram_login' => ['connected' => TelegramIdentity::where('user_id', $user->id)->exists(), 'password_enabled' => (bool) $user->password_login_enabled],
         ];
     }

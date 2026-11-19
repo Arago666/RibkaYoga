@@ -40,8 +40,10 @@ export class MeditationAudio {
     audioUrl: string | null,
     ended: () => void,
     failed: (message: string) => void,
+    shouldPlay: () => boolean,
   ): Promise<void> {
     await this.unlock();
+    if (!shouldPlay()) return;
     this.pause();
     this.ambience(config.ambience, config.ambience_volume);
     if (config.tone_enabled && elapsedSeconds < config.tone_seconds) {

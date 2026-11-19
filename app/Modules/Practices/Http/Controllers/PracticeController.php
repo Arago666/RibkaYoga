@@ -33,6 +33,7 @@ class PracticeController
             'note' => ['nullable', 'string', 'max:3000'],
             'practice_date' => ['nullable', 'date_format:Y-m-d'],
             'template_id' => ['nullable', 'uuid'],
+            'example' => ['sometimes', Rule::in(['first-practice']), 'prohibits:template_id'],
             'illustration_style' => ['sometimes', 'nullable', 'in:original,line,volume'],
             'illustration_character' => ['sometimes', 'nullable', 'in:neutral,female,male'],
         ]);

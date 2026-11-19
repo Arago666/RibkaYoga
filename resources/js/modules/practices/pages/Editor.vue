@@ -3,7 +3,7 @@ import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import {
   ArrowLeft,
   ArrowUp,
@@ -93,7 +93,8 @@ function sendToMesocycle(data: MesocycleEventPayload) {
 }
 const mesocycleHoverCell = ref<string | null>(null);
 let consumedMesocycleSequence = 0;
-const editor = useEditor(props.documentId, props.rowMode);
+const auth = usePage().props.auth as { user?: { id: number }; workspace?: { id: string } };
+const editor = useEditor(props.documentId, props.rowMode, `${auth.user?.id}:${auth.workspace?.id}`);
 const {
   document: doc,
   loading,
@@ -105,6 +106,8 @@ const {
   status,
   undoStack,
   redoStack,
+  recoveryDraft,
+  draftWarning,
 } = editor;
 const activeCell = ref<string | null>(null),
   mobilePalette = ref(false),
@@ -448,7 +451,7 @@ const counts = computed(() => ({
     ) ?? 0,
 }));
 const readOnly = computed(() => !!doc.value?.archived_at);
-const locked = computed(() => readOnly.value || navigating.value || loading.value);
+const locked = computed(() => readOnly.value || navigating.value || loading.value || !!recoveryDraft.value);
 function findCell(id: string) {
   for (const block of doc.value?.blocks ?? [])
     for (const row of block.rows) {
@@ -1511,6 +1514,7 @@ async function copyLocal() {
       props.rowMode ? '/api/row-templates' : '/api/practices/copy-local',
       { method: 'POST', body: JSON.stringify(data) },
     );
+    editor.completeCopy();
     visit(`/${props.rowMode ? 'row-templates' : 'practices'}/${result.data.id}/edit`);
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось сохранить копию.';
@@ -1532,6 +1536,7 @@ function refreshConflict() {
       activeRow.value = null;
       activeBlock.value = null;
       mobilePalette.value = false;
+      editor.clearDraft();
       void editor.load();
     },
   );
@@ -1580,7 +1585,8 @@ function keydown(event: KeyboardEvent) {
   }
 }
 function beforeUnload(event: BeforeUnloadEvent) {
-  if (dirty.value && !leaving) {
+  const stored = editor.flushDraft();
+  if (dirty.value && !leaving && (!stored || pending.value)) {
     event.preventDefault();
     event.returnValue = '';
   }
@@ -1595,12 +1601,19 @@ onMounted(() => {
   window.addEventListener('focusout', releaseCellHighlight);
   window.addEventListener('blur', blurEditor);
   removeNavigateGuard = router.on('before', () => {
-    if (dirty.value && !leaving && !window.confirm('Изменения ещё не сохранены. Покинуть редактор?'))
+    const stored = editor.flushDraft();
+    if (
+      dirty.value &&
+      !leaving &&
+      (!stored || pending.value) &&
+      !window.confirm('Изменения ещё не сохранены. Покинуть редактор?')
+    )
       return false;
   });
 });
-watch([dirty, pending], () => {
-  if (embedded) sendToMesocycle({ type: 'ribka:meso-status', dirty: dirty.value, pending: pending.value });
+watch([loading, dirty, pending], () => {
+  if (embedded && !loading.value && doc.value)
+    sendToMesocycle({ type: 'ribka:meso-status', dirty: dirty.value, pending: pending.value });
 });
 onBeforeUnmount(() => {
   alive = false;
@@ -1659,6 +1672,20 @@ onBeforeUnmount(() => {
       <button class="btn btn-primary" @click="editor.load"><RefreshCw :size="17" />Повторить</button>
     </div>
     <template v-else>
+      <div v-if="recoveryDraft" class="conflict-banner" role="status">
+        <div>
+          <strong>На устройстве есть черновик</strong>
+          <p v-if="recoveryDraft.document.revision !== doc.revision">
+            На сервере есть более свежая версия. Откройте черновик, чтобы сохранить его отдельной копией.
+          </p>
+          <p v-else>Восстановите правки или продолжите с сохранённой версией.</p>
+        </div>
+        <button class="btn btn-primary" @click="editor.restoreDraft">
+          {{ recoveryDraft.document.revision === doc.revision ? 'Восстановить' : 'Открыть черновик' }}
+        </button>
+        <button class="btn btn-secondary" @click="editor.discardDraft">Удалить черновик</button>
+      </div>
+      <p v-if="draftWarning" class="error-banner" role="alert">{{ draftWarning }}</p>
       <header class="editor-header">
         <div class="editor-title-area">
           <input
@@ -1884,9 +1911,7 @@ onBeforeUnmount(() => {
         <div v-if="conflict" class="conflict-banner">
           <div>
             <strong>Сохранена другая версия</strong>
-            <p>
-              Ваши изменения остаются в этом окне. Сохраните их отдельной копией или откройте актуальный лист.
-            </p>
+            <p>Сохраните черновик отдельной копией или откройте актуальный лист.</p>
           </div>
           <button class="btn btn-primary" :disabled="modalBusy" @click="copyLocal">Сохранить мою копию</button
           ><button class="btn btn-secondary" @click="refreshConflict">Загрузить актуальную</button>

@@ -10,6 +10,11 @@ class CatalogUsage
 {
     public function __construct(private WorkspaceContext $workspace) {}
 
+    public function ownActiveCards(): int
+    {
+        return Asana::countedForQuota($this->workspace->id())->count();
+    }
+
     /** Call only after successful insertion, inside the caller's transaction. */
     public function record(array $asanaIds): void
     {

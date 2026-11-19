@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { api, ApiError } from '@/shared/api';
 import {
   clone,
@@ -9,8 +9,9 @@ import {
   type Practice,
   type RowTemplate,
 } from '../types';
+import { practiceDrafts, type PracticeDraft } from './practiceDrafts';
 
-export function useEditor(id: string, rowMode: boolean) {
+export function useEditor(id: string, rowMode: boolean, owner: string) {
   const document = ref<Practice | null>(null);
   const loading = ref(true),
     saving = ref(false),
@@ -20,29 +21,98 @@ export function useEditor(id: string, rowMode: boolean) {
   const undoStack = ref<Practice[]>([]),
     redoStack = ref<Practice[]>([]);
   const acknowledged = ref('');
+  const recoveryDraft = shallowRef<PracticeDraft | null>(null);
+  const draftSaved = ref(false);
+  const draftWarning = ref('');
+  const drafts = practiceDrafts(`${owner}:${rowMode ? 'row' : 'practice'}:${id}`, id);
+  let copied = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let inFlight: Promise<boolean> | null = null;
   let disposed = false;
   let loadVersion = 0;
   let historyGroup: string | null = null;
   const endpoint = `/api/${rowMode ? 'row-templates' : 'practices'}/${id}`;
-  const dirty = computed(
-    () =>
-      !!document.value && (pending.value > 0 || fingerprint(document.value, rowMode) !== acknowledged.value),
+  const hasChanges = computed(
+    () => !!document.value && fingerprint(document.value, rowMode) !== acknowledged.value,
   );
-  const status = computed(() =>
-    conflict.value
-      ? 'Документ изменён в другом окне'
-      : error.value
-        ? 'Не удалось сохранить'
-        : pending.value
-          ? 'Добавляем асану…'
-          : saving.value
-            ? 'Сохраняем…'
-            : dirty.value
-              ? 'Есть изменения'
-              : 'Все изменения сохранены',
-  );
+  const dirty = computed(() => !!document.value && (pending.value > 0 || hasChanges.value));
+  const status = computed(() => {
+    if (conflict.value) return 'Документ изменён в другом окне';
+    if (pending.value) return 'Добавляем асану…';
+    if (saving.value) return 'Сохраняем…';
+    if (draftSaved.value) return 'Черновик на устройстве';
+    if (error.value) return 'Не удалось сохранить';
+    return dirty.value ? 'Есть изменения' : 'Сохранено на сервере';
+  });
+  function offerDraft() {
+    recoveryDraft.value = null;
+    if (!document.value || document.value.archived_at) return;
+    try {
+      for (const draft of drafts.list()) {
+        if (fingerprint(draft.document, rowMode) === acknowledged.value) {
+          drafts.remove(draft);
+        } else {
+          recoveryDraft.value = draft;
+          break;
+        }
+      }
+    } catch {
+      draftWarning.value = 'Браузер не смог прочитать локальные черновики.';
+    }
+  }
+  function flushDraft(): boolean {
+    if (!document.value || copied || loading.value || recoveryDraft.value || document.value.archived_at)
+      return false;
+    try {
+      if (hasChanges.value) drafts.write(document.value);
+      else drafts.clear();
+      draftSaved.value = hasChanges.value;
+      draftWarning.value = '';
+    } catch {
+      draftSaved.value = false;
+      draftWarning.value = 'Локальный черновик не записан. Сохраните практику кнопкой перед выходом.';
+    }
+    return draftSaved.value;
+  }
+  function restoreDraft() {
+    const draft = recoveryDraft.value;
+    if (!draft || !document.value || document.value.archived_at) return;
+    conflict.value = draft.document.revision !== document.value.revision;
+    undoStack.value = [clone(document.value)];
+    document.value = clone(draft.document);
+    recoveryDraft.value = null;
+    if (flushDraft()) {
+      try {
+        drafts.remove(draft);
+      } catch {
+        /* Keep the recoverable entry. */
+      }
+    }
+    schedule();
+  }
+  function discardDraft() {
+    const draft = recoveryDraft.value;
+    if (!draft) return;
+    recoveryDraft.value = null;
+    try {
+      drafts.remove(draft);
+      offerDraft();
+    } catch {
+      draftWarning.value = 'Браузер не смог удалить локальный черновик.';
+    }
+  }
+  function clearDraft() {
+    try {
+      drafts.clear();
+    } catch {
+      /* Do not block navigation after a successful save. */
+    }
+    draftSaved.value = false;
+  }
+  function completeCopy() {
+    clearDraft();
+    copied = true;
+  }
   async function load() {
     clearTimeout(timer);
     const version = ++loadVersion;
@@ -59,6 +129,9 @@ export function useEditor(id: string, rowMode: boolean) {
       redoStack.value = [];
       conflict.value = false;
       historyGroup = null;
+      copied = false;
+      draftSaved.value = false;
+      offerDraft();
       return true;
     } catch (e) {
       if (!disposed && version === loadVersion)
@@ -70,13 +143,22 @@ export function useEditor(id: string, rowMode: boolean) {
   }
   function schedule() {
     clearTimeout(timer);
-    if (!disposed && !loading.value && !conflict.value && !pending.value && !document.value?.archived_at)
+    flushDraft();
+    if (
+      !disposed &&
+      !loading.value &&
+      !recoveryDraft.value &&
+      !conflict.value &&
+      !pending.value &&
+      !document.value?.archived_at
+    )
       timer = setTimeout(() => {
         void save();
       }, 800);
   }
   function change(action: (doc: Practice) => void, group: string | null = null) {
-    if (!document.value || document.value.archived_at || loading.value || disposed) return;
+    if (!document.value || document.value.archived_at || recoveryDraft.value || loading.value || disposed)
+      return;
     const before = clone(document.value);
     action(document.value);
     for (const block of document.value.blocks) for (const row of block.rows) normalizeRowGroups(row);
@@ -103,6 +185,7 @@ export function useEditor(id: string, rowMode: boolean) {
     if (
       !document.value ||
       !from.value.length ||
+      conflict.value ||
       pending.value ||
       document.value.archived_at ||
       loading.value ||
@@ -118,7 +201,15 @@ export function useEditor(id: string, rowMode: boolean) {
     schedule();
   }
   async function performSave(): Promise<boolean> {
-    if (!document.value || pending.value || conflict.value || loading.value || disposed) return false;
+    if (
+      !document.value ||
+      pending.value ||
+      conflict.value ||
+      recoveryDraft.value ||
+      loading.value ||
+      disposed
+    )
+      return false;
     if (!dirty.value) return true;
     if (document.value.archived_at) return false;
     const version = loadVersion;
@@ -161,6 +252,7 @@ export function useEditor(id: string, rowMode: boolean) {
       } else error.value = e.message;
     } finally {
       saving.value = false;
+      if (isCurrent()) flushDraft();
     }
     return succeeded;
   }
@@ -184,6 +276,7 @@ export function useEditor(id: string, rowMode: boolean) {
     return result && !dirty.value && !pending.value && !conflict.value && !loading.value && !disposed;
   }
   function stop() {
+    flushDraft();
     disposed = true;
     loadVersion++;
     clearTimeout(timer);
@@ -198,8 +291,20 @@ export function useEditor(id: string, rowMode: boolean) {
     historyGroup = null;
     error.value = '';
     conflict.value = false;
+    flushDraft();
   }
-  onBeforeUnmount(stop);
+  function flushWhenHidden() {
+    if (window.document.visibilityState === 'hidden') flushDraft();
+  }
+  onMounted(() => {
+    window.addEventListener('pagehide', flushDraft);
+    window.document.addEventListener('visibilitychange', flushWhenHidden);
+  });
+  onBeforeUnmount(() => {
+    window.removeEventListener('pagehide', flushDraft);
+    window.document.removeEventListener('visibilitychange', flushWhenHidden);
+    stop();
+  });
   return {
     document,
     loading,
@@ -211,6 +316,13 @@ export function useEditor(id: string, rowMode: boolean) {
     redoStack,
     dirty,
     status,
+    recoveryDraft,
+    draftWarning,
+    restoreDraft,
+    discardDraft,
+    completeCopy,
+    clearDraft,
+    flushDraft,
     load,
     change,
     save,

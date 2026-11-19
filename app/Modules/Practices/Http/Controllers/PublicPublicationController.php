@@ -5,6 +5,7 @@ namespace App\Modules\Practices\Http\Controllers;
 use App\Modules\Media\PublicApi\PublishedImages;
 use App\Modules\Practices\Services\PublicPublications;
 use App\Modules\Practices\Services\SheetRenderer;
+use App\Modules\Practices\Services\SheetResponse;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -54,7 +55,7 @@ class PublicPublicationController
             }
         }
 
-        return response($renderer->render($data['document'], $images, array_replace($data['options'], ['preset' => $data['options']['show_names'] ? 'names' : 'clean'])))->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow')->header('Referrer-Policy', 'no-referrer')->header('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'");
+        return SheetResponse::html($renderer->render($data['document'], $images, array_replace($data['options'], ['preset' => $data['options']['show_names'] ? 'names' : 'clean'])));
     }
 
     public function media(string $token, string $assetId, PublishedImages $images)

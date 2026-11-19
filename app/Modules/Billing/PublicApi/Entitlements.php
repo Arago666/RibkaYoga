@@ -18,6 +18,9 @@ class Entitlements
         $subscription = Subscription::where('workspace_id', $workspaceId)->first();
         $active = $subscription && in_array($subscription->status, ['active', 'trialing'], true)
             && (! $subscription->ends_at || $subscription->ends_at->isFuture());
+        if ($active && $subscription->status === 'trialing') {
+            return ['asanas' => null, 'practices' => null, 'mesocycles' => null];
+        }
         $plan = $active ? $subscription->plan : 'basic';
 
         return config('billing.plans.'.$plan.'.limits', config('billing.plans.basic.limits'));
@@ -31,7 +34,7 @@ class Entitlements
         }
         $limit = $limits[$resource];
         if ($limit !== null && $currentCount + $adding > $limit) {
-            $title = ['asanas' => 'асан', 'practices' => 'практик и шаблонов', 'mesocycles' => 'мезоциклов'][$resource];
+            $title = ['asanas' => 'собственных асан', 'practices' => 'практик и шаблонов', 'mesocycles' => 'мезоциклов'][$resource];
             throw ValidationException::withMessages(['subscription' => 'Лимит тарифа: '.$limit.' '.$title.'. Изменить доступ можно в личном кабинете через администратора.']);
         }
     }

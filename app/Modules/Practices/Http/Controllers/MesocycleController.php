@@ -15,9 +15,9 @@ class MesocycleController
         return response()->json($this->editor->listing($request->validate(['kind' => 'sometimes|in:cycle,template', 'q' => 'nullable|string|max:255', 'archive' => 'sometimes|in:active,archived', 'per_page' => 'sometimes|integer|min:1|max:100', 'page' => 'sometimes|integer|min:1'])));
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        return response()->json(['data' => $this->editor->show($id)]);
+        return response()->json(['data' => $this->editor->show($id, ! $request->boolean('summary'))]);
     }
 
     public function store(Request $request): JsonResponse
@@ -27,19 +27,23 @@ class MesocycleController
 
     public function update(Request $request, string $id): JsonResponse
     {
-        return response()->json(['data' => $this->editor->update($id, $request->validate(['expected_revision' => 'required|integer|min:1', 'title' => 'sometimes|required|string|max:160', 'theme' => 'sometimes|nullable|string|max:240', 'cloud_asana_ids' => 'sometimes|array|list|max:500', 'cloud_asana_ids.*' => 'required|uuid|distinct:ignore_case']))]);
+        $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'title' => 'sometimes|required|string|max:160', 'theme' => 'sometimes|nullable|string|max:240', 'cloud_asana_ids' => 'sometimes|array|list|max:500', 'cloud_asana_ids.*' => 'required|uuid|distinct:ignore_case']);
+
+        return response()->json(['data' => $this->editor->update($id, $input, ! $request->boolean('summary'))]);
     }
 
     public function replaceWeek(Request $request, string $id): JsonResponse
     {
-        return response()->json(['data' => $this->editor->replaceWeek($id, $request->validate(['expected_revision' => 'required|integer|min:1', 'position' => 'required|integer|min:0|max:51', 'source_document_id' => 'required|uuid', 'expected_source_revision' => 'sometimes|integer|min:1', 'idempotency_key' => 'sometimes|uuid']))]);
+        $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'position' => 'required|integer|min:0|max:51', 'source_document_id' => 'required|uuid', 'expected_source_revision' => 'sometimes|integer|min:1', 'idempotency_key' => 'sometimes|uuid']);
+
+        return response()->json(['data' => $this->editor->replaceWeek($id, $input, ! $request->boolean('summary'))]);
     }
 
     public function structure(Request $request, string $id): JsonResponse
     {
         $input = $request->validate(['expected_revision' => 'required|integer|min:1', 'idempotency_key' => 'required|uuid', 'positions' => 'required|array|list|min:1|max:52', 'positions.*.id' => 'nullable|uuid|distinct', 'positions.*.title' => 'nullable|string|max:160', 'removed' => 'sometimes|array|list|max:52', 'removed.*.id' => 'required|uuid|distinct', 'removed.*.action' => 'required|in:keep,archive', 'removed.*.expected_revision' => 'required|integer|min:1']);
 
-        return response()->json(['data' => $this->editor->structure($id, $input)]);
+        return response()->json(['data' => $this->editor->structure($id, $input, ! $request->boolean('summary'))]);
     }
 
     public function insert(Request $request, string $id): JsonResponse
