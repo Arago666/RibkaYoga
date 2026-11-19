@@ -46,7 +46,7 @@ export class MetronomeEngine {
   private reason: MetronomeState['reason'] = null;
   private emitAt = 0;
   private visibility = () => {
-    if (document.hidden && this.running) {
+    if (document.hidden && this.active) {
       this.stop();
       this.reason = 'hidden';
       this.emit();
@@ -120,8 +120,9 @@ export class MetronomeEngine {
   async unlock(): Promise<void> {
     if (this.disposed) return;
     this.context ??= new AudioContext();
-    await this.context.resume();
-    await this.loadBuffers();
+    const resumed = this.context.resume();
+    void this.loadBuffers();
+    await resumed;
   }
   async start(settings: MetronomeSettings, resume = false): Promise<void> {
     if (this.disposed) return;

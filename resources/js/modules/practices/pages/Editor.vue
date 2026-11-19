@@ -13,7 +13,9 @@ import {
   Copy,
   Eye,
   GripVertical,
+  Grid2X2,
   Library,
+  List,
   MoreHorizontal,
   Plus,
   Printer,
@@ -39,6 +41,7 @@ import SequenceRow from '../components/SequenceRow.vue';
 import ArrowSymbol from '../components/ArrowSymbol.vue';
 import ExecutionDialog from '../components/ExecutionDialog.vue';
 import SecondsControl from '../components/SecondsControl.vue';
+import { formatSequenceTime, practiceTiming } from '../sequenceTiming';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import FragmentPicker, {
   type FragmentSource,
@@ -82,6 +85,14 @@ import { relationLabels, type Asana, type AsanaRelation, type Page } from '@/mod
 
 const props = withDefaults(defineProps<{ documentId: string; rowMode?: boolean }>(), { rowMode: false });
 const embedded = new URL(window.location.href).searchParams.get('embedded') === '1';
+const phoneViewport = window.matchMedia('screen and (max-width: 760px)');
+const isPhone = ref(phoneViewport.matches);
+const editorView = ref<'list' | 'grid'>('list');
+const phoneViews = computed(() => isPhone.value && !embedded && !props.rowMode);
+const sequenceView = computed(() => phoneViews.value && editorView.value === 'list');
+function updatePhoneViewport(event: MediaQueryListEvent) {
+  isPhone.value = event.matches;
+}
 const sessionQuery = new URL(window.location.href).searchParams.get('mesocycle_session');
 const mesocycleSession = embedded && isMesocycleId(sessionQuery) ? sessionQuery : null;
 function sendToMesocycle(data: MesocycleEventPayload) {
@@ -450,6 +461,17 @@ const counts = computed(() => ({
       0,
     ) ?? 0,
 }));
+const plannedTiming = computed(() =>
+  !props.rowMode && !embedded && counts.value.cards && doc.value ? practiceTiming(doc.value) : null,
+);
+const planLabel = computed(() => {
+  const timing = plannedTiming.value;
+  if (!timing) return '';
+  const total = timing.hold + timing.rest;
+  if (!total && timing.untimed) return 'Время не задано';
+  if (timing.untimed) return `По таймеру ${formatSequenceTime(total)} + шаги без времени`;
+  return `План ${formatSequenceTime(total)}${timing.rest ? `, отдых ${formatSequenceTime(timing.rest)}` : ''}`;
+});
 const readOnly = computed(() => !!doc.value?.archived_at);
 const locked = computed(() => readOnly.value || navigating.value || loading.value || !!recoveryDraft.value);
 function findCell(id: string) {
@@ -663,6 +685,44 @@ function holdCell(id: string) {
     const toolbar = toolbarElement.value;
     if (toolbar) toolbar.scrollTop = toolbar.scrollHeight;
   });
+}
+function addSequencePose(rowId: string) {
+  if (locked.value || annotationMode.value) return;
+  const row = findRow(rowId)?.row;
+  if (!row) return;
+  const occupied = (cell: Cell) => cellFilled(cell) || pendingCells.value.has(cell.id);
+  const index = row.cells.reduce((last, cell, position) => (occupied(cell) ? position : last), -1);
+  let target: Cell | undefined = row.cells[index + 1];
+  if (!target && row.cells.length < 12) {
+    const cell = emptyCell();
+    edit(() => row.cells.push(cell));
+    target = cell;
+  }
+  target ??= row.cells.find((cell) => !occupied(cell));
+  if (target) selectCell(target.id);
+}
+function sequenceCellAction(id: string, action: 'edit' | 'timing' | 'up' | 'down' | 'move' | 'clear') {
+  if (locked.value || annotationMode.value || pendingCells.value.has(id)) return;
+  const found = findCell(id);
+  if (!found || !cellFilled(found.cell)) return;
+  activeCell.value = id;
+  activeBlock.value = found.block.id;
+  activeRow.value = found.row.id;
+  if (action === 'up' || action === 'down') {
+    const filled = found.row.cells.filter((cell) => cellFilled(cell) && !pendingCells.value.has(cell.id));
+    const target = filled[filled.indexOf(found.cell) + (action === 'up' ? -1 : 1)];
+    if (target) {
+      moveContent(id, target.id);
+      activeCell.value = target.id;
+      highlightedCell.value = target.id;
+      void nextTick(() =>
+        window.document.querySelector<HTMLElement>(`[data-editor-cell="${target.id}"]`)?.focus(),
+      );
+    }
+  } else if (action === 'edit') openPicker(id);
+  else if (action === 'timing') openExecution();
+  else if (action === 'move') transfer.value = { mode: 'move', source: id };
+  else clearCell(id);
 }
 function openPicker(id: string) {
   if (locked.value || annotationMode.value || !findCell(id)) return;
@@ -1572,15 +1632,23 @@ function keydown(event: KeyboardEvent) {
     cancelGrouping();
   }
   if (event.key === 'Delete' && activeCell.value && !annotationMode.value) clearCell(activeCell.value);
-  if (['ArrowLeft', 'ArrowRight'].includes(event.key) && selected.value) {
-    const { row, cell } = selected.value,
-      index = row.cells.indexOf(cell) + (event.key === 'ArrowLeft' ? -1 : 1);
-    if (row.cells[index]) {
+  const directions = sequenceView.value
+    ? ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+    : ['ArrowLeft', 'ArrowRight'];
+  if (directions.includes(event.key) && selected.value && !target.closest('details')) {
+    const { row, cell } = selected.value;
+    const direction = ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1;
+    let index = row.cells.indexOf(cell) + direction;
+    while (row.cells[index]) {
+      const next = window.document.querySelector<HTMLElement>(`[data-editor-cell="${row.cells[index].id}"]`);
+      if (!next) {
+        index += direction;
+        continue;
+      }
       event.preventDefault();
       selectCell(row.cells[index].id, false);
-      window.document
-        .querySelector<HTMLElement>(`[data-editor-cell="${row.cells[index].id}"]`)
-        ?.focus({ preventScroll: true });
+      next.focus({ preventScroll: !sequenceView.value });
+      break;
     }
   }
 }
@@ -1592,6 +1660,7 @@ function beforeUnload(event: BeforeUnloadEvent) {
   }
 }
 onMounted(() => {
+  phoneViewport.addEventListener('change', updatePhoneViewport);
   void editor.load();
   void loadPendingDrawings();
   window.addEventListener('keydown', keydown);
@@ -1616,6 +1685,7 @@ watch([loading, dirty, pending], () => {
     sendToMesocycle({ type: 'ribka:meso-status', dirty: dirty.value, pending: pending.value });
 });
 onBeforeUnmount(() => {
+  phoneViewport.removeEventListener('change', updatePhoneViewport);
   alive = false;
   tokens.clear();
   pendingCells.value.clear();
@@ -1704,6 +1774,7 @@ onBeforeUnmount(() => {
             ><span>{{ doc.blocks.length }} блоков</span><span class="divider-dot">·</span
             ><span>{{ counts.rows }} строк</span><span class="divider-dot">·</span
             ><span>{{ counts.cards }} элементов</span>
+            <span v-if="planLabel" class="practice-duration"><Timer :size="13" />{{ planLabel }}</span>
           </div>
         </div>
         <div class="editor-actions">
@@ -2079,6 +2150,24 @@ onBeforeUnmount(() => {
       </section>
       <div class="editor-layout" :style="{ '--editor-toolbar-height': `${toolbarHeight}px` }">
         <div class="practice-canvas" :data-mesocycle-drop-enabled="canReceiveCloud">
+          <div v-if="phoneViews" class="editor-view-switch" role="group" aria-label="Вид редактора">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              :aria-pressed="sequenceView"
+              @click="editorView = 'list'"
+            >
+              <List :size="17" />Последовательность
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost"
+              :aria-pressed="!sequenceView"
+              @click="editorView = 'grid'"
+            >
+              <Grid2X2 :size="16" />Сетка
+            </button>
+          </div>
           <section
             v-for="(block, bi) in doc.blocks"
             :key="block.id"
@@ -2150,8 +2239,12 @@ onBeforeUnmount(() => {
                 :group-range="groupPreviewCells"
                 :group-invalid="!!groupRangeError"
                 :timing-mode="timingMode && !rowMode"
-                :default-duration="doc.default_duration_seconds ?? 60"
-                :default-rest="doc.default_rest_seconds ?? 0"
+                :default-duration="doc.default_duration_seconds"
+                :default-rest="doc.default_rest_seconds"
+                :list="sequenceView"
+                :show-targets="
+                  annotationMode || !!transfer || !!pendingLibraryAsana || !!pendingDrawings.length
+                "
                 :pointer-cell="
                   mesocycleHoverCell || (pointerTarget?.kind === 'cell' ? pointerTarget.id : null)
                 "
@@ -2168,6 +2261,8 @@ onBeforeUnmount(() => {
                 @save-row="saveRow(row)"
                 @note="rowNote(row)"
                 @timing="changeCellTiming"
+                @add-pose="addSequencePose(row.id)"
+                @cell-action="sequenceCellAction"
               />
             </div>
             <footer v-if="!rowMode && !readOnly && !annotationMode" class="block-footer">
@@ -2190,8 +2285,10 @@ onBeforeUnmount(() => {
           </button>
           <p class="canvas-help">
             Нажмите на заполненную ячейку, чтобы выделить её; повторное нажатие снимает выбор. Изменение
-            доступно в меню выбранной ячейки. Пустая ячейка открывает выбор асаны или своего названия. Асаны
-            из библиотеки можно перетаскивать в последовательность.
+            доступно в меню выбранной ячейки. Пустая ячейка открывает выбор асаны или своего названия.
+            <template v-if="!sequenceView"
+              >Асаны из библиотеки можно перетаскивать в последовательность.</template
+            >
           </p>
         </div>
         <AsanaPalette
@@ -2779,6 +2876,15 @@ onBeforeUnmount(() => {
   margin-top: 5px;
   flex-wrap: wrap;
 }
+.practice-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-dark);
+}
+.practice-duration svg {
+  flex: none;
+}
 .divider-dot {
   color: var(--muted);
 }
@@ -2852,6 +2958,27 @@ onBeforeUnmount(() => {
 }
 .practice-canvas {
   min-width: 0;
+}
+.editor-view-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 12px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--surface-soft);
+}
+.editor-view-switch .btn {
+  min-height: 44px;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+.editor-view-switch [aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
 }
 .practice-block {
   background: #fff;
@@ -3243,6 +3370,9 @@ onBeforeUnmount(() => {
   }
   .editor-subtitle {
     font-size: 12px;
+  }
+  .editor-subtitle .practice-duration {
+    flex-basis: 100%;
   }
   .theme-field {
     flex-basis: 100%;

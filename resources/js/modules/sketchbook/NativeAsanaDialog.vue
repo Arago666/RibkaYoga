@@ -18,16 +18,25 @@ const name = ref(''),
   facets = ref(emptyAssignments()),
   error = ref(''),
   busy = ref(false),
+  preparing = ref(false),
+  fields = ref<InstanceType<typeof AsanaFields> | null>(null),
   file = ref(props.file),
-  drawing = ref(props.drawing);
+  drawing = ref<DrawingDocument | null>(props.drawing);
 const url = ref(URL.createObjectURL(props.file));
 function replace(image: File, source: DrawingDocument | null) {
   URL.revokeObjectURL(url.value);
   url.value = URL.createObjectURL(image);
   file.value = image;
-  if (source) drawing.value = source;
+  drawing.value = source;
 }
 async function save() {
+  if (busy.value || preparing.value || !name.value.trim() || !collectionIds.value.length) return;
+  preparing.value = true;
+  try {
+    if (fields.value && !(await fields.value.guardBeforeSave())) return;
+  } finally {
+    preparing.value = false;
+  }
   busy.value = true;
   error.value = '';
   try {
@@ -37,9 +46,10 @@ async function save() {
     form.set('category_ids', JSON.stringify(categoryIds.value));
     form.set('collection_ids', JSON.stringify(collectionIds.value));
     form.set('image', file.value);
-    form.set('drawing_source', JSON.stringify(drawing.value));
+    if (drawing.value) form.set('drawing_source', JSON.stringify(drawing.value));
     appendReference(form, reference.value, facets.value);
     await api('/api/asanas', { method: 'POST', body: form });
+    if (drawing.value) fields.value?.saved();
     emit('saved');
   } catch (f) {
     error.value = f instanceof Error ? f.message : 'Не удалось создать карточку.';
@@ -57,12 +67,13 @@ onMounted(async () => {
 onBeforeUnmount(() => URL.revokeObjectURL(url.value));
 </script>
 <template>
-  <Modal open title="Создать асану из рисунка" @close="!busy && emit('close')"
+  <Modal open title="Создать асану из рисунка" @close="!busy && !preparing && emit('close')"
     ><p>
       Карточка попадёт в библиотеку. Для обычной вставки рисунка в занятие добавлять её сюда не обязательно.
     </p>
     <p v-if="error" role="alert">{{ error }}</p>
-    <CollectionChoices v-model="collectionIds" :disabled="busy" /><AsanaFields
+    <AsanaFields
+      ref="fields"
       v-model:name="name"
       v-model:aliases="aliases"
       v-model:category-ids="categoryIds"
@@ -74,9 +85,15 @@ onBeforeUnmount(() => URL.revokeObjectURL(url.value));
       :drawing-source="drawing"
       :disabled="busy"
       @image="replace"
-    /><template #footer
-      ><button class="btn" :disabled="busy" @click="emit('close')">Отмена</button
-      ><button class="btn primary" :disabled="busy || !name.trim() || !collectionIds.length" @click="save">
+    />
+    <CollectionChoices v-model="collectionIds" :disabled="busy" />
+    <template #footer
+      ><button class="btn btn-secondary" :disabled="busy || preparing" @click="emit('close')">Отмена</button
+      ><button
+        class="btn btn-primary"
+        :disabled="busy || preparing || !name.trim() || !collectionIds.length"
+        @click="save"
+      >
         Создать карточку
       </button></template
     ></Modal

@@ -33,9 +33,10 @@ watch(
   <Head title="Метроном" />
   <AppShell section="metronome">
     <PageHeading
+      class="metronome-heading"
       eyebrow="ВАШ РИТМ"
       title="Метроном"
-      description="Задавайте темп и рисунок такта. Запускайте ритм отдельно от практики или медитации."
+      description="Задайте темп и запустите ритм."
     />
     <div class="standalone-metronome">
       <MetronomeSettings v-model="settings" :open="true" standalone authenticated />
@@ -62,8 +63,12 @@ watch(
   line-height: 1.6;
 }
 @media (max-width: 600px) {
+  .metronome-heading {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
   .standalone-metronome {
-    padding: 16px;
+    padding: 14px;
   }
 }
 </style>

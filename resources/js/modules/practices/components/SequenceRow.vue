@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import { dismissMenu as vDismissMenu } from '@/shared/dismissMenu';
 import { TooltipProvider, TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
 import {
@@ -12,8 +14,18 @@ import {
   StickyNote,
   Trash2,
   ArrowRight,
+  Timer,
 } from '@lucide/vue';
-import { arrowLabels, cellFilled, cellGroupEdges, cellLabel, type Row, type Cell } from '../types';
+import {
+  arrowLabels,
+  cellFilled,
+  cellGroupEdges,
+  cellLabel,
+  resolvedExecutionParameters,
+  type Row,
+  type Cell,
+} from '../types';
+import { formatSequenceTime } from '../sequenceTiming';
 import CellArrow from './CellArrow.vue';
 import SecondsControl from './SecondsControl.vue';
 import { useCellLongPress } from '../composables/useCellLongPress';
@@ -30,8 +42,10 @@ const props = defineProps<{
   groupRange?: Set<string>;
   groupInvalid?: boolean;
   timingMode?: boolean;
-  defaultDuration?: number;
-  defaultRest?: number;
+  defaultDuration?: number | null;
+  defaultRest?: number | null;
+  list?: boolean;
+  showTargets?: boolean;
 }>();
 const emit = defineEmits<{
   select: [id: string];
@@ -46,7 +60,56 @@ const emit = defineEmits<{
   relocate: [];
   dropRow: [event: DragEvent];
   timing: [id: string, field: 'duration_seconds' | 'rest_seconds', value: number | null];
+  addPose: [];
+  cellAction: [id: string, action: 'edit' | 'timing' | 'up' | 'down' | 'move' | 'clear'];
 }>();
+const showEmpty = ref(false);
+const positions = computed(() =>
+  props.row.cells.map((cell, index) => ({
+    cell,
+    index,
+    visible:
+      cellFilled(cell) || Boolean(cell.group_key || cell.arrow_direction) || props.pending.has(cell.id),
+  })),
+);
+const shownPositions = computed(() => {
+  if (!props.list || props.showTargets || showEmpty.value) return positions.value;
+  return positions.value.filter(({ cell, visible }) => visible || props.active === cell.id);
+});
+const hiddenSlots = computed(() => positions.value.some(({ visible }) => !visible));
+const canAddPose = computed(
+  () =>
+    props.row.cells.length < 12 ||
+    props.row.cells.some((cell) => !cellFilled(cell) && !props.pending.has(cell.id)),
+);
+const filledIndices = computed(() =>
+  props.row.cells.flatMap((cell, index) => (cellFilled(cell) && !props.pending.has(cell.id) ? [index] : [])),
+);
+const sideLabels = { left: 'Левая сторона', right: 'Правая сторона', both: 'Обе стороны' };
+function poseDetails(cell: Cell) {
+  const values = resolvedExecutionParameters(cell, {
+    default_duration_seconds: props.defaultDuration,
+    default_rest_seconds: props.defaultRest,
+  });
+  const duration =
+    values.advance_mode === 'breaths'
+      ? values.breath_count
+        ? `${values.breath_count} дых. циклов`
+        : 'По дыханию'
+      : values.advance_mode === 'time' && values.duration_seconds !== null
+        ? formatSequenceTime(values.duration_seconds)
+        : values.advance_mode === 'manual'
+          ? 'Ручной переход'
+          : '';
+  return [
+    values.side ? sideLabels[values.side] : '',
+    duration,
+    (values.repetitions ?? 1) > 1 ? `Повторы: ${values.repetitions}` : '',
+    values.rest_seconds ? `Отдых ${formatSequenceTime(values.rest_seconds)}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
 const cellHold = useCellLongPress({
   enabled: () => !props.disabled && !props.groupMode,
   hold: (id) => emit('hold', id),
@@ -76,7 +139,7 @@ function closeMenu(event: MouseEvent) {
 <template>
   <section
     class="sequence-row"
-    :class="{ 'pointer-row-target': pointerRow === row.id }"
+    :class="{ 'pointer-row-target': pointerRow === row.id, 'sequence-row-list': list }"
     :data-editor-row="row.id"
     @dragover.prevent
     @drop.prevent.stop="!disabled && !groupMode && !onlyRow && emit('dropRow', $event)"
@@ -84,6 +147,7 @@ function closeMenu(event: MouseEvent) {
     <div class="row-heading">
       <div class="row-label">
         <span
+          v-if="!list"
           class="drag-handle"
           :draggable="!disabled && !onlyRow && !groupMode"
           @dragstart="dragRow"
@@ -97,6 +161,9 @@ function closeMenu(event: MouseEvent) {
         <details v-dismiss-menu v-if="!disabled && !groupMode" class="action-menu">
           <summary class="icon-btn" aria-label="Действия со строкой"><MoreHorizontal :size="19" /></summary>
           <div class="action-popover" @click="closeMenu">
+            <button v-if="list && !showTargets && hiddenSlots" @click="showEmpty = !showEmpty">
+              {{ showEmpty ? 'Скрыть пустые ячейки' : 'Показать пустые ячейки' }}
+            </button>
             <button @click="emit('note')"><StickyNote :size="16" />Заметка</button>
             <template v-if="!onlyRow"
               ><button @click="emit('duplicate')"><Copy :size="16" />Дублировать</button
@@ -116,11 +183,11 @@ function closeMenu(event: MouseEvent) {
       <div class="cells-scroll">
         <div :class="['cells-grid', { 'timing-grid': timingMode }]">
           <div
-            v-for="(cell, index) in row.cells"
+            v-for="{ cell, index } in shownPositions"
             :key="cell.id"
             :class="['cell-column', { 'timing-column': timingMode }]"
           >
-            <TooltipRoot :disabled="!cellFilled(cell) || pending.has(cell.id)">
+            <TooltipRoot :disabled="list || !cellFilled(cell) || pending.has(cell.id)">
               <TooltipTrigger as-child>
                 <button
                   :class="[
@@ -128,7 +195,7 @@ function closeMenu(event: MouseEvent) {
                     {
                       selected: active === cell.id,
                       filled: cellFilled(cell),
-                      'has-image': !!cell.card && !pending.has(cell.id),
+                      'has-image': !list && !!cell.card && !pending.has(cell.id),
                       pending: pending.has(cell.id),
                       'pointer-cell-target': pointerCell === cell.id,
                       grouped: !!cell.group_key,
@@ -139,6 +206,11 @@ function closeMenu(event: MouseEvent) {
                   :aria-label="`${number}, ячейка ${index + 1}: ${cellLabel(cell) || 'пустая'}${cell.arrow_direction ? ', стрелка ' + arrowLabels[cell.arrow_direction].toLowerCase() : ''}${cell.group_key ? ', в группе со скобками' : ''}${groupMode && groupRange?.has(cell.id) ? ', выбрана для объединения' : ''}`"
                   :aria-pressed="groupMode ? !!groupRange?.has(cell.id) : active === cell.id"
                   :aria-disabled="disabled"
+                  :aria-description="
+                    list && cellFilled(cell)
+                      ? [poseDetails(cell), cell.note].filter(Boolean).join('. ')
+                      : undefined
+                  "
                   :data-editor-cell="cell.id"
                   aria-keyshortcuts="Shift+Enter Shift+Space"
                   :draggable="cellFilled(cell) && !disabled && !groupMode"
@@ -162,18 +234,46 @@ function closeMenu(event: MouseEvent) {
                   />
                   <span class="cell-index">{{ index + 1 }}</span>
                   <CellArrow v-if="cell.arrow_direction" :direction="cell.arrow_direction" />
-                  <span v-if="pending.has(cell.id)" class="cell-pending">Добавляем…</span>
-                  <img
-                    v-else-if="cell.card"
-                    :src="cell.card.image_url"
-                    :alt="cell.card.name"
-                    draggable="false"
-                  />
-                  <span v-else-if="cell.custom_name" class="custom-name">{{ cell.custom_name }}</span>
-                  <template v-else
-                    ><Plus :size="23" class="cell-plus" /><span class="cell-empty-text">Асана</span></template
-                  >
-                  <span v-if="cell.note" class="note-indicator"><StickyNote :size="11" /></span>
+                  <template v-if="list">
+                    <span class="pose-picture">
+                      <img
+                        v-if="cell.card && !pending.has(cell.id)"
+                        :src="cell.card.image_url"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        draggable="false"
+                      />
+                      <Plus
+                        v-else-if="!cellFilled(cell) && !pending.has(cell.id)"
+                        :size="18"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span class="pose-copy">
+                      <strong>{{ pending.has(cell.id) ? 'Добавляем…' : cellLabel(cell) }}</strong>
+                      <small v-if="cellFilled(cell) && !pending.has(cell.id) && poseDetails(cell)">
+                        {{ poseDetails(cell) }}
+                      </small>
+                      <small v-if="cell.note && !pending.has(cell.id)">{{ cell.note }}</small>
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span v-if="pending.has(cell.id)" class="cell-pending">Добавляем…</span>
+                    <img
+                      v-else-if="cell.card"
+                      :src="cell.card.image_url"
+                      :alt="cell.card.name"
+                      draggable="false"
+                    />
+                    <span v-else-if="cell.custom_name" class="custom-name">{{ cell.custom_name }}</span>
+                    <template v-else
+                      ><Plus :size="23" class="cell-plus" /><span class="cell-empty-text"
+                        >Асана</span
+                      ></template
+                    >
+                    <span v-if="cell.note" class="note-indicator"><StickyNote :size="11" /></span>
+                  </template>
                 </button>
               </TooltipTrigger>
               <TooltipPortal>
@@ -190,6 +290,36 @@ function closeMenu(event: MouseEvent) {
                 </TooltipContent>
               </TooltipPortal>
             </TooltipRoot>
+            <ActionMenu
+              v-if="
+                list && !disabled && !groupMode && !showTargets && cellFilled(cell) && !pending.has(cell.id)
+              "
+              class="pose-actions"
+              data-cell-actions
+              :label="`Действия: ${cellLabel(cell)}`"
+            >
+              <button @click="emit('cellAction', cell.id, 'edit')">
+                {{ cell.card ? 'Заменить асану' : 'Изменить название' }}
+              </button>
+              <button @click="emit('cellAction', cell.id, 'timing')">
+                <Timer :size="16" />Сторона и время
+              </button>
+              <button v-if="filledIndices[0] !== index" @click="emit('cellAction', cell.id, 'up')">
+                <ArrowUp :size="16" />Выше в строке
+              </button>
+              <button
+                v-if="filledIndices[filledIndices.length - 1] !== index"
+                @click="emit('cellAction', cell.id, 'down')"
+              >
+                <ArrowDown :size="16" />Ниже в строке
+              </button>
+              <button @click="emit('cellAction', cell.id, 'move')">
+                <ArrowRight :size="16" />Переместить в ячейку
+              </button>
+              <button class="danger-text" @click="emit('cellAction', cell.id, 'clear')">
+                <Trash2 :size="16" />{{ cell.card ? 'Убрать асану' : 'Убрать название' }}
+              </button>
+            </ActionMenu>
             <div v-if="timingMode && cellFilled(cell) && !pending.has(cell.id)" class="cell-timing">
               <SecondsControl
                 label="Асана"
@@ -218,13 +348,20 @@ function closeMenu(event: MouseEvent) {
             </div>
           </div>
           <button
-            v-if="!disabled && !groupMode && row.cells.length < 12"
+            v-if="!list && !disabled && !groupMode && row.cells.length < 12"
             class="append-cell"
             :aria-label="`Добавить ячейку в строку ${number}`"
             title="Добавить ячейку"
             @click="emit('count', row.cells.length + 1)"
           >
             <Plus :size="21" />
+          </button>
+          <button
+            v-if="list && !disabled && !groupMode && !showTargets && canAddPose"
+            class="btn btn-ghost append-pose"
+            @click="emit('addPose')"
+          >
+            <Plus :size="18" />Добавить асану
           </button>
         </div>
       </div>
@@ -541,6 +678,103 @@ function closeMenu(event: MouseEvent) {
 }
 .sequence-cell.pending:not(.grouped) {
   background: var(--surface-soft);
+}
+.sequence-row-list .cells-scroll {
+  overflow: visible;
+}
+.sequence-row-list .cells-grid {
+  display: grid;
+  gap: 6px;
+}
+.sequence-row-list .cell-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  width: auto;
+}
+.sequence-row-list .sequence-cell {
+  display: grid;
+  grid-template-columns: 16px 40px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  min-height: 54px;
+  margin: 0;
+  padding: 5px 9px;
+  aspect-ratio: auto;
+  text-align: start;
+}
+.sequence-row-list .cell-index {
+  position: static;
+  font-size: 12px;
+  text-align: center;
+}
+.sequence-row-list .group-edge {
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 3px;
+}
+.sequence-row-list .group-edge-start {
+  bottom: auto;
+}
+.sequence-row-list .group-edge-end {
+  top: auto;
+}
+.sequence-row-list :deep(.cell-arrow) {
+  right: auto;
+  left: 33px;
+}
+.pose-picture {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: var(--accent-dark);
+  background: #fff;
+}
+.pose-picture img {
+  position: static;
+  width: 100%;
+  height: 100%;
+}
+.pose-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pose-copy strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.3;
+}
+.pose-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.pose-actions :deep(summary) {
+  width: 44px;
+  height: 44px;
+}
+.pose-actions :deep(.danger-text) {
+  color: #a8442a;
+}
+.sequence-row-list .cell-timing {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 135px), 1fr));
+  padding: 5px 0 8px;
+}
+.sequence-row-list .timing-hint {
+  grid-column: 1 / -1;
+}
+.append-pose {
+  justify-self: start;
+  min-height: 44px;
+  padding-inline: 10px;
 }
 @media screen and (max-width: 760px) {
   .cells-scroll {

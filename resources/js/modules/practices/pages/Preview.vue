@@ -16,11 +16,15 @@ const props = withDefaults(defineProps<{ documentId: string; printMode?: boolean
 const practice = ref<Practice | null>(null),
   loading = ref(true),
   error = ref(''),
+  sheetError = ref(''),
+  sheetAttempt = ref(0),
   printReady = ref(false),
   preset = ref<'clean' | 'names' | 'teach'>('clean'),
   showNames = ref(false),
   orientation = ref<'portrait' | 'landscape'>('landscape'),
   preferenceRevision = ref<number | null>(null),
+  preferencesLoading = ref(true),
+  preferencesError = ref(''),
   preferencesMessage = ref(''),
   sharing = ref(false),
   launching = ref(false),
@@ -54,7 +58,7 @@ let autoPrinted = false,
 watch([preset, showNames, orientation, showSheet], () => {
   preparation++;
   printReady.value = false;
-  error.value = '';
+  sheetError.value = '';
 });
 function choosePreset() {
   showNames.value = preset.value !== 'clean';
@@ -63,33 +67,44 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const [document, preferences] = await Promise.all([
-      api<{ data: Practice }>(`/api/practices/${props.documentId}`),
-      api<{
-        data: {
-          revision: number | null;
-          preferences: {
-            preset: 'clean' | 'names' | 'teach';
-            show_names: boolean;
-            orientation: 'portrait' | 'landscape';
-          };
-        };
-      }>('/api/practice-output-preferences'),
-    ]);
-    practice.value = document.data;
-    preferenceRevision.value = preferences.data.revision;
-    preset.value = preferences.data.preferences.preset;
-    showNames.value = preferences.data.preferences.show_names;
-    orientation.value = preferences.data.preferences.orientation;
+    practice.value = (await api<{ data: Practice }>(`/api/practices/${props.documentId}`)).data;
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось открыть практику.';
   } finally {
     loading.value = false;
   }
 }
+async function loadPreferences() {
+  const initialOptions = options.value.toString();
+  preferencesLoading.value = true;
+  preferencesError.value = '';
+  try {
+    const preferences = await api<{
+      data: {
+        revision: number | null;
+        preferences: {
+          preset: 'clean' | 'names' | 'teach';
+          show_names: boolean;
+          orientation: 'portrait' | 'landscape';
+        };
+      };
+    }>('/api/practice-output-preferences');
+    preferenceRevision.value = preferences.data.revision;
+    if (options.value.toString() === initialOptions) {
+      preset.value = preferences.data.preferences.preset;
+      showNames.value = preferences.data.preferences.show_names;
+      orientation.value = preferences.data.preferences.orientation;
+    }
+  } catch {
+    preferencesError.value = 'Не удалось загрузить сохранённые настройки листа.';
+  } finally {
+    preferencesLoading.value = false;
+  }
+}
 async function loadedSheet() {
   const version = ++preparation;
   printReady.value = false;
+  sheetError.value = '';
   try {
     const content = frame.value?.contentDocument;
     if (!content || content.querySelector('h1')?.textContent !== practice.value?.title)
@@ -134,8 +149,15 @@ async function loadedSheet() {
       printSheet();
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Не удалось подготовить лист.';
+    if (version === preparation)
+      sheetError.value = e instanceof Error ? e.message : 'Не удалось подготовить лист.';
   }
+}
+function reloadSheet() {
+  preparation++;
+  sheetError.value = '';
+  printReady.value = false;
+  sheetAttempt.value++;
 }
 function printSheet() {
   if (!printReady.value) return;
@@ -163,6 +185,7 @@ async function savePreferences() {
 onMounted(() => {
   phoneMedia.addEventListener('change', syncPhone);
   void load();
+  void loadPreferences();
 });
 onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
 </script>
@@ -207,7 +230,7 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
         </button>
         <ResponsivePanel title="Действия с листом" label="Ещё">
           <a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
-            >Экспорт JSON с рисунками</a
+            >Файл для переноса в RibkaYoga</a
           >
         </ResponsivePanel>
       </div>
@@ -242,17 +265,29 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
             </AppSelect></label
           ><label class="check-label"
             ><input v-model="showNames" type="checkbox" :disabled="preset === 'clean'" />Названия асан</label
-          ><button class="btn btn-ghost" @click="savePreferences">Запомнить настройки</button
+          ><button
+            class="btn btn-ghost"
+            :disabled="preferencesLoading || !!preferencesError"
+            @click="savePreferences"
+          >
+            Запомнить настройки</button
           ><span class="muted" role="status">{{ printReady ? 'Лист готов' : 'Загружаем рисунки…' }}</span>
+          <p v-if="preferencesError" class="muted" role="status">
+            {{ preferencesError }}
+            <button class="btn btn-ghost" type="button" @click="loadPreferences">Повторить</button>
+          </p>
         </div>
       </ResponsivePanel>
     </div>
     <p v-if="preferencesMessage" class="success-banner" role="status">{{ preferencesMessage }}</p>
-    <div v-if="practice && showSheet" class="sheet-region">
+    <p v-if="showSheet && sheetError" class="error-banner" role="alert">
+      {{ sheetError }} <button class="btn btn-ghost" @click="reloadSheet">Повторить</button>
+    </p>
+    <div v-if="practice && showSheet && (!printMode || !preferencesLoading)" class="sheet-region">
       <SheetViewport :width="orientation === 'landscape' ? 1050 : 730" :height="frameHeight">
         <iframe
           ref="frame"
-          :key="sheetUrl"
+          :key="`${sheetUrl}:${sheetAttempt}`"
           :src="sheetUrl"
           class="sheet-frame"
           :class="orientation"
@@ -263,7 +298,7 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
         />
       </SheetViewport>
     </div>
-    <PracticeSequenceList v-else-if="practice" :practice="practice" />
+    <PracticeSequenceList v-else-if="practice && !showSheet" :practice="practice" />
     <p v-if="practice && showSheet" class="muted output-hint">
       «Весь лист» подстраивает просмотр под экран, «100%» позволяет рассмотреть детали с прокруткой. Просмотр
       и скачиваемый PDF используют один макет; исходные изображения остаются в базе.

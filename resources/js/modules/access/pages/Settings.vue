@@ -5,7 +5,6 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
   Bell,
   HardDrive,
-  ShieldCheck,
   SlidersHorizontal,
   UserRound,
   BookOpen,
@@ -48,7 +47,7 @@ const sections = [
     hint: 'Доступность и уменьшение анимаций',
     icon: Accessibility,
   },
-  { id: 'help', title: 'Помощь и сведения', hint: 'О приложении и конфиденциальности', icon: CircleHelp },
+  { id: 'help', title: 'Помощь и сведения', hint: 'Как устроены доступ и разборы', icon: CircleHelp },
 ];
 const visibleSections = computed(() =>
   sections.filter((item) => `${item.title} ${item.hint}`.toLowerCase().includes(search.value.toLowerCase())),
@@ -122,7 +121,7 @@ onMounted(async () => {
     <PageHeading
       eyebrow="Всё по-вашему"
       :title="activeSection?.title || 'Настройки'"
-      description="Удобный ритм, понятное управление и ваше пространство для практики."
+      :description="activeSection?.hint"
     >
       <button
         v-if="section"
@@ -175,25 +174,15 @@ onMounted(async () => {
     <section v-else class="card settings-section">
       <template v-if="section === 'appearance'">
         <h2><SlidersHorizontal :size="22" />Отображение</h2>
-        <p class="muted">
-          Белые карточки, тонкие рисунки и зелёный акцент. Подложки скетчбука и цвета пометок настраиваются в
-          редакторах.
-        </p>
         <label class="settings-check"
           ><input v-model="values.rememberFilters" type="checkbox" @change="save" />Запоминать подборку при
           заполнении ячеек</label
         >
-        <Link class="settings-row" href="/library"
-          ><BookOpen :size="23" /><span>Библиотека асан</span><ChevronRight :size="20"
-        /></Link>
       </template>
       <template v-if="section === 'practice'">
         <h2><BookOpen :size="22" />Создание и проведение занятий</h2>
         <Link class="settings-row" href="/templates"
           ><BookOpen :size="23" /><span>Шаблоны</span><ChevronRight :size="20"
-        /></Link>
-        <Link class="settings-row" href="/practices"
-          ><Timer :size="23" /><span>Практики и настройка времени</span><ChevronRight :size="20"
         /></Link>
         <Link class="settings-row" href="/practice-history"
           ><History :size="23" /><span>История практики</span><ChevronRight :size="20"
@@ -241,9 +230,6 @@ onMounted(async () => {
         <p class="muted">
           Использовано: {{ bytes(estimate.usage) }}. Доступная квота: {{ bytes(estimate.quota) }}.
         </p>
-        <Link class="settings-row" href="/practices"
-          ><BookOpen :size="23" /><span>Экспортировать практику</span><ChevronRight :size="20"
-        /></Link>
         <button class="btn btn-secondary" @click="clearViewPreferences">
           <SlidersHorizontal :size="18" />Сбросить настройки вида
         </button>
@@ -260,18 +246,12 @@ onMounted(async () => {
           Клавиатура: Tab — переход, Enter — действие. В конструкторе нажатие выбирает заполненную ячейку;
           повторное снимает выделение.
         </p>
-        <Link class="settings-row" href="/account"
-          ><ShieldCheck :size="23" /><span>Безопасность аккаунта</span><ChevronRight :size="20"
-        /></Link>
       </template>
       <template v-if="section === 'help'">
         <h2><CircleHelp :size="22" />RibkaYoga</h2>
         <p class="muted">
           Библиотека асан, конструктор занятий, медитация и личные разборы в одном пространстве.
         </p>
-        <Link class="settings-row" href="/"
-          ><CircleHelp :size="23" /><span>О приложении</span><ChevronRight :size="20"
-        /></Link>
         <p class="muted">
           Доступ к практикам задаётся отдельно. Личные пометки разбора не отправляются автору исходной
           практики.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { Crop, Pencil } from '@lucide/vue';
+import { Crop, Info, Pencil, Upload } from '@lucide/vue';
 import type { Category } from '../types';
 import type { DrawingDocument } from '../drawing';
 import {
@@ -31,11 +31,14 @@ const categoryIds = defineModel<string[]>('categoryIds', { required: true });
 const emit = defineEmits<{ image: [file: File, drawing: DrawingDocument | null]; dirty: [value: boolean] }>();
 const tool = ref<'edit' | 'draw' | null>(null);
 const drawingOpened = ref(false);
+const imageInput = ref<HTMLInputElement | null>(null);
+const drawingButton = ref<HTMLButtonElement | null>(null);
 const drawingDirty = ref(false);
 interface DrawingHandle {
   hasUnappliedChanges(): boolean;
   discardDraft(): void;
   apply(): Promise<boolean>;
+  expand(): void;
 }
 const drawingEditor = ref<DrawingHandle | null>(null);
 const page = usePage();
@@ -74,7 +77,7 @@ function useDrawing(file: File, drawing: DrawingDocument) {
   // The editor still has its own busy flag while delivering this event.
   if (props.disabled) return;
   emit('image', file, drawing);
-  tool.value = null;
+  closeDrawing();
 }
 function markDrawingDirty(value: boolean) {
   drawingDirty.value = value;
@@ -100,9 +103,20 @@ async function resetDrawing() {
   markDrawingDirty(false);
 }
 defineExpose({ guardBeforeSave, hasUnsavedDrawing, saved, resetDrawing });
-function openDrawing() {
+async function openDrawing() {
+  if (tool.value === 'draw') {
+    closeDrawing();
+    return;
+  }
   drawingOpened.value = true;
-  tool.value = tool.value === 'draw' ? null : 'draw';
+  tool.value = 'draw';
+  if (!window.matchMedia('(max-width: 760px)').matches) return;
+  await nextTick();
+  drawingEditor.value?.expand();
+}
+function closeDrawing() {
+  tool.value = null;
+  void nextTick(() => drawingButton.value?.focus({ preventScroll: true }));
 }
 function chooseImage(event: Event) {
   const input = event.target as HTMLInputElement;
@@ -125,81 +139,47 @@ function chooseImage(event: Event) {
         :disabled="disabled"
       />
     </div>
-    <div class="field">
-      <label class="label" :for="`${prefix}-alternate-name`">Альтернативное название</label>
-      <input
-        :id="`${prefix}-alternate-name`"
-        v-model="reference.alternate_name"
-        class="input"
-        maxlength="160"
-        :disabled="disabled"
-      />
-    </div>
-    <div class="field">
-      <label class="label" :for="`${prefix}-aliases`">Другие названия</label>
-      <textarea
-        :id="`${prefix}-aliases`"
-        v-model="aliases"
-        class="textarea"
-        rows="2"
-        placeholder="Каждое название — с новой строки"
-        :disabled="disabled"
-      />
-    </div>
-    <fieldset class="choice-group">
-      <legend class="label">Мои категории</legend>
-      <div v-if="categories.length" class="choices">
-        <label v-for="category in categories" :key="category.id">
-          <input v-model="categoryIds" type="checkbox" :value="category.id" :disabled="disabled" />{{
-            category.name
-          }}
-        </label>
-      </div>
-      <p v-else class="muted">Категории можно создать в разделе «Категории».</p>
-    </fieldset>
-    <ReferenceFields
-      v-model:reference="reference"
-      v-model:assignments="facetAssignments"
-      :disabled="disabled"
-      :prefix="prefix"
-    />
     <div class="image-field">
       <img v-if="imageUrl" :src="imageUrl" :alt="name || 'Предпросмотр карточки'" />
       <div class="field">
-        <label class="label" :for="`${prefix}-image`"
-          >Изображение{{ imageRequired ? ' (обязательно)' : '' }}</label
-        >
+        <p class="label image-label">Изображение{{ imageRequired && !imageUrl ? ' · обязательно' : '' }}</p>
         <input
-          :id="`${prefix}-image`"
+          ref="imageInput"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           :disabled="disabled"
+          hidden
           @change="chooseImage"
         />
+        <div class="image-tools">
+          <button type="button" class="btn btn-secondary" :disabled="disabled" @click="imageInput?.click()">
+            <Upload :size="16" />{{ imageUrl ? 'Заменить файл' : 'Загрузить файл' }}
+          </button>
+          <button
+            ref="drawingButton"
+            type="button"
+            class="btn btn-secondary"
+            :disabled="disabled"
+            :aria-expanded="tool === 'draw'"
+            @click="openDrawing"
+          >
+            <Pencil :size="16" />{{ drawingSource ? 'Редактировать рисунок' : 'Нарисовать асану' }}
+          </button>
+          <button
+            v-if="imageUrl"
+            type="button"
+            class="btn btn-secondary"
+            :disabled="disabled"
+            :aria-expanded="tool === 'edit'"
+            @click="tool = tool === 'edit' ? null : 'edit'"
+          >
+            <Crop :size="16" />Редактировать изображение
+          </button>
+        </div>
         <p v-if="imageName" class="image-name">{{ imageName }}</p>
-        <p class="image-help muted">PNG, JPEG или WebP · до 10 МБ. Можно выбрать другое изображение.</p>
+        <p v-else-if="!imageUrl" class="image-help muted">PNG, JPEG или WebP · до 10 МБ</p>
         <slot name="image-help" />
       </div>
-    </div>
-    <div class="image-tools">
-      <button
-        type="button"
-        class="btn btn-secondary"
-        :disabled="disabled || !imageUrl"
-        :aria-expanded="tool === 'edit'"
-        @click="tool = tool === 'edit' ? null : 'edit'"
-      >
-        <Crop :size="16" />Редактировать изображение
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary"
-        :disabled="disabled"
-        :aria-expanded="tool === 'draw'"
-        @click="openDrawing"
-      >
-        <Pencil :size="16" />{{ drawingSource ? 'Редактировать рисунок' : 'Нарисовать асану' }}
-      </button>
     </div>
     <ImageEditor
       v-if="tool === 'edit' && imageUrl"
@@ -220,8 +200,54 @@ function chooseImage(event: Event) {
       :active="tool === 'draw'"
       @image="useDrawing"
       @dirty="markDrawingDirty"
-      @close="tool = null"
+      @close="closeDrawing"
     />
+    <details class="disclosure">
+      <summary>
+        <span class="disclosure-icon"><Info aria-hidden="true" /></span>
+        <span class="disclosure-copy"><strong>Названия, категории и описание</strong></span>
+      </summary>
+      <div class="disclosure-body metadata-fields">
+        <div class="field">
+          <label class="label" :for="`${prefix}-alternate-name`">Альтернативное название</label>
+          <input
+            :id="`${prefix}-alternate-name`"
+            v-model="reference.alternate_name"
+            class="input"
+            maxlength="160"
+            :disabled="disabled"
+          />
+        </div>
+        <div class="field">
+          <label class="label" :for="`${prefix}-aliases`">Другие названия</label>
+          <textarea
+            :id="`${prefix}-aliases`"
+            v-model="aliases"
+            class="textarea"
+            rows="2"
+            placeholder="Каждое название — с новой строки"
+            :disabled="disabled"
+          />
+        </div>
+        <fieldset class="choice-group">
+          <legend class="label">Мои категории</legend>
+          <div v-if="categories.length" class="choices">
+            <label v-for="category in categories" :key="category.id">
+              <input v-model="categoryIds" type="checkbox" :value="category.id" :disabled="disabled" />{{
+                category.name
+              }}
+            </label>
+          </div>
+          <p v-else class="muted">Категории можно создать в разделе «Категории».</p>
+        </fieldset>
+        <ReferenceFields
+          v-model:reference="reference"
+          v-model:assignments="facetAssignments"
+          :disabled="disabled"
+          :prefix="prefix"
+        />
+      </div>
+    </details>
   </div>
 </template>
 
@@ -258,11 +284,15 @@ function chooseImage(event: Event) {
 .choices input {
   accent-color: var(--accent);
 }
+.metadata-fields {
+  display: grid;
+  gap: var(--section-gap);
+}
 .image-field {
   display: flex;
   gap: 16px;
   align-items: center;
-  padding: 20px;
+  padding: 14px;
   background: var(--surface-soft);
   border-radius: var(--field-radius);
 }
@@ -275,9 +305,8 @@ function chooseImage(event: Event) {
 .image-field .field {
   min-width: 0;
 }
-.image-field input {
-  max-width: 100%;
-  font-size: 0.8rem;
+.image-label {
+  margin: 0;
 }
 .image-help,
 .image-name {
@@ -297,6 +326,12 @@ function chooseImage(event: Event) {
   .image-field {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+  }
+  .image-tools .btn {
+    min-height: 44px;
+    padding-inline: 12px;
+    white-space: normal;
   }
 }
 </style>

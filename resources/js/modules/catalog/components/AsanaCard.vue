@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Check, Expand } from '@lucide/vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
-import type { Asana, AsanaDisplayImage } from '../types';
+import { asanaVariantLabel, type Asana, type AsanaDisplayImage } from '../types';
 import { api } from '@/shared/api';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 const favoriteBusy = ref(false),
   favoriteError = ref('');
 async function favorite(card: Asana) {
@@ -22,7 +22,7 @@ async function favorite(card: Asana) {
     favoriteBusy.value = false;
   }
 }
-withDefaults(
+const props = withDefaults(
   defineProps<{
     card: Asana;
     displayImage?: AsanaDisplayImage;
@@ -36,6 +36,8 @@ withDefaults(
     actions: true,
   },
 );
+const variant = computed(() => asanaVariantLabel(props.card));
+const accessibleName = computed(() => [props.card.name, variant.value].filter(Boolean).join(' · '));
 defineEmits<{
   select: [card: Asana];
   preview: [card: Asana];
@@ -51,7 +53,7 @@ defineEmits<{
 <template>
   <article class="asana-card" :class="{ selected, archived: card.archived_at }">
     <div v-if="actions" class="card-menu">
-      <ActionMenu :label="`Действия: ${card.name}`">
+      <ActionMenu :label="`Действия: ${accessibleName}`">
         <template v-if="!card.archived_at">
           <button @click="$emit('category', card)">Добавить в категорию</button>
           <button @click="$emit('collection', card)">Добавить в подборку</button>
@@ -73,7 +75,7 @@ defineEmits<{
       class="selection-toggle"
       :class="{ checked: selected }"
       type="button"
-      :aria-label="`${selected ? 'Снять выбор' : 'Выбрать'}: ${card.name}`"
+      :aria-label="`${selected ? 'Снять выбор' : 'Выбрать'}: ${accessibleName}`"
       :aria-pressed="selected"
       @click="$emit('select', card)"
     >
@@ -82,12 +84,12 @@ defineEmits<{
     <button
       class="asana-image"
       type="button"
-      :aria-label="`Рассмотреть: ${card.name}`"
+      :aria-label="`Рассмотреть: ${accessibleName}`"
       @click="$emit('preview', card)"
     >
       <img
         :src="displayImage?.thumbnail_url || displayImage?.image_url || card.thumbnail_url || card.image_url"
-        :alt="card.name"
+        alt=""
         loading="lazy"
       />
       <span class="enlarge"><Expand :size="15" aria-hidden="true" /></span>
@@ -97,6 +99,7 @@ defineEmits<{
       <p v-if="card.alternate_name" class="asana-category" :title="card.alternate_name">
         {{ card.alternate_name }}
       </p>
+      <p v-if="variant" class="asana-variant">{{ variant }}</p>
       <p v-if="displayImage && !displayImage.available" class="style-fallback">Нет объёмного варианта</p>
       <p
         v-if="
@@ -231,6 +234,12 @@ defineEmits<{
   margin: 0;
   min-height: 1.2em;
   line-height: 1.5;
+}
+.asana-variant {
+  margin: 3px 0;
+  color: var(--accent-dark);
+  font-size: 12px;
+  line-height: 1.4;
 }
 .style-fallback {
   margin: 0 0 7px;

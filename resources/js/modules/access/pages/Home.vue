@@ -92,7 +92,7 @@ const tools = [
       <Link v-if="recent" :href="`/practices/${recent.id}/edit`" class="btn btn-secondary home-continue">
         <ArrowRight :size="17" />
         <span
-          >Продолжить <span class="home-recent-title">{{ recent.title }}</span></span
+          >Продолжить редактирование <span class="home-recent-title">{{ recent.title }}</span></span
         >
       </Link>
       <button v-else-if="empty" class="btn btn-secondary" :disabled="creatingExample" @click="createExample">

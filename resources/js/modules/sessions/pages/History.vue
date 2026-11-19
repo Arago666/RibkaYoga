@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeading from '@/shared/PageHeading.vue';
 import AppSelect from '@/shared/AppSelect.vue';
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
@@ -26,22 +26,44 @@ const rows = ref<HistoryEntry[]>([]),
   error = ref(''),
   loading = ref(false);
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+let historyRequest: AbortController | null = null;
+function duration(seconds: number): string {
+  const whole = Math.max(0, Math.round(seconds));
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const remaining = whole % 60;
+  const parts = [];
+  if (hours) parts.push(`${hours} ч`);
+  if (minutes) parts.push(`${minutes} мин`);
+  if (remaining || !parts.length) parts.push(`${remaining} с`);
+  return parts.join(' ');
+}
 async function load() {
+  historyRequest?.abort();
+  const request = (historyRequest = new AbortController());
   loading.value = true;
   error.value = '';
+  summary.value = null;
   try {
     const data = await api<{ data: HistoryEntry[]; summary: Summary }>(
       `/api/executions?timezone=${encodeURIComponent(timezone)}${days.value ? `&days=${days.value}` : ''}`,
+      { signal: request.signal },
     );
+    if (request.signal.aborted) return;
     rows.value = data.data;
     summary.value = data.summary;
   } catch (failure) {
-    error.value = failure instanceof Error ? failure.message : 'Не удалось загрузить историю.';
+    if (!request.signal.aborted)
+      error.value = failure instanceof Error ? failure.message : 'Не удалось загрузить историю.';
   } finally {
-    loading.value = false;
+    if (historyRequest === request) {
+      historyRequest = null;
+      loading.value = false;
+    }
   }
 }
 onMounted(load);
+onBeforeUnmount(() => historyRequest?.abort());
 </script>
 <template>
   <AppShell section="practices"
@@ -67,7 +89,7 @@ onMounted(load);
     <p v-if="loading" class="muted" role="status">Загружаем…</p>
     <template v-if="summary"
       ><div class="card numbers">
-        <strong>{{ Math.round(summary.seconds / 60) }} минут</strong
+        <strong>{{ duration(summary.seconds) }}</strong
         ><span>{{ summary.sessions }} сессий · {{ summary.completed }} завершено</span
         ><span>Часовой пояс: {{ timezone }}</span>
       </div>
@@ -82,7 +104,7 @@ onMounted(load);
         <div class="calendar">
           <div v-for="(seconds, date) in summary.calendar" :key="date">
             <time>{{ date }}</time
-            ><strong>{{ Math.round(seconds / 60) }} мин</strong>
+            ><strong>{{ duration(seconds) }}</strong>
           </div>
           <p v-if="!Object.keys(summary.calendar).length">История появится после первой практики.</p>
         </div>
@@ -104,7 +126,7 @@ onMounted(load);
             </p>
           </div>
           <span
-            >{{ Math.round(row.active_seconds / 60) }} мин ·
+            >{{ duration(row.active_seconds) }} ·
             {{
               row.status === 'completed'
                 ? 'Завершено'
@@ -116,7 +138,7 @@ onMounted(load);
             }}</span
           >
         </article>
-        <p class="muted">
+        <p v-if="summary.sessions > summary.limit" class="muted">
           В интерфейсе до {{ summary.limit }} последних сессий. CSV содержит всю личную историю.
         </p>
       </section></template

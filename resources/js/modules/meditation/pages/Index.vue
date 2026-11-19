@@ -26,6 +26,7 @@ import AppSelect from '@/shared/AppSelect.vue';
 import PlayerWindow from '@/shared/PlayerWindow.vue';
 import CountdownRing from '@/shared/CountdownRing.vue';
 import { api } from '@/shared/api';
+import { isTelegramMiniAppActive, telegramDeactivatedEvent } from '@/shared/telegramMiniApp';
 import { uid } from '@/shared/uuid';
 import { MeditationAudio } from '../audioEngine';
 import { soundManifest } from '../soundManifest';
@@ -305,7 +306,7 @@ function freeze(): void {
   wakeLock = null;
 }
 function canPlay(): boolean {
-  return playbackRequested && !disposed && !document.hidden && navigator.onLine;
+  return playbackRequested && !disposed && !document.hidden && isTelegramMiniAppActive() && navigator.onLine;
 }
 async function sound(): Promise<void> {
   if (!session.value || !running.value || !canPlay()) return;
@@ -381,7 +382,15 @@ async function beginSession(): Promise<void> {
   }
 }
 async function start(): Promise<void> {
-  if (!ready.value || !terminal.value || preparing.value || requestBusy.value || document.hidden) return;
+  if (
+    !ready.value ||
+    !terminal.value ||
+    preparing.value ||
+    requestBusy.value ||
+    document.hidden ||
+    !isTelegramMiniAppActive()
+  )
+    return;
   if (!navigator.onLine) {
     error.value = 'Нет сети. Подключитесь к интернету, чтобы начать сеанс.';
     return;
@@ -392,15 +401,9 @@ async function start(): Promise<void> {
   notice.value = '';
   frozen.value = 0;
   document.querySelectorAll<HTMLAudioElement>('.audio-list audio').forEach((audio) => audio.pause());
-  requestBusy.value = true;
-  try {
-    await engine.unlock();
-  } catch {
-    notice.value = 'Звук недоступен; можно продолжить в тишине.';
-  } finally {
-    requestBusy.value = false;
-  }
-  if (!canPlay()) return;
+  void engine.unlock().catch(() => {
+    if (canPlay()) notice.value = 'Звук недоступен. Таймер можно использовать в тишине.';
+  });
   startId = null;
   if (config.preparation_seconds > 0) {
     preparing.value = true;
@@ -539,19 +542,19 @@ function suspendPlayback(): boolean {
   return wasPlaying;
 }
 function hidden(): void {
-  if (!document.hidden) return;
+  if (document.hidden) leaving();
+}
+function leaving(): void {
   document.querySelectorAll<HTMLAudioElement>('.audio-list audio').forEach((audio) => audio.pause());
   if (suspendPlayback()) {
     notice.value = 'При уходе с экрана воспроизведение приостановлено. Продолжите, когда вернётесь.';
   }
+  engine.pause();
 }
 function disconnected(): void {
   if (suspendPlayback()) {
     error.value = 'Нет сети. Таймер и звук приостановлены; после подключения сверьте состояние.';
   }
-}
-function leaving(): void {
-  suspendPlayback();
 }
 async function preview(signal: Signal): Promise<void> {
   try {
@@ -664,6 +667,7 @@ onMounted(() => {
     if (running.value && !requestBusy.value) void command('heartbeat');
   }, 10000);
   document.addEventListener('visibilitychange', hidden);
+  document.addEventListener(telegramDeactivatedEvent, leaving);
   window.addEventListener('offline', disconnected);
   window.addEventListener('pagehide', leaving);
 });
@@ -672,6 +676,7 @@ onBeforeUnmount(() => {
   if (tickId) clearInterval(tickId);
   if (heartbeatId) clearInterval(heartbeatId);
   document.removeEventListener('visibilitychange', hidden);
+  document.removeEventListener(telegramDeactivatedEvent, leaving);
   window.removeEventListener('offline', disconnected);
   window.removeEventListener('pagehide', leaving);
   uploadCancel?.();
@@ -686,9 +691,10 @@ onBeforeUnmount(() => {
   <Head title="Медитация" />
   <AppShell section="meditation">
     <PageHeading
+      class="meditation-heading"
       eyebrow="Пауза для себя"
       title="Медитация"
-      description="Выберите время, настройте звук — и просто побудьте в моменте."
+      description="Таймер, гонги и фоновый звук."
     />
     <div class="meditation-page">
       <div v-if="error" class="meditation-error" role="alert">
@@ -710,136 +716,6 @@ onBeforeUnmount(() => {
       </div>
       <template v-else>
         <div class="meditation-workspace">
-          <div class="meditation-setup">
-            <section class="card meditation-duration">
-              <h2><Timer aria-hidden="true" />Длительность</h2>
-              <fieldset
-                :disabled="locked || requestBusy"
-                class="duration-options"
-                aria-label="Длительность медитации"
-              >
-                <button
-                  v-for="minutes in durationOptions"
-                  :key="minutes"
-                  type="button"
-                  class="duration-option"
-                  :class="{ selected: config.duration_seconds === minutes * 60 }"
-                  :aria-pressed="config.duration_seconds === minutes * 60"
-                  @click="config.duration_seconds = minutes * 60"
-                >
-                  {{ minutes }} <span>мин</span>
-                </button>
-              </fieldset>
-              <p
-                v-if="
-                  config.duration_seconds === null || !durationOptions.includes(config.duration_seconds / 60)
-                "
-                class="muted small"
-              >
-                {{
-                  config.duration_seconds === null
-                    ? 'Выбран свободный отсчёт.'
-                    : `Выбрано своё время: ${time(config.duration_seconds)}.`
-                }}
-                Его можно изменить в дополнительных настройках.
-              </p>
-            </section>
-            <ResponsivePanel title="Звуки медитации" label="Звуки и настройки">
-              <section class="card meditation-sounds">
-                <h2><Volume2 aria-hidden="true" />Звуки</h2>
-                <fieldset :disabled="locked || requestBusy" class="sound-switches">
-                  <div class="sound-row">
-                    <span class="sound-icon"><BellRing aria-hidden="true" /></span>
-                    <div class="sound-label">
-                      <span id="start-gong-label">Гонг в начале</span>
-                      <small v-if="!['none', 'gong'].includes(config.start_signal)"
-                        >Сохранённый сигнал: {{ signalNames[config.start_signal] }}</small
-                      >
-                    </div>
-                    <button
-                      type="button"
-                      class="meditation-switch"
-                      role="switch"
-                      :aria-checked="config.start_signal !== 'none'"
-                      aria-labelledby="start-gong-label"
-                      @click="toggleGong('start_signal')"
-                    >
-                      <span />
-                    </button>
-                  </div>
-                  <div class="sound-row">
-                    <span class="sound-icon"><Bell aria-hidden="true" /></span>
-                    <div class="sound-label">
-                      <span id="end-gong-label">Гонг в конце</span>
-                      <small v-if="!['none', 'gong'].includes(config.end_signal)"
-                        >Сохранённый сигнал: {{ signalNames[config.end_signal] }}</small
-                      >
-                    </div>
-                    <button
-                      type="button"
-                      class="meditation-switch"
-                      role="switch"
-                      :aria-checked="config.end_signal !== 'none'"
-                      aria-labelledby="end-gong-label"
-                      @click="toggleGong('end_signal')"
-                    >
-                      <span />
-                    </button>
-                  </div>
-                </fieldset>
-              </section>
-              <section class="card meditation-background">
-                <fieldset :disabled="locked || requestBusy" class="sound-switches">
-                  <div class="sound-row">
-                    <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
-                    <h2 id="background-label">Фоновый звук</h2>
-                    <button
-                      type="button"
-                      class="meditation-switch"
-                      role="switch"
-                      :aria-checked="backgroundEnabled"
-                      aria-labelledby="background-label"
-                      @click="backgroundEnabled = !backgroundEnabled"
-                    >
-                      <span />
-                    </button>
-                  </div>
-                  <template v-if="backgroundEnabled">
-                    <div class="ambience-options" aria-label="Выбор фонового звука">
-                      <button
-                        v-for="(item, key) in soundManifest.ambience"
-                        :key="key"
-                        type="button"
-                        class="btn"
-                        :class="{ 'ambience-selected': config.ambience === key }"
-                        :aria-pressed="config.ambience === key"
-                        @click="config.ambience = key"
-                      >
-                        {{ item.name }}
-                      </button>
-                    </div>
-                    <label class="background-volume"
-                      >Громкость
-                      <input
-                        v-model.number="config.ambience_volume"
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                      />
-                    </label>
-                    <p v-if="config.audio_asset_id" class="muted small">
-                      Также выбрана личная запись. Управление — в разделе «Моё аудио».
-                    </p>
-                    <p class="muted small">Лес, дождь и волны — синтез звуков природы.</p>
-                  </template>
-                </fieldset>
-              </section>
-              <button class="btn save-preferences" :disabled="locked || requestBusy" @click="saveSettings">
-                Сохранить мои настройки
-              </button>
-            </ResponsivePanel>
-          </div>
           <PlayerWindow :open="immersive" title="Медитация" @close="closeWindow"
             ><section
               class="card meditation-timer"
@@ -988,6 +864,136 @@ onBeforeUnmount(() => {
               </p>
             </section></PlayerWindow
           >
+          <div class="meditation-setup">
+            <section class="card meditation-duration">
+              <h2><Timer aria-hidden="true" />Длительность</h2>
+              <fieldset
+                :disabled="locked || requestBusy"
+                class="duration-options"
+                aria-label="Длительность медитации"
+              >
+                <button
+                  v-for="minutes in durationOptions"
+                  :key="minutes"
+                  type="button"
+                  class="duration-option"
+                  :class="{ selected: config.duration_seconds === minutes * 60 }"
+                  :aria-pressed="config.duration_seconds === minutes * 60"
+                  @click="config.duration_seconds = minutes * 60"
+                >
+                  {{ minutes }} <span>мин</span>
+                </button>
+              </fieldset>
+              <p
+                v-if="
+                  config.duration_seconds === null || !durationOptions.includes(config.duration_seconds / 60)
+                "
+                class="muted small"
+              >
+                {{
+                  config.duration_seconds === null
+                    ? 'Выбран свободный отсчёт.'
+                    : `Выбрано своё время: ${time(config.duration_seconds)}.`
+                }}
+                Его можно изменить в дополнительных настройках.
+              </p>
+            </section>
+            <ResponsivePanel title="Звуки медитации" label="Звуки и настройки">
+              <section class="card meditation-sounds">
+                <h2><Volume2 aria-hidden="true" />Звуки</h2>
+                <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                  <div class="sound-row">
+                    <span class="sound-icon"><BellRing aria-hidden="true" /></span>
+                    <div class="sound-label">
+                      <span id="start-gong-label">Гонг в начале</span>
+                      <small v-if="!['none', 'gong'].includes(config.start_signal)"
+                        >Сохранённый сигнал: {{ signalNames[config.start_signal] }}</small
+                      >
+                    </div>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="config.start_signal !== 'none'"
+                      aria-labelledby="start-gong-label"
+                      @click="toggleGong('start_signal')"
+                    >
+                      <span />
+                    </button>
+                  </div>
+                  <div class="sound-row">
+                    <span class="sound-icon"><Bell aria-hidden="true" /></span>
+                    <div class="sound-label">
+                      <span id="end-gong-label">Гонг в конце</span>
+                      <small v-if="!['none', 'gong'].includes(config.end_signal)"
+                        >Сохранённый сигнал: {{ signalNames[config.end_signal] }}</small
+                      >
+                    </div>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="config.end_signal !== 'none'"
+                      aria-labelledby="end-gong-label"
+                      @click="toggleGong('end_signal')"
+                    >
+                      <span />
+                    </button>
+                  </div>
+                </fieldset>
+              </section>
+              <section class="card meditation-background">
+                <fieldset :disabled="locked || requestBusy" class="sound-switches">
+                  <div class="sound-row">
+                    <span class="sound-icon"><AudioLines aria-hidden="true" /></span>
+                    <h2 id="background-label">Фоновый звук</h2>
+                    <button
+                      type="button"
+                      class="meditation-switch"
+                      role="switch"
+                      :aria-checked="backgroundEnabled"
+                      aria-labelledby="background-label"
+                      @click="backgroundEnabled = !backgroundEnabled"
+                    >
+                      <span />
+                    </button>
+                  </div>
+                  <template v-if="backgroundEnabled">
+                    <div class="ambience-options" aria-label="Выбор фонового звука">
+                      <button
+                        v-for="(item, key) in soundManifest.ambience"
+                        :key="key"
+                        type="button"
+                        class="btn"
+                        :class="{ 'ambience-selected': config.ambience === key }"
+                        :aria-pressed="config.ambience === key"
+                        @click="config.ambience = key"
+                      >
+                        {{ item.name }}
+                      </button>
+                    </div>
+                    <label class="background-volume"
+                      >Громкость
+                      <input
+                        v-model.number="config.ambience_volume"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                      />
+                    </label>
+                    <p v-if="config.audio_asset_id" class="muted small">
+                      Также выбрана личная запись. Управление — в разделе «Моё аудио».
+                    </p>
+                    <p class="muted small">Лес, дождь и волны — синтез звуков природы.</p>
+                  </template>
+                </fieldset>
+              </section>
+              <button class="btn save-preferences" :disabled="locked || requestBusy" @click="saveSettings">
+                Сохранить для следующих сессий
+              </button>
+            </ResponsivePanel>
+          </div>
         </div>
         <div class="meditation-extras">
           <details class="disclosure meditation-extra">
@@ -1283,7 +1289,7 @@ onBeforeUnmount(() => {
               <div class="settings-save">
                 <p class="muted small">Настройки сохранятся для ваших следующих сессий.</p>
                 <button class="btn btn-primary" :disabled="locked || requestBusy" @click="saveSettings">
-                  Сохранить мои настройки
+                  Сохранить для следующих сессий
                 </button>
               </div>
             </div>
@@ -1588,6 +1594,7 @@ onBeforeUnmount(() => {
   gap: 24px;
 }
 .meditation-setup {
+  grid-area: 1 / 1;
   display: grid;
   gap: 18px;
 }
@@ -1771,6 +1778,7 @@ onBeforeUnmount(() => {
   font-size: 12px;
 }
 .meditation-timer {
+  grid-area: 1 / 2;
   position: sticky;
   top: 110px;
   text-align: center;
@@ -2297,27 +2305,53 @@ onBeforeUnmount(() => {
   }
 }
 @media (max-width: 760px) {
+  .meditation-heading {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
   .meditation-page {
-    gap: 20px;
+    gap: 16px;
   }
   .meditation-workspace {
     grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
-  }
-  .meditation-setup {
     gap: 14px;
   }
-  .meditation-timer {
+  .meditation-setup {
+    grid-area: auto;
+    gap: 14px;
+  }
+  .meditation-timer:not(.meditation-immersive) {
+    grid-area: auto;
     position: static;
-    padding-top: 28px;
+    padding: 18px 16px 14px;
+  }
+  .meditation-timer:not(.meditation-immersive) > .meditation-actions {
+    margin-top: 14px;
+  }
+  .meditation-timer:not(.meditation-immersive) > .meditation-utilities {
+    margin: 4px 0 0;
+  }
+  .meditation-timer:not(.meditation-immersive) > .small:last-child {
+    margin-top: 4px;
   }
   .meditation-emblem {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 20px;
+    display: none;
   }
   .meditation-clock {
-    font-size: 64px;
+    margin: 4px 0 2px;
+    font-size: 56px;
+  }
+  .meditation-clock + p {
+    margin-top: 4px;
+  }
+  .meditation-duration {
+    padding: 14px 16px;
+  }
+  .duration-options {
+    gap: 6px;
+  }
+  .meditation-utilities .btn {
+    min-height: 44px;
   }
 }
 @media (max-width: 420px) {
@@ -2341,7 +2375,8 @@ onBeforeUnmount(() => {
     font-size: 15px;
   }
   .duration-option {
-    min-height: 50px;
+    min-height: 44px;
+    padding: 8px 4px;
     font-size: 15px;
   }
   .duration-option span {

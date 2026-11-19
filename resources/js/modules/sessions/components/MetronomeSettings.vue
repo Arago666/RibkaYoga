@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import AppSelect from '@/shared/AppSelect.vue';
+import Modal from '@/shared/Modal.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Minus, Plus, Play, Square, RotateCcw, Volume2, Timer, SlidersHorizontal } from '@lucide/vue';
 import MetronomeSurface from './MetronomeSurface.vue';
 import { api } from '@/shared/api';
+import { isTelegramMiniAppActive, telegramDeactivatedEvent } from '@/shared/telegramMiniApp';
 import { uid } from '@/shared/uuid';
 import {
   defaultMetronome,
@@ -36,6 +38,8 @@ const saving = ref(false);
 const error = ref('');
 const notice = ref('');
 const previewStarting = ref(false);
+const previewStarted = ref(false);
+const presetToArchive = ref<MetronomePreset | null>(null);
 const previewState = ref<MetronomeState>({
   running: false,
   beat: -1,
@@ -50,7 +54,6 @@ const previewState = ref<MetronomeState>({
 const engine = new MetronomeEngine((state) => {
   previewState.value = state;
 });
-let previewStarted = false;
 let taps: number[] = [];
 let pendingPresetId: string | null = null;
 let disposed = false;
@@ -81,10 +84,10 @@ async function loadPresets() {
 }
 function stopPreview(reset = false) {
   engine.stop(reset);
-  if (reset) previewStarted = false;
+  if (reset) previewStarted.value = false;
 }
 function pauseOnPageHide() {
-  stopPreview();
+  if (engine.active) stopPreview();
 }
 function close() {
   stopPreview(true);
@@ -96,7 +99,7 @@ function apply() {
   emit('close');
 }
 async function preview() {
-  if (previewStarting.value) return;
+  if (previewStarting.value || document.hidden || !isTelegramMiniAppActive()) return;
   if (previewState.value.running) {
     stopPreview();
     return;
@@ -104,9 +107,9 @@ async function preview() {
   previewStarting.value = true;
   error.value = '';
   try {
-    await engine.start(normalizeMetronome(form.value), previewStarted);
-    previewStarted = true;
+    await engine.start(normalizeMetronome(form.value), previewStarted.value);
     if (!props.open || disposed) stopPreview(true);
+    else if (engine.active) previewStarted.value = true;
   } catch {
     error.value = 'Не удалось включить звук. Проверьте разрешение звука в браузере.';
   } finally {
@@ -172,6 +175,28 @@ async function savePreset(replace = false) {
     saving.value = false;
   }
 }
+async function archivePreset() {
+  const preset = presetToArchive.value;
+  if (!preset || saving.value) return;
+  saving.value = true;
+  error.value = '';
+  notice.value = '';
+  try {
+    await api(`/api/metronome-presets/${preset.id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ expected_revision: preset.revision }),
+    });
+    presets.value = presets.value.filter((item) => item.id !== preset.id);
+    selected.value = '';
+    name.value = '';
+    notice.value = `В архиве: ${preset.name}`;
+  } catch (failure) {
+    error.value = failure instanceof Error ? failure.message : 'Не удалось убрать настройки в архив.';
+  } finally {
+    presetToArchive.value = null;
+    saving.value = false;
+  }
+}
 watch(
   () => props.open,
   (open) => {
@@ -206,19 +231,23 @@ watch(
   },
   { deep: true },
 );
-onMounted(() => window.addEventListener('pagehide', pauseOnPageHide));
+onMounted(() => {
+  window.addEventListener('pagehide', pauseOnPageHide);
+  document.addEventListener(telegramDeactivatedEvent, pauseOnPageHide);
+});
 onBeforeUnmount(() => {
   disposed = true;
   window.removeEventListener('pagehide', pauseOnPageHide);
+  document.removeEventListener(telegramDeactivatedEvent, pauseOnPageHide);
   engine.dispose();
 });
 </script>
 <template>
   <MetronomeSurface :open="open" :standalone="standalone" @close="close">
-    <div class="metronome-settings">
+    <div class="metronome-settings" :class="{ 'metronome-settings--standalone': standalone }">
       <p v-if="error" class="alert" role="alert">{{ error }}</p>
       <p v-if="notice" class="metronome-notice" role="status">{{ notice }}</p>
-      <section class="metronome-tempo" aria-label="Темп и доли">
+      <section class="metronome-tempo" aria-label="Темп и запуск">
         <div class="tempo-stepper">
           <button class="btn" aria-label="Уменьшить темп на 1 BPM" @click="changeBpm(-1)">
             <Minus :size="20" />
@@ -238,46 +267,6 @@ onBeforeUnmount(() => {
             <Plus :size="20" />
           </button>
         </div>
-        <input
-          v-model.number="form.bpm"
-          class="tempo-range"
-          aria-label="Скорость метронома"
-          type="range"
-          min="20"
-          max="300"
-          @input="form.automator.enabled = false"
-        />
-        <label class="check-label"
-          ><input v-model="form.automator.enabled" type="checkbox" /> Автоматически менять темп</label
-        >
-        <p class="muted metronome-help">
-          {{
-            form.automator.enabled
-              ? `Темп будет меняться до ${form.automator.target_bpm} BPM. Параметры — ниже.`
-              : `Постоянный темп ${form.bpm} BPM — сам не меняется.`
-          }}
-        </p>
-        <div class="metronome-beats" aria-label="Рисунок такта">
-          <button
-            v-for="(kind, index) in form.pattern"
-            :key="index"
-            :class="[
-              'beat-button',
-              `beat-${kind}`,
-              {
-                pulsing:
-                  previewState.running && previewState.beat === index && previewState.subdivision === 0,
-              },
-            ]"
-            :aria-label="`Доля ${index + 1}: ${metronomeBeatLabels[kind]}. Изменить`"
-            :title="metronomeBeatLabels[kind]"
-            @click="cycleBeat(index)"
-          >
-            <span aria-hidden="true">{{ symbols[kind] }}</span
-            ><small>{{ index + 1 }}</small>
-          </button>
-        </div>
-        <p class="muted metronome-help">Нажмите на долю: обычная → акцент → сильный акцент → тишина.</p>
         <div class="metronome-preview-controls">
           <button class="btn btn-primary" :disabled="previewStarting" @click="preview">
             <Square v-if="previewState.running" :size="17" /><Play v-else :size="17" />{{
@@ -294,11 +283,24 @@ onBeforeUnmount(() => {
                       : 'Послушать'
             }}
           </button>
-          <button class="btn" aria-label="Сбросить счётчик метронома" @click="stopPreview(true)">
+          <button class="btn" aria-label="TAP · задать ритм" @click="tap">TAP</button>
+          <button
+            class="btn metronome-reset"
+            aria-label="Сбросить счётчик метронома"
+            @click="stopPreview(true)"
+          >
             <RotateCcw :size="17" />
           </button>
-          <button class="btn" @click="tap">TAP · задать ритм</button>
         </div>
+        <input
+          v-model.number="form.bpm"
+          class="tempo-range"
+          aria-label="Скорость метронома"
+          type="range"
+          min="20"
+          max="300"
+          @input="form.automator.enabled = false"
+        />
         <div class="preview-status" role="status">
           <span>{{
             previewState.running
@@ -313,46 +315,96 @@ onBeforeUnmount(() => {
           }}</span
           ><strong>{{ trackerValue }}</strong>
         </div>
+        <div v-if="standalone" class="beat-meter" aria-hidden="true">
+          <span
+            v-for="(kind, index) in form.pattern"
+            :key="index"
+            :class="{
+              accent: kind === 'accent' || kind === 'strong',
+              current: previewState.running && previewState.beat === index,
+            }"
+          />
+        </div>
       </section>
-      <div class="metronome-grid">
-        <label class="field"
-          ><span class="label">Долей в такте</span
-          ><AppSelect v-model.number="form.beats" class="select">
-            <option v-for="value in 12" :key="value" :value="value">{{ value }}</option>
-          </AppSelect></label
-        >
-        <label class="field"
-          ><span class="label">Размер доли</span
-          ><AppSelect v-model.number="form.beat_unit" class="select">
-            <option :value="2">Половинная · 2</option>
-            <option :value="4">Четверть · 4</option>
-            <option :value="8">Восьмая · 8</option>
-            <option :value="16">Шестнадцатая · 16</option>
-          </AppSelect></label
-        >
-        <label class="field"
-          ><span class="label">Деление каждой доли</span
-          ><AppSelect v-model.number="form.subdivision" class="select">
-            <option :value="1">Без деления</option>
-            <option :value="2">На 2</option>
-            <option :value="3">На 3 · триоль</option>
-            <option :value="4">На 4</option>
-          </AppSelect></label
-        >
-        <label class="field"
-          ><span class="label">Звук</span
-          ><AppSelect v-model="form.sound" class="select">
-            <option v-for="(label, value) in metronomeSoundLabels" :key="value" :value="value">
-              {{ label }}
-            </option>
-          </AppSelect></label
-        >
-      </div>
-      <label class="field"
-        ><span class="label volume-label"
-          ><Volume2 :size="17" /> Громкость <span>{{ form.volume }}%</span></span
-        ><input v-model.number="form.volume" aria-label="Громкость метронома" type="range" min="0" max="100"
-      /></label>
+      <component
+        :is="standalone ? 'details' : 'div'"
+        :class="{ disclosure: standalone }"
+        class="metronome-rhythm"
+      >
+        <summary v-if="standalone">
+          <span class="disclosure-icon"><Volume2 aria-hidden="true" /></span>
+          <span class="disclosure-copy"
+            ><strong>Такт и звук</strong><small>{{ form.beats }}/{{ form.beat_unit }}</small></span
+          >
+        </summary>
+        <div :class="{ 'disclosure-body': standalone }" class="metronome-detail-body">
+          <div class="metronome-beats" aria-label="Рисунок такта">
+            <button
+              v-for="(kind, index) in form.pattern"
+              :key="index"
+              :class="[
+                'beat-button',
+                `beat-${kind}`,
+                {
+                  pulsing:
+                    previewState.running && previewState.beat === index && previewState.subdivision === 0,
+                },
+              ]"
+              :aria-label="`Доля ${index + 1}: ${metronomeBeatLabels[kind]}. Изменить`"
+              :title="metronomeBeatLabels[kind]"
+              @click="cycleBeat(index)"
+            >
+              <span aria-hidden="true">{{ symbols[kind] }}</span
+              ><small>{{ index + 1 }}</small>
+            </button>
+          </div>
+          <p class="muted metronome-help">Нажмите на долю: обычная → акцент → сильный акцент → тишина.</p>
+          <div class="metronome-grid">
+            <label class="field"
+              ><span class="label">Долей в такте</span
+              ><AppSelect v-model.number="form.beats" class="select">
+                <option v-for="value in 12" :key="value" :value="value">{{ value }}</option>
+              </AppSelect></label
+            >
+            <label class="field"
+              ><span class="label">Размер доли</span
+              ><AppSelect v-model.number="form.beat_unit" class="select">
+                <option :value="2">Половинная · 2</option>
+                <option :value="4">Четверть · 4</option>
+                <option :value="8">Восьмая · 8</option>
+                <option :value="16">Шестнадцатая · 16</option>
+              </AppSelect></label
+            >
+            <label class="field"
+              ><span class="label">Деление каждой доли</span
+              ><AppSelect v-model.number="form.subdivision" class="select">
+                <option :value="1">Без деления</option>
+                <option :value="2">На 2</option>
+                <option :value="3">На 3 · триоль</option>
+                <option :value="4">На 4</option>
+              </AppSelect></label
+            >
+            <label class="field"
+              ><span class="label">Звук</span
+              ><AppSelect v-model="form.sound" class="select">
+                <option v-for="(label, value) in metronomeSoundLabels" :key="value" :value="value">
+                  {{ label }}
+                </option>
+              </AppSelect></label
+            >
+          </div>
+          <label class="field"
+            ><span class="label volume-label"
+              ><Volume2 :size="17" /> Громкость <span>{{ form.volume }}%</span></span
+            ><input
+              v-model.number="form.volume"
+              aria-label="Громкость метронома"
+              type="range"
+              min="0"
+              max="100"
+          /></label>
+        </div>
+      </component>
       <details class="metronome-details disclosure">
         <summary>
           <span class="disclosure-icon"><Timer aria-hidden="true" /></span>
@@ -410,6 +462,16 @@ onBeforeUnmount(() => {
           <span class="disclosure-copy"><strong>Автоизменение темпа</strong></span>
         </summary>
         <div class="metronome-detail-body disclosure-body">
+          <label class="check-label"
+            ><input v-model="form.automator.enabled" type="checkbox" /> Автоматически менять темп</label
+          >
+          <p class="muted metronome-help">
+            {{
+              form.automator.enabled
+                ? `Темп будет меняться до ${form.automator.target_bpm} BPM. Параметры — ниже.`
+                : `Постоянный темп ${form.bpm} BPM — сам не меняется.`
+            }}
+          </p>
           <div v-if="form.automator.enabled" class="metronome-grid">
             <label class="field"
               ><span class="label">Изменять на BPM</span
@@ -473,6 +535,14 @@ onBeforeUnmount(() => {
             >
               Обновить выбранные
             </button>
+            <button
+              v-if="standalone && currentPreset"
+              class="btn"
+              :disabled="saving"
+              @click="presetToArchive = currentPreset"
+            >
+              Убрать в архив
+            </button>
           </div>
         </template>
         <p v-else class="muted">Войдите в аккаунт, чтобы сохранять настройки и выбирать их по названию.</p>
@@ -486,6 +556,20 @@ onBeforeUnmount(() => {
       ><button class="btn btn-primary" @click="apply">Применить</button></template
     >
   </MetronomeSurface>
+  <Modal
+    v-if="standalone"
+    :open="!!presetToArchive"
+    title="Убрать настройки из списка?"
+    @close="!saving && (presetToArchive = null)"
+  >
+    <p>«{{ presetToArchive?.name }}» исчезнет из списка. Текущий ритм сохранится.</p>
+    <template #footer>
+      <button class="btn" type="button" :disabled="saving" @click="presetToArchive = null">Отмена</button>
+      <button class="btn btn-primary" type="button" :disabled="saving" @click="archivePreset">
+        Убрать в архив
+      </button>
+    </template>
+  </Modal>
 </template>
 <style scoped>
 .metronome-settings {
@@ -607,6 +691,36 @@ input[type='range'] {
   align-items: center;
   gap: 10px;
 }
+.metronome-settings--standalone .metronome-preview-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 44px;
+}
+.metronome-settings--standalone .metronome-preview-controls .btn {
+  min-height: 44px;
+  justify-content: center;
+}
+.metronome-reset {
+  padding-inline: 0;
+  min-width: 44px;
+}
+.beat-meter {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.beat-meter > span {
+  display: block;
+  width: 10px;
+  height: 5px;
+  border-radius: 5px;
+  background: var(--line);
+}
+.beat-meter > .accent {
+  background: #b6c9b4;
+}
+.beat-meter > .current {
+  background: var(--accent-dark);
+}
 .preview-status {
   display: flex;
   justify-content: space-between;
@@ -671,8 +785,12 @@ input[type='range'] {
   font-size: 13px;
 }
 @media (max-width: 480px) {
+  .metronome-settings {
+    gap: 16px;
+  }
   .metronome-tempo {
-    padding: 16px;
+    gap: 12px;
+    padding: 14px;
   }
   .metronome-grid {
     grid-template-columns: minmax(0, 1fr);

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppSelect from '@/shared/AppSelect.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { uid } from '../types';
 import { ArrowLeft, RefreshCw, MessageSquare, Pencil, Trash2, CornerDownRight } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import SheetViewport from '@/shared/SheetViewport.vue';
 import { api, ApiError } from '@/shared/api';
+import PracticeSequenceList from '../components/PracticeSequenceList.vue';
 import type { PracticeComment, SharedPracticeData } from '../sharing-types';
 const props = defineProps<{ documentId: string }>();
 const copyKey = ref(uid());
@@ -35,6 +36,16 @@ const composer = ref<HTMLTextAreaElement | null>(null);
 const frame = ref<HTMLIFrameElement | null>(null),
   frameHeight = ref(650),
   printReady = ref(false);
+const narrowView = window.matchMedia('(max-width: 760px)');
+const phone = ref(narrowView.matches);
+const phoneSheet = ref(false);
+const showSheet = computed(() => !phone.value || phoneSheet.value);
+function syncPhone() {
+  phone.value = narrowView.matches;
+}
+watch([showSheet, showNames, () => state.value?.document.revision], () => {
+  printReady.value = false;
+});
 async function sheetLoaded() {
   printReady.value = false;
   const content = frame.value?.contentDocument;
@@ -50,6 +61,7 @@ async function sheetLoaded() {
           }),
     ),
   );
+  if (!showSheet.value || frame.value?.contentDocument !== content) return;
   if (Array.from(content.images).some((image) => !image.naturalWidth)) {
     error.value = 'Не все изображения загрузились. Обновите лист перед печатью.';
     return;
@@ -171,11 +183,24 @@ function date(value: string) {
     minute: '2-digit',
   });
 }
-onMounted(load);
+onMounted(() => {
+  narrowView.addEventListener('change', syncPhone);
+  void load();
+});
+onBeforeUnmount(() => narrowView.removeEventListener('change', syncPhone));
 </script>
 <template>
   <Head :title="state ? `${state.document.title} — совместный просмотр` : 'Просмотр практики'" />
-  <AppShell section="practices" wide>
+  <AppShell
+    section="practices"
+    wide
+    :breadcrumbs="[
+      state?.access.owner
+        ? { label: 'Практики', href: '/practices' }
+        : { label: 'Мне дали доступ', href: '/shared-practices' },
+      { label: state?.document.title || 'Просмотр практики' },
+    ]"
+  >
     <header class="page-header shared-header">
       <div class="shared-intro">
         <Link :href="state?.access.owner ? '/practices' : '/shared-practices'" class="btn btn-ghost"
@@ -200,7 +225,7 @@ onMounted(load);
                 ? 'Просмотр и комментарии'
                 : 'Только просмотр'
           }}
-          <label><input v-model="showNames" type="checkbox" />Названия асан</label>
+          <label v-if="showSheet"><input v-model="showNames" type="checkbox" />Названия асан</label>
           <button v-if="state.access.can_copy" class="btn btn-secondary" @click="copyAllowed">
             Создать копию в своём кабинете
           </button>
@@ -208,10 +233,18 @@ onMounted(load);
             >Практиковать</Link
           >
         </div>
-        <button class="btn btn-secondary" :disabled="!printReady" @click="printSheet">
+        <div v-if="phone" class="shared-modes" role="group" aria-label="Вид практики">
+          <button class="btn btn-ghost" type="button" :aria-pressed="!phoneSheet" @click="phoneSheet = false">
+            Последовательность
+          </button>
+          <button class="btn btn-ghost" type="button" :aria-pressed="phoneSheet" @click="phoneSheet = true">
+            Лист A4
+          </button>
+        </div>
+        <button v-if="showSheet" class="btn btn-secondary" :disabled="!printReady" @click="printSheet">
           Печать / PDF браузера
         </button>
-        <div class="shared-renderer">
+        <div v-if="showSheet" class="shared-renderer">
           <SheetViewport :width="1050" :height="frameHeight">
             <iframe
               ref="frame"
@@ -224,6 +257,7 @@ onMounted(load);
             />
           </SheetViewport>
         </div>
+        <PracticeSequenceList v-else :practice="state.document" />
       </section>
       <aside class="card shared-comments">
         <h2><MessageSquare :size="19" />Комментарии</h2>
@@ -328,6 +362,22 @@ onMounted(load);
   </AppShell>
 </template>
 <style scoped>
+.shared-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+  background: var(--surface-soft);
+  border-radius: var(--panel-radius);
+}
+.shared-modes > .btn {
+  flex: 1 1 auto;
+}
+.shared-modes > .btn[aria-pressed='true'] {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
 .shared-renderer {
   overflow: auto;
   margin-top: var(--section-gap);

@@ -22,6 +22,7 @@ const file = ref<File | null>(null);
 const fileUrl = ref('');
 const nativePdf = ref<NativePdf | null>(null);
 const offerFallback = ref(false);
+const rateLimitMessage = 'Слишком много запросов PDF. Подождите минуту и повторите.';
 let request: AbortController | undefined;
 let nativeResponseTimer: ReturnType<typeof setTimeout> | undefined;
 const canShare = computed(() => {
@@ -116,9 +117,11 @@ async function preparePdf(tryNative = true) {
     });
     if (!response.ok || !response.headers.get('Content-Type')?.startsWith('application/pdf')) {
       throw new Error(
-        response.status === 401 || response.redirected
-          ? 'Сессия закончилась. Откройте Mini App заново.'
-          : 'Не удалось подготовить PDF. Проверьте соединение и повторите попытку.',
+        response.status === 429
+          ? rateLimitMessage
+          : response.status === 401 || response.redirected
+            ? 'Сессия закончилась. Откройте Mini App заново.'
+            : 'Не удалось подготовить PDF. Проверьте соединение и повторите попытку.',
       );
     }
     const blob = await response.blob();
@@ -134,6 +137,9 @@ async function preparePdf(tryNative = true) {
     if (current.signal.aborted) return;
     if (failure instanceof ApiError && [401, 419].includes(failure.status)) {
       error.value = 'Сессия закончилась. Откройте Mini App заново.';
+      offerFallback.value = false;
+    } else if (failure instanceof ApiError && failure.status === 429) {
+      error.value = rateLimitMessage;
       offerFallback.value = false;
     } else {
       error.value =

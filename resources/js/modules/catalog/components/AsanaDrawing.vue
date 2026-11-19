@@ -1800,6 +1800,12 @@ function close() {
   fullscreen.value = false;
   emit('close');
 }
+function expand() {
+  if (!locked.value && !interacting.value) fullscreen.value = true;
+}
+function collapse() {
+  fullscreen.value = false;
+}
 watch(fixedSheet, (fixed) => {
   if (fixed) {
     if (tool.value === 'pan') tool.value = 'select';
@@ -1807,7 +1813,16 @@ watch(fixedSheet, (fixed) => {
     resetView();
   }
 });
-defineExpose({ hasUnappliedChanges, discardDraft, apply, exportDrawing, exportSelection, flushDraft });
+defineExpose({
+  hasUnappliedChanges,
+  discardDraft,
+  apply,
+  exportDrawing,
+  exportSelection,
+  flushDraft,
+  expand,
+  collapse,
+});
 onMounted(() => {
   render();
   window.addEventListener('keydown', keydown, true);
@@ -1891,7 +1906,7 @@ onBeforeUnmount(() => {
             </div>
             <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
             <div v-if="draftError" class="draft-warning" role="alert">{{ draftError }}</div>
-            <fieldset class="drawing-controls" :disabled="locked || interacting">
+            <fieldset class="drawing-controls drawing-primary-controls" :disabled="locked || interacting">
               <div class="toolbar tools" aria-label="Инструменты рисунка">
                 <button
                   v-for="item in tools.filter((item) => !fixedSheet || item.id !== 'pan')"
@@ -2350,6 +2365,12 @@ onBeforeUnmount(() => {
                 </svg>
               </div>
               <output v-if="snapLabel" class="snap-status" role="status">{{ snapLabel }}</output>
+            </div>
+            <div
+              v-if="$slots['selection-action'] && showSelection && selectedIds.length"
+              class="drawing-transfer"
+            >
+              <slot name="selection-action" />
             </div>
             <p class="muted help" v-if="branch">
               Нажмите на место нового конца или потяните линию. Escape отменяет продолжение.
@@ -3062,10 +3083,6 @@ canvas:focus-visible {
   .selection-settings .toolbar {
     grid-column: 1 / -1;
   }
-  .fullscreen {
-    inset: max(5px, env(safe-area-inset-top)) max(5px, env(safe-area-inset-right))
-      max(5px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left));
-  }
   .drawing-header {
     flex-wrap: nowrap;
     align-items: center;
@@ -3109,12 +3126,33 @@ canvas:focus-visible {
   .view-tools .history-tools {
     margin-right: auto;
   }
-  .fullscreen .drawing-viewport {
-    width: min(100%, 40dvh);
+}
+@media (max-width: 760px) {
+  .asana-drawing {
+    gap: 12px;
   }
-  .asana-drawing.fullscreen {
+  .drawing-header,
+  .draft-notice,
+  .draft-warning,
+  .error-banner,
+  .drawing-primary-controls {
+    order: -2;
+  }
+  .drawing-viewport,
+  .drawing-transfer {
+    order: -1;
+  }
+  .fullscreen {
+    inset: max(5px, var(--app-safe-top)) max(5px, var(--app-safe-right)) auto max(5px, var(--app-safe-left));
+    height: calc(
+      min(100dvh, var(--visual-viewport-height, 100dvh), var(--mini-app-height, 100dvh)) -
+        max(5px, var(--app-safe-top)) - max(5px, var(--app-safe-bottom))
+    );
     padding: 14px;
     gap: 10px;
+  }
+  .fullscreen .drawing-viewport {
+    width: min(100%, 56dvh);
   }
 }
 </style>

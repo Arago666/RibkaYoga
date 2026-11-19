@@ -1,19 +1,7 @@
 <script setup lang="ts">
-import ResponsivePanel from '@/shared/ResponsivePanel.vue';
-import AppSelect from '@/shared/AppSelect.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import {
-  Plus,
-  Search,
-  SlidersHorizontal,
-  Images,
-  Layers3,
-  Check,
-  X,
-  ChevronLeft,
-  ChevronRight,
-} from '@lucide/vue';
+import { Plus, Search, Images, Layers3, Check, X, ChevronLeft, ChevronRight } from '@lucide/vue';
 import ActionMenu from '@/shared/ActionMenu.vue';
 import AsanaCategoryDialog from '../components/AsanaCategoryDialog.vue';
 import AppShell from '@/shared/AppShell.vue';
@@ -26,8 +14,7 @@ import UploadDialog from '../components/UploadDialog.vue';
 import TaxonomyDialog from '../components/TaxonomyDialog.vue';
 import AddToCollectionDialog from '../../collections/components/AddToCollectionDialog.vue';
 import CollectionsPanel from '../../collections/components/CollectionsPanel.vue';
-import { cardCount, categoryLabel, errorText, type Asana, type Category, type Page } from '../types';
-import CategoryQuickFilters from '../components/CategoryQuickFilters.vue';
+import { cardCount, errorText, type Asana, type Category, type Page } from '../types';
 import { emptyFilters, filtersFromUrl, setFilterParams } from '../facets';
 import FacetFilters from '../components/FacetFilters.vue';
 import ClassificationDialog from '../components/ClassificationDialog.vue';
@@ -35,6 +22,13 @@ const classificationOpen = ref(false);
 const comparisonAvailable = ref(false);
 const categoryCard = ref<Asana | null>(null);
 const filters = ref(emptyFilters());
+const filterOrdering = computed({
+  get: () => ({ archive: archive.value, sort: sort.value }),
+  set: (value: { archive: string; sort: string }) => {
+    archive.value = value.archive;
+    sort.value = value.sort;
+  },
+});
 const initial = new URL(window.location.href);
 filters.value = filtersFromUrl(initial.searchParams);
 const tab = ref(initial.searchParams.get('tab') === 'collections' ? 'collections' : 'asanas');
@@ -281,23 +275,17 @@ async function taxonomyChanged() {
             </button>
           </div>
         </div>
-        <ResponsivePanel title="Категории и фильтры асан" :active="hasFilters">
-          <FacetFilters v-model="filters" :context="{ q: query, category, archive, sort }" />
-          <div class="sort-controls">
-            <AppSelect v-model="archive" class="select small-select" aria-label="Активные или архивные асаны">
-              <option value="active">Активные</option>
-              <option value="archived">В архиве</option></AppSelect
-            ><AppSelect v-model="sort" class="select small-select" aria-label="Сортировка асан">
-              <option value="name_asc">По алфавиту: А–Я</option>
-              <option value="name_desc">По алфавиту: Я–А</option>
-              <option value="recent">Недавно добавленные</option>
-              <option value="used_recently">Недавно использованные</option>
-            </AppSelect>
-          </div>
-        </ResponsivePanel>
+        <FacetFilters
+          v-model="filters"
+          v-model:ordering="filterOrdering"
+          :context="{ q: query, category, archive, sort }"
+          label="Фильтры"
+          show-ordering
+        />
         <div class="library-subtools">
           <div class="library-result-count">
-            <span v-if="result">{{ cardCount(result.total) }}</span
+            <span v-if="result"
+              >{{ cardCount(result.total) }}{{ archive === 'archived' ? ' · архив' : '' }}</span
             ><button v-if="hasFilters" class="btn btn-ghost" @click="clearFilters">
               Сбросить фильтры <X :size="14" />
             </button>
@@ -536,18 +524,6 @@ async function taxonomyChanged() {
   min-height: 32px;
   padding: 5px 8px;
 }
-.sort-controls {
-  display: flex;
-  gap: 10px;
-}
-.small-select {
-  min-height: var(--control-height) !important;
-  font-size: 13px !important;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-  border-color: var(--line) !important;
-  background-color: white !important;
-}
 .selection-bar {
   position: sticky;
   top: 12px;
@@ -707,9 +683,6 @@ async function taxonomyChanged() {
     align-items: flex-start;
     flex-wrap: wrap;
   }
-  .sort-controls {
-    margin-left: auto;
-  }
   .selection-bar {
     position: static;
     flex-wrap: wrap;
@@ -727,9 +700,6 @@ async function taxonomyChanged() {
   }
 }
 @media (max-width: 370px) {
-  .sort-controls {
-    flex-wrap: wrap;
-  }
   .library-nav .tab {
     font-size: 0.78rem;
   }
@@ -737,7 +707,7 @@ async function taxonomyChanged() {
 .catalog-controls {
   display: grid;
   grid-template-columns: fit-content(280px) minmax(0, 1fr);
-  grid-template-areas: 'facets search' 'count sort';
+  grid-template-areas: 'facets search' 'count count';
   align-items: start;
   gap: 20px;
   margin-bottom: var(--section-gap);
@@ -755,28 +725,17 @@ async function taxonomyChanged() {
   grid-area: count;
   margin: 0;
 }
-.catalog-controls :deep(.sort-controls) {
-  grid-area: sort;
-  justify-self: end;
-}
 @media (max-width: 760px) {
   .catalog-controls {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'search filters' 'count count';
+    grid-template-columns: minmax(0, 1fr) fit-content(44%);
+    grid-template-areas: 'search facets' 'count count';
     gap: 12px;
     padding: 14px;
   }
-  .catalog-controls :deep(.responsive-panel-trigger) {
-    grid-area: filters;
-  }
-  .sort-controls {
-    width: 100%;
-    margin-left: 0;
-    flex-wrap: wrap;
-  }
-  .sort-controls .select {
-    flex: 1;
-    min-width: 0;
+  .catalog-controls :deep(.selected-facets .btn) {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .asana-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

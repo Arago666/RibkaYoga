@@ -14,6 +14,10 @@ use Illuminate\Validation\ValidationException;
 
 class CatalogQuery
 {
+    private const SOURCE_SHEET_PREFIX = 'spinal-five-v1:';
+
+    private const REFERENCE_PREFIX = 'ribka-icons-200-20261110:';
+
     public function __construct(private WorkspaceContext $workspace, private CatalogReader $reader, private Facets $facets, private CollectionMembership $collections) {}
 
     public function input(Request $request): array
@@ -106,7 +110,7 @@ class CatalogQuery
 
     public function response(array $input): array
     {
-        $query = $this->query($input)->select(CatalogReader::SUMMARY_COLUMNS);
+        $query = $this->query($input)->select([...CatalogReader::SUMMARY_COLUMNS, 'normalized_name', 'import_key']);
         $sort = $input['sort'] ?? 'name_asc';
         if ($sort === 'used_recently') {
             $lastUsed = DB::table('catalog_asana_preferences')->select('last_used_at')->whereColumn('asana_id', 'catalog_asanas.id')
@@ -120,10 +124,40 @@ class CatalogQuery
             $query->orderBy('normalized_name', $sort === 'name_desc' ? 'desc' : 'asc');
         }
         $page = $query->orderBy('id')->paginate($input['per_page'] ?? 48);
-        $cards = $this->reader->serialize($page->getCollection());
+        $asanas = $page->getCollection();
+        $cards = $this->reader->serialize($asanas);
+        $names = $asanas
+            ->filter(fn (Asana $asana) => $this->variantSource($asana) !== null)
+            ->pluck('normalized_name')->unique()->values();
+        if ($names->isNotEmpty()) {
+            $crossSourceNames = $this->query(['archive' => $input['archive'] ?? 'active'])
+                ->whereIn('normalized_name', $names)
+                ->where(function (Builder $query) {
+                    $query->where('import_key', 'like', self::SOURCE_SHEET_PREFIX.'%')
+                        ->orWhere('import_key', 'like', self::REFERENCE_PREFIX.'%');
+                })
+                ->groupBy('normalized_name')
+                ->havingRaw('COUNT(DISTINCT CASE WHEN import_key LIKE ? THEN 1 ELSE 2 END) = 2', [self::SOURCE_SHEET_PREFIX.'%'])
+                ->pluck('normalized_name')->flip();
+
+            foreach ($asanas as $asana) {
+                if ($crossSourceNames->has($asana->normalized_name) && ($source = $this->variantSource($asana))) {
+                    $cards[$asana->id]['variant_source'] = $source;
+                }
+            }
+        }
 
         return ['data' => array_values($cards), 'current_page' => $page->currentPage(),
             'last_page' => $page->lastPage(), 'total' => $page->total(), 'facets' => $this->counts($input)];
+    }
+
+    private function variantSource(Asana $asana): ?string
+    {
+        return match (true) {
+            str_starts_with($asana->import_key ?? '', self::SOURCE_SHEET_PREFIX) => 'source-sheet',
+            str_starts_with($asana->import_key ?? '', self::REFERENCE_PREFIX) => 'reference',
+            default => null,
+        };
     }
 
     public function counts(array $input): array

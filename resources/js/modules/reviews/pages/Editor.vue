@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { MessageSquare, Highlighter, MoveUpRight, Undo2, Redo2, Save, Eye, X, Trash2 } from '@lucide/vue';
+import {
+  MessageSquare,
+  Highlighter,
+  MoveUpRight,
+  Undo2,
+  Redo2,
+  Save,
+  Eye,
+  X,
+  Trash2,
+  List,
+} from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import { api, ApiError } from '@/shared/api';
@@ -55,8 +66,10 @@ let guardedKind: 'change' | 'history' | 'delete' = 'change';
 const showNames = ref(false),
   conflict = ref(false),
   copying = ref(false);
-const panel = ref<HTMLElement | null>(null),
-  commentInput = ref<HTMLTextAreaElement | null>(null);
+const commentInput = ref<HTMLTextAreaElement | null>(null);
+const annotationList = ref<HTMLDetailsElement | null>(null);
+const annotationListToggle = ref<HTMLElement | null>(null);
+const narrowLayout = window.matchMedia('(max-width: 1100px)');
 const past = ref<string[]>([]),
   future = ref<string[]>([]);
 const savedSignature = ref('');
@@ -124,6 +137,9 @@ const selectionHint = computed(() =>
     : mode.value === 'group'
       ? 'Выберите две или больше асан. Они получат общий цвет и комментарий.'
       : 'Нажмите на асану начала, затем на асану конца стрелки.',
+);
+const annotationCount = computed(
+  () => annotations.value.comments.length + annotations.value.groups.length + annotations.value.arrows.length,
 );
 function draft() {
   if (!review.value || hydrating) return;
@@ -359,10 +375,15 @@ function chooseMode(value: typeof mode.value) {
     resetComposer();
   });
 }
-async function focusComposer() {
-  await nextTick();
-  panel.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function focusComposer() {
+  commentInput.value?.scrollIntoView({ block: 'center' });
   commentInput.value?.focus({ preventScroll: true });
+}
+function showAnnotations() {
+  if (!annotationList.value) return;
+  annotationList.value.open = true;
+  annotationListToggle.value?.scrollIntoView({ block: 'start' });
+  annotationListToggle.value?.focus({ preventScroll: true });
 }
 function selectCell(id: string) {
   if (mode.value === 'comment') {
@@ -376,7 +397,6 @@ function selectCell(id: string) {
         body: existing?.body ?? '',
         color: existing?.color ?? color.value,
       });
-      if (window.matchMedia('(max-width:1100px)').matches) void focusComposer();
       return;
     }
     requestComposerAction(() => {
@@ -386,7 +406,6 @@ function selectCell(id: string) {
       body.value = comment?.body ?? '';
       if (comment) color.value = comment.color;
       composerBaseline.value = JSON.stringify(composerState());
-      if (window.matchMedia('(max-width:1100px)').matches) void focusComposer();
     });
   } else if (mode.value === 'group')
     selected.value = selected.value.includes(id)
@@ -456,7 +475,10 @@ function applyAnnotation() {
   resetComposer();
 }
 function editAnnotation(kind: typeof mode.value, id: string) {
-  if (editingId.value === id && mode.value === kind) return;
+  if (editingId.value === id && mode.value === kind) {
+    if (narrowLayout.matches) focusComposer();
+    return;
+  }
   requestComposerAction(() => {
     mode.value = kind;
     resetComposer();
@@ -484,7 +506,7 @@ function editAnnotation(kind: typeof mode.value, id: string) {
       }
     }
     composerBaseline.value = JSON.stringify(composerState());
-    if (window.matchMedia('(max-width:1100px)').matches) void focusComposer();
+    if (narrowLayout.matches) focusComposer();
   });
 }
 function removeAnnotation(kind: typeof mode.value, id: string) {
@@ -505,7 +527,7 @@ function applyForSave() {
   if (!unsavedComposer.value) return true;
   if (!canApply.value) {
     error.value = 'Текст ещё не добавлен в пометки. Выберите асану или завершите выделение, затем сохраните.';
-    void focusComposer();
+    focusComposer();
     return false;
   }
   applyAnnotation();
@@ -717,6 +739,8 @@ onBeforeUnmount(() => {
           ><button class="icon-btn" :disabled="!future.length" aria-label="Повторить пометку" @click="redo">
             <Redo2 :size="18" /></button
           ><label class="check-label"><input v-model="showNames" type="checkbox" />Названия асан</label
+          ><button v-if="annotationCount" class="btn mobile-annotation-list" @click="showAnnotations">
+            <List :size="17" />Пометки · {{ annotationCount }}</button
           ><span class="review-save-status" role="status">{{
             conflict
               ? 'Нужна отдельная копия'
@@ -742,7 +766,7 @@ onBeforeUnmount(() => {
             @select="selectCell"
           />
         </div>
-        <aside ref="panel" class="card annotation-panel" aria-label="Пометки разбора">
+        <aside class="card annotation-panel" aria-label="Пометки разбора">
           <h2>
             {{
               mode === 'comment'
@@ -816,17 +840,12 @@ onBeforeUnmount(() => {
             </button>
           </form>
           <p v-if="notice" class="annotation-notice" role="status">{{ notice }}</p>
-          <details class="annotation-list disclosure" open>
-            <summary>
+          <details ref="annotationList" class="annotation-list disclosure" open>
+            <summary ref="annotationListToggle">
               <span class="disclosure-icon"><MessageSquare aria-hidden="true" /></span>
               <span class="disclosure-copy">
                 <strong>Все пометки</strong>
-                <small
-                  >В разборе:
-                  {{
-                    annotations.comments.length + annotations.groups.length + annotations.arrows.length
-                  }}</small
-                >
+                <small>В разборе: {{ annotationCount }}</small>
               </span>
             </summary>
             <div class="disclosure-body">
@@ -882,22 +901,16 @@ onBeforeUnmount(() => {
                   <Trash2 :size="16" />
                 </button>
               </article>
-              <p
-                v-if="
-                  !annotations.comments.length && !annotations.groups.length && !annotations.arrows.length
-                "
-                class="muted"
-              >
-                Начните с асаны на листе.
-              </p>
+              <p v-if="!annotationCount" class="muted">Начните с асаны на листе.</p>
             </div>
           </details>
         </aside>
       </div>
+      <button v-if="selected.length" class="btn btn-primary mobile-composer-shortcut" @click="focusComposer">
+        <MessageSquare :size="17" />
+        {{ mode === 'comment' ? (editingId ? 'Править комментарий' : 'Написать комментарий') : 'К пометке' }}
+      </button>
     </template>
-    <button v-if="selected.length" class="btn btn-primary mobile-composer-shortcut" @click="focusComposer">
-      Пометка к выбранным · {{ selected.length }}
-    </button>
     <Modal :open="draftOpen" title="Есть несохранённые пометки" @close="draftOpen = false"
       ><p class="draft-explanation">
         {{
@@ -1107,6 +1120,9 @@ onBeforeUnmount(() => {
 .annotation-list {
   min-width: 0;
 }
+.annotation-list > summary {
+  scroll-margin-top: max(16px, var(--app-safe-top, env(safe-area-inset-top, 0px)));
+}
 .annotation-list article {
   display: flex;
   gap: 6px;
@@ -1213,21 +1229,33 @@ onBeforeUnmount(() => {
     min-height: 44px;
   }
 }
-.mobile-composer-shortcut {
+.mobile-composer-shortcut,
+.mobile-annotation-list {
   display: none;
 }
 @media (max-width: 1100px) {
+  .mobile-annotation-list {
+    display: inline-flex;
+  }
   .mobile-composer-shortcut {
     display: flex;
     position: fixed;
     right: 24px;
-    bottom: 100px;
+    bottom: 24px;
     z-index: 60;
     max-width: calc(100% - 48px);
     box-shadow: 0 4px 24px #15191620;
   }
+  :global(html[data-keyboard='open']) .mobile-composer-shortcut {
+    display: none;
+  }
 }
 @media screen and (max-width: 760px) {
+  .mobile-composer-shortcut {
+    bottom: calc(90px + var(--app-safe-bottom, env(safe-area-inset-bottom, 0px)));
+    right: calc(16px + var(--app-safe-right, env(safe-area-inset-right, 0px)));
+    max-width: calc(100% - 48px);
+  }
   .review-modes {
     display: flex;
     flex-wrap: nowrap;

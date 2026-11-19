@@ -183,17 +183,6 @@ onBeforeUnmount(clearReplacement);
   <Modal :open="Boolean(card)" title="Изменить карточку" @close="close">
     <form id="asana-edit-form" class="edit-form" @submit.prevent="save">
       <p v-if="loading" class="muted" role="status">Загружаем карточку…</p>
-      <CollectionChoices
-        v-model="collectionIds"
-        :open="Boolean(card)"
-        :disabled="busy || loading || !currentCard"
-      />
-      <RelationsEditor
-        v-if="card"
-        v-model="relations"
-        :asana-id="card.id"
-        :disabled="busy || loading || !currentCard"
-      />
       <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
       <div v-if="imageError" class="error-banner" role="alert">
         {{ imageError
@@ -234,6 +223,17 @@ onBeforeUnmount(clearReplacement);
           </p>
         </template>
       </AsanaFields>
+      <CollectionChoices
+        v-model="collectionIds"
+        :open="Boolean(card)"
+        :disabled="busy || loading || !currentCard"
+      />
+      <RelationsEditor
+        v-if="card"
+        v-model="relations"
+        :asana-id="card.id"
+        :disabled="busy || loading || !currentCard"
+      />
     </form>
     <template #footer
       ><button class="btn btn-secondary" type="button" :disabled="busy || preparing" @click="close">

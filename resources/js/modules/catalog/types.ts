@@ -18,6 +18,7 @@ export interface Asana {
   id: string;
   name: string;
   alternate_name?: string | null;
+  variant_source?: 'source-sheet' | 'reference';
   information_description?: string | null;
   benefits?: string[];
   aliases: string[];
@@ -96,6 +97,16 @@ export function errorText(error: unknown): string {
 }
 export function categoryLabel(category: Category): string {
   return category.name;
+}
+export function asanaVariantLabel(card: Asana): string {
+  switch (card.variant_source) {
+    case 'source-sheet':
+      return 'Из пяти листов';
+    case 'reference':
+      return 'Справочная карточка';
+    default:
+      return '';
+  }
 }
 export function cardCount(count: number): string {
   const tail = Math.abs(count) % 100;

@@ -243,9 +243,6 @@ onBeforeUnmount(() => {
 
 <template>
   <Modal :open="open" :title="items.length === 1 ? 'Добавить асану' : 'Добавить асаны'" @close="close">
-    <p class="intro muted">
-      Заполните карточку и выберите готовое изображение. Другие названия помогут находить её в поиске.
-    </p>
     <div v-if="error" class="error-banner" role="alert">{{ error }}</div>
     <div v-if="items.length > 1 && categories.length" class="batch-category">
       <label class="label" for="batch-category">Добавить категорию всем незагруженным карточкам</label>
@@ -397,10 +394,6 @@ onBeforeUnmount(() => {
 }
 .collection-options label {
   overflow-wrap: anywhere;
-}
-.intro {
-  margin: 0 0 20px;
-  line-height: 1.5;
 }
 .upload-drop {
   width: 100%;

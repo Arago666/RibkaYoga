@@ -133,6 +133,17 @@ const replacement = ref<Week | null>(null),
   sources = ref<{ id: string; title: string; revision: number }[]>([]),
   sourceId = ref(''),
   replaceBusy = ref(false);
+const nameDialog = ref<{ week: Week } | { asTemplate: boolean } | null>(null);
+const nameDraft = ref('');
+const nameBusy = ref(false);
+const namingExistingLesson = computed(() => !!nameDialog.value && 'week' in nameDialog.value);
+const nameDialogTitle = computed(() =>
+  !nameDialog.value || 'week' in nameDialog.value
+    ? 'Название занятия'
+    : nameDialog.value.asTemplate
+      ? 'Название шаблона цикла'
+      : 'Название новой программы',
+);
 let timer: ReturnType<typeof setTimeout> | undefined,
   alive = true,
   inFlight: Promise<boolean> | null = null;
@@ -491,7 +502,7 @@ async function replaceWeek() {
   try {
     if (!(await saveMetadata())) return;
     if (!(await (phoneLayout.value ? saveMountedWeeks() : saveWeek(replacement.value.document_id))))
-      throw new Error('Не удалось сохранить предыдущую неделю. Проверьте её редактор перед заменой.');
+      throw new Error('Не удалось сохранить прежнее занятие. Проверьте его редактор перед заменой.');
     const response = await api<{ data: Cycle }>(
       `/api/mesocycles/${props.mesocycleId}/replace-week?summary=1`,
       {
@@ -516,7 +527,7 @@ async function replaceWeek() {
     target.value = null;
   } catch (e) {
     if (e instanceof ApiError && e.status === 409) conflict.value = true;
-    error.value = e instanceof Error ? e.message : 'Не удалось заменить неделю.';
+    error.value = e instanceof Error ? e.message : 'Не удалось заменить занятие.';
   } finally {
     replaceBusy.value = false;
   }
@@ -533,11 +544,15 @@ async function changeStructure(
     positions.length < 1 ||
     positions.length > 52
   )
-    return;
+    return false;
   switching.value = true;
   error.value = '';
   try {
-    if (!(await saveMetadata()) || !(await saveMountedWeeks())) return;
+    if (!(await saveMetadata())) return false;
+    if (!(await saveMountedWeeks())) {
+      error.value = 'Не удалось сохранить открытое занятие.';
+      return false;
+    }
     const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/structure?summary=1`, {
       method: 'POST',
       body: JSON.stringify({
@@ -553,8 +568,10 @@ async function changeStructure(
     structureKey.value = uid();
     if (!response.data.weeks.some((week) => week.document_id === activeDocumentId.value))
       activeDocumentId.value = response.data.weeks[0]?.document_id || null;
+    return true;
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось изменить структуру.';
+    return false;
   } finally {
     switching.value = false;
   }
@@ -568,14 +585,9 @@ function movePosition(week: Week, offset: number) {
   void changeStructure(positions);
 }
 function renamePosition(week: Week) {
-  const title = window.prompt('Название занятия в цикле', week.title || `Занятие ${week.position + 1}`);
-  if (title !== null && cycle.value)
-    void changeStructure(
-      cycle.value.weeks.map((item) => ({
-        id: item.id,
-        title: item.id === week.id ? title.slice(0, 160) : item.title,
-      })),
-    );
+  error.value = '';
+  nameDraft.value = week.title ?? '';
+  nameDialog.value = { week };
 }
 async function removePosition(week: Week) {
   if (!cycle.value || cycle.value.weeks.length <= 1) return;
@@ -593,26 +605,46 @@ async function removePosition(week: Week) {
       [{ id: week.id, action, expected_revision: document.revision }],
     );
 }
-async function duplicateCycle(asTemplate: boolean) {
-  if (!cycle.value || !(await saveMetadata()) || !(await saveMountedWeeks())) return;
-  const title = window.prompt(
-    asTemplate ? 'Название шаблона цикла' : 'Название новой программы',
-    cycle.value.title,
-  );
-  if (!title?.trim()) return;
+function duplicateCycle(asTemplate: boolean) {
+  if (!cycle.value) return;
+  error.value = '';
+  nameDraft.value = cycle.value.title;
+  nameDialog.value = { asTemplate };
+}
+async function saveCycleName() {
+  const action = nameDialog.value;
+  const title = nameDraft.value.trim();
+  if (!cycle.value || !action || nameBusy.value || (!('week' in action) && !title)) return;
+  nameBusy.value = true;
+  error.value = '';
   try {
+    if ('week' in action) {
+      const saved = await changeStructure(
+        cycle.value.weeks.map((item) => ({
+          id: item.id,
+          title: item.id === action.week.id ? title || null : item.title,
+        })),
+      );
+      if (saved) nameDialog.value = null;
+      return;
+    }
+    if (!(await saveMetadata())) return;
+    if (!(await saveMountedWeeks())) throw new Error('Не удалось сохранить открытое занятие.');
     const response = await api<{ data: Cycle }>(`/api/mesocycles/${props.mesocycleId}/duplicate`, {
       method: 'POST',
       body: JSON.stringify({
         title,
-        kind: asTemplate ? 'template' : 'cycle',
+        kind: action.asTemplate ? 'template' : 'cycle',
         expected_revision: cycle.value.revision,
         idempotency_key: uid(),
       }),
     });
+    nameDialog.value = null;
     router.visit(`/mesocycles/${response.data.id}/edit`);
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось создать копию.';
+  } finally {
+    nameBusy.value = false;
   }
 }
 function beforeUnload(event: BeforeUnloadEvent) {
@@ -776,7 +808,7 @@ onBeforeUnmount(() => {
           :disabled="replaceBusy || conflict || !!cycle.archived_at"
           @click="replacementPositionOpen = true"
         >
-          Добавить практику
+          Заменить занятие копией
         </button>
         <span>{{ cycle.weeks.length }} занятий</span
         ><button
@@ -784,7 +816,7 @@ onBeforeUnmount(() => {
           :disabled="switching || cycle.weeks.length >= 52 || conflict || !!cycle.archived_at"
           @click="changeStructure([...cycle.weeks.map(({ id, title }) => ({ id, title })), {}])"
         >
-          Добавить занятие
+          Новое пустое занятие
         </button>
       </div>
       <div v-if="phoneLayout" class="cycle-week-picker">
@@ -819,14 +851,11 @@ onBeforeUnmount(() => {
           <header>
             <h2>{{ week.title || `Занятие ${week.position + 1}` }}</h2>
             <ActionMenu :label="`Действия с занятием ${week.position + 1}`">
-              <button :disabled="replaceBusy || conflict || !!cycle.archived_at" @click="openReplace(week)">
-                Добавить практику из существующих
-              </button>
               <a :href="`/practices/${week.document_id}/edit`" target="_blank" rel="noopener"
                 >Открыть в отдельном окне</a
               >
               <button :disabled="replaceBusy || conflict || !!cycle.archived_at" @click="openReplace(week)">
-                Копировать другую последовательность
+                Заменить копией практики
               </button>
               <button :disabled="switching || conflict || !!cycle.archived_at" @click="renamePosition(week)">
                 Переименовать
@@ -835,7 +864,7 @@ onBeforeUnmount(() => {
                 :disabled="switching || week.position === 0 || conflict || !!cycle.archived_at"
                 @click="movePosition(week, -1)"
               >
-                Переместить левее
+                {{ phoneLayout ? 'Переместить выше' : 'Переместить левее' }}
               </button>
               <button
                 :disabled="
@@ -843,7 +872,7 @@ onBeforeUnmount(() => {
                 "
                 @click="movePosition(week, 1)"
               >
-                Переместить правее
+                {{ phoneLayout ? 'Переместить ниже' : 'Переместить правее' }}
               </button>
               <button
                 :disabled="switching || cycle.weeks.length <= 1 || conflict || !!cycle.archived_at"
@@ -891,7 +920,7 @@ onBeforeUnmount(() => {
     </template>
     <Modal
       :open="replacementPositionOpen"
-      title="Куда добавить практику"
+      title="Какое занятие заменить?"
       @close="replacementPositionOpen = false"
     >
       <p class="muted">
@@ -929,12 +958,12 @@ onBeforeUnmount(() => {
     >
     <Modal
       :open="!!replacement && !!replacementCandidate"
-      title="Добавить выбранную практику"
+      title="Заменить занятие копией?"
       @close="!replaceBusy && (replacementCandidate = null)"
     >
       <p>
-        Добавить «{{ replacementCandidate?.title }}» в
-        {{ replacement?.title || `занятие ${(replacement?.position ?? 0) + 1}` }}?
+        Вместо «{{ replacement?.title || `Занятие ${(replacement?.position ?? 0) + 1}` }}» в цикле появится
+        копия «{{ replacementCandidate?.title }}».
       </p>
       <p class="muted">
         Сначала сохраним текущее занятие, затем создадим независимую копию выбранной практики. Прежняя
@@ -946,7 +975,7 @@ onBeforeUnmount(() => {
         ><button class="btn btn-secondary" :disabled="replaceBusy" @click="replacementCandidate = null">
           Назад к выбору</button
         ><button class="btn btn-primary" :disabled="replaceBusy" @click="replaceWeek">
-          {{ replaceBusy ? 'Добавляем…' : 'Добавить практику' }}
+          {{ replaceBusy ? 'Заменяем…' : 'Заменить копией' }}
         </button></template
       >
     </Modal>
@@ -955,11 +984,37 @@ onBeforeUnmount(() => {
       :open="!!replacement && !replacementCandidate"
       :busy="replaceBusy"
       templates
-      title="Добавить существующую практику"
+      title="Выбрать практику для копии"
       description="Выберите последовательность для занятия. Создадим независимую копию; прежняя практика останется в общем списке."
       @close="replacement = null"
       @choose="chooseSource"
     />
+    <Modal :open="!!nameDialog" :title="nameDialogTitle" @close="!nameBusy && (nameDialog = null)">
+      <form id="cycle-name-form" class="field" @submit.prevent="saveCycleName">
+        <label class="label" for="cycle-name-input">Название</label>
+        <input
+          id="cycle-name-input"
+          v-model="nameDraft"
+          class="input"
+          maxlength="160"
+          :placeholder="nameDialog && 'week' in nameDialog ? `Занятие ${nameDialog.week.position + 1}` : ''"
+          :disabled="nameBusy"
+          :required="!namingExistingLesson"
+        />
+        <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
+      </form>
+      <template #footer>
+        <button class="btn btn-secondary" :disabled="nameBusy" @click="nameDialog = null">Отмена</button>
+        <button
+          class="btn btn-primary"
+          form="cycle-name-form"
+          type="submit"
+          :disabled="nameBusy || (!namingExistingLesson && !nameDraft.trim())"
+        >
+          {{ nameBusy ? 'Сохраняем…' : namingExistingLesson ? 'Сохранить название' : 'Создать' }}
+        </button>
+      </template>
+    </Modal>
   </AppShell>
   <Teleport to="body">
     <div v-if="dragPreview" data-mesocycle-drag-overlay class="cloud-drag-overlay" aria-hidden="true">

@@ -15,14 +15,23 @@ import {
 } from '../facets';
 import FacetChoices from './FacetChoices.vue';
 const props = withDefaults(
-  defineProps<{ context?: Record<string, string>; compact?: boolean; hideTrigger?: boolean }>(),
+  defineProps<{
+    context?: Record<string, string>;
+    compact?: boolean;
+    hideTrigger?: boolean;
+    label?: string;
+    showOrdering?: boolean;
+  }>(),
   {
     context: () => ({}),
+    label: 'Категории',
   },
 );
 const model = defineModel<CatalogFilters>({ required: true });
+const ordering = defineModel<{ archive: string; sort: string }>('ordering');
 const open = ref(false),
   draft = ref<CatalogFilters>(emptyFilters()),
+  draftOrdering = ref<{ archive: string; sort: string }>(),
   error = ref(''),
   busy = ref(false),
   total = ref(0);
@@ -44,7 +53,7 @@ const selected = computed(() =>
 );
 const count = computed(
   () =>
-    selected.value.length +
+    dimensions.reduce((sum, dimension) => sum + model.value[dimension].length, 0) +
     model.value.categories.length +
     Number(model.value.favorite) +
     Number(model.value.unclassified) +
@@ -59,7 +68,7 @@ async function load() {
   error.value = '';
   try {
     const params = setFilterParams(
-      new URLSearchParams(props.context),
+      new URLSearchParams({ ...props.context, ...(open.value ? draftOrdering.value : null) }),
       open.value ? draft.value : model.value,
     );
     const result = await api<{ facets: FacetDictionary; total: number }>(`/api/asanas/facets?${params}`);
@@ -76,6 +85,7 @@ async function load() {
 }
 function begin() {
   draft.value = JSON.parse(JSON.stringify(model.value));
+  draftOrdering.value = props.showOrdering && ordering.value ? { ...ordering.value } : undefined;
   draftDictionary.value = dictionary.value;
   open.value = true;
   void load();
@@ -83,11 +93,12 @@ function begin() {
 defineExpose({ begin });
 function apply() {
   model.value = JSON.parse(JSON.stringify(draft.value));
+  if (draftOrdering.value) ordering.value = draftOrdering.value;
   dictionary.value = draftDictionary.value;
   open.value = false;
 }
 watch(
-  () => [props.context, model.value, open.value ? draft.value : null],
+  () => [props.context, model.value, open.value ? draft.value : null, draftOrdering.value],
   () => {
     clearTimeout(timer);
     timer = setTimeout(load, 120);
@@ -103,7 +114,7 @@ onBeforeUnmount(() => {
   <div class="catalog-facets">
     <div v-if="!hideTrigger" class="filter-toolbar">
       <button type="button" class="btn btn-secondary" @click="begin">
-        <SlidersHorizontal :size="17" /> Категории{{ count ? ` (${count})` : '' }}
+        <SlidersHorizontal :size="17" /> {{ label }}{{ count ? ` (${count})` : '' }}
       </button>
     </div>
     <div v-if="selected.length" class="selected-facets">
@@ -123,7 +134,25 @@ onBeforeUnmount(() => {
     <p v-if="error" class="error-banner" role="alert">
       {{ error }} <button class="btn btn-ghost" type="button" @click="load">Повторить</button>
     </p>
-    <Modal :open="open" title="Категории асан" @close="open = false">
+    <Modal :open="open" :title="showOrdering ? 'Фильтры асан' : 'Категории асан'" @close="open = false">
+      <div v-if="draftOrdering" class="ordering-filters">
+        <label class="field">
+          <span class="label">Карточки</span>
+          <AppSelect v-model="draftOrdering.archive" class="select">
+            <option value="active">Активные</option>
+            <option value="archived">В архиве</option>
+          </AppSelect>
+        </label>
+        <label class="field">
+          <span class="label">Сортировка</span>
+          <AppSelect v-model="draftOrdering.sort" class="select">
+            <option value="name_asc">По алфавиту: А–Я</option>
+            <option value="name_desc">По алфавиту: Я–А</option>
+            <option value="recent">Недавно добавленные</option>
+            <option value="used_recently">Недавно использованные</option>
+          </AppSelect>
+        </label>
+      </div>
       <p v-if="categoryError" class="error-banner" role="alert">
         {{ categoryError }}
         <button class="btn btn-ghost" @click="loadCategories">Повторить загрузку личных категорий</button>
@@ -155,8 +184,8 @@ onBeforeUnmount(() => {
       <template #footer
         ><button type="button" class="btn btn-ghost" @click="draft = emptyFilters()">Сбросить</button
         ><button type="button" class="btn btn-secondary" @click="open = false">Отмена</button
-        ><button type="button" class="btn btn-primary" :disabled="busy || !!error" @click="apply">
-          {{ busy ? 'Считаем…' : `Показать ${total} асан` }}
+        ><button type="button" class="btn btn-primary" @click="apply">
+          {{ busy || error ? 'Применить' : `Показать результаты (${total})` }}
         </button></template
       >
     </Modal>
@@ -226,6 +255,11 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 14px;
   margin-top: 20px;
+}
+.ordering-filters {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 .advanced-filters label {
   display: grid;

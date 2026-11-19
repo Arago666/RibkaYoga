@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import AppSelect from '@/shared/AppSelect.vue';
-import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Copy, Printer, Save, SlidersHorizontal } from '@lucide/vue';
+import ActionMenu from '@/shared/ActionMenu.vue';
 import AppShell from '@/shared/AppShell.vue';
 import Modal from '@/shared/Modal.vue';
 import { api, ApiError } from '@/shared/api';
@@ -37,6 +39,7 @@ interface Handle {
   hasUnappliedChanges(): boolean;
   discardDraft(): void;
   flushDraft(): void;
+  collapse(): void;
 }
 const row = ref<Sketch | null>(null),
   initial = shallowRef<DrawingDocument | null>(null),
@@ -51,6 +54,7 @@ const row = ref<Sketch | null>(null),
   candidate = ref<Exported | null>(null),
   queue = ref<(QueuedDrawing & { url: string })[]>([]),
   showTransfer = ref(false),
+  showSheetSettings = ref(false),
   showCreate = ref(false),
   documents = ref<{ id: string; title: string }[]>([]),
   target = ref(''),
@@ -275,9 +279,12 @@ function queueChanged() {
   void flushDraft();
 }
 async function selected() {
+  if (!editor.value || working.value || saving.value) return;
   error.value = '';
   try {
-    candidate.value = await editor.value!.exportSelection();
+    candidate.value = await editor.value.exportSelection();
+    editor.value.collapse();
+    await nextTick();
     showTransfer.value = true;
   } catch (f) {
     error.value = f instanceof Error ? f.message : 'Сначала выделите фигуру или несколько штрихов.';
@@ -475,24 +482,36 @@ onBeforeUnmount(() => {
       </div>
       <div class="sketch-header-actions">
         <button
-          class="btn btn-secondary"
-          :disabled="!draftReady || !!recovery || !row || saving || working"
-          @click="copy"
-        >
-          Сохранить копию</button
-        ><button
+          type="button"
           class="btn btn-primary"
-          :disabled="!draftReady || !!recovery || !row || saving || working || conflict"
+          :disabled="!draftReady || !!recovery || !row || !!row.archived_at || saving || working || conflict"
           @click="saveAll"
         >
-          Сохранить</button
-        ><button
-          class="btn btn-secondary"
-          :disabled="!!recovery || !row?.image_url || saving || working || conflict"
-          @click="print"
-        >
-          Печать / PDF
+          <Save :size="17" />Сохранить
         </button>
+        <ActionMenu label="Действия с листом">
+          <button
+            type="button"
+            :disabled="!draftReady || !!recovery || !row"
+            @click="showSheetSettings = true"
+          >
+            <SlidersHorizontal :size="17" />Параметры листа
+          </button>
+          <button
+            type="button"
+            :disabled="!draftReady || !!recovery || !row || !!row.archived_at || saving || working"
+            @click="copy"
+          >
+            <Copy :size="17" />Сохранить копию
+          </button>
+          <button
+            type="button"
+            :disabled="!!recovery || !row?.image_url || !!row.archived_at || saving || working || conflict"
+            @click="print"
+          >
+            <Printer :size="17" />Печать / PDF
+          </button>
+        </ActionMenu>
       </div>
     </header>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
@@ -511,33 +530,7 @@ onBeforeUnmount(() => {
     <p v-if="conflict" class="success-banner">
       На сервере уже другая версия. Сохраните этот черновик отдельной копией.
     </p>
-    <template v-if="row"
-      ><div class="sketch-actions sketch-meta card">
-        <input
-          class="input"
-          v-model="title"
-          aria-label="Название листа"
-          maxlength="160"
-          :disabled="working || !draftReady || !!recovery || !!row.archived_at"
-          @input="schedule"
-        /><AppSelect
-          class="select"
-          v-model="format"
-          aria-label="Формат печати"
-          :disabled="working || !draftReady || !!recovery || !!row.archived_at"
-          @change="schedule"
-        >
-          <option value="square">Квадратный лист</option>
-          <option value="a4-portrait">A4 — книжная печать</option>
-          <option value="a4-landscape">A4 — альбомная печать</option></AppSelect
-        ><button
-          class="btn btn-secondary"
-          :disabled="!!row.archived_at || !!recovery || saving || working"
-          @click="selected"
-        >
-          Выделенное → асана или ячейка
-        </button>
-      </div>
+    <template v-if="row">
       <p v-if="row.archived_at" class="success-banner">
         Лист в архиве. Для изменения восстановите его в списке.
       </p>
@@ -550,7 +543,18 @@ onBeforeUnmount(() => {
           :disabled="!!row.archived_at || working || !draftReady || !!recovery"
           @change="drawingChanged"
           @image="(file, drawing) => save({ file, drawing })"
-        />
+        >
+          <template #selection-action>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              :disabled="!!row.archived_at || !!recovery || saving || working"
+              @click="selected"
+            >
+              Выделенное → асана или ячейка
+            </button>
+          </template>
+        </AsanaDrawing>
       </div>
       <section v-if="queue.length" class="card transfer-queue">
         <h2>Фигуры для строки</h2>
@@ -580,6 +584,37 @@ onBeforeUnmount(() => {
         </button>
         <p v-if="!documents.length">Сначала создайте практику в разделе «Практики».</p>
       </section>
+      <Modal :open="showSheetSettings" title="Параметры листа" @close="showSheetSettings = false">
+        <div class="sketch-meta">
+          <label class="field">
+            <span class="label">Название листа</span>
+            <input
+              v-model="title"
+              class="input"
+              maxlength="160"
+              :disabled="working || !draftReady || !!recovery || !!row.archived_at"
+              @input="schedule"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Формат печати</span>
+            <AppSelect
+              v-model="format"
+              class="select"
+              aria-label="Формат печати"
+              :disabled="working || !draftReady || !!recovery || !!row.archived_at"
+              @change="schedule"
+            >
+              <option value="square">Квадратный лист</option>
+              <option value="a4-portrait">A4 — книжная печать</option>
+              <option value="a4-landscape">A4 — альбомная печать</option>
+            </AppSelect>
+          </label>
+        </div>
+        <template #footer>
+          <button type="button" class="btn btn-primary" @click="showSheetSettings = false">Готово</button>
+        </template>
+      </Modal>
       <div class="print-sketch" :class="format">
         <h1>{{ title }}</h1>
         <img v-if="row.image_url" :src="row.image_url" :alt="title" /></div></template
@@ -667,16 +702,12 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 .sketch-meta {
-  padding: var(--panel-padding);
-  background: linear-gradient(150deg, #f8faf4, #fff 70%);
-  border-color: #e0e7da;
+  display: grid;
+  gap: 16px;
 }
 .sketch-actions input {
   flex: 1;
   min-width: 0;
-}
-.sketch-meta .select {
-  flex: 0 1 270px;
 }
 .target-field {
   display: grid;
@@ -721,18 +752,35 @@ onBeforeUnmount(() => {
   color: #29492f;
   letter-spacing: -0.025em;
 }
-@media (max-width: 700px) {
+@media (max-width: 760px) {
+  .sketch-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .sketch-heading .back-link {
+    display: none;
+  }
+  .sketch-heading .page-title {
+    font-size: clamp(19px, 5vw, 24px);
+    margin: 0 0 2px;
+  }
+  .sketch-heading strong {
+    display: block;
+    font-size: 12px;
+  }
   .sketch-header-actions {
-    width: 100%;
+    flex: none;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
   }
-  .sketch-header-actions .btn {
-    flex: 1 1 auto;
-  }
-  .sketch-meta > .input,
-  .sketch-meta > .select,
-  .sketch-meta > .btn {
-    width: 100%;
-    flex: 1 1 100%;
+  .sketch-header-actions > .btn {
+    min-height: 44px;
+    padding-inline: 10px;
   }
   .transfer-queue > .btn,
   .sketch-actions .btn {

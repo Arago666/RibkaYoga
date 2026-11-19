@@ -14,7 +14,7 @@ import {
 } from '@lucide/vue';
 import { uiPreferencesKey, readUiPreferences } from '@/shared/uiPreferences';
 import { api } from '@/shared/api';
-import type { Asana, Category, Collection, Page } from '@/modules/catalog/types';
+import { asanaVariantLabel, type Asana, type Collection, type Page } from '@/modules/catalog/types';
 import FacetFilters from '@/modules/catalog/components/FacetFilters.vue';
 import { dimensions, emptyFilters, setFilterParams } from '@/modules/catalog/facets';
 import { usePaletteDrag, type PaletteDragPoint } from '../composables/usePaletteDrag';
@@ -63,13 +63,11 @@ const facetControl = ref<InstanceType<typeof FacetFilters> | null>(null);
 const key = `ribka:palette:${(pageProps.props.auth as { user?: { id: number } })?.user?.id}:${props.documentId}`;
 const filters = ref(emptyFilters());
 const query = ref(''),
-  category = ref(''),
   source = ref('all'),
   sort = ref('name_asc'),
   page = ref(1);
 const cards = ref<Asana[]>([]),
-  collections = ref<Collection[]>([]),
-  categories = ref<Category[]>([]);
+  collections = ref<Collection[]>([]);
 const loading = ref(true),
   error = ref(''),
   total = ref(0),
@@ -92,7 +90,7 @@ const activeFilterCount = computed(
     Number(!!filters.value.equipment),
 );
 const hasSearchFilter = computed(
-  () => !!query.value || !!category.value || JSON.stringify(filters.value) !== JSON.stringify(emptyFilters()),
+  () => !!query.value || JSON.stringify(filters.value) !== JSON.stringify(emptyFilters()),
 );
 function remember() {
   if (!readUiPreferences(uiPreferencesKey(pageProps.props.auth)).rememberFilters) return;
@@ -115,7 +113,6 @@ async function load() {
       per_page: '24',
       archive: 'active',
     });
-    if (category.value) search.set('category', category.value);
     if (source.value !== 'all') search.set('collection', source.value);
     const result = await api<Page<Asana>>(`/api/asanas?${setFilterParams(search, filters.value)}`);
     if (current !== serial) return;
@@ -128,7 +125,7 @@ async function load() {
     if (current === serial) loading.value = false;
   }
 }
-watch([query, category, source, sort], () => {
+watch([query, source, sort], () => {
   serial++;
   loading.value = true;
   page.value = 1;
@@ -147,6 +144,7 @@ watch(
 watch(page, load);
 onMounted(async () => {
   if (props.embedded) void nextTick(() => searchInput.value?.focus());
+  void load();
   try {
     let selected = new URLSearchParams(location.search).get('collection');
     if (!selected && readUiPreferences(uiPreferencesKey(pageProps.props.auth)).rememberFilters) {
@@ -156,25 +154,19 @@ onMounted(async () => {
         /* Ignore invalid preference. */
       }
     }
-    const results = await Promise.all([
-      api<Page<Collection>>('/api/collections?per_page=100'),
-      api<{ data: Category[] }>('/api/categories'),
-    ]);
-    if (!alive) return;
-    collections.value = results[0].data;
-    categories.value = results[1].data;
-    for (let n = 2; n <= results[0].last_page; n++) {
+    let last = 1;
+    for (let n = 1; n <= last; n++) {
       const result = await api<Page<Collection>>(`/api/collections?per_page=100&page=${n}`);
       if (!alive) return;
       collections.value.push(...result.data);
+      last = result.last_page;
+      if (selected && source.value === 'all' && result.data.some((item) => item.id === selected)) {
+        source.value = selected;
+        selected = null;
+      }
     }
-    if (selected && collections.value.some((item) => item.id === selected)) source.value = selected;
-    await load();
-  } catch (e) {
-    if (alive) {
-      error.value = e instanceof Error ? e.message : 'Не удалось открыть библиотеку.';
-      loading.value = false;
-    }
+  } catch {
+    // The list and search remain available if collections did not load.
   }
 });
 onBeforeUnmount(() => {
@@ -198,7 +190,7 @@ onBeforeUnmount(() => {
       <label class="sr-only" :for="sourceInputId">Подборка асан</label
       ><AppSelect :id="sourceInputId" v-model="source" class="select" :disabled="disabled">
         <option value="all">Все асаны</option>
-        <optgroup label="Подборки">
+        <optgroup v-if="collections.length" label="Подборки">
           <option v-for="item in collections" :key="item.id" :value="item.id">{{ item.name }}</option>
         </optgroup>
       </AppSelect>
@@ -220,7 +212,7 @@ onBeforeUnmount(() => {
         ref="facetControl"
         hide-trigger
         v-model="filters"
-        :context="{ q: query, category, collection: source === 'all' ? '' : source, sort, archive: 'active' }"
+        :context="{ q: query, collection: source === 'all' ? '' : source, sort, archive: 'active' }"
         compact
       />
     </div>
@@ -264,13 +256,13 @@ onBeforeUnmount(() => {
           aria-hidden="true"
           ><GripVertical :size="17"
         /></span>
-        <img
-          :src="card.thumbnail_url || card.image_url"
-          :alt="card.name"
-          loading="lazy"
-          draggable="false"
-        /><span>{{ card.name }}</span
+        <img :src="card.thumbnail_url || card.image_url" alt="" loading="lazy" draggable="false" /><span>{{
+          card.name
+        }}</span
         ><small v-if="card.archived_at">В архиве</small>
+        <small v-if="card.variant_source || (card.alternate_name && card.alternate_name !== card.name)">
+          {{ asanaVariantLabel(card) || card.alternate_name }}
+        </small>
         <small v-if="card.facet_values?.some((v) => v.dimension === 'difficulty')">{{
           card.facet_values.find((v) => v.dimension === 'difficulty')?.name
         }}</small>
