@@ -68,7 +68,8 @@ const plan = ref<ExecutionPlan | null>(null),
   notice = ref(''),
   saving = ref(false),
   starting = ref(false);
-const mode = ref<'teach' | 'practice'>(query.get('mode') === 'teach' ? 'teach' : 'practice');
+const requestedMode = query.get('mode') === 'teach' ? 'teach' : 'practice';
+const mode = ref<'teach' | 'practice'>(requestedMode);
 const progress = ref<ExecutionProgress>({
   step: 0,
   seconds_by_step: [],
@@ -148,7 +149,8 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 const auth = page.props.auth as { user?: { id: number }; workspace?: { id: string } } | undefined;
 const userId = auth?.user?.id;
 const legacyKey = `ribka-execution:${userId || 'guest'}:${props.documentId || props.publicToken}`;
-const key = `ribka-execution:${userId || 'guest'}:${auth?.workspace?.id || 'public'}:${props.documentId || props.publicToken}`;
+const workspaceKey = `ribka-execution:${userId || 'guest'}:${auth?.workspace?.id || 'public'}:${props.documentId || props.publicToken}`;
+const key = `${workspaceKey}:${requestedMode}`;
 interface StoredDraft {
   sessionId?: string;
   pendingStartId?: string;
@@ -773,8 +775,14 @@ watch(mode, (value) => {
 onMounted(async () => {
   let stored: StoredDraft | null = null;
   try {
-    const raw = localStorage.getItem(key) ?? localStorage.getItem(legacyKey);
-    if (raw) stored = JSON.parse(raw);
+    for (const candidate of [key, workspaceKey, legacyKey]) {
+      const raw = localStorage.getItem(candidate);
+      if (!raw) continue;
+      const draft = JSON.parse(raw) as StoredDraft;
+      if (draft.mode !== requestedMode) continue;
+      stored = draft;
+      break;
+    }
   } catch {
     /* No local recovery. */
   }
@@ -792,7 +800,10 @@ onMounted(async () => {
   try {
     if (stored?.sessionId && !props.publicToken) {
       const remote = (await api<{ data: ExecutionSession }>(`/api/executions/${stored.sessionId}`)).data;
-      if (!ownSheet || !['completed', 'interrupted'].includes(remote.status)) {
+      if (
+        remote.mode === requestedMode &&
+        (!ownSheet || !['completed', 'interrupted'].includes(remote.status))
+      ) {
         adopt(remote, stored);
         notice.value = 'Восстановлена сохранённая сессия. Для продолжения нажмите кнопку.';
       }
