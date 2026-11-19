@@ -18,6 +18,7 @@ import PlayerWindow from '@/shared/PlayerWindow.vue';
 import CountdownRing from '@/shared/CountdownRing.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
+import { isTelegramMiniAppActive, telegramDeactivatedEvent } from '@/shared/telegramMiniApp';
 import { uid } from '@/shared/uuid';
 import BodyCoverage from '../BodyCoverage.vue';
 import MetronomeDialog from '../components/MetronomeSettings.vue';
@@ -39,6 +40,20 @@ const sheetHref = props.publicToken
   : ownSheet
     ? `/practices/${props.documentId}/preview`
     : `/shared-practices/${props.documentId}`;
+const breadcrumbs =
+  props.publicToken && !page.props.miniApp
+    ? undefined
+    : [
+        ...(props.publicToken
+          ? []
+          : [
+              ownSheet
+                ? { label: 'Практики', href: '/practices' }
+                : { label: 'Мне дали доступ', href: '/shared-practices' },
+            ]),
+        { label: 'Готовый лист', href: sheetHref },
+        { label: 'Занятие' },
+      ];
 const metronome = ref<MetronomeSettings>(defaultMetronome());
 const metronomeOpen = ref(false);
 const settingsOpen = ref(false);
@@ -162,6 +177,8 @@ let pendingStatus: string | null = null,
   closing = false,
   disposed = false;
 let playbackRequested = false;
+let playbackAttempt = 0;
+let soundReady = Promise.resolve();
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
     .toString()
@@ -206,14 +223,56 @@ const planned = computed(() => {
     unclassified,
   };
 });
-async function unlockSound() {
+function canPlay(attempt: number): boolean {
+  return (
+    attempt === playbackAttempt &&
+    playbackRequested &&
+    !disposed &&
+    !document.hidden &&
+    navigator.onLine &&
+    isTelegramMiniAppActive()
+  );
+}
+async function unlockSound(attempt: number) {
   if (!sound.value) return;
   try {
     audio ??= new AudioContext();
     await audio.resume();
+    if (!playbackRequested) await audio.suspend();
   } catch {
-    notice.value = 'Звук недоступен; остальные элементы управления работают.';
+    if (canPlay(attempt)) notice.value = 'Звук недоступен. Таймер практики продолжит работать.';
   }
+}
+async function lockScreen(attempt: number) {
+  try {
+    const lock = await navigator.wakeLock?.request('screen');
+    if (!lock) return;
+    if (canPlay(attempt) && running.value) wake = lock;
+    else await lock.release();
+  } catch {
+    /* The timer works without a screen lock. */
+  }
+}
+function releaseScreenLock() {
+  void wake?.release().catch(() => {});
+  wake = null;
+}
+function startPlaybackExtras(attempt: number) {
+  const startedAt = performance.now();
+  void soundReady.then(() => {
+    if (canPlay(attempt) && running.value && performance.now() - startedAt < 1000) bell();
+  });
+  if (metronome.value.enabled) {
+    void metronomeEngine
+      .start(metronome.value, metronomeStarted.value)
+      .then(() => {
+        if (canPlay(attempt) && running.value) metronomeStarted.value = metronomeEngine.state.running;
+      })
+      .catch(() => {
+        if (canPlay(attempt)) notice.value = 'Метроном недоступен. Таймер практики продолжит работать.';
+      });
+  }
+  void lockScreen(attempt);
 }
 function bell() {
   if (!sound.value || !audio || audio.state !== 'running') return;
@@ -420,7 +479,8 @@ async function persist(status = 'paused') {
   }
 }
 async function begin() {
-  if (!plan.value?.steps.length || starting.value || running.value || closing || !playbackRequested) return;
+  const attempt = playbackAttempt;
+  if (!plan.value?.steps.length || starting.value || running.value || closing || !canPlay(attempt)) return;
   starting.value = true;
   error.value = '';
   try {
@@ -428,7 +488,7 @@ async function begin() {
       const local = localState();
       const remote = (await api<{ data: ExecutionSession }>(`/api/executions/${session.value.id}`)).data;
       adopt(remote, local);
-      if (finished.value) return;
+      if (finished.value || !canPlay(attempt)) return;
     }
     if (!started.value && !props.publicToken) {
       pendingStartId ??= uid();
@@ -449,23 +509,9 @@ async function begin() {
       adopt(remote);
       if (finished.value) return;
     }
-    if (disposed) return;
-    if (document.hidden || !navigator.onLine || !playbackRequested) {
-      notice.value = 'Практика готова. Вернитесь на страницу и нажмите «Продолжить».';
-      await persist('paused');
-      return;
-    }
-    if (metronome.value.enabled) {
-      try {
-        await metronomeEngine.start(metronome.value, metronomeStarted.value);
-        metronomeStarted.value = true;
-      } catch {
-        notice.value = 'Метроном недоступен. Таймер практики продолжит работать.';
-      }
-    }
-    if (disposed || document.hidden || !navigator.onLine || !playbackRequested) {
-      metronomeEngine.stop();
-      if (!disposed) await persist('paused');
+    if (!canPlay(attempt)) {
+      if (!disposed) notice.value = 'Практика готова. Вернитесь на страницу и нажмите «Продолжить».';
+      void persist('paused');
       return;
     }
     preparing.value = false;
@@ -473,12 +519,7 @@ async function begin() {
     finished.value = false;
     running.value = true;
     last = performance.now();
-    bell();
-    try {
-      if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen');
-    } catch {
-      /* Optional capability. */
-    }
+    startPlaybackExtras(attempt);
     draft(true);
   } catch (failure) {
     error.value =
@@ -491,18 +532,16 @@ async function begin() {
 }
 async function start() {
   if (starting.value || closing || running.value || !plan.value?.steps.length) return;
+  const attempt = ++playbackAttempt;
   playbackRequested = true;
+  if (!canPlay(attempt)) return;
   notice.value = '';
   immersive.value = true;
-  await Promise.all([
-    unlockSound(),
-    metronome.value.enabled
-      ? metronomeEngine.unlock().catch(() => {
-          notice.value = 'Не удалось включить звук метронома. Практика остаётся доступной.';
-        })
-      : Promise.resolve(),
-  ]);
-  if (!playbackRequested || disposed) return;
+  soundReady = unlockSound(attempt);
+  if (metronome.value.enabled)
+    void metronomeEngine.unlock().catch(() => {
+      if (canPlay(attempt)) notice.value = 'Не удалось включить звук метронома. Практика остаётся доступной.';
+    });
   if (preparing.value && prepPaused.value) {
     prepDeadline = performance.now() + prepLeft.value * 1000;
     prepPaused.value = false;
@@ -543,15 +582,14 @@ function pause() {
   if (preparing.value) {
     if (!prepPaused.value) prepLeft.value = Math.max(0, (prepDeadline - performance.now()) / 1000);
     prepPaused.value = true;
-    return;
+  } else {
+    accrue();
+    running.value = false;
   }
-  accrue();
-  running.value = false;
   metronomeEngine.stop();
-  void wake?.release();
-  wake = null;
-  void audio?.suspend();
-  void persist('paused');
+  releaseScreenLock();
+  void audio?.suspend().catch(() => {});
+  if (!preparing.value) void persist('paused');
 }
 function adjustTime(seconds: number) {
   if (!started.value || preparing.value || finished.value) return;
@@ -606,8 +644,7 @@ async function finish(complete: boolean) {
   accrue();
   running.value = false;
   metronomeEngine.stop();
-  void wake?.release();
-  wake = null;
+  releaseScreenLock();
   bell();
   await persist(complete ? 'completed' : 'interrupted');
   finished.value =
@@ -646,14 +683,14 @@ function tick() {
   draft();
 }
 function visibility() {
-  if (document.hidden && (running.value || preparing.value)) pause();
+  if (document.hidden) leaving();
 }
 function offline() {
-  if (running.value || preparing.value) pause();
+  leaving();
   error.value = 'Соединение потеряно. Таймер на паузе, прогресс сохранён на устройстве.';
 }
 function leaving() {
-  if (running.value || preparing.value) pause();
+  if (playbackRequested || running.value || (preparing.value && !prepPaused.value)) pause();
 }
 function keydown(event: KeyboardEvent) {
   if (
@@ -676,18 +713,15 @@ function fullscreen() {
   immersive.value = true;
 }
 function closeWindow() {
-  playbackRequested = false;
-  if (running.value || preparing.value) pause();
+  leaving();
   immersive.value = false;
 }
 function openSettings() {
-  playbackRequested = false;
-  if (running.value || preparing.value) pause();
+  leaving();
   settingsOpen.value = true;
 }
 function openMetronome() {
-  playbackRequested = false;
-  if (running.value || preparing.value) pause();
+  leaving();
   metronomeOpen.value = true;
 }
 function applyMetronome(settings: MetronomeSettings) {
@@ -791,34 +825,41 @@ onMounted(async () => {
         : 'Не удалось сверить прежнюю сессию. Прогресс на устройстве сохранён.';
   } finally {
     loading.value = false;
-    last = performance.now();
-    ticker = setInterval(tick, 100);
-    document.addEventListener('visibilitychange', visibility);
-    window.addEventListener('keydown', keydown);
-    window.addEventListener('offline', offline);
-    window.addEventListener('pagehide', leaving);
+    if (!disposed) {
+      last = performance.now();
+      ticker = setInterval(tick, 100);
+      document.addEventListener('visibilitychange', visibility);
+      document.addEventListener(telegramDeactivatedEvent, leaving);
+      window.addEventListener('keydown', keydown);
+      window.addEventListener('offline', offline);
+      window.addEventListener('pagehide', leaving);
+    }
   }
 });
 onBeforeUnmount(() => {
   disposed = true;
   if (ticker) clearInterval(ticker);
   document.removeEventListener('visibilitychange', visibility);
+  document.removeEventListener(telegramDeactivatedEvent, leaving);
   window.removeEventListener('keydown', keydown);
   window.removeEventListener('offline', offline);
   window.removeEventListener('pagehide', leaving);
-  if (running.value) pause();
+  leaving();
   draft(true);
-  void wake?.release();
-  void audio?.close();
+  releaseScreenLock();
+  void audio?.close().catch(() => {});
   metronomeEngine.dispose();
 });
 watch(running, (value) => {
-  if (!value) metronomeEngine.stop();
+  if (!value) {
+    metronomeEngine.stop();
+    releaseScreenLock();
+  }
 });
 watch(metronome, () => draft(true), { deep: true });
 </script>
 <template>
-  <AppShell section="practices">
+  <AppShell section="practices" :breadcrumbs="breadcrumbs">
     <Head :title="plan?.title || 'Выполнение практики'" />
     <header class="page-header player-heading">
       <div>

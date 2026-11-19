@@ -15,6 +15,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::put('/practice-output-preferences', [DocumentOutputController::class, 'savePreferences']);
         Route::get('/practices/{id}/sheet', [DocumentOutputController::class, 'sheet'])->whereUuid('id');
         Route::get('/practices/{id}/pdf', [DocumentOutputController::class, 'pdf'])->whereUuid('id')->middleware('throttle:6,1');
+        Route::post('/practices/{id}/pdf/download-ticket', [DocumentOutputController::class, 'downloadTicket'])->whereUuid('id')->middleware('throttle:6,1');
         Route::get('/practices/{id}/bundle', [PortablePracticeController::class, 'export'])->whereUuid('id')->middleware('throttle:10,1');
         Route::post('/practice-bundles/preview', [PortablePracticeController::class, 'preview'])->middleware('throttle:uploads');
         Route::post('/practice-bundles/import', [PortablePracticeController::class, 'import'])->middleware('throttle:uploads');
@@ -36,6 +37,9 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::delete('/shared-practices/{id}/comments/{commentId}', [DocumentSharingController::class, 'deleteComment'])->whereUuid(['id', 'commentId']);
     });
 });
+
+Route::get('/downloads/practice-pdf/{token}', [DocumentOutputController::class, 'download'])
+    ->where('token', '[a-f0-9]{64}')->middleware('throttle:90,1')->name('practice-pdf.download');
 
 Route::middleware('web')->group(function () {
     Route::get('/p/{token}', [PublicPublicationController::class, 'page'])->where('token', '[a-f0-9]{64}');

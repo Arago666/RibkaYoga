@@ -1715,7 +1715,7 @@ onBeforeUnmount(() => {
               v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
               class="btn btn-secondary"
               :disabled="pending > 0 || navigating"
-              @click="go(`/practices/${doc.id}/run?mode=teach`)"
+              @click="go(`/practices/${doc.id}/run?mode=teach&from=owned`)"
             >
               Вести занятие
             </button>
@@ -1723,7 +1723,7 @@ onBeforeUnmount(() => {
               v-if="!rowMode && !embedded && doc.kind !== 'fragment'"
               class="btn btn-secondary"
               :disabled="pending > 0 || navigating"
-              @click="go(`/practices/${doc.id}/run?mode=practice`)"
+              @click="go(`/practices/${doc.id}/run?mode=practice&from=owned`)"
             >
               Практиковать
             </button>

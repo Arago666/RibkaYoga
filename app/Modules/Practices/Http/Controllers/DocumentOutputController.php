@@ -4,6 +4,7 @@ namespace App\Modules\Practices\Http\Controllers;
 
 use App\Modules\Access\PublicApi\WorkspaceContext;
 use App\Modules\Practices\Services\DocumentDelivery;
+use App\Modules\Practices\Services\PracticePdfDownload;
 use App\Modules\Practices\Services\SheetResponse;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -22,6 +23,26 @@ class DocumentOutputController
 
     public function pdf(Request $request, string $id)
     {
+        [$bytes, $filename] = $this->renderPdf($request, $id);
+
+        return response($bytes, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="practice.pdf"; filename*=UTF-8\'\''.rawurlencode($filename), 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    public function downloadTicket(Request $request, string $id, PracticePdfDownload $downloads)
+    {
+        abort_unless($request->session()->get('mini_app'), 404);
+        [$bytes, $filename] = $this->renderPdf($request, $id);
+
+        return response()->json($downloads->issue($bytes, $filename))->header('Cache-Control', 'private, no-store');
+    }
+
+    public function download(string $token, PracticePdfDownload $downloads)
+    {
+        return $downloads->download($token);
+    }
+
+    private function renderPdf(Request $request, string $id): array
+    {
         $options = $this->options($request);
         $document = $this->delivery->document($id);
         $html = $this->delivery->html($id, $options, true);
@@ -36,7 +57,7 @@ class DocumentOutputController
         $pdf->render();
         $filename = preg_replace('/[\x00-\x1F\x7F\/\\\\"]+/u', '-', $document['title']).'.pdf';
 
-        return response($pdf->output(), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="practice.pdf"; filename*=UTF-8\'\''.rawurlencode($filename), 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+        return [$pdf->output(), $filename];
     }
 
     public function preferences()

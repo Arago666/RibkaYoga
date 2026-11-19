@@ -10,12 +10,14 @@ interface TelegramWebApp {
   initData: string;
   platform: string;
   viewportStableHeight: number;
+  isActive?: boolean;
   isFullscreen?: boolean;
   safeAreaInset?: Insets;
   contentSafeAreaInset?: Insets;
   ready(): void;
   expand(): void;
   requestFullscreen?(): void;
+  downloadFile?(params: { url: string; file_name: string }, callback: (accepted: boolean) => void): void;
   isVersionAtLeast(version: string): boolean;
   disableVerticalSwipes?(): void;
   setHeaderColor(color: string): void;
@@ -48,9 +50,24 @@ function telegramApp(): Promise<TelegramWebApp | null> {
   })());
 }
 
+export async function loadTelegramPdfDownloader() {
+  const app = await telegramApp();
+  if (!app?.isVersionAtLeast('8.0') || typeof app.downloadFile !== 'function') return null;
+  const download = app.downloadFile.bind(app);
+  return (url: string, filename: string, callback: (accepted: boolean) => void) =>
+    download({ url, file_name: filename }, callback);
+}
+
 /** Raw launch proof goes only to our CSRF-protected verification endpoint. */
 export async function getTelegramLaunchData(): Promise<string | null> {
   return (await telegramApp())?.initData || null;
+}
+
+export const telegramDeactivatedEvent = 'ribka:telegram-deactivated';
+let miniAppActive = true;
+
+export function isTelegramMiniAppActive(): boolean {
+  return miniAppActive;
 }
 
 /** Layout data is not an authentication decision; the server verifies identity separately. */
@@ -69,6 +86,14 @@ export async function initializeTelegramMiniApp(): Promise<void> {
   const app = await telegramApp();
   if (!app) return;
   root.dataset.miniApp = 'telegram';
+  if (app.isVersionAtLeast('8.0')) {
+    miniAppActive = app.isActive !== false;
+    app.onEvent('activated', () => (miniAppActive = true));
+    app.onEvent('deactivated', () => {
+      miniAppActive = false;
+      document.dispatchEvent(new Event(telegramDeactivatedEvent));
+    });
+  }
   const layout = () => {
     root.dataset.miniFullscreen = String(!!app.isFullscreen);
     if (app.viewportStableHeight > 0)

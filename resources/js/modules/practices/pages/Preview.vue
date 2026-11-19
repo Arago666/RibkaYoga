@@ -200,6 +200,7 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
           :href="pdfUrl"
           :title="practice?.title || 'Практика'"
           :disabled="!practice"
+          native-download
           >Скачать PDF</PdfDownloadLink
         ><ResponsivePanel title="Действия с листом" label="Ещё">
           <a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
