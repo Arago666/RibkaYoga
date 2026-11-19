@@ -3,12 +3,12 @@ import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Play } from '@lucide/vue';
+import { Play, Share2 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
 import SheetViewport from '@/shared/SheetViewport.vue';
 import PdfDownloadLink from '@/shared/PdfDownloadLink.vue';
 import { api } from '@/shared/api';
-import PublicationDialog from '../components/PublicationDialog.vue';
+import PracticeShareDialog from '../components/PracticeShareDialog.vue';
 import PracticeLaunchDialog from '../components/PracticeLaunchDialog.vue';
 import PracticeSequenceList from '../components/PracticeSequenceList.vue';
 import { cellFilled, type Practice } from '../types';
@@ -202,12 +202,13 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
           :disabled="!practice"
           native-download
           >Скачать PDF</PdfDownloadLink
-        ><ResponsivePanel title="Действия с листом" label="Ещё">
+        ><button class="btn btn-secondary" type="button" :disabled="!practice" @click="sharing = true">
+          <Share2 :size="17" />Поделиться
+        </button>
+        <ResponsivePanel title="Действия с листом" label="Ещё">
           <a class="btn btn-secondary" :href="`/api/practices/${documentId}/bundle`"
             >Экспорт JSON с рисунками</a
-          ><button class="btn btn-secondary" :disabled="!practice" @click="sharing = true">
-            Поделиться по ссылке
-          </button>
+          >
         </ResponsivePanel>
       </div>
     </header>
@@ -267,10 +268,11 @@ onBeforeUnmount(() => phoneMedia.removeEventListener('change', syncPhone));
       «Весь лист» подстраивает просмотр под экран, «100%» позволяет рассмотреть детали с прокруткой. Просмотр
       и скачиваемый PDF используют один макет; исходные изображения остаются в базе.
     </p>
-    <PublicationDialog
+    <PracticeShareDialog
       v-if="practice"
       :open="sharing"
       :document-id="documentId"
+      :title="practice.title"
       :revision="practice.revision"
       :show-names="showNames"
       :orientation="orientation"

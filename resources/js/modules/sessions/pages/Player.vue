@@ -17,7 +17,7 @@ import AppShell from '@/shared/AppShell.vue';
 import PlayerWindow from '@/shared/PlayerWindow.vue';
 import CountdownRing from '@/shared/CountdownRing.vue';
 import Modal from '@/shared/Modal.vue';
-import { api } from '@/shared/api';
+import { ApiError, api } from '@/shared/api';
 import { isTelegramMiniAppActive, telegramDeactivatedEvent } from '@/shared/telegramMiniApp';
 import { uid } from '@/shared/uuid';
 import BodyCoverage from '../BodyCoverage.vue';
@@ -462,6 +462,7 @@ async function persist(status = 'paused') {
         }
         draft(true);
       } catch (failure) {
+        if (clearUnavailablePractice(failure)) break;
         pendingStatus = null;
         running.value = false;
         needsReconcile.value = true;
@@ -524,10 +525,11 @@ async function begin() {
     startPlaybackExtras(attempt);
     draft(true);
   } catch (failure) {
-    error.value =
-      failure instanceof Error
-        ? failure.message
-        : 'Не удалось начать. Повторная попытка использует тот же идентификатор запуска.';
+    if (!clearUnavailablePractice(failure))
+      error.value =
+        failure instanceof Error
+          ? failure.message
+          : 'Не удалось начать. Повторная попытка использует тот же идентификатор запуска.';
   } finally {
     starting.value = false;
   }
@@ -592,6 +594,27 @@ function pause() {
   releaseScreenLock();
   void audio?.suspend().catch(() => {});
   if (!preparing.value) void persist('paused');
+}
+function clearUnavailablePractice(failure: unknown): boolean {
+  if (!(failure instanceof ApiError) || failure.status !== 404) return false;
+  plan.value = null;
+  session.value = null;
+  pendingStartId = null;
+  pendingStatus = null;
+  preparing.value = false;
+  started.value = false;
+  immersive.value = false;
+  settingsOpen.value = false;
+  metronomeOpen.value = false;
+  pause();
+  error.value = 'Практика больше недоступна.';
+  try {
+    for (const draftKey of [workspaceKey + ':practice', workspaceKey + ':teach', workspaceKey, legacyKey])
+      localStorage.removeItem(draftKey);
+  } catch {
+    /* Local storage may be disabled. */
+  }
+  return true;
 }
 function adjustTime(seconds: number) {
   if (!started.value || preparing.value || finished.value) return;
@@ -765,7 +788,8 @@ async function restart() {
       )
     ).data;
   } catch (failure) {
-    error.value = failure instanceof Error ? failure.message : 'Не удалось открыть актуальный план.';
+    if (!clearUnavailablePractice(failure))
+      error.value = failure instanceof Error ? failure.message : 'Не удалось открыть актуальный план.';
   }
   draft(true);
 }
@@ -774,6 +798,7 @@ watch(mode, (value) => {
 });
 onMounted(async () => {
   let stored: StoredDraft | null = null;
+  let accessLost = false;
   try {
     for (const candidate of [key, workspaceKey, legacyKey]) {
       const raw = localStorage.getItem(candidate);
@@ -795,9 +820,11 @@ onMounted(async () => {
       )
     ).data;
   } catch (failure) {
-    error.value = failure instanceof Error ? failure.message : 'Не удалось открыть занятие.';
+    accessLost = clearUnavailablePractice(failure);
+    if (!accessLost) error.value = failure instanceof Error ? failure.message : 'Не удалось открыть занятие.';
   }
   try {
+    if (accessLost) return;
     if (stored?.sessionId && !props.publicToken) {
       const remote = (await api<{ data: ExecutionSession }>(`/api/executions/${stored.sessionId}`)).data;
       if (
@@ -830,10 +857,11 @@ onMounted(async () => {
       if (!started.value) metronome.value.automator.enabled = false;
     }
   } catch (failure) {
-    error.value =
-      failure instanceof Error
-        ? failure.message
-        : 'Не удалось сверить прежнюю сессию. Прогресс на устройстве сохранён.';
+    if (!clearUnavailablePractice(failure))
+      error.value =
+        failure instanceof Error
+          ? failure.message
+          : 'Не удалось сверить прежнюю сессию. Прогресс на устройстве сохранён.';
   } finally {
     loading.value = false;
     if (!disposed) {

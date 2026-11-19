@@ -7,11 +7,39 @@ use App\Modules\Catalog\PublicApi\PoseFacts;
 use App\Modules\Practices\Actions\PracticeEditor;
 use App\Modules\Practices\Services\DocumentSharing;
 use App\Modules\Practices\Services\ExecutionParameters;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class ExecutionDocuments
 {
     public function __construct(private WorkspaceContext $workspace, private PracticeEditor $editor, private DocumentSharing $sharing) {}
+
+    public function authorizeSession(string $id, bool $lock = false): void
+    {
+        $this->sharing->access($id, $lock);
+    }
+
+    /** Batch access checks for personal execution history. */
+    public function accessibleIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $workspaceId = $this->workspace->id();
+        $userId = $this->workspace->userId();
+
+        return DB::table('practice_documents as documents')->whereIn('documents.id', $ids)
+            ->where(function (Builder $query) use ($workspaceId, $userId) {
+                $query->where('documents.workspace_id', $workspaceId)
+                    ->orWhere(function (Builder $query) use ($userId) {
+                        $query->whereNull('documents.archived_at')->whereExists(function (Builder $share) use ($userId) {
+                            $share->selectRaw('1')->from('practice_document_shares')
+                                ->whereColumn('document_id', 'documents.id')->where('recipient_user_id', $userId)
+                                ->whereNull('revoked_at');
+                        });
+                    });
+            })->pluck('documents.id')->all();
+    }
 
     public function read(string $id): array
     {

@@ -36,6 +36,12 @@ class RecoveryDelivery
             throw ValidationException::withMessages(['email' => 'Восстановление по почте недоступно. Откройте страницу восстановления, чтобы посмотреть доступные варианты.']);
         }
 
-        return $next($request);
+        $response = $next($request);
+        if ($request->is('reset-password/*')) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+        }
+
+        return $response;
     }
 }

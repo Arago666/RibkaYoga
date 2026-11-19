@@ -11,6 +11,8 @@ use Illuminate\Validation\Rule;
 
 class SessionController
 {
+    private const HISTORY_COLUMNS = ['id', 'document_id', 'title', 'mode', 'status', 'active_seconds', 'started_at', 'timezone'];
+
     public function __construct(private WorkspaceContext $workspace, private ExecutionDocuments $documents) {}
 
     private function owned()
@@ -23,6 +25,29 @@ class SessionController
         return [...(array) $row, 'plan' => json_decode($row->plan, true), 'progress' => json_decode($row->progress, true)];
     }
 
+    private function authorizePlan(object $row, bool $lock = false): void
+    {
+        if ($row->document_id !== null) {
+            $this->documents->authorizeSession($row->document_id, $lock);
+        }
+    }
+
+    private function readableDocuments(array $rows): array
+    {
+        $ids = array_values(array_unique(array_filter(array_column($rows, 'document_id'))));
+        $readable = [];
+        foreach (array_chunk($ids, 250) as $chunk) {
+            $readable += array_fill_keys($this->documents->accessibleIds($chunk), true);
+        }
+
+        return $readable;
+    }
+
+    private function historyTitle(object $row, array $readable): string
+    {
+        return $row->document_id === null || isset($readable[$row->document_id]) ? $row->title : 'Практика без доступа';
+    }
+
     public function plan(string $id)
     {
         return response()->json(['data' => $this->documents->plan($id)]);
@@ -32,6 +57,7 @@ class SessionController
     {
         $row = $this->owned()->where('id', $id)->first();
         abort_unless($row, 404);
+        $this->authorizePlan($row);
 
         return response()->json(['data' => $this->data($row)]);
     }
@@ -43,6 +69,7 @@ class SessionController
             $existing = DB::table('practice_execution_sessions')->where('id', $input['id'])->lockForUpdate()->first();
             if ($existing) {
                 abort_unless((int) $existing->user_id === $this->workspace->userId() && $existing->workspace_id === $this->workspace->id() && $existing->document_id === $input['document_id'], 409);
+                $this->authorizePlan($existing, lock: true);
 
                 return $this->data($existing);
             }
@@ -64,6 +91,7 @@ class SessionController
         $row = DB::transaction(function () use ($id, $input) {
             $row = $this->owned()->where('id', $id)->lockForUpdate()->first();
             abort_unless($row, 404);
+            $this->authorizePlan($row, lock: true);
             if (in_array($row->status, ['completed', 'interrupted'], true)) {
                 return $this->data($row);
             }
@@ -113,29 +141,45 @@ class SessionController
         if (! empty($input['days'])) {
             $query->where('started_at', '>=', Carbon::now($tz)->startOfDay()->subDays((int) $input['days'] - 1)->utc());
         }
-        $rows = (clone $query)->orderByDesc('started_at')->limit(1000)->get();
+        $rows = (clone $query)->orderByDesc('started_at')->limit(1000)->get(self::HISTORY_COLUMNS);
+        $readable = $this->readableDocuments($rows->all());
+        $history = $rows->map(function (object $row) use ($readable) {
+            $title = $this->historyTitle($row, $readable);
+            $result = (array) $row;
+            unset($result['document_id']);
+
+            return array_replace($result, ['title' => $title]);
+        });
         $calendar = [];
         $anatomy = [];
         $unclassified = 0;
-        foreach ((clone $query)->orderBy('id')->cursor() as $row) {
-            $date = Carbon::parse($row->started_at)->timezone($tz)->format('Y-m-d');
-            $calendar[$date] = ($calendar[$date] ?? 0) + (int) $row->active_seconds;
-            $plan = json_decode($row->plan, true);
-            $progress = json_decode($row->progress, true);
-            foreach ($plan['steps'] as $i => $step) {
-                $seconds = (int) ($progress['seconds_by_step'][$i] ?? 0);
-                if (! $step['anatomy']) {
-                    $unclassified += $seconds;
+        foreach ((clone $query)->orderBy('id')->cursor()->chunk(250) as $batch) {
+            $readable = $this->readableDocuments($batch->all());
+            foreach ($batch as $row) {
+                $date = Carbon::parse($row->started_at)->timezone($tz)->format('Y-m-d');
+                $calendar[$date] = ($calendar[$date] ?? 0) + (int) $row->active_seconds;
+                $progress = json_decode($row->progress, true);
+                if ($row->document_id !== null && ! isset($readable[$row->document_id])) {
+                    $unclassified += array_sum($progress['seconds_by_step'] ?? []);
+
+                    continue;
                 }
-                foreach ($step['anatomy'] as $zone) {
-                    $key = $zone['key'] ?? $zone['id'] ?? $zone['name'];
-                    $anatomy[$key] ??= ['name' => $zone['name'], 'seconds' => 0];
-                    $anatomy[$key]['seconds'] += $seconds;
+                $plan = json_decode($row->plan, true);
+                foreach ($plan['steps'] as $i => $step) {
+                    $seconds = (int) ($progress['seconds_by_step'][$i] ?? 0);
+                    if (! $step['anatomy']) {
+                        $unclassified += $seconds;
+                    }
+                    foreach ($step['anatomy'] as $zone) {
+                        $key = $zone['key'] ?? $zone['id'] ?? $zone['name'];
+                        $anatomy[$key] ??= ['name' => $zone['name'], 'seconds' => 0];
+                        $anatomy[$key]['seconds'] += $seconds;
+                    }
                 }
             }
         }
 
-        return response()->json(['data' => $rows->map(fn ($row) => $this->data($row)), 'summary' => ['sessions' => (clone $query)->count(), 'completed' => (clone $query)->where('status', 'completed')->count(), 'seconds' => (clone $query)->sum('active_seconds'), 'calendar' => $calendar, 'anatomy' => array_values($anatomy), 'unclassified_seconds' => $unclassified, 'timezone' => $tz, 'limit' => 1000]]);
+        return response()->json(['data' => $history, 'summary' => ['sessions' => (clone $query)->count(), 'completed' => (clone $query)->where('status', 'completed')->count(), 'seconds' => (clone $query)->sum('active_seconds'), 'calendar' => $calendar, 'anatomy' => array_values($anatomy), 'unclassified_seconds' => $unclassified, 'timezone' => $tz, 'limit' => 1000]]);
     }
 
     public function export()
@@ -144,9 +188,13 @@ class SessionController
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['Название', 'Режим', 'Статус', 'Начало UTC', 'Активные секунды', 'Часовой пояс'], ',', '"', '');
-            foreach ($this->owned()->orderBy('started_at')->cursor() as $row) {
-                $title = preg_match('/^[=+@\-]/u', $row->title) ? "'".$row->title : $row->title;
-                fputcsv($out, [$title, $row->mode, $row->status, $row->started_at, $row->active_seconds, $row->timezone], ',', '"', '');
+            foreach ($this->owned()->select(self::HISTORY_COLUMNS)->orderBy('started_at')->cursor()->chunk(250) as $batch) {
+                $readable = $this->readableDocuments($batch->all());
+                foreach ($batch as $row) {
+                    $title = $this->historyTitle($row, $readable);
+                    $title = preg_match('/^[=+@\-]/u', $title) ? "'".$title : $title;
+                    fputcsv($out, [$title, $row->mode, $row->status, $row->started_at, $row->active_seconds, $row->timezone], ',', '"', '');
+                }
             }
             fclose($out);
         }, 'ribkayoga-practice-history.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'private, no-store']);

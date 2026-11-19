@@ -7,6 +7,10 @@ import AppShell from '@/shared/AppShell.vue';
 import { api } from '@/shared/api';
 import BodyCoverage from '../BodyCoverage.vue';
 import type { ExecutionSession } from '../types';
+type HistoryEntry = Pick<
+  ExecutionSession,
+  'id' | 'title' | 'mode' | 'status' | 'started_at' | 'active_seconds'
+>;
 interface Summary {
   sessions: number;
   completed: number;
@@ -16,7 +20,7 @@ interface Summary {
   unclassified_seconds: number;
   limit: number;
 }
-const rows = ref<ExecutionSession[]>([]),
+const rows = ref<HistoryEntry[]>([]),
   summary = ref<Summary | null>(null),
   days = ref('30'),
   error = ref(''),
@@ -26,7 +30,7 @@ async function load() {
   loading.value = true;
   error.value = '';
   try {
-    const data = await api<{ data: ExecutionSession[]; summary: Summary }>(
+    const data = await api<{ data: HistoryEntry[]; summary: Summary }>(
       `/api/executions?timezone=${encodeURIComponent(timezone)}${days.value ? `&days=${days.value}` : ''}`,
     );
     rows.value = data.data;

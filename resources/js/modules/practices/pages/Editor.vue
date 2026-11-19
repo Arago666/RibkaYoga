@@ -27,7 +27,7 @@ import {
   RefreshCw,
   Bookmark,
   Brackets,
-  UserPlus,
+  Share2,
   Timer,
 } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
@@ -46,7 +46,7 @@ import FragmentPicker, {
 } from '../components/FragmentPicker.vue';
 import SaveRangeDialog from '../components/SaveRangeDialog.vue';
 import { executionParameters, type ExecutionParameters } from '../types';
-import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+import PracticeShareDialog from '../components/PracticeShareDialog.vue';
 const sharingOpen = ref(false);
 import { useEditor } from '../composables/useEditor';
 import type { PaletteDragPoint } from '../composables/usePaletteDrag';
@@ -1728,14 +1728,6 @@ onBeforeUnmount(() => {
               Практиковать
             </button>
             <button
-              v-if="!rowMode && !embedded"
-              class="btn btn-secondary"
-              :disabled="saving || pending > 0 || dirty"
-              @click="sharingOpen = true"
-            >
-              <UserPlus :size="16" />Дать доступ
-            </button>
-            <button
               v-if="!rowMode"
               class="btn btn-secondary mobile-print"
               :disabled="pending > 0 || navigating"
@@ -1744,6 +1736,17 @@ onBeforeUnmount(() => {
               <Printer :size="19" />Печать практики
             </button>
           </ResponsivePanel>
+          <button
+            v-if="!rowMode && !embedded"
+            type="button"
+            class="btn btn-secondary editor-share"
+            :disabled="saving || pending > 0 || dirty"
+            aria-label="Поделиться"
+            title="Поделиться"
+            @click="sharingOpen = true"
+          >
+            <Share2 :size="17" /><span>Поделиться</span>
+          </button>
           <button class="btn btn-secondary" :disabled="saving || pending > 0 || locked" @click="editor.save">
             <Save :size="16" />Сохранить</button
           ><button
@@ -2434,11 +2437,12 @@ onBeforeUnmount(() => {
         </button></template
       >
     </Modal>
-    <DocumentSharingDialog
+    <PracticeShareDialog
       v-if="doc && !rowMode && !embedded"
       :open="sharingOpen"
       :document-id="doc.id"
       :title="doc.title"
+      :revision="doc.revision"
       @close="sharingOpen = false"
     />
   </AppShell>
@@ -3197,6 +3201,14 @@ onBeforeUnmount(() => {
   .editor-actions :deep(.responsive-panel-trigger > span) {
     display: none;
   }
+  .editor-actions > .editor-share {
+    flex: none;
+    width: 48px;
+    padding: 0;
+  }
+  .editor-share span {
+    display: none;
+  }
   .desktop-print {
     display: none;
   }
@@ -3290,7 +3302,7 @@ onBeforeUnmount(() => {
   }
 }
 @media screen and (max-width: 370px) {
-  .editor-actions > .btn svg {
+  .editor-actions > .btn:not(.editor-share) svg {
     display: none;
   }
 }

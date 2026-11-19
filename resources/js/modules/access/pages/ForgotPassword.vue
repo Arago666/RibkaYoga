@@ -53,6 +53,10 @@ const form = useForm({ email: '' });
         {{ form.processing ? 'Отправляем…' : 'Получить ссылку' }}<ArrowRight :size="19" />
       </button>
     </form>
+    <p v-if="recoveryAvailable && supportUrl && (status || form.errors.email)">
+      Не получилось восстановить доступ?
+      <a :href="supportUrl" rel="noreferrer">Напишите в поддержку</a>
+    </p>
     <a v-else-if="supportUrl" :href="supportUrl" class="btn btn-primary login-submit" rel="noreferrer">
       Связаться с поддержкой<ArrowRight :size="19" />
     </a>

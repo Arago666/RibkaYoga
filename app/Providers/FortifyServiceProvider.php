@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Models\User;
 use App\Modules\Access\Actions\RegisterUser;
 use App\Modules\Access\Actions\ResetUserPassword;
+use App\Modules\Access\Http\PasswordRecoveryController;
 use App\Modules\Access\Models\WorkspaceMember;
 use App\Modules\Access\RecoveryDelivery;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,12 +18,14 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
 class FortifyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->singleton(LogoutResponse::class, \App\Modules\Access\Http\LogoutResponse::class);
+        $this->app->bind(PasswordResetLinkController::class, PasswordRecoveryController::class);
     }
 
     public function boot(): void
@@ -35,6 +39,10 @@ class FortifyServiceProvider extends ServiceProvider
             'supportUrl' => RecoveryDelivery::supportUrl(),
         ]));
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('access/ResetPassword', ['token' => $request->route('token'), 'email' => $request->query('email', '')]));
+        ResetPassword::createUrlUsing(fn (User $user, string $token) => rtrim(config('app.url'), '/').route('password.reset', [
+            'token' => $token,
+            'email' => $user->getEmailForPasswordReset(),
+        ], false));
         Fortify::createUsersUsing(RegisterUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::authenticateUsing(function (Request $request): ?User {

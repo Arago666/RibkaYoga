@@ -18,7 +18,7 @@ import {
   ChevronRight,
   CalendarDays,
   X,
-  UserPlus,
+  Share2,
   LayoutGrid,
   List,
   Play,
@@ -30,7 +30,7 @@ import PageHeading from '@/shared/PageHeading.vue';
 import Modal from '@/shared/Modal.vue';
 import { api } from '@/shared/api';
 import { emptyRow, uid, type Cell } from '../types';
-import DocumentSharingDialog from '../components/DocumentSharingDialog.vue';
+import PracticeShareDialog from '../components/PracticeShareDialog.vue';
 import PracticeCategoryDialog from '../components/PracticeCategoryDialog.vue';
 import PracticeCategoryFilter from '../components/PracticeCategoryFilter.vue';
 import PracticeFolders from '../components/PracticeFolders.vue';
@@ -621,7 +621,9 @@ async function saveName() {
               <Link :href="editUrl(item)">Редактировать</Link>
               <button @click="openName(item, 'rename')">Переименовать</button>
               <button v-if="!rowTab" :disabled="busy" @click="duplicate(item)">Дублировать</button>
-              <button v-if="!rowTab" @click="sharingItem = item">Дать доступ</button>
+              <button v-if="!rowTab" type="button" @click="sharingItem = item">
+                <Share2 :size="16" />Поделиться
+              </button>
               <button v-if="tab === 'practices'" @click="openName(item, 'template')">
                 Сохранить как шаблон
               </button>
@@ -899,10 +901,13 @@ async function saveName() {
       ></Modal
     >
   </AppShell>
-  <DocumentSharingDialog
-    :open="Boolean(sharingItem)"
-    :document-id="sharingItem?.id || ''"
-    :title="sharingItem?.title"
+  <PracticeShareDialog
+    v-if="sharingItem"
+    :key="sharingItem.id"
+    open
+    :document-id="sharingItem.id"
+    :title="sharingItem.title"
+    :revision="sharingItem.revision"
     @close="sharingItem = null"
   />
 </template>
