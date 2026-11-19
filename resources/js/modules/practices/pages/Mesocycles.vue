@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ResponsivePanel from '@/shared/ResponsivePanel.vue';
 import AppSelect from '@/shared/AppSelect.vue';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { CalendarDays, Plus, BookOpen } from '@lucide/vue';
 import AppShell from '@/shared/AppShell.vue';
@@ -30,7 +30,19 @@ const result = ref<Page<Item> | null>(null),
   folderId = ref(params.get('folder') || '');
 const folders = ref<InstanceType<typeof PracticeFolders> | null>(null),
   assigning = ref<Item | null>(null),
-  addOpen = ref(false);
+  practicePickerOpen = ref(false),
+  pickerError = ref('');
+const folderPath = computed(() => folders.value?.breadcrumbs ?? []);
+const currentFolder = computed(() => folderPath.value.at(-1));
+const practiceAction = computed(() => (folderId.value ? 'Переместить практику сюда' : 'Копировать практику'));
+const breadcrumbs = computed(() => [
+  { label: 'Программы и циклы', href: folderId.value ? folderUrl() : undefined },
+  ...(folderPath.value.length
+    ? folderPath.value.map((folder) => ({ label: folder.name, href: folderUrl(folder.id) }))
+    : folderId.value
+      ? [{ label: 'Папка' }]
+      : []),
+]);
 const createOpen = ref(false),
   title = ref(''),
   theme = ref(''),
@@ -38,6 +50,12 @@ const createOpen = ref(false),
   operationKey = ref(uid()),
   busy = ref(false);
 let serial = 0;
+function folderUrl(id = '') {
+  const params = new URLSearchParams();
+  if (id) params.set('folder', id);
+  if (type.value !== 'all') params.set('type', type.value);
+  return params.size ? `/mesocycles?${params}` : '/mesocycles';
+}
 async function load() {
   const version = ++serial;
   loading.value = true;
@@ -84,9 +102,10 @@ function openCreate() {
   createOpen.value = true;
 }
 async function assignToCurrentFolder(item: ProgramItem) {
-  if (!folderId.value) return;
+  const destination = folderId.value;
+  if (!destination) return;
   const folder = (await api<{ data: { id: string; revision: number }[] }>('/api/program-folders')).data.find(
-    (f) => f.id === folderId.value,
+    (folder) => folder.id === destination,
   );
   if (!folder) throw new Error('Папка недоступна. Обновите список.');
   await api(`/api/program-folders/${folder.id}/items`, {
@@ -130,25 +149,30 @@ function drag(event: DragEvent, item: Item) {
   event.dataTransfer?.setData('application/ribka-document', JSON.stringify(item));
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'link';
 }
-async function addPractice(item: PracticeChoice) {
+function openPracticePicker() {
+  pickerError.value = '';
+  practicePickerOpen.value = true;
+}
+async function applyPracticeAction(item: PracticeChoice) {
   if (busy.value) return;
   busy.value = true;
-  error.value = '';
+  pickerError.value = '';
   try {
-    if (folderId.value) await assignToCurrentFolder({ ...item, type: 'practice' });
-    else {
+    if (!folderId.value) {
       const copy = await api<{ data: { id: string } }>(`/api/practices/${item.id}/duplicate`, {
         method: 'POST',
         body: JSON.stringify({ expected_revision: item.revision }),
       });
+      practicePickerOpen.value = false;
       router.visit(`/practices/${copy.data.id}/edit`);
       return;
     }
-    addOpen.value = false;
+    await assignToCurrentFolder({ ...item, type: 'practice' });
+    practicePickerOpen.value = false;
     await load();
     await folders.value?.refresh();
   } catch (e) {
-    error.value = failure(e);
+    pickerError.value = failure(e);
   } finally {
     busy.value = false;
   }
@@ -202,7 +226,7 @@ onMounted(load);
 </script>
 <template>
   <Head title="Программы и циклы" />
-  <AppShell section="practices">
+  <AppShell section="practices" :breadcrumbs="breadcrumbs">
     <PageHeading
       eyebrow="ПОСЛЕДОВАТЕЛЬНОСТЬ ЗАНЯТИЙ"
       title="Программы и циклы"
@@ -210,7 +234,9 @@ onMounted(load);
     >
       <div class="program-header-actions">
         <button class="btn btn-primary" @click="openCreate"><Plus :size="18" />Создать мезоцикл</button
-        ><button class="btn btn-secondary" @click="addOpen = true">Добавить практику</button>
+        ><button class="btn btn-secondary" :disabled="busy" @click="openPracticePicker">
+          {{ practiceAction }}
+        </button>
       </div>
     </PageHeading>
     <PracticeNavigation active="programs" />
@@ -223,8 +249,15 @@ onMounted(load);
       @changed="load"
     />
     <div class="folder-context">
-      <h2>{{ folderId ? 'Документы папки' : 'Документы без папки' }}</h2>
-      <p v-if="!folderId" class="muted">После добавления в папку документ остаётся доступен внутри неё.</p>
+      <h2>
+        {{
+          currentFolder
+            ? `Документы папки «${currentFolder.name}»`
+            : folderId
+              ? 'Документы папки'
+              : 'Документы без папки'
+        }}
+      </h2>
     </div>
     <form
       class="card cycle-filters"
@@ -263,7 +296,7 @@ onMounted(load);
               Убрать из этой папки</button
             ><Link v-if="!item.archived_at" :href="itemUrl(item)">Редактировать</Link
             ><button :disabled="busy" @click="changeArchive(item)">
-              {{ item.archived_at ? 'Восстановить' : 'Удалить в архив' }}
+              {{ item.archived_at ? 'Восстановить' : 'Отправить в архив' }}
             </button></ActionMenu
           >
         </div>
@@ -277,10 +310,13 @@ onMounted(load);
     </div>
     <div v-else class="empty-state">
       <h2>{{ archive === 'archived' ? 'В архиве пока пусто' : 'Здесь пока нет документов' }}</h2>
-      <p>Перетащите последовательность или мезоцикл на папку. Также можно добавить через меню «⋮».</p>
-      <button v-if="folderId" class="btn btn-primary" @click="addOpen = true">
-        Добавить практику в папку
-      </button>
+      <p v-if="archive !== 'archived'">
+        {{
+          folderId
+            ? 'Сюда можно переместить существующую практику или создать новый мезоцикл.'
+            : 'Документы, распределённые по папкам, доступны внутри этих папок.'
+        }}
+      </p>
     </div>
     <div v-if="result && result.last_page > 1" class="cycle-filters">
       <button
@@ -306,6 +342,9 @@ onMounted(load);
     </div>
     <Modal :open="createOpen" title="Новый мезоцикл" @close="!busy && (createOpen = false)"
       ><form id="cycle-create" @submit.prevent="create">
+        <p v-if="currentFolder" class="muted">
+          Место создания · {{ folderPath.map((folder) => folder.name).join(' / ') }}
+        </p>
         <p class="muted">
           Пять занятий на месяц по умолчанию. Количество можно изменить; каждое занятие создаётся с пятью
           пустыми блоками.
@@ -324,7 +363,7 @@ onMounted(load);
       <template #footer
         ><button class="btn btn-secondary" :disabled="busy" @click="createOpen = false">Отмена</button
         ><button class="btn btn-primary" form="cycle-create" type="submit" :disabled="busy || !title.trim()">
-          Создать
+          Создать мезоцикл
         </button></template
       ></Modal
     >
@@ -342,16 +381,20 @@ onMounted(load);
       ></Modal
     >
     <PracticePicker
-      :external-error="error"
-      :open="addOpen"
+      :external-error="pickerError"
+      :open="practicePickerOpen"
       :busy="busy"
+      :title="practiceAction"
+      :action-label="folderId ? 'Переместить' : 'Копировать'"
       :description="
         folderId
-          ? 'Выберите существующую практику для этой папки. Исходный документ сохранится.'
-          : 'Выберите существующую практику. Создадим отдельную редактируемую копию.'
+          ? currentFolder
+            ? `Выберите практику для перемещения в «${folderPath.map((folder) => folder.name).join(' / ')}».`
+            : 'Выберите практику для перемещения в открытую папку.'
+          : 'Выберите практику. Откроется отдельная копия для редактирования.'
       "
-      @close="addOpen = false"
-      @choose="addPractice"
+      @close="practicePickerOpen = false"
+      @choose="applyPracticeAction"
     />
   </AppShell>
 </template>
@@ -439,14 +482,7 @@ onMounted(load);
 .folder-context h2 {
   font-size: 19px;
   font-weight: 650;
-}
-.folder-context p {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.folder-context > .btn {
-  margin: 0 0 12px -14px;
+  overflow-wrap: anywhere;
 }
 .cycle-grid.in-folder {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
@@ -506,9 +542,6 @@ onMounted(load);
   }
   .cycle-filters.card > .btn {
     grid-column: 1 / -1;
-  }
-  .folder-context p {
-    font-size: 14px;
   }
 }
 @media (max-width: 600px) {

@@ -97,7 +97,8 @@ const insertVariant = initial.searchParams.get('insert_variant');
 const foldersOpen = ref(false);
 const categoryPractice = ref<PracticeListItem | null>(null);
 const importOpen = ref(false);
-const addPracticeOpen = ref(false);
+const copyOpen = ref(false);
+const copyError = ref('');
 const selection = ref(new Map<string, PracticeListItem>());
 const includeCycleDocuments = ref(initial.searchParams.get('include_cycle_documents') === '1');
 function categoriesFromUrl(params: URLSearchParams) {
@@ -135,9 +136,10 @@ const page = ref(Math.max(1, Number(initial.searchParams.get('page')) || 1)),
 const createOpen = ref(false),
   createTitle = ref(''),
   createTheme = ref(''),
-  createMode = ref<'blank' | 'template'>('blank'),
+  createMode = ref<'blank' | 'example' | 'template'>('blank'),
   createKind = ref<'practice' | 'template' | 'row' | 'transition'>('practice'),
-  templateId = ref(''),
+  chosenTemplate = ref<PracticeChoice | null>(null),
+  templatePickerOpen = ref(false),
   createError = ref('');
 const nameAction = ref<'rename' | 'template' | null>(null),
   namedItem = ref<PracticeListItem | null>(null),
@@ -158,6 +160,13 @@ const kind = computed(() =>
         : 'practice',
 );
 const createIsRow = computed(() => createKind.value === 'row' || createKind.value === 'transition');
+const fromExample = computed(() => createKind.value === 'practice' && createMode.value === 'example');
+const fromTemplate = computed(() => createKind.value === 'practice' && createMode.value === 'template');
+const canCreate = computed(
+  () =>
+    !busy.value &&
+    (fromExample.value || (createTitle.value.trim() && (!fromTemplate.value || chosenTemplate.value))),
+);
 const createLabel = computed(() =>
   rowTab.value
     ? tab.value === 'transitions'
@@ -339,7 +348,7 @@ function canLaunch(item: PracticeListItem) {
     (item.filled_cell_count ?? item.preview_cells?.length ?? 0) > 0
   );
 }
-function openCreate(template?: PracticeListItem, asTemplate = false) {
+function openCreate(template?: PracticeChoice, asTemplate = false) {
   createOpen.value = true;
   createKind.value = asTemplate
     ? 'template'
@@ -348,42 +357,72 @@ function openCreate(template?: PracticeListItem, asTemplate = false) {
         ? 'transition'
         : 'row'
       : 'practice';
-  createTitle.value = template ? `${template.title} — практика` : '';
-  createTheme.value = template?.theme || '';
-  createMode.value = template ? 'template' : 'blank';
-  templateId.value = template?.id || '';
+  createTitle.value = '';
+  createTheme.value = '';
+  createMode.value = 'blank';
+  chosenTemplate.value = null;
+  templatePickerOpen.value = false;
   createError.value = '';
+  if (template) chooseTemplate(template);
+}
+function templateTitle(template: PracticeChoice) {
+  const suffix = ' — практика';
+  return (
+    Array.from(template.title)
+      .slice(0, 160 - suffix.length)
+      .join('') + suffix
+  );
+}
+function chooseTemplate(template: PracticeChoice) {
+  const previous = chosenTemplate.value;
+  if (!createTitle.value || (previous && createTitle.value === templateTitle(previous))) {
+    createTitle.value = templateTitle(template);
+  }
+  if (!createTheme.value || (previous && createTheme.value === previous.theme)) {
+    createTheme.value = template.theme || '';
+  }
+  chosenTemplate.value = template;
+  createMode.value = 'template';
+  createError.value = '';
+  templatePickerOpen.value = false;
 }
 async function create() {
-  if (busy.value || !createTitle.value.trim()) return;
+  if (!canCreate.value) return;
   busy.value = true;
   createError.value = '';
+  const example = fromExample.value;
   const transitionKey = uid();
   const isRow = createKind.value === 'row' || createKind.value === 'transition';
   try {
     const response = await api<{ data: { id: string } }>(isRow ? '/api/row-templates' : '/api/practices', {
       method: 'POST',
-      body: JSON.stringify({
-        title: createTitle.value.trim(),
-        theme: createTheme.value.trim() || null,
-        ...(isRow
-          ? {
-              kind: createKind.value,
-              cells: emptyRow(createKind.value === 'transition' ? 2 : 6).cells.map((cell) => ({
-                ...cell,
-                group_key: createKind.value === 'transition' ? transitionKey : null,
-              })),
-            }
+      body: JSON.stringify(
+        example
+          ? { example: 'first-practice' }
           : {
-              kind: createKind.value,
-              ...(createMode.value === 'template' && templateId.value
-                ? { template_id: templateId.value }
-                : {}),
-            }),
-      }),
+              title: createTitle.value.trim(),
+              theme: createTheme.value.trim() || null,
+              ...(isRow
+                ? {
+                    kind: createKind.value,
+                    cells: emptyRow(createKind.value === 'transition' ? 2 : 6).cells.map((cell) => ({
+                      ...cell,
+                      group_key: createKind.value === 'transition' ? transitionKey : null,
+                    })),
+                  }
+                : {
+                    kind: createKind.value,
+                    ...(fromTemplate.value && chosenTemplate.value
+                      ? { template_id: chosenTemplate.value.id }
+                      : {}),
+                  }),
+            },
+      ),
     });
     createOpen.value = false;
-    router.visit(`/${isRow ? 'row-templates' : 'practices'}/${response.data.id}/edit`);
+    router.visit(
+      `/${isRow ? 'row-templates' : 'practices'}/${response.data.id}/${example ? 'preview' : 'edit'}`,
+    );
   } catch (failure) {
     createError.value = failureText(failure);
   } finally {
@@ -401,21 +440,25 @@ function dragDocument(event: DragEvent, item: PracticeListItem) {
   );
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'link';
 }
-async function addExistingPractice(item: PracticeChoice) {
-  await duplicate(item as PracticeListItem);
+function openCopy() {
+  copyError.value = '';
+  copyOpen.value = true;
 }
-async function duplicate(item: PracticeListItem) {
+async function duplicate(item: PracticeChoice) {
   if (busy.value) return;
   busy.value = true;
-  error.value = '';
+  const fromPicker = copyOpen.value;
+  const targetError = fromPicker ? copyError : error;
+  targetError.value = '';
   try {
     const response = await api<{ data: { id: string } }>(`/api/practices/${item.id}/duplicate`, {
       method: 'POST',
       body: JSON.stringify({ expected_revision: item.revision }),
     });
+    if (fromPicker) copyOpen.value = false;
     router.visit(`/practices/${response.data.id}/edit`);
   } catch (failure) {
-    error.value = failureText(failure);
+    targetError.value = failureText(failure);
   } finally {
     busy.value = false;
   }
@@ -505,11 +548,24 @@ async function saveName() {
 <template>
   <PracticeLaunchDialog :practice="launchingItem" @close="launchingItem = null" />
   <PracticePicker
-    :external-error="error"
-    :open="addPracticeOpen"
+    :external-error="copyError"
+    :open="copyOpen"
     :busy="busy"
-    @close="addPracticeOpen = false"
-    @choose="addExistingPractice"
+    title="Копировать практику"
+    description="Выберите практику. Откроется её независимая копия."
+    action-label="Создать копию"
+    @close="copyOpen = false"
+    @choose="duplicate"
+  />
+  <PracticePicker
+    :open="templatePickerOpen"
+    title="Выбрать шаблон практики"
+    description="Содержимое шаблона скопируется в новую практику."
+    source-kind="template"
+    action-label="Выбрать"
+    standalone
+    @close="templatePickerOpen = false"
+    @choose="chooseTemplate"
   />
   <PortableImportDialog :open="importOpen" @close="importOpen = false" />
   <PracticeCategoryDialog
@@ -534,12 +590,7 @@ async function saveName() {
           <Plus :size="19" /><span class="add-label-desktop">{{ createLabel }}</span
           ><span class="add-label-mobile">{{ tab === 'practices' ? 'Создать' : createLabel }}</span>
         </button>
-        <button
-          v-if="!rowTab"
-          class="btn btn-secondary"
-          aria-label="Копировать практику"
-          @click="addPracticeOpen = true"
-        >
+        <button v-if="!rowTab" class="btn btn-secondary" aria-label="Копировать практику" @click="openCopy">
           <Copy :size="18" /><span class="add-label-desktop">Копировать практику</span
           ><span class="add-label-mobile">Копировать</span>
         </button>
@@ -620,7 +671,9 @@ async function saveName() {
               </button>
               <Link :href="editUrl(item)">Редактировать</Link>
               <button @click="openName(item, 'rename')">Переименовать</button>
-              <button v-if="!rowTab" :disabled="busy" @click="duplicate(item)">Дублировать</button>
+              <button v-if="!rowTab" :disabled="busy" @click="duplicate(item)">
+                {{ tab === 'templates' ? 'Копировать шаблон' : 'Копировать практику' }}
+              </button>
               <button v-if="!rowTab" type="button" @click="sharingItem = item">
                 <Share2 :size="16" />Поделиться
               </button>
@@ -707,7 +760,7 @@ async function saveName() {
               :disabled="busy"
               @click="openCreate(item)"
             >
-              Создать практику <ArrowRight :size="17" />
+              Создать из шаблона <ArrowRight :size="17" />
             </button>
             <div v-else-if="canLaunch(item)" class="practice-card-actions">
               <button class="btn btn-primary" type="button" @click="launchingItem = item">
@@ -794,7 +847,7 @@ async function saveName() {
       </button>
     </div>
     <Modal
-      :open="createOpen"
+      :open="createOpen && !templatePickerOpen"
       :title="
         createKind === 'transition'
           ? 'Новая связка'
@@ -808,7 +861,28 @@ async function saveName() {
     >
       <form id="create-practice" class="practice-form" @submit.prevent="create">
         <div v-if="createError" class="error-banner" role="alert">{{ createError }}</div>
-        <div class="field">
+        <div v-if="createKind === 'practice'" class="field">
+          <label class="label" for="practice-create-source">Основа практики</label>
+          <AppSelect id="practice-create-source" v-model="createMode" class="select" :disabled="busy">
+            <option value="blank">Пустая практика</option>
+            <option value="example">Из готового примера</option>
+            <option value="template">Из моего шаблона</option>
+          </AppSelect>
+        </div>
+        <div v-if="fromTemplate" class="field">
+          <span class="label">Шаблон практики</span>
+          <button
+            class="btn btn-secondary template-choice"
+            type="button"
+            :disabled="busy"
+            @click="templatePickerOpen = true"
+          >
+            <LayoutTemplate :size="17" />
+            <span>{{ chosenTemplate?.title || 'Выбрать шаблон' }}</span>
+            <ArrowRight :size="17" />
+          </button>
+        </div>
+        <div v-if="!fromExample" class="field">
           <label class="label" for="practice-title">Название</label
           ><input
             id="practice-title"
@@ -820,7 +894,7 @@ async function saveName() {
             :placeholder="createIsRow ? 'Например, разминка для плеч' : 'Например, мягкая практика для спины'"
           />
         </div>
-        <div class="field">
+        <div v-if="!fromExample" class="field">
           <label class="label" for="practice-theme">Тема · необязательно</label
           ><input
             id="practice-theme"
@@ -839,22 +913,17 @@ async function saveName() {
                 ? 'Откроется строка с 6 пустыми ячейками. Добавьте асаны и настройте количество ячеек — готовую строку можно вставлять в практики.'
                 : createKind === 'template'
                   ? 'Шаблон сохранится отдельно. Созданные из него практики можно редактировать независимо.'
-                  : 'Названия блоков, количество строк и ячеек можно изменить в конструкторе.'
+                  : fromExample
+                    ? 'Откроется готовая практика из трёх асан, которую можно сразу начать или отредактировать.'
+                    : fromTemplate
+                      ? 'В новой практике редактируется независимая копия шаблона.'
+                      : 'Откроется конструктор с пятью пустыми блоками.'
           }}
         </p>
       </form>
       <template #footer
         ><button class="btn btn-secondary" :disabled="busy" @click="createOpen = false">Отмена</button
-        ><button
-          class="btn btn-primary"
-          type="submit"
-          form="create-practice"
-          :disabled="
-            busy ||
-            !createTitle.trim() ||
-            (createKind === 'practice' && createMode === 'template' && !templateId)
-          "
-        >
+        ><button class="btn btn-primary" type="submit" form="create-practice" :disabled="!canCreate">
           {{
             busy
               ? 'Создаём…'
@@ -862,7 +931,9 @@ async function saveName() {
                 ? 'Создать связку'
                 : createKind === 'row'
                   ? 'Создать строку'
-                  : 'Открыть конструктор'
+                  : fromExample
+                    ? 'Создать пример'
+                    : 'Открыть конструктор'
           }}
           <ArrowRight :size="17" /></button
       ></template>
@@ -1298,48 +1369,19 @@ async function saveName() {
   display: grid;
   gap: 18px;
 }
-.create-source {
-  margin: 0;
-  padding: 0;
-  border: 0;
+.template-choice {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
 }
-.source-options {
-  display: grid;
-  gap: 9px;
-  margin-top: 10px;
-}
-.source-options label {
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  padding: 15px;
-  border: 1px solid var(--line);
-  border-radius: var(--field-radius);
-  cursor: pointer;
-}
-.source-options label.chosen {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-}
-.source-options input {
-  accent-color: var(--accent);
-}
-.source-options svg {
-  color: var(--muted);
+.template-choice svg {
   flex: none;
 }
-.source-options span {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.source-options strong {
-  font-size: 0.86rem;
-  font-weight: 600;
-}
-.source-options small {
-  font-size: 0.77rem;
-  color: var(--muted);
+.template-choice span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .create-hint {
   font-size: 0.8rem;

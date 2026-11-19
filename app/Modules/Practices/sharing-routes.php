@@ -42,7 +42,8 @@ Route::get('/downloads/practice-pdf/{token}', [DocumentOutputController::class, 
     ->where('token', '[a-f0-9]{64}')->middleware('throttle:90,1')->name('practice-pdf.download');
 
 Route::middleware('web')->group(function () {
-    Route::get('/p/{token}', [PublicPublicationController::class, 'page'])->where('token', '[a-f0-9]{64}');
+    Route::get('/p/{token}', [PublicPublicationController::class, 'page'])->where('token', '[a-f0-9]{64}')->name('practice-publication.show');
+    Route::post('/p/{token}/copy-login', [PublicPublicationController::class, 'loginForCopy'])->where('token', '[a-f0-9]{64}')->middleware('throttle:30,1');
     Route::get('/p/{token}/run', [PublicPublicationController::class, 'run'])->where('token', '[a-f0-9]{64}');
     Route::prefix('api/published/{token}')->where(['token' => '[a-f0-9]{64}'])->group(function () {
         Route::get('/', [PublicPublicationController::class, 'show']);

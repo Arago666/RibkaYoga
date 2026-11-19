@@ -224,7 +224,9 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
       }),
     });
     picker.value = null;
-    notice.value = remove ? 'Практика убрана из этой категории.' : `Практика добавлена в «${category.name}».`;
+    notice.value = remove
+      ? `Практика убрана из категории «${category.name}».`
+      : `Практика добавлена в категорию «${category.name}».`;
     await load();
   } catch (error) {
     if (picker.value) pickerError.value = failure(error);
@@ -256,7 +258,7 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
         <Plus :size="17" /> Создать категорию
       </button>
       <button v-if="current" class="btn btn-primary" :disabled="busy" @click="openPicker(current)">
-        <Plus :size="17" /> Добавить практику
+        <Plus :size="17" /> Добавить в категорию
       </button>
       <div class="category-toolbar-menu">
         <ActionMenu v-if="!folderId && !archived" label="Действия с категориями">
@@ -313,9 +315,6 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
         <div v-else class="category-empty card">
           <span class="category-glyph"><FolderOpen :size="23" /></span>
           <p>В этой категории пока нет практик.</p>
-          <button class="btn btn-secondary" :disabled="busy" @click="openPicker(current)">
-            <Plus :size="17" /> Добавить практику
-          </button>
         </div>
         <nav v-if="details.last_page > 1" class="category-pagination" aria-label="Страницы категории">
           <Link v-if="pageNumber > 1" class="btn btn-secondary" :href="folderUrl(current.id, pageNumber - 1)">
@@ -363,8 +362,8 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
               <RotateCcw :size="16" /> Восстановить
             </button>
             <template v-else>
-              <button :disabled="busy" @click="openPicker(category)">
-                <FolderPlus :size="16" /> Добавить практику
+              <button v-if="category.documents_count" :disabled="busy" @click="openPicker(category)">
+                <FolderPlus :size="16" /> Добавить в категорию
               </button>
               <button :disabled="busy" @click="openName(category)">
                 <Pencil :size="16" /> Переименовать
@@ -397,13 +396,13 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
             class="category-rail-more"
           >
             <span class="category-glyph" aria-hidden="true"><ChevronRight :size="21" /></span>
-            Все практики
+            Все в категории
           </Link>
         </div>
         <div v-else-if="!archived" class="category-empty-shelf">
           <span>В этой категории пока пусто</span>
           <button type="button" class="btn btn-secondary" :disabled="busy" @click="openPicker(category)">
-            <Plus :size="16" /> Добавить практику
+            <Plus :size="16" /> Добавить в категорию
           </button>
         </div>
       </section>
@@ -470,8 +469,9 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
       v-if="picker"
       :key="picker.id"
       :open="true"
-      :title="`Добавить в «${picker.name}»`"
+      :title="`Добавить в категорию «${picker.name}»`"
       description="Выберите практику. Она останется в общем списке и в своих других категориях."
+      action-label="Добавить в категорию"
       standalone
       :exclude-folder="picker.id"
       :busy="busy"
@@ -622,9 +622,6 @@ async function assign(category: Category, practice: PracticeChoice, remove = fal
 .category-empty p {
   margin: 0;
   max-width: 52ch;
-}
-.category-empty .btn {
-  margin-top: 5px;
 }
 .category-name-field {
   display: grid;

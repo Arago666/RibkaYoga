@@ -85,7 +85,7 @@ onMounted(load);
       <p class="assignment-title">{{ practice.title }}</p>
       <p v-if="loading" class="muted" role="status">Загружаем категории…</p>
       <template v-else-if="categories?.length">
-        <p class="muted">Одну практику можно добавить в несколько категорий. Изменения сохраняются сразу.</p>
+        <p class="muted">Практика остаётся в общем списке. Изменения категорий сохраняются сразу.</p>
         <ul class="assignment-list" aria-label="Личные категории">
           <li v-for="category in categories" :key="category.id">
             <button

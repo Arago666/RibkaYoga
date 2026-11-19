@@ -83,7 +83,12 @@ onMounted(load);
         ><button class="btn btn-secondary" :disabled="!ready" @click="print">Печать / PDF</button
         ><button v-if="data.allow_copy && signedIn" class="btn btn-secondary" :disabled="busy" @click="copy">
           Создать копию в своём кабинете</button
-        ><Link v-else-if="data.allow_copy" class="btn btn-secondary" href="/login"
+        ><Link
+          v-else-if="data.allow_copy"
+          class="btn btn-secondary"
+          :href="`/p/${token}/copy-login`"
+          method="post"
+          as="button"
           >Войти для независимой копии</Link
         >
       </div>

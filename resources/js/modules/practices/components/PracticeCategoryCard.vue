@@ -86,17 +86,17 @@ const duration = computed(() => {
           :collision-padding="12"
         >
           <DropdownMenuItem class="category-action" @select="emit('categories')">
-            <FolderPlus :size="16" /> Категории практики
+            <FolderPlus :size="16" /> Добавить в категорию
           </DropdownMenuItem>
+          <DropdownMenuItem class="category-action" @select="emit('remove')">
+            <FolderMinus :size="16" /> Убрать из категории
+          </DropdownMenuItem>
+          <DropdownMenuSeparator class="category-action-separator" />
           <DropdownMenuItem as-child class="category-action">
             <Link :href="editUrl"><Pencil :size="16" /> Редактировать</Link>
           </DropdownMenuItem>
           <DropdownMenuItem class="category-action" @select="emit('duplicate')">
-            <Copy :size="16" /> Дублировать
-          </DropdownMenuItem>
-          <DropdownMenuSeparator class="category-action-separator" />
-          <DropdownMenuItem class="category-action" @select="emit('remove')">
-            <FolderMinus :size="16" /> Убрать из этой категории
+            <Copy :size="16" /> Копировать практику
           </DropdownMenuItem>
           <DropdownMenuItem class="category-action" @select="emit('archive')">
             <Archive :size="16" /> В архив

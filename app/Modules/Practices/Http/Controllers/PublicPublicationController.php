@@ -24,6 +24,20 @@ class PublicPublicationController
         return Inertia::render('practices/Published', ['token' => $token])->toResponse(request())->header('Cache-Control', 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow')->header('Referrer-Policy', 'no-referrer');
     }
 
+    public function loginForCopy(Request $request, string $token)
+    {
+        $publication = $this->publications->resolve($token);
+        abort_unless($publication->allow_copy, 403, 'Автор не разрешил создавать копию этой практики.');
+
+        $return = route('practice-publication.show', ['token' => $token], false);
+        if ($request->user()) {
+            return redirect()->to($return, 303);
+        }
+        redirect()->setIntendedUrl($return);
+
+        return redirect()->route('login', [], 303)->header('Referrer-Policy', 'no-referrer');
+    }
+
     public function run(string $token)
     {
         $this->publications->resolve($token);

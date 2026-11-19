@@ -8,6 +8,7 @@ export interface PracticeChoice {
   title: string;
   revision: number;
   kind?: string;
+  theme?: string | null;
 }
 const props = withDefaults(
   defineProps<{
@@ -19,10 +20,14 @@ const props = withDefaults(
     externalError?: string;
     standalone?: boolean;
     excludeFolder?: string;
+    actionLabel?: string;
+    sourceKind?: 'practice' | 'template';
   }>(),
   {
     title: 'Добавить практику',
     description: 'Выберите существующую последовательность. Будет создана независимая копия.',
+    actionLabel: 'Добавить',
+    sourceKind: 'practice',
   },
 );
 const emit = defineEmits<{ close: []; choose: [item: PracticeChoice] }>();
@@ -32,7 +37,7 @@ const query = ref(''),
   items = ref<PracticeChoice[]>([]),
   loading = ref(false),
   error = ref('');
-const kind = ref('practice');
+const kind = ref(props.sourceKind);
 let serial = 0;
 async function load() {
   const version = ++serial;
@@ -54,7 +59,7 @@ async function load() {
       lastPage.value = result.last_page;
     }
   } catch (e) {
-    if (version === serial) error.value = e instanceof Error ? e.message : 'Не удалось загрузить практики.';
+    if (version === serial) error.value = e instanceof Error ? e.message : 'Не удалось загрузить список.';
   } finally {
     if (version === serial) loading.value = false;
   }
@@ -65,7 +70,7 @@ watch(
     if (open) {
       query.value = '';
       page.value = 1;
-      kind.value = 'practice';
+      kind.value = props.sourceKind;
       void load();
     } else serial++;
   },
@@ -85,8 +90,8 @@ watch(
       <input
         v-model="query"
         class="input"
-        placeholder="Название практики"
-        aria-label="Поиск существующих практик"
+        :placeholder="kind === 'template' ? 'Название шаблона' : 'Название практики'"
+        :aria-label="kind === 'template' ? 'Поиск шаблонов практик' : 'Поиск существующих практик'"
       />
       <AppSelect
         v-if="templates"
@@ -105,13 +110,17 @@ watch(
     </form>
     <p v-if="externalError" class="error-banner" role="alert">{{ externalError }}</p>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
-    <p v-if="loading" role="status">Загружаем практики…</p>
+    <p v-if="loading" role="status">
+      {{ kind === 'template' ? 'Загружаем шаблоны…' : 'Загружаем практики…' }}
+    </p>
     <div v-else class="practice-options">
       <button v-for="item in items" :key="item.id" :disabled="busy" @click="emit('choose', item)">
         <span class="practice-option-title">{{ item.title }}</span
-        ><span class="practice-option-action">Добавить →</span>
+        ><span class="practice-option-action">{{ actionLabel }} →</span>
       </button>
-      <p v-if="!items.length" class="muted">Практик по этому запросу нет.</p>
+      <p v-if="!items.length && !error" class="muted">
+        {{ kind === 'template' ? 'Шаблонов по этому запросу нет.' : 'Практик по этому запросу нет.' }}
+      </p>
     </div>
     <div v-if="lastPage > 1" class="practice-search">
       <button

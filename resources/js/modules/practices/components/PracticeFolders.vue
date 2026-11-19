@@ -33,6 +33,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ changed: []; select: [id: string] }>();
 const items = ref<FolderItem[]>([]),
+  activeFolders = ref<FolderItem[]>([]),
   loading = ref(true),
   busy = ref(false),
   error = ref(''),
@@ -46,6 +47,7 @@ const endpoint = computed(() => (props.mode === 'program' ? 'program-folders' : 
 const hasSelection = computed(
   () => !!(props.mode === 'program' ? props.programItems.length : props.documents.length),
 );
+let latestLoad = 0;
 const visibleItems = computed(() =>
   props.mode !== 'program' || hasSelection.value || archived.value
     ? items.value
@@ -54,11 +56,11 @@ const visibleItems = computed(() =>
 function pathTo(id: string): FolderItem[] {
   const path: FolderItem[] = [];
   const seen = new Set<string>();
-  let current = items.value.find((folder) => folder.id === id);
+  let current = activeFolders.value.find((folder) => folder.id === id);
   while (current && !seen.has(current.id)) {
     seen.add(current.id);
     path.unshift(current);
-    current = items.value.find((folder) => folder.id === current?.parent_id);
+    current = activeFolders.value.find((folder) => folder.id === current?.parent_id);
   }
   return path;
 }
@@ -68,19 +70,28 @@ function startCreate(parent = props.selectedFolder) {
   creating.value = true;
 }
 async function load() {
+  const version = ++latestLoad;
   loading.value = true;
+  const showArchive = archived.value;
   try {
-    items.value = (
-      await api<{ data: FolderItem[] }>(`/api/${endpoint.value}?archived=${archived.value ? 1 : 0}`)
-    ).data;
+    const { data } = await api<{ data: FolderItem[] }>(
+      `/api/${endpoint.value}?archived=${showArchive ? 1 : 0}`,
+    );
+    if (version !== latestLoad) return;
+    items.value = data;
+    if (!showArchive && props.mode === 'program') activeFolders.value = data;
   } catch (e) {
-    error.value = failure(e);
+    if (version === latestLoad) error.value = failure(e);
   } finally {
-    loading.value = false;
+    if (version === latestLoad) loading.value = false;
   }
 }
 function failure(e: unknown) {
-  return e instanceof Error ? e.message : 'Не удалось изменить папку.';
+  return e instanceof Error
+    ? e.message
+    : props.mode === 'program'
+      ? 'Не удалось изменить папку.'
+      : 'Не удалось изменить категорию.';
 }
 function documentCount(folder: FolderItem) {
   const count = props.mode === 'program' ? folder.items_count || 0 : folder.documents_count || 0;
@@ -136,7 +147,10 @@ async function change(folder: FolderItem, values: Record<string, unknown>) {
   }
 }
 function rename(folder: FolderItem) {
-  const value = window.prompt('Название папки', folder.name);
+  const value = window.prompt(
+    props.mode === 'program' ? 'Название папки' : 'Название категории',
+    folder.name,
+  );
   if (value?.trim()) void change(folder, { name: value.trim() });
 }
 async function assign(folder: FolderItem, remove = false, dropped?: ProgramItem[]) {
@@ -163,9 +177,11 @@ async function assign(folder: FolderItem, remove = false, dropped?: ProgramItem[
       }),
     });
     await load();
-    notice.value = remove
-      ? 'Документ убран из папки. Сам документ сохранён.'
-      : `${props.mode === 'program' ? 'Перемещено' : 'Добавлено'} в «${folder.name}».`;
+    if (props.mode === 'program') {
+      notice.value = remove ? 'Документ убран из папки.' : `Перемещено в папку «${folder.name}».`;
+    } else {
+      notice.value = remove ? 'Состав категории обновлён.' : `Добавлено в категорию «${folder.name}».`;
+    }
     emit('changed');
   } catch (e) {
     error.value = failure(e);
@@ -190,7 +206,10 @@ function drop(event: DragEvent, folder: FolderItem) {
       return;
     void assign(folder, false, [value]);
   } catch {
-    error.value = 'Не удалось прочитать переносимый документ. Используйте меню карточки «Добавить в папку».';
+    error.value =
+      props.mode === 'program'
+        ? 'Не удалось перенести документ. Используйте действие «Переместить в папку».'
+        : 'Не удалось добавить практику. Используйте действие «Добавить в категорию».';
   }
 }
 function openFolder(folder: FolderItem) {
@@ -198,7 +217,7 @@ function openFolder(folder: FolderItem) {
   else emit('select', folder.id);
 }
 onMounted(load);
-defineExpose({ refresh: load });
+defineExpose({ refresh: load, breadcrumbs });
 </script>
 <template>
   <section
@@ -206,35 +225,25 @@ defineExpose({ refresh: load });
     :aria-busy="busy || loading"
     :aria-label="mode === 'program' ? 'Папки программ и циклов' : 'Категории практик'"
   >
-    <nav
-      v-if="mode === 'program' && !hasSelection && !archived"
-      class="folder-breadcrumbs"
-      aria-label="Путь к папке"
-    >
-      <button :aria-current="!selectedFolder ? 'page' : undefined" @click="emit('select', '')">
-        <Folder :size="16" />Программы и циклы
-      </button>
-      <template v-for="(folder, index) in breadcrumbs" :key="folder.id">
-        <span aria-hidden="true">/</span>
-        <button
-          :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined"
-          @click="emit('select', folder.id)"
-        >
-          {{ folder.name }}
-        </button>
-      </template>
-    </nav>
     <div class="folder-heading">
       <button class="btn btn-secondary" @click="startCreate()">
-        <Plus :size="17" />{{ mode === 'program' ? 'Создать папку' : 'Создать категорию' }}</button
-      ><ActionMenu label="Действия с папками"
+        <Plus :size="17" />{{
+          mode === 'category' ? 'Создать категорию' : selectedFolder ? 'Создать подпапку' : 'Создать папку'
+        }}</button
+      ><ActionMenu :label="mode === 'program' ? 'Действия с папками' : 'Действия с категориями'"
         ><button
           @click="
             archived = !archived;
             load();
           "
         >
-          {{ archived ? 'Показать активные' : 'Показать архив папок' }}
+          {{
+            archived
+              ? 'Показать активные'
+              : mode === 'program'
+                ? 'Показать архив папок'
+                : 'Показать архив категорий'
+          }}
         </button></ActionMenu
       >
     </div>
@@ -254,7 +263,7 @@ defineExpose({ refresh: load });
     <p v-if="hasSelection" class="muted">
       {{
         mode === 'program'
-          ? 'Выберите папку назначения. Документ будет перемещён из прежней папки.'
+          ? 'Выберите папку назначения. Документ переместится туда в разделе «Программы и циклы».'
           : 'Выберите категорию. Остальные категории документа сохранятся.'
       }}
     </p>
@@ -283,17 +292,19 @@ defineExpose({ refresh: load });
               :size="25"
               :stroke-width="1.5"
           /></span>
-          <ActionMenu :label="`Действия с папкой: ${folder.name}`"
+          <ActionMenu :label="`Действия с ${mode === 'program' ? 'папкой' : 'категорией'}: ${folder.name}`"
             ><button
               v-if="mode === 'program' && !hasSelection && !folder.archived_at"
               :disabled="busy"
               @click="startCreate(folder.id)"
             >
-              <Plus :size="16" />Создать папку внутри</button
+              <Plus :size="16" />Создать подпапку</button
             ><template v-if="hasSelection && !folder.archived_at"
               ><button :disabled="busy" @click="assign(folder)">
-                {{ mode === 'program' ? 'Переместить сюда' : 'Добавить выбранные' }}</button
-              ><button :disabled="busy" @click="assign(folder, true)">Убрать выбранные</button></template
+                {{ mode === 'program' ? 'Переместить сюда' : 'Добавить в категорию' }}</button
+              ><button :disabled="busy" @click="assign(folder, true)">
+                {{ mode === 'program' ? 'Убрать из папки' : 'Убрать из категории' }}
+              </button></template
             ><button :disabled="busy" @click="rename(folder)">Переименовать</button
             ><button :disabled="busy" @click="change(folder, { archived: !folder.archived_at })">
               {{ folder.archived_at ? 'Восстановить' : 'В архив — документы сохранятся' }}
@@ -335,29 +346,35 @@ defineExpose({ refresh: load });
     <p v-if="!loading && !visibleItems.length && !error" class="muted">
       {{
         archived
-          ? 'В архиве папок пока нет.'
-          : mode === 'program' && selectedFolder
-            ? 'Вложенных папок пока нет. Здесь можно создать новую папку.'
-            : 'Создайте папку, чтобы собрать занятия по теме. Документы можно перетаскивать на неё или добавлять через меню «⋮».'
+          ? mode === 'program'
+            ? 'В архиве папок пока нет.'
+            : 'В архиве категорий пока нет.'
+          : mode === 'category'
+            ? 'Создайте категорию, чтобы собрать практики по теме.'
+            : selectedFolder
+              ? 'Подпапок пока нет.'
+              : 'Создайте папку, чтобы собрать занятия по теме.'
       }}
     </p>
     <Modal
       :open="creating"
-      :title="mode === 'program' ? 'Новая папка' : 'Новая категория практик'"
+      :title="
+        mode === 'category' ? 'Новая категория практик' : createParent ? 'Новая подпапка' : 'Новая папка'
+      "
       @close="!busy && (creating = false)"
       ><form id="folder-create" @submit.prevent="create">
         <p v-if="mode === 'program'" class="muted">
-          В папке:
           {{
             createParent
-              ? pathTo(createParent)
+              ? 'Место создания · ' +
+                pathTo(createParent)
                   .map((parent) => parent.name)
                   .join(' / ')
-              : 'Программы и циклы'
+              : 'Место создания · Программы и циклы'
           }}
         </p>
         <label class="field"
-          ><span class="label">Название</span
+          ><span class="label">{{ mode === 'program' ? 'Название папки' : 'Название категории' }}</span
           ><input
             v-model="name"
             class="input"
@@ -377,33 +394,6 @@ defineExpose({ refresh: load });
   </section>
 </template>
 <style scoped>
-.folder-breadcrumbs {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-block: 14px;
-  color: var(--muted);
-}
-.folder-breadcrumbs button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-.folder-breadcrumbs button[aria-current='page'],
-.folder-breadcrumbs button:hover {
-  color: var(--accent-dark);
-  background: var(--accent-soft);
-}
 .folder-heading {
   display: flex;
   align-items: center;
