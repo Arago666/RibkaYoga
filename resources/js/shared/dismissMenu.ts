@@ -19,8 +19,8 @@ export const dismissMenu: ObjectDirective<HTMLElement> = {
         const top = (viewport?.offsetTop ?? 0) + 8;
         const width = viewport?.width ?? window.innerWidth;
         let bottom = top + (viewport?.height ?? window.innerHeight) - 16;
-        const navigation = document.querySelector<HTMLElement>('.main-nav');
-        if (navigation && getComputedStyle(navigation).position === 'fixed') {
+        const navigation = document.querySelector<HTMLElement>('.app-shell > .main-nav');
+        if (navigation && getComputedStyle(navigation).visibility === 'visible') {
           const nav = navigation.getBoundingClientRect();
           if (nav.top > top && nav.top < bottom) bottom = nav.top - 8;
         }

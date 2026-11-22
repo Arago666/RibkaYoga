@@ -2615,6 +2615,7 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 .embedded-editor :deep(.app-header),
+.embedded-editor :deep(.main-nav),
 .embedded-editor :deep(.app-breadcrumbs),
 .embedded-editor :deep(.app-footer) {
   display: none;

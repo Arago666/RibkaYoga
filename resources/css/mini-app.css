@@ -21,23 +21,18 @@
   body {
     background: #fbfcf9;
   }
-  .app-shell {
-    padding-bottom: calc(100px + var(--app-safe-bottom));
-  }
   .app-shell .app-header {
     margin-top: max(10px, var(--app-safe-top));
   }
-  .app-shell .main-nav {
-    bottom: calc(10px + var(--app-safe-bottom));
-    left: calc(12px + var(--app-safe-left));
-    right: calc(12px + var(--app-safe-right));
+  .app-shell > .main-nav {
+    --dock-inset: calc(10px + var(--app-safe-bottom));
+    bottom: var(--dock-inset);
+    margin: 0 12px var(--dock-inset);
+    margin-inline: max(12px, var(--app-safe-left)) max(12px, var(--app-safe-right));
     border-radius: 32px;
-    background: rgb(255 255 255 / 96%);
     box-shadow:
       0 8px 36px #183d2920,
       inset 0 1px 0 #fff;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
   }
   .app-shell .main-nav > .nav-link,
   .app-shell .main-nav > .more-nav {
@@ -69,8 +64,8 @@
   .modal-footer {
     padding-bottom: max(16px, var(--app-safe-bottom));
   }
-  html[data-keyboard='open'] .app-shell .main-nav {
-    display: none;
+  html[data-keyboard='open'] .app-shell > .main-nav {
+    visibility: hidden;
   }
   html[data-keyboard='open'] .modal-content {
     top: calc(var(--app-safe-top) + 10px);
@@ -90,6 +85,11 @@
   }
   .app-shell button {
     touch-action: manipulation;
+  }
+}
+@media print {
+  .app-shell > .main-nav {
+    display: none;
   }
 }
 html[data-mini-app='telegram'] {

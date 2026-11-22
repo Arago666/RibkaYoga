@@ -12,6 +12,7 @@
     --section-gap: 18px;
     --control-height: 48px;
     --panel-radius: 22px;
+    min-height: 100dvh;
   }
   .app-shell .app-header {
     margin-top: max(10px, env(safe-area-inset-top));
@@ -20,12 +21,6 @@
   }
   .app-shell .app-main {
     margin-top: 22px;
-  }
-  .app-shell .main-nav {
-    left: 10px;
-    right: 10px;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    min-height: 68px;
   }
   .app-shell .main-nav .nav-link {
     font-size: 11px;
